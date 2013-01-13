@@ -418,7 +418,7 @@ main (int argc, char **argv)
 	    break;
 	switch (c) {
 	case 'h':
-	    printf("Usage: parsecvs [OPTIONS] [FILE]...\n"
+	    printf("Usage: cvs-fast-export [OPTIONS] [FILE]...\n"
 		   "Parse RCS files and emit a fast-import stream.\n\n"
                    "Mandatory arguments to long options are mandatory for short options too.\n"
                    " -h --help                       This help\n"
@@ -431,7 +431,7 @@ main (int argc, char **argv)
 		   " -r --reposurgeon                Issue cvs-revision properties\n"
 		   " -T                              Force deteministic dates\n"
 		   "\n"
-		   "Example: find -name '*,v' | parsecvs\n");
+		   "Example: find -name '*,v' | cvs-fast-export\n");
 	    return 0;
 	case 'g':
 	    rev_mode = ExecuteGraph;
@@ -530,7 +530,7 @@ main (int argc, char **argv)
 	fn_head = fn_head->next;
 	++load_current_file;
 	if (verbose)
-	    fprintf(stderr, "parsecvs: processing %s\n", fn->file);
+	    fprintf(stderr, "Processing %s\n", fn->file);
 	load_status (fn->file + strip);
 	rl = rev_list_file (fn->file, &nversions);
 	if (rl->watch)

@@ -1,7 +1,7 @@
-		parsecvs project news
+		cvs-fast-export project news
 
 0.1 @ 2006-03-09
-    Original code by Keith Packard.
+    Original code by Keith Packard; traveled as 'parsecvs'.
 
 0.2 @
     Code revamped to emit a fast-export stream. Manual page added.

@@ -48,7 +48,7 @@ export_filename (rev_file *file, int strip)
     
     if (strlen (file->name) - strip >= MAXPATHLEN)
     {
-	fprintf(stderr, "parsecvs: file name %s\n too long\n", file->name);
+	fprintf(stderr, "File name %s\n too long\n", file->name);
 	exit(1);
     }
     strcpy (name, file->name + strip);
