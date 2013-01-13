@@ -3,5 +3,5 @@
 0.1 @ 2006-03-09
     Original code by Keith Packard; traveled as 'parsecvs'.
 
-0.2 @
+0.2 @ 2012-01-12
     Code revamped to emit a fast-export stream. Manual page added.
