@@ -540,7 +540,7 @@ main (int argc, char **argv)
 
 	free(fn);
     }
-    if (skew_vulnerable > 0)
+    if (skew_vulnerable > 0 && load_total_files > 1)
 	fprintf(stderr, "Commits before this date lack commitids: %s",
 		ctime(&skew_vulnerable));
     load_status_next ();
