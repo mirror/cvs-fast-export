@@ -6,7 +6,7 @@ INSTALL = install
 prefix?=/usr/local
 target=$(DESTDIR)$(prefix)
 
-VERSION=0.2
+VERSION=0.3
 
 GCC_WARNINGS1=-Wall -Wpointer-arith -Wstrict-prototypes
 GCC_WARNINGS2=-Wmissing-prototypes -Wmissing-declarations
@@ -54,7 +54,7 @@ install: cvs-fast-export.1 all
 cppcheck:
 	cppcheck --template gcc --enable=all -UUNUSED --suppress=unusedStructMember *.[ch]
 
-SOURCES = Makefile *.[ch]
+SOURCES = Makefile *.[ch] *.[yl]
 DOCS = README COPYING NEWS AUTHORS control cvs-fast-export.asc
 ALL =  $(SOURCES) $(DOCS)
 cvs-fast-export-$(VERSION).tar.gz: $(ALL)

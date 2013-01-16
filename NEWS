@@ -5,3 +5,6 @@
 
 0.2 @ 2012-01-12
     Code revamped to emit a fast-export stream. Manual page added.
+
+0.3 @ 2012-01-16
+    Fix a bonehead packaging error.
