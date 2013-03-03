@@ -1,10 +1,15 @@
 		cvs-fast-export project news
 
-0.1 @ 2006-03-09
-    Original code by Keith Packard; traveled as 'parsecvs'.
+0.4
+    Fix buggy handling of -k option.
+
+0.3 @ 2012-01-16
+    Fix a bonehead packaging error.
 
 0.2 @ 2012-01-12
     Code revamped to emit a fast-export stream. Manual page added.
 
-0.3 @ 2012-01-16
-    Fix a bonehead packaging error.
+0.1 @ 2006-03-09
+    Original code by Keith Packard; traveled as 'parsecvs'.
+
+

@@ -413,7 +413,7 @@ main (int argc, char **argv)
 	    { "reposurgeon",        1, 0, 'r' },
             { "graph",              0, 0, 'g' },
 	};
-	int c = getopt_long(argc, argv, "+hVw:grvA:R:T", options, NULL);
+	int c = getopt_long(argc, argv, "+hVw:grvA:R:Tk", options, NULL);
 	if (c < 0)
 	    break;
 	switch (c) {
