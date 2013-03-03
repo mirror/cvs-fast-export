@@ -55,7 +55,7 @@ cppcheck:
 	cppcheck --template gcc --enable=all -UUNUSED --suppress=unusedStructMember *.[ch]
 
 SOURCES = Makefile *.[ch] *.[yl]
-DOCS = README COPYING NEWS AUTHORS control cvs-fast-export.asc
+DOCS = README COPYING NEWS AUTHORS BUGS control cvs-fast-export.asc
 ALL =  $(SOURCES) $(DOCS)
 cvs-fast-export-$(VERSION).tar.gz: $(ALL)
 	tar --transform='s:^:cvs-fast-export-$(VERSION)/:' --show-transformed-names -cvzf cvs-fast-export-$(VERSION).tar.gz $(ALL)

@@ -18,14 +18,5 @@ maintained by Bart Massey before passing to Eric S. Raymond in
 late 2012; ESR wrote the fast-export output stage and renamed the
 program to reflect its new function.
 
-One paragraph from Keith's original notes is still relevant:
-
-	Disjoint branch resolution. Branches occurring in a subset of the
-	files are not correctly resolved; instead, an entirely disjoint
-	history will be created containing the branch revisions and all
-	parents back to the root. I'm not sure how to fix this; it seems
-	to implicitly assume there will be only a single place to attach as
-	branch parent, which may not be the case. In any case, the right
-	revision will have a superset of the revisions present in the
-	original branch parent; perhaps that will suffice.
+See also the NEWS and BUGS files.
 
