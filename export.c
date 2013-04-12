@@ -185,8 +185,16 @@ export_commit(rev_commit *commit, char *branch, int strip)
 		}
 	    }
 	    if (!present || changed) {
+
+		// git fast-import only supports 644 and 755 file modes
+		mode_t git_mode;
+		if (f->mode & 0100)
+			git_mode = 0755;
+		else
+			git_mode = 0644;
+
 		printf("M 100%o :%d %s\n", 
-		       (f->mode & 0777) | 0200, 
+		       git_mode,
 		       f->mark, stripped);
 		if (revision_map || reposurgeon) {
 		    char *fr = stringify_revision(stripped, " ", &f->number);
