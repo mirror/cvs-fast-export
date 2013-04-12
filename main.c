@@ -38,6 +38,7 @@ bool reposurgeon;
 FILE *revision_map;
 static int verbose = 0;
 static rev_execution_mode rev_mode = ExecuteExport;
+char *branch_prefix = "refs/heads/";
 
 char *
 stringify_revision (char *name, char *sep, cvs_number *number)
@@ -412,8 +413,9 @@ main (int argc, char **argv)
 	    { "revision-map",       1, 0, 'R' },
 	    { "reposurgeon",        0, 0, 'r' },
             { "graph",              0, 0, 'g' },
+            { "remote",             1, 0, 'e' },
 	};
-	int c = getopt_long(argc, argv, "+hVw:grvA:R:Tk", options, NULL);
+	int c = getopt_long(argc, argv, "+hVw:grvA:R:Tke:", options, NULL);
 	if (c < 0)
 	    break;
 	switch (c) {
@@ -430,6 +432,7 @@ main (int argc, char **argv)
 		   " -R --revision-map               Revision map file\n"
 		   " -r --reposurgeon                Issue cvs-revision properties\n"
 		   " -T                              Force deteministic dates\n"
+			" -e --remote                     relocate branches to refs/remotes/REMOTE\n"
 		   "\n"
 		   "Example: find -name '*,v' | cvs-fast-export\n");
 	    return 0;
@@ -464,6 +467,10 @@ main (int argc, char **argv)
 	case 'T':
 	    force_dates = true;
 	    break;
+	case 'e':
+	    branch_prefix = (char*) malloc(strlen(optarg) + 15);
+       sprintf(branch_prefix, "refs/remotes/%s/", optarg);
+			break;
 	default: /* error message already emitted */
 	    fprintf(stderr, "Try `%s --help' for more information.\n", argv[0]);
 	    return 1;

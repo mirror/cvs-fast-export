@@ -145,7 +145,7 @@ export_commit(rev_commit *commit, char *branch, int strip)
 	timezone = author->timezone ? author->timezone : "UTC";
     }
 
-    printf("commit refs/heads/%s\n", branch);
+    printf("commit %s%s\n", branch_prefix, branch);
     printf("mark :%d\n", ++mark);
     commit->mark = mark;
     ct = force_dates ? mark * commit_time_window * 2 : commit->date;
@@ -290,7 +290,7 @@ export_commits (rev_list *rl, int strip)
 	if (!h->tail)
 	    if (!export_commit_recurse (h, h->commit, strip))
 		return false;
-	printf("reset refs/heads/%s\nfrom :%d\n\n", h->name, h->commit->mark);
+	printf("reset %s%s\nfrom :%d\n\n", branch_prefix, h->name, h->commit->mark);
     }
     fprintf (STATUS, "\n");
     return true;
