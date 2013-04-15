@@ -171,6 +171,9 @@ static void try_pair(Node *a, Node *b)
 void build_branches(void)
 /* set head_node global and build branch links in the node list */ 
 {
+	if (entries == 0)
+		return;
+
 	Node **v = malloc(sizeof(Node *) * entries), **p = v;
 	int i;
 

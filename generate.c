@@ -833,6 +833,9 @@ static void enter_branch(Node *node)
 
 void generate_files(cvs_file *cvs, void (*hook)(Node *node, void *buf, unsigned long len))
 {
+	if (head_node == NULL)
+		return;
+
 	int expandflag = Gexpand < EXPANDKO;
 	Node *node = head_node;
 	depth = 0;

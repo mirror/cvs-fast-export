@@ -85,6 +85,9 @@ rev_branch_cvs (cvs_file *cvs, cvs_number *branch)
 	head = c;
     }
 
+	if (head == NULL)
+		return NULL;
+
     /*
      * Make sure the dates along the branch are well ordered. As we
      * want to preserve current data, push previous versions back to
