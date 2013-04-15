@@ -414,8 +414,9 @@ main (int argc, char **argv)
 	    { "reposurgeon",        0, 0, 'r' },
             { "graph",              0, 0, 'g' },
             { "remote",             1, 0, 'e' },
+            { "strip",             1, 0, 's' },
 	};
-	int c = getopt_long(argc, argv, "+hVw:grvA:R:Tke:", options, NULL);
+	int c = getopt_long(argc, argv, "+hVw:grvA:R:Tke:s:", options, NULL);
 	if (c < 0)
 	    break;
 	switch (c) {
@@ -433,6 +434,7 @@ main (int argc, char **argv)
 		   " -r --reposurgeon                Issue cvs-revision properties\n"
 		   " -T                              Force deteministic dates\n"
 			" -e --remote                     relocate branches to refs/remotes/REMOTE\n"
+			" -s --strip PREFIX              Strip the given prefix instead of longest common prefix\n"
 		   "\n"
 		   "Example: find -name '*,v' | cvs-fast-export\n");
 	    return 0;
@@ -471,6 +473,9 @@ main (int argc, char **argv)
 	    branch_prefix = (char*) malloc(strlen(optarg) + 15);
        sprintf(branch_prefix, "refs/remotes/%s/", optarg);
 			break;
+	case 's':
+		strip = strlen(optarg) + 1;
+		break;
 	default: /* error message already emitted */
 	    fprintf(stderr, "Try `%s --help' for more information.\n", argv[0]);
 	    return 1;
@@ -511,7 +516,7 @@ main (int argc, char **argv)
 	fn->file = atom (file);
 	*fn_tail = fn;
 	fn_tail = &fn->next;
-	if (strip > 0) {
+	if (strip > 0 && last != NULL) {
 	    c = strcommon (fn->file, last);
 	    if (c < strip)
 		strip = c;
