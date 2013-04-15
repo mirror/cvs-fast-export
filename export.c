@@ -38,12 +38,22 @@ export_blob(Node *node, void *buf, unsigned long len)
     putchar('\n');
 }
 
+void drop_path_component(char *string, const char *drop) {
+    char *c;
+	int  l, m;
+	m = strlen(drop);
+    while ((c = strstr (string, drop)) &&
+	   (c == string || c[-1] == '/'))
+    {
+	l = strlen (c);
+	memmove (c, c + m, l - m + 1);
+    }
+}
+
 static char *
 export_filename (rev_file *file, int strip)
 {
     static char name[PATH_MAX];
-    char    *attic;
-    int	    l;
     int	    len;
     
     if (strlen (file->name) - strip >= MAXPATHLEN)
@@ -52,12 +62,8 @@ export_filename (rev_file *file, int strip)
 	exit(1);
     }
     strcpy (name, file->name + strip);
-    while ((attic = strstr (name, "Attic/")) &&
-	   (attic == name || attic[-1] == '/'))
-    {
-	l = strlen (attic);
-	memmove (attic, attic + 6, l - 5);
-    }
+	drop_path_component(name, "Attic/");
+	drop_path_component(name, "RCS/");
     len = strlen (name);
     if (len > 2 && !strcmp (name + len - 2, ",v"))
 	name[len-2] = '\0';
