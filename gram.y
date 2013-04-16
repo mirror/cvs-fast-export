@@ -182,7 +182,7 @@ commitid	: COMMITID NAME SEMI
 		  { $$ = $2; }
 		;
 desc		: DESC DATA
-		  { $$ = $2; }
+		  { this_file->description = $2; }
 		;
 patches		: patches patch
 		  { *$1 = $2; $$ = &$2->next; }
@@ -192,7 +192,10 @@ patches		: patches patch
 patch		: NUMBER log text
 		  { $$ = calloc (1, sizeof (cvs_patch));
 		    $$->number = $1;
-		    $$->log = $2;
+			if (!strcmp($2, "Initial revision\n"))
+				$$->log = this_file->description;
+			else
+				$$->log = $2;
 		    $$->text = $3;
 		    hash_patch($$);
 		  }

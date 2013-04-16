@@ -107,6 +107,7 @@ typedef struct {
     mode_t		mode;
     int			nversions;
     char 		*expand;
+	char		*description;
 } cvs_file;
 
 typedef struct _rev_file {
