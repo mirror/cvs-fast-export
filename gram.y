@@ -192,9 +192,12 @@ patches		: patches patch
 patch		: NUMBER log text
 		  { $$ = calloc (1, sizeof (cvs_patch));
 		    $$->number = $1;
-			if (!strcmp($2, "Initial revision\n"))
-				$$->log = this_file->description;
-			else
+			if (!strcmp($2, "Initial revision\n")) {
+				if (strlen(this_file->description) == 0)
+					$$->log = strdup("*** empty log message ***\n");
+				else
+					$$->log = this_file->description;
+			} else
 				$$->log = $2;
 		    $$->text = $3;
 		    hash_patch($$);
