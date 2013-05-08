@@ -256,23 +256,6 @@ export_commit(rev_commit *commit, char *branch, int strip)
 }
 
 static int
-export_commit_recurse (rev_ref *head, rev_commit *commit, int strip)
-{
-    Tag *t;
-    
-    if (commit->parent && !commit->tail)
-	    if (!export_commit_recurse (head, commit->parent, strip))
-		return 0;
-    ++export_current_commit;
-    export_status ();
-    export_commit (commit, head->name, strip);
-    for (t = all_tags; t; t = t->next)
-	if (t->commit == commit)
-	    printf("reset refs/tags/%s\nfrom :%d\n\n", t->name, commit->mark);
-    return 1;
-}
-
-static int
 export_ncommit (rev_list *rl)
 {
     rev_ref	*h;
@@ -294,20 +277,47 @@ export_ncommit (rev_list *rl)
 bool
 export_commits (rev_list *rl, int strip)
 {
-    rev_ref *h;
+	rev_ref *h;
+	Tag *t;
+	rev_commit *c;
+	rev_commit **history;
+	int alloc, n, i;
 
-    export_total_commits = export_ncommit (rl);
-    export_current_commit = 0;
-    for (h = rl->heads; h; h = h->next) 
-    {
-	export_current_head = h->name;
-	if (!h->tail)
-	    if (!export_commit_recurse (h, h->commit, strip))
-		return false;
-	printf("reset %s%s\nfrom :%d\n\n", branch_prefix, h->name, h->commit->mark);
-    }
-    fprintf (STATUS, "\n");
-    return true;
+	export_total_commits = export_ncommit (rl);
+	export_current_commit = 0;
+	for (h = rl->heads; h; h = h->next) {
+		export_current_head = h->name;
+		if (!h->tail) {
+			// We need to export commits in reverse order; so first of all, we
+			// convert the linked-list given by h->commit into the array
+			// "history".
+			history = NULL;
+			alloc = 0;
+			for (c=h->commit, n=0; c; c=(c->tail ? NULL : c->parent), n++) {
+				if (n >= alloc) {
+					alloc += 100;
+					history = (rev_commit **) realloc(history, alloc * sizeof(rev_commit*));
+				}
+				history[n] = c;
+			}
+
+			// Now walk the history array in reverse order and export the
+			// commits, along with any matching tags.
+			for (i=n-1; i>=0; i--) {
+				++export_current_commit;
+				export_status ();
+				export_commit (history[i], h->name, strip);
+				for (t = all_tags; t; t = t->next)
+					if (t->commit == history[i])
+						printf("reset refs/tags/%s\nfrom :%d\n\n", t->name, history[i]->mark);
+			}
+
+			free(history);
+		}
+		printf("reset %s%s\nfrom :%d\n\n", branch_prefix, h->name, h->commit->mark);
+	}
+	fprintf (STATUS, "\n");
+	return true;
 }
 
 #define PROGRESS_LEN	20
