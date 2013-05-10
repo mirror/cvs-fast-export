@@ -119,10 +119,10 @@ export_status (void)
     int	spot = export_current_commit * PROGRESS_LEN / export_total_commits;
     int	s;
 
-    fprintf (STATUS, "Save: %35.35s ", export_current_head);
+    fprintf (STATUS, "\rSave: %35.35s ", export_current_head);
     for (s = 0; s < PROGRESS_LEN + 1; s++)
 	putc (s == spot ? '*' : '.', STATUS);
-    fprintf (STATUS, " %5d of %5d\n", export_current_commit, export_total_commits);
+    fprintf (STATUS, " %5d of %5d ", export_current_commit, export_total_commits);
     fflush (STATUS);
 }
 
@@ -314,6 +314,8 @@ export_commits (rev_list *rl, int strip)
 
 			free(history);
 		}
+		fprintf(STATUS, "\n");
+		fflush(STATUS);
 		printf("reset %s%s\nfrom :%d\n\n", branch_prefix, h->name, h->commit->mark);
 	}
 	fprintf (STATUS, "\n");
@@ -331,10 +333,10 @@ void load_status (char *name)
     l = strlen (name);
     if (l > 35) name += l - 35;
 
-    fprintf (STATUS, "Load: %35.35s ", name);
+    fprintf (STATUS, "\rLoad: %35.35s ", name);
     for (s = 0; s < PROGRESS_LEN + 1; s++)
 	putc (s == spot ? '*' : '.', STATUS);
-    fprintf (STATUS, " %5d of %5d\n", load_current_file, load_total_files);
+    fprintf (STATUS, " %5d of %5d ", load_current_file, load_total_files);
     fflush (STATUS);
 }
 
