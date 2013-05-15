@@ -38,7 +38,8 @@ export_blob(Node *node, void *buf, unsigned long len)
     putchar('\n');
 }
 
-void drop_path_component(char *string, const char *drop) {
+void drop_path_component(char *string, const char *drop)
+{
     char *c;
 	int  l, m;
 	m = strlen(drop);
