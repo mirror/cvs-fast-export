@@ -414,7 +414,7 @@ main (int argc, char **argv)
 	    { "reposurgeon",        0, 0, 'r' },
             { "graph",              0, 0, 'g' },
             { "remote",             1, 0, 'e' },
-            { "strip",             1, 0, 's' },
+            { "strip",              1, 0, 's' },
 	};
 	int c = getopt_long(argc, argv, "+hVw:grvA:R:Tke:s:", options, NULL);
 	if (c < 0)
@@ -433,8 +433,8 @@ main (int argc, char **argv)
 		   " -R --revision-map               Revision map file\n"
 		   " -r --reposurgeon                Issue cvs-revision properties\n"
 		   " -T                              Force deteministic dates\n"
-			" -e --remote                     relocate branches to refs/remotes/REMOTE\n"
-			" -s --strip PREFIX              Strip the given prefix instead of longest common prefix\n"
+                   " -e --remote                     Relocate branches to refs/remotes/REMOTE\n"
+                   " -s --strip                      Strip the given prefix instead of longest common prefix\n"
 		   "\n"
 		   "Example: find -name '*,v' | cvs-fast-export\n");
 	    return 0;
