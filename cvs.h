@@ -114,7 +114,7 @@ typedef struct _rev_file {
     char		*name;
     cvs_number		number;
     time_t		date;
-    int                 mark;
+    int                 serial;
     mode_t		mode;
     struct _rev_file	*link;
 } rev_file;
@@ -151,7 +151,7 @@ typedef struct _rev_commit {
     char		*log;
     char		*author;
     char		*commitid;
-    int                 mark;
+    int                 serial;
     struct _rev_commit	*user;
     rev_file		*file;		/* first file */
     int			nfiles;

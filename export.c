@@ -20,13 +20,13 @@
 #include <assert.h>
 #include "cvs.h"
 
-static int mark;
+static int serial;
 static char blobdir[PATH_MAX];
 
 void
 export_init(void)
 {
-    mark = 0;
+    serial = 0;
     snprintf(blobdir, sizeof(blobdir), "/tmp/cvs-fast-export-%d", getpid());
     mkdir(blobdir, 0770);
 }
@@ -44,14 +44,11 @@ export_blob(Node *node, void *buf, unsigned long len)
 {
     FILE *wfp;
     
-    node->file->mark = ++mark;
+    node->file->serial = ++serial;
 
-    fprintf(stderr, "Writing %d\n", mark);
-    wfp = fopen(blobfile(mark), "w");
+    wfp = fopen(blobfile(serial), "w");
     assert(wfp);
-    fprintf(wfp, 
-	    "blob\nmark :%d\ndata %zd\n", 
-	    node->file->mark, len);
+    fprintf(wfp, "data %zd\n", len);
     fwrite(buf, len, sizeof(char), wfp);
     fputc('\n', wfp);
     (void)fclose(wfp);
@@ -171,7 +168,7 @@ export_commit(rev_commit *commit, char *branch, int strip)
     struct fileop {
 	char op;
 	mode_t mode;
-	int mark;
+	int serial;
 	char path[PATH_MAX];
     };
     struct fileop *operations, *op, *op2;
@@ -202,7 +199,7 @@ export_commit(rev_commit *commit, char *branch, int strip)
 			f2 = dir2->files[j2];
 			if (strcmp(f->name, f2->name) == 0) {
 			    present = true;
-			    changed = (f->mark != f2->mark);
+			    changed = (f->serial != f2->serial);
 			}
 		    }
 		}
@@ -215,9 +212,9 @@ export_commit(rev_commit *commit, char *branch, int strip)
 			op->mode = 0755;
 		else
 			op->mode = 0644;
-		op->mark = f->mark;
-		if (op->mark > maxblob)
-		    maxblob = op->mark;
+		op->serial = f->serial;
+		if (op->serial > maxblob)
+		    maxblob = op->serial;
 		(void)strncpy(op->path, stripped, PATH_MAX-1);
 		op++;
 		if (op > operations + noperations)
@@ -229,7 +226,7 @@ export_commit(rev_commit *commit, char *branch, int strip)
 		if (revision_map || reposurgeon) {
 		    char *fr = stringify_revision(stripped, " ", &f->number);
 		    if (revision_map)
-			fprintf(revision_map, "%s :%d\n", fr, f->mark);
+			fprintf(revision_map, "%s :%d\n", fr, f->serial);
 		    if (reposurgeon)
 		    {
 			if (strlen(revpairs) + strlen(fr) + 2 > revpairsize)
@@ -285,6 +282,7 @@ export_commit(rev_commit *commit, char *branch, int strip)
 	char c;
 	if (rfp)
 	{
+	    printf("blob\nmark :%d\n", i);
 	    while ((c = fgetc(rfp)) != EOF)
 		putchar(c);
 	    (void) unlink(fn);
@@ -304,21 +302,21 @@ export_commit(rev_commit *commit, char *branch, int strip)
     }
 
     printf("commit %s%s\n", branch_prefix, branch);
-    printf("mark :%d\n", ++mark);
-    commit->mark = mark;
-    ct = force_dates ? mark * commit_time_window * 2 : commit->date;
+    printf("mark :%d\n", ++serial);
+    commit->serial = serial;
+    ct = force_dates ? serial * commit_time_window * 2 : commit->date;
     ts = utc_offset_timestamp(&ct, timezone);
     printf("author %s <%s> %s\n", full, email, ts);
     printf("committer %s <%s> %s\n", full, email, ts);
     printf("data %zd\n%s\n", strlen(commit->log), commit->log);
     if (commit->parent)
-	printf("from :%d\n", commit->parent->mark);
+	printf("from :%d\n", commit->parent->serial);
 
     for (op2 = operations; op2 < op; op2++)
     {
 	assert(op2->op == 'M' || op2->op == 'D');
 	if (op2->op == 'M')
-	    printf("M 100%o :%d %s\n", op2->mode, op2->mark, op2->path);
+	    printf("M 100%o :%d %s\n", op2->mode, op2->serial, op2->path);
 	if (op2->op == 'D')
 	    printf("D %s\n", op2->path);
     }
@@ -388,14 +386,14 @@ export_commits (rev_list *rl, int strip)
 				export_commit (history[i], h->name, strip);
 				for (t = all_tags; t; t = t->next)
 					if (t->commit == history[i])
-						printf("reset refs/tags/%s\nfrom :%d\n\n", t->name, history[i]->mark);
+						printf("reset refs/tags/%s\nfrom :%d\n\n", t->name, history[i]->serial);
 			}
 
 			free(history);
 		}
 		fprintf(STATUS, "\n");
 		fflush(STATUS);
-		printf("reset %s%s\nfrom :%d\n\n", branch_prefix, h->name, h->commit->mark);
+		printf("reset %s%s\nfrom :%d\n\n", branch_prefix, h->name, h->commit->serial);
 	}
 	fprintf (STATUS, "\n");
 	return true;
