@@ -17,28 +17,48 @@
  */
 
 #include <limits.h>
+#include <assert.h>
 #include "cvs.h"
 
 static int mark;
+static char blobdir[PATH_MAX];
 
 void
 export_init(void)
 {
     mark = 0;
+    snprintf(blobdir, sizeof(blobdir), "/tmp/cvs-fast-export-%d", getpid());
+    mkdir(blobdir, 0770);
+}
+
+static char *
+blobfile(int m)
+{
+    static char path[PATH_MAX];
+    (void)snprintf(path, sizeof(path), "%s/%d", blobdir, m);
+    return path;
 }
 
 void 
 export_blob(Node *node, void *buf, unsigned long len)
 {
+    FILE *wfp;
+    
     node->file->mark = ++mark;
 
-    printf("blob\nmark :%d\ndata %zd\n", 
-	   node->file->mark, len);
-    fwrite(buf, len, sizeof(char), stdout);
-    putchar('\n');
+    fprintf(stderr, "Writing %d\n", mark);
+    wfp = fopen(blobfile(mark), "w");
+    assert(wfp);
+    fprintf(wfp, 
+	    "blob\nmark :%d\ndata %zd\n", 
+	    node->file->mark, len);
+    fwrite(buf, len, sizeof(char), wfp);
+    fputc('\n', wfp);
+    (void)fclose(wfp);
 }
 
-void drop_path_component(char *string, const char *drop)
+static void 
+drop_path_component(char *string, const char *drop)
 {
     char *c;
 	int  l, m;
@@ -79,6 +99,11 @@ export_filename (rev_file *file, int strip)
     return name;
 }
 
+void export_wrap(void)
+{
+    (void)rmdir(blobdir);
+}
+
 static const char *utc_offset_timestamp(const time_t *timep, const char *tz)
 {
     static char outbuf[BUFSIZ];
@@ -107,6 +132,7 @@ static const char *utc_offset_timestamp(const time_t *timep, const char *tz)
     return outbuf;
 }
 
+static int export_current_blob = 0;
 static int export_total_commits;
 static int export_current_commit;
 static char *export_current_head;
@@ -130,6 +156,7 @@ export_status (void)
 static void
 export_commit(rev_commit *commit, char *branch, int strip)
 {
+#define OP_CHUNK	32
     cvs_author *author;
     char *full;
     char *email;
@@ -140,28 +167,15 @@ export_commit(rev_commit *commit, char *branch, int strip)
     time_t ct;
     rev_file	*f, *f2;
     int		i, j, i2, j2;
-
-    author = fullname(commit->author);
-    if (!author) {
-	full = commit->author;
-	email = commit->author;
-	timezone = "UTC";
-    } else {
-	full = author->full;
-	email = author->email;
-	timezone = author->timezone ? author->timezone : "UTC";
-    }
-
-    printf("commit %s%s\n", branch_prefix, branch);
-    printf("mark :%d\n", ++mark);
-    commit->mark = mark;
-    ct = force_dates ? mark * commit_time_window * 2 : commit->date;
-    ts = utc_offset_timestamp(&ct, timezone);
-    printf("author %s <%s> %s\n", full, email, ts);
-    printf("committer %s <%s> %s\n", full, email, ts);
-    printf("data %zd\n%s\n", strlen(commit->log), commit->log);
-    if (commit->parent)
-	printf("from :%d\n", commit->parent->mark);
+    int maxblob = 0;
+    struct fileop {
+	char op;
+	mode_t mode;
+	int mark;
+	char path[PATH_MAX];
+    };
+    struct fileop *operations, *op, *op2;
+    int noperations;
 
     if (reposurgeon)
     {
@@ -169,6 +183,8 @@ export_commit(rev_commit *commit, char *branch, int strip)
 	revpairs[0] = '\0';
     }
 
+    noperations = OP_CHUNK;
+    op = operations = xmalloc(sizeof(struct fileop) * noperations);
     for (i = 0; i < commit->ndirs; i++) {
 	rev_dir	*dir = commit->dirs[i];
 	
@@ -193,16 +209,23 @@ export_commit(rev_commit *commit, char *branch, int strip)
 	    }
 	    if (!present || changed) {
 
+		op->op = 'M';
 		// git fast-import only supports 644 and 755 file modes
-		mode_t git_mode;
 		if (f->mode & 0100)
-			git_mode = 0755;
+			op->mode = 0755;
 		else
-			git_mode = 0644;
+			op->mode = 0644;
+		op->mark = f->mark;
+		if (op->mark > maxblob)
+		    maxblob = op->mark;
+		(void)strncpy(op->path, stripped, PATH_MAX-1);
+		op++;
+		if (op > operations + noperations)
+		{
+		    noperations += OP_CHUNK;
+		    operations = realloc(operations, sizeof(struct fileop) * noperations);
+		}
 
-		printf("M 100%o :%d %s\n", 
-		       git_mode,
-		       f->mark, stripped);
 		if (revision_map || reposurgeon) {
 		    char *fr = stringify_revision(stripped, " ", &f->number);
 		    if (revision_map)
@@ -240,11 +263,66 @@ export_commit(rev_commit *commit, char *branch, int strip)
 			}
 		    }
 		}
-		if (!present)
-		    printf("D %s\n", export_filename(f, strip));
+		if (!present) {
+		    op->op = 'D';
+		    (void)strncpy(op->path, 
+				  export_filename(f, strip),
+				  PATH_MAX-1);
+		    op++;
+		    if (op > operations + noperations)
+		    {
+			noperations += OP_CHUNK;
+			operations = realloc(operations, sizeof(struct fileop) * noperations);
+		    }
+		}
 	    }
 	}
     }
+
+    for (i = export_current_blob + 1; i <= maxblob; i++) {
+	char *fn = blobfile(i);
+	FILE *rfp = fopen(fn, "r");
+	char c;
+	if (rfp)
+	{
+	    while ((c = fgetc(rfp)) != EOF)
+		putchar(c);
+	    (void) unlink(fn);
+	}
+    }
+    export_current_blob = maxblob;
+
+    author = fullname(commit->author);
+    if (!author) {
+	full = commit->author;
+	email = commit->author;
+	timezone = "UTC";
+    } else {
+	full = author->full;
+	email = author->email;
+	timezone = author->timezone ? author->timezone : "UTC";
+    }
+
+    printf("commit %s%s\n", branch_prefix, branch);
+    printf("mark :%d\n", ++mark);
+    commit->mark = mark;
+    ct = force_dates ? mark * commit_time_window * 2 : commit->date;
+    ts = utc_offset_timestamp(&ct, timezone);
+    printf("author %s <%s> %s\n", full, email, ts);
+    printf("committer %s <%s> %s\n", full, email, ts);
+    printf("data %zd\n%s\n", strlen(commit->log), commit->log);
+    if (commit->parent)
+	printf("from :%d\n", commit->parent->mark);
+
+    for (op2 = operations; op2 < op; op2++)
+    {
+	assert(op2->op == 'M' || op2->op == 'D');
+	if (op2->op == 'M')
+	    printf("M 100%o :%d %s\n", op2->mode, op2->mark, op2->path);
+	if (op2->op == 'D')
+	    printf("D %s\n", op2->path);
+    }
+    free(operations);
 
     if (reposurgeon) 
     {
@@ -253,8 +331,8 @@ export_commit(rev_commit *commit, char *branch, int strip)
     }
 
     printf ("\n");
-
-}
+#undef OP_CHUNK
+    }
 
 static int
 export_ncommit (rev_list *rl)
