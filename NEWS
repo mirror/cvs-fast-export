@@ -1,12 +1,12 @@
 		cvs-fast-export project news
 
-0.4
+0.4 @ 2013-05-16
     Fix buggy handling of -k option.
     Add --remote (-e) and --stripprefix (-s) options.
     Avoid recursion overflow on very large repos.
     The fast-import stream ops are now emitted in the same order git uses.
 
-0.3 @ 2012-01-16
+0.3 @ 2013-01-16
     Fix a bonehead packaging error.
 
 0.2 @ 2012-01-12

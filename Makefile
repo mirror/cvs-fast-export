@@ -6,7 +6,7 @@ INSTALL = install
 prefix?=/usr/local
 target=$(DESTDIR)$(prefix)
 
-VERSION=0.3
+VERSION=0.4
 
 GCC_WARNINGS1=-Wall -Wpointer-arith -Wstrict-prototypes
 GCC_WARNINGS2=-Wmissing-prototypes -Wmissing-declarations
