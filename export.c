@@ -25,13 +25,13 @@ struct mark {
     bool emitted;
 };
 static struct mark *markmap;
-static int blobcount;
+static int seqno;
 static char blobdir[PATH_MAX];
 
 void
 export_init(void)
 {
-    blobcount = 0;
+    seqno = 0;
     snprintf(blobdir, sizeof(blobdir), "/tmp/cvs-fast-export-%d", getpid());
     mkdir(blobdir, 0770);
 }
@@ -49,9 +49,9 @@ export_blob(Node *node, void *buf, unsigned long len)
 {
     FILE *wfp;
     
-    node->file->serial = ++blobcount;
+    node->file->serial = ++seqno;
 
-    wfp = fopen(blobfile(blobcount), "w");
+    wfp = fopen(blobfile(seqno), "w");
     assert(wfp);
     fprintf(wfp, "data %zd\n", len);
     fwrite(buf, len, sizeof(char), wfp);
@@ -307,9 +307,9 @@ export_commit(rev_commit *commit, char *branch, int strip)
     }
 
     printf("commit %s%s\n", branch_prefix, branch);
-    printf("mark :%d\n", ++blobcount);
-    commit->serial = blobcount;
-    ct = force_dates ? blobcount * commit_time_window * 2 : commit->date;
+    printf("mark :%d\n", ++seqno);
+    commit->serial = seqno;
+    ct = force_dates ? seqno * commit_time_window * 2 : commit->date;
     ts = utc_offset_timestamp(&ct, timezone);
     printf("author %s <%s> %s\n", full, email, ts);
     printf("committer %s <%s> %s\n", full, email, ts);
@@ -366,7 +366,7 @@ export_commits (rev_list *rl, int strip)
     int alloc, n, i;
 
     export_total_commits = export_ncommit (rl);
-    markmap = xmalloc(sizeof(struct mark) * (blobcount + export_total_commits));
+    markmap = xmalloc(sizeof(struct mark) * (seqno + export_total_commits));
     export_current_commit = 0;
     for (h = rl->heads; h; h = h->next) {
 	export_current_head = h->name;
