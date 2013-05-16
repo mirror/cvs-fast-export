@@ -4,6 +4,7 @@
     Fix buggy handling of -k option.
     Add --remote (-e) and --stripprefix (-s) options.
     Avoid recursion overflow on very large repos.
+    The fast-import stream ops are now emitted in the same order git uses.
 
 0.3 @ 2012-01-16
     Fix a bonehead packaging error.

@@ -103,7 +103,7 @@ export_filename (rev_file *file, int strip)
 
 void export_wrap(void)
 {
-    //(void)rmdir(blobdir);
+    (void)rmdir(blobdir);
 }
 
 static const char *utc_offset_timestamp(const time_t *timep, const char *tz)
@@ -227,7 +227,7 @@ export_commit(rev_commit *commit, char *branch, int strip)
 		if (revision_map || reposurgeon) {
 		    char *fr = stringify_revision(stripped, " ", &f->number);
 		    if (revision_map)
-			fprintf(revision_map, "%s :%d\n", fr, markmap[f->serial]);
+			fprintf(revision_map, "%s :%d\n", fr, markmap[f->serial].external);
 		    if (reposurgeon)
 		    {
 			if (strlen(revpairs) + strlen(fr) + 2 > revpairsize)
@@ -279,6 +279,7 @@ export_commit(rev_commit *commit, char *branch, int strip)
 
     for (op2 = operations; op2 < op; op2++)
     {
+	//printf("OPVECTOR: %c %d %s %d\n", op2->op, op2->serial, op2->path, markmap[op2->serial].emitted);
 	if (op2->op == 'M' && !markmap[op2->serial].emitted)
 	{
 	    char *fn = blobfile(op2->serial);
@@ -290,7 +291,7 @@ export_commit(rev_commit *commit, char *branch, int strip)
 		printf("blob\nmark :%d\n", mark);
 		while ((c = fgetc(rfp)) != EOF)
 		    putchar(c);
-		//(void) unlink(fn);
+		(void) unlink(fn);
 		markmap[op2->serial].emitted = true;
 	    }
 	}
@@ -369,10 +370,13 @@ export_commits (rev_list *rl, int strip)
     rev_commit *c;
     rev_commit **history;
     int alloc, n, i;
+    size_t extent;
 
     export_total_commits = export_ncommit (rl);
     /* the +1 is because mark indices are 1-origin, slot 0 always empty */
-    markmap = xmalloc(sizeof(struct mark) * (seqno + export_total_commits + 1));
+    extent = sizeof(struct mark) * (seqno + export_total_commits + 1);
+    markmap = xmalloc(extent);
+    memset(markmap, '\0', extent);
     export_current_commit = 0;
     for (h = rl->heads; h; h = h->next) {
 	export_current_head = h->name;
