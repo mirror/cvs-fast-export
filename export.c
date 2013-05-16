@@ -18,6 +18,7 @@
 
 #include <limits.h>
 #include <assert.h>
+#include <stdlib.h>
 #include "cvs.h"
 
 struct mark {
@@ -154,6 +155,33 @@ export_status (void)
     fflush (STATUS);
 }
 
+struct fileop {
+    char op;
+    mode_t mode;
+    int serial;
+    char path[PATH_MAX+1];	/* extra 1 for the sort sentinel */
+};
+
+static int fileop_sort(const void *a, const void *b)
+{
+    /* Sorting FileOps as git fast-export does.
+     * As it says, 'Handle files below a directory first, in case they are
+     * all deleted and the directory changes to a file or symlink.'
+     * Because this doesn't have to handle renames, just sort lexicographically
+     * We append a sentinel to make sure "a/b/c" < "a/b" < "a".
+     */
+    struct fileop *oa = (struct fileop *)a;
+    struct fileop *ob = (struct fileop *)b;
+    int cmp;
+
+    (void)strcat(oa->path, "/");
+    (void)strcat(ob->path, "/");
+    cmp = strcmp(oa->path, ob->path);
+    oa->path[strlen(oa->path)-1] = '\0';
+    ob->path[strlen(ob->path)-1] = '\0';
+    return cmp;
+}
+
 static void
 export_commit(rev_commit *commit, char *branch, int strip)
 {
@@ -168,12 +196,6 @@ export_commit(rev_commit *commit, char *branch, int strip)
     time_t ct;
     rev_file	*f, *f2;
     int		i, j, i2, j2;
-    struct fileop {
-	char op;
-	mode_t mode;
-	int serial;
-	char path[PATH_MAX];
-    };
     struct fileop *operations, *op, *op2;
     int noperations;
 
@@ -296,6 +318,8 @@ export_commit(rev_commit *commit, char *branch, int strip)
 	    }
 	}
     }
+
+    qsort((void *)operations, op2 - op, sizeof(struct fileop), fileop_sort); 
 
     author = fullname(commit->author);
     if (!author) {
