@@ -310,7 +310,7 @@ static void export_commit(rev_commit *commit, char *branch, int strip)
 	{
 	    char *fn = blobfile(op2->serial);
 	    FILE *rfp = fopen(fn, "r");
-	    char c;
+	    int c;
 	    if (rfp)
 	    {
 		markmap[op2->serial].external = ++mark; 
@@ -319,6 +319,7 @@ static void export_commit(rev_commit *commit, char *branch, int strip)
 		    putchar(c);
 		(void) unlink(fn);
 		markmap[op2->serial].emitted = true;
+		(void)fclose(rfp);
 	    }
 	}
     }
@@ -403,7 +404,7 @@ bool export_commits(rev_list *rl, int strip)
     export_total_commits = export_ncommit (rl);
     /* the +1 is because mark indices are 1-origin, slot 0 always empty */
     extent = sizeof(struct mark) * (seqno + export_total_commits + 1);
-    markmap = xmalloc(extent);
+    markmap = (struct mark *)xmalloc(extent);
     memset(markmap, '\0', extent);
     export_current_commit = 0;
     for (h = rl->heads; h; h = h->next) {
