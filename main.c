@@ -581,6 +581,7 @@ main (int argc, char **argv)
     discard_tags ();
     rev_free_dirs ();
     rev_commit_cleanup ();
+    export_wrap();
     free_author_map ();
     if (revision_map)
 	fclose(revision_map);

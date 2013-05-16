@@ -395,6 +395,9 @@ bool
 export_commits (rev_list *rl, int strip);
 
 void
+export_wrap(void);
+
+void
 free_author_map (void);
 
 void generate_files(cvs_file *cvs, void (*hook)(Node *node, void *buf, unsigned long len));
