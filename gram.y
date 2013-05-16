@@ -39,9 +39,10 @@ time_t skew_vulnerable = 0;
 }
 
 %token		HEAD BRANCH ACCESS SYMBOLS LOCKS COMMENT DATE
-%token		BRANCHES NEXT COMMITID EXPAND
+%token		BRANCHES DELTATYPE NEXT COMMITID EXPAND
+%token		KOPT PERMISSIONS FILENAME MERGEPOINT
 %token		DESC LOG TEXT STRICT AUTHOR STATE
-%token		SEMI COLON
+%token		SEMI COLON INT
 %token		BRAINDAMAGED_NUMBER
 %token <s>	HEX NAME DATA TEXT_DATA
 %token <number>	NUMBER
@@ -52,9 +53,14 @@ time_t skew_vulnerable = 0;
 %type <vlist>	revisions
 %type <date>	date
 %type <branch>	branches numbers
-%type <s>	opt_commitid commitid
+%type <s>	opt_commitid commitid revtrailer
 %type <s>	desc name
 %type <s>	author state
+%type <s>	deltatype
+%type <s>	kopt
+%type <s>	permissions
+%type <s>	filename
+%type <number>	mergepoint
 %type <number>	next opt_number
 %type <patch>	patch
 %type <patches>	patches
@@ -123,7 +129,12 @@ revisions	: revisions revision
 		|
 		  { $$ = &this_file->versions; }
 		;
-revision	: NUMBER date author state branches next opt_commitid
+revtrailer	: deltatype kopt permissions commitid mergepoint filename
+		  { $$ = $4; }	/* CVS-NT */
+		| opt_commitid
+		  { $$ = $1; }	/* CVS */
+
+revision	: NUMBER date author state branches next revtrailer
 		  {
 			$$ = calloc (1, sizeof (cvs_version));
 			$$->number = $1;
@@ -204,10 +215,29 @@ patch		: NUMBER log text
 		  }
 		;
 log		: LOG DATA
-		  { $$ = $2; }
+			{ $$ = $2; }
 		;
 text		: TEXT TEXT_DATA
-		  { $$ = $2; }
+			{ $$ = $2; }
+		;
+deltatype	: DELTATYPE NAME SEMI
+			{ $$ = $2; }
+		;
+kopt		: KOPT NAME SEMI
+			{ $$ = $2; }
+		;
+permissions	: PERMISSIONS NAME SEMI
+			{ $$ = $2; }
+		;
+filename	: FILENAME NAME SEMI
+			{ $$ = $2; }
+		|
+		  	{ $$ = NULL; }
+		;
+mergepoint	: MERGEPOINT NUMBER SEMI
+			{ $$ = $2; }
+		|
+			{ cvs_number x; $$ = x; }
 		;
 %%
 

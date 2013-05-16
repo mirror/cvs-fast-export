@@ -5,6 +5,7 @@
 INSTALL = install
 prefix?=/usr/local
 target=$(DESTDIR)$(prefix)
+LEX=/usr/bin/flex
 
 VERSION=0.4
 

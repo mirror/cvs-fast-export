@@ -30,7 +30,7 @@ static void fast_export_sanitize(void);
 }
     
 %}
-%s CONTENT SKIP COMMIT
+%s CONTENT SKIP COMMIT PERM REVISION FNAME
 %%
 <INITIAL>head			BEGIN(CONTENT); return HEAD;
 <INITIAL>branch			BEGIN(CONTENT); return BRANCH;
@@ -46,6 +46,11 @@ static void fast_export_sanitize(void);
 <INITIAL>strict			BEGIN(CONTENT); return STRICT;
 <INITIAL>author			BEGIN(CONTENT); return AUTHOR;
 <INITIAL>state			BEGIN(CONTENT); return STATE;
+<INITIAL>deltatype		BEGIN(CONTENT); return DELTATYPE;
+<INITIAL>kopt			BEGIN(CONTENT); return KOPT;
+<INITIAL>permissions		BEGIN(PERM); return PERMISSIONS;
+<INITIAL>filename		BEGIN(FNAME); return FILENAME;
+<INITIAL>mergepoint1		BEGIN(REVISION); return MERGEPOINT;
 <INITIAL>desc			return DESC;
 <INITIAL>log			return LOG;
 <INITIAL>text			BEGIN(SKIP); return TEXT;
@@ -59,10 +64,22 @@ static void fast_export_sanitize(void);
 					yylval.s = atom (yytext);
 					return NAME;
 				}
+<PERM>[0-9]+ {
+					yylval.s = atom (yytext);
+					return NAME;
+				}
 <COMMIT>[0-9a-zA-Z]+		{
 					yylval.s = atom (yytext);
 					return NAME;
 				}
+<REVISION>[0-9]+\.[0-9.]*			{
+					yylval.number = lex_number (yytext);
+					return NUMBER;
+				}
+<FNAME>[^;]* {
+	yylval.s = atom(yytext);
+	return NAME;
+}
 [0-9]+\.[0-9.]*			{
 					yylval.number = lex_number (yytext);
 					return NUMBER;
