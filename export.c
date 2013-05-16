@@ -103,7 +103,7 @@ export_filename (rev_file *file, int strip)
 
 void export_wrap(void)
 {
-    (void)rmdir(blobdir);
+    //(void)rmdir(blobdir);
 }
 
 static const char *utc_offset_timestamp(const time_t *timep, const char *tz)
@@ -227,7 +227,7 @@ export_commit(rev_commit *commit, char *branch, int strip)
 		if (revision_map || reposurgeon) {
 		    char *fr = stringify_revision(stripped, " ", &f->number);
 		    if (revision_map)
-			fprintf(revision_map, "%s :%d\n", fr, f->serial);
+			fprintf(revision_map, "%s :%d\n", fr, markmap[f->serial]);
 		    if (reposurgeon)
 		    {
 			if (strlen(revpairs) + strlen(fr) + 2 > revpairsize)
@@ -290,7 +290,7 @@ export_commit(rev_commit *commit, char *branch, int strip)
 		printf("blob\nmark :%d\n", mark);
 		while ((c = fgetc(rfp)) != EOF)
 		    putchar(c);
-		(void) unlink(fn);
+		//(void) unlink(fn);
 		markmap[op2->serial].emitted = true;
 	    }
 	}
