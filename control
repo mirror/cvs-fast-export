@@ -1,0 +1,22 @@
+# This is not a real Debian control file
+# It's project metadata for the shipper tool
+
+Package: cvs-fast-export
+
+Description: Export an RCS or CVS history as a fast-import stream.
+ This program analyzes a collection of RCS files in a CVS repository
+ (or outside of one) and, when possible, emits an equivalent history in
+ the form of a fast-import stream.  Not all possible histories can be
+ rendered this way; the program tries to emit useful warnings when it
+ can't.  The program can also produce a visualization of the resulting
+ commit DAG in the DOT format handled by the graphviz suite.
+
+XBS-Destinations: freecode
+
+XBS-Gitorious-URL: https://gitorious.org/cvs-fast-export/
+
+XBS-Ohloh-URL: https://www.ohloh.net/p/cvs-fast-export
+
+Homepage: http://www.catb.org/~esr/cvs-fast-export
+
+XBS-Project-Tag-List: version control, cvs, git

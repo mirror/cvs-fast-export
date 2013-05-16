@@ -44,6 +44,8 @@ y.tab.h: gram.c
 
 clean:
 	rm -f $(OBJS) y.tab.h gram.c lex.c cvs-fast-export docbook-xsl.css
+	rm -f cvs-fast-export.1 cvs-fast-export.html
+	rm -f MANIFEST index.html *.tar.gz
 
 install: cvs-fast-export.1 all
 	$(INSTALL) -d "$(target)/bin"
