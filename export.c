@@ -20,13 +20,18 @@
 #include <assert.h>
 #include "cvs.h"
 
-static int serial;
+struct mark {
+    int external;
+    bool emitted;
+};
+static struct mark *markmap;
+static int blobcount;
 static char blobdir[PATH_MAX];
 
 void
 export_init(void)
 {
-    serial = 0;
+    blobcount = 0;
     snprintf(blobdir, sizeof(blobdir), "/tmp/cvs-fast-export-%d", getpid());
     mkdir(blobdir, 0770);
 }
@@ -44,9 +49,9 @@ export_blob(Node *node, void *buf, unsigned long len)
 {
     FILE *wfp;
     
-    node->file->serial = ++serial;
+    node->file->serial = ++blobcount;
 
-    wfp = fopen(blobfile(serial), "w");
+    wfp = fopen(blobfile(blobcount), "w");
     assert(wfp);
     fprintf(wfp, "data %zd\n", len);
     fwrite(buf, len, sizeof(char), wfp);
@@ -302,9 +307,9 @@ export_commit(rev_commit *commit, char *branch, int strip)
     }
 
     printf("commit %s%s\n", branch_prefix, branch);
-    printf("mark :%d\n", ++serial);
-    commit->serial = serial;
-    ct = force_dates ? serial * commit_time_window * 2 : commit->date;
+    printf("mark :%d\n", ++blobcount);
+    commit->serial = blobcount;
+    ct = force_dates ? blobcount * commit_time_window * 2 : commit->date;
     ts = utc_offset_timestamp(&ct, timezone);
     printf("author %s <%s> %s\n", full, email, ts);
     printf("committer %s <%s> %s\n", full, email, ts);
@@ -354,49 +359,51 @@ export_ncommit (rev_list *rl)
 bool
 export_commits (rev_list *rl, int strip)
 {
-	rev_ref *h;
-	Tag *t;
-	rev_commit *c;
-	rev_commit **history;
-	int alloc, n, i;
+    rev_ref *h;
+    Tag *t;
+    rev_commit *c;
+    rev_commit **history;
+    int alloc, n, i;
 
-	export_total_commits = export_ncommit (rl);
-	export_current_commit = 0;
-	for (h = rl->heads; h; h = h->next) {
-		export_current_head = h->name;
-		if (!h->tail) {
-			// We need to export commits in reverse order; so first of all, we
-			// convert the linked-list given by h->commit into the array
-			// "history".
-			history = NULL;
-			alloc = 0;
-			for (c=h->commit, n=0; c; c=(c->tail ? NULL : c->parent), n++) {
-				if (n >= alloc) {
-					alloc += 100;
-					history = (rev_commit **) realloc(history, alloc * sizeof(rev_commit*));
-				}
-				history[n] = c;
-			}
-
-			// Now walk the history array in reverse order and export the
-			// commits, along with any matching tags.
-			for (i=n-1; i>=0; i--) {
-				++export_current_commit;
-				export_status ();
-				export_commit (history[i], h->name, strip);
-				for (t = all_tags; t; t = t->next)
-					if (t->commit == history[i])
-						printf("reset refs/tags/%s\nfrom :%d\n\n", t->name, history[i]->serial);
-			}
-
-			free(history);
+    export_total_commits = export_ncommit (rl);
+    markmap = xmalloc(sizeof(struct mark) * (blobcount + export_total_commits));
+    export_current_commit = 0;
+    for (h = rl->heads; h; h = h->next) {
+	export_current_head = h->name;
+	if (!h->tail) {
+	    // We need to export commits in reverse order; so first of all, we
+	    // convert the linked-list given by h->commit into the array
+	    // "history".
+	    history = NULL;
+	    alloc = 0;
+	    for (c=h->commit, n=0; c; c=(c->tail ? NULL : c->parent), n++) {
+		if (n >= alloc) {
+		    alloc += 100;
+		    history = (rev_commit **) realloc(history, alloc * sizeof(rev_commit*));
 		}
-		fprintf(STATUS, "\n");
-		fflush(STATUS);
-		printf("reset %s%s\nfrom :%d\n\n", branch_prefix, h->name, h->commit->serial);
+		history[n] = c;
+	    }
+
+	    // Now walk the history array in reverse order and export the
+	    // commits, along with any matching tags.
+	    for (i=n-1; i>=0; i--) {
+		++export_current_commit;
+		export_status ();
+		export_commit (history[i], h->name, strip);
+		for (t = all_tags; t; t = t->next)
+		    if (t->commit == history[i])
+			printf("reset refs/tags/%s\nfrom :%d\n\n", t->name, history[i]->serial);
+	    }
+
+	    free(history);
 	}
-	fprintf (STATUS, "\n");
-	return true;
+	fprintf(STATUS, "\n");
+	fflush(STATUS);
+	printf("reset %s%s\nfrom :%d\n\n", branch_prefix, h->name, h->commit->serial);
+    }
+    fprintf (STATUS, "\n");
+    free(markmap);
+    return true;
 }
 
 #define PROGRESS_LEN	20
