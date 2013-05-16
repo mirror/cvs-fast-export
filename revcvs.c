@@ -533,7 +533,7 @@ rev_list_free_dead_files (rev_list *rl)
     }
 }
 
-#if UNUSED
+#ifdef __UNUSED__
 static int
 rev_order_compare (cvs_number *a, cvs_number *b)
 {

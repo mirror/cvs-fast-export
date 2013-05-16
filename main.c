@@ -44,7 +44,7 @@ char *
 stringify_revision (char *name, char *sep, cvs_number *number)
 /* stringify a revision number */
 {
-    static char result[BUFSIZ], digits[32];
+    static char result[BUFSIZ];
 
     if (name != NULL)
     {
@@ -60,6 +60,8 @@ stringify_revision (char *name, char *sep, cvs_number *number)
     if (number) 
     {
 	int i;
+	char digits[32];
+
 	for (i = 0; i < number->c; i++) {
 	    snprintf (digits, sizeof(digits)-1, "%d", number->n[i]);
 	    if (strlen(result) + 1 + strlen(digits) >= sizeof(result))

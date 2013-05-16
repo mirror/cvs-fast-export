@@ -128,7 +128,7 @@ rev_commit_match (rev_commit *a, rev_commit *b)
     return true;
 }
 
-#if UNUSED
+#ifdef __UNUSED__
 static void
 rev_commit_dump (FILE *f, char *title, rev_commit *c, rev_commit *m)
 {
@@ -383,7 +383,7 @@ rev_commit_has_file (rev_commit *c, rev_file *f)
     return 0;
 }
 
-#if UNUSED
+#ifdef __UNUSED__
 static rev_file *
 rev_commit_find_file (rev_commit *c, char *name)
 {
@@ -453,7 +453,7 @@ rev_commit_build (rev_commit **commits, rev_commit *leader, int ncommit)
     return commit;
 }
 
-#if UNUSED
+#ifdef __UNUSED__
 static rev_commit *
 rev_ref_find_commit_file (rev_ref *branch, rev_file *file)
 {
@@ -849,7 +849,7 @@ rev_ref_set_parent (rev_list *rl, rev_ref *dest, rev_list *source)
 }
 
 
-#if UNUSED
+#ifdef __UNUSED__
 static void
 rev_head_find_parent (rev_list *rl, rev_ref *h, rev_list *lhead)
 {
@@ -865,7 +865,7 @@ rev_head_find_parent (rev_list *rl, rev_ref *h, rev_list *lhead)
 }
 #endif
 
-#if UNUSED
+#ifdef __UNUSED__
 static int
 rev_branch_name_is_ancestor (rev_ref *old, rev_ref *young)
 {
@@ -878,7 +878,7 @@ rev_branch_name_is_ancestor (rev_ref *old, rev_ref *young)
 }
 #endif
 
-#if UNUSED
+#ifdef __UNUSED__
 static rev_ref *
 rev_ref_parent (rev_ref **refs, int nref, rev_list *rl)
 {
@@ -950,8 +950,10 @@ rev_list_merge (rev_list *head)
      */
 //    rl->heads = rev_ref_sel_sort (rl->heads);
     rl->heads = rev_ref_tsort (rl->heads, head);
-    if (!rl->heads)
+    if (!rl->heads) {
+	free(refs);
 	return NULL;
+    }
 //    for (h = rl->heads; h; h = h->next)
 //	fprintf (stderr, "head %s (%d)\n",
 //		 h->name, h->degree);

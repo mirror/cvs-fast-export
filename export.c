@@ -249,6 +249,10 @@ static void export_commit(rev_commit *commit, char *branch, int strip)
 		{
 		    noperations += OP_CHUNK;
 		    operations = realloc(operations, sizeof(struct fileop) * noperations);
+		    if (operations == NULL) {
+			free(operations);	/* pacifies cppcheck */
+			exit(1);
+		    }
 		}
 
 		if (revision_map || reposurgeon) {
@@ -261,6 +265,8 @@ static void export_commit(rev_commit *commit, char *branch, int strip)
 			{
 			    revpairsize += strlen(fr) + 2;
 			    revpairs = xrealloc(revpairs, revpairsize);
+			    if (revpairs == NULL)
+				exit(1);
 			}
 			strcat(revpairs, fr);
 			strcat(revpairs, "\n");
@@ -298,6 +304,10 @@ static void export_commit(rev_commit *commit, char *branch, int strip)
 		    {
 			noperations += OP_CHUNK;
 			operations = realloc(operations, sizeof(struct fileop) * noperations);
+			if (operations == NULL) {
+			    free(operations);	/* pacifies cppcheck */
+			    exit(1);
+			}
 		    }
 		}
 	    }
@@ -310,9 +320,9 @@ static void export_commit(rev_commit *commit, char *branch, int strip)
 	{
 	    char *fn = blobfile(op2->serial);
 	    FILE *rfp = fopen(fn, "r");
-	    int c;
 	    if (rfp)
 	    {
+		int c;
 		markmap[op2->serial].external = ++mark; 
 		printf("blob\nmark :%d\n", mark);
 		while ((c = fgetc(rfp)) != EOF)
@@ -419,6 +429,10 @@ bool export_commits(rev_list *rl, int strip)
 		if (n >= alloc) {
 		    alloc += 100;
 		    history = (rev_commit **) realloc(history, alloc * sizeof(rev_commit*));
+		    if (history == NULL) {
+			free(history);	/* pacifies cppcheck */
+			exit(1);
+		    }
 		}
 		history[n] = c;
 	    }

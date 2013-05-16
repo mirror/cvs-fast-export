@@ -53,8 +53,12 @@ install: cvs-fast-export.1 all
 	$(INSTALL) cvs-fast-export "$(target)/bin"
 	$(INSTALL) -m 644 cvs-fast-export.1 "$(target)/share/man/man1"
 
+# Weird suppressions are required because of strange tricks in Bison.
+SUPPRESSIONS = -U__UNUSED__ -UYYPARSE_PARAM -UYYTYPE_INT16 -UYYTYPE_INT8 \
+	-UYYTYPE_UINT16 -UYYTYPE_UINT8 -UYY_USER_INIT \
+	-Ushort -Usize_t -Uyytext_ptr -Uyyoverflow
 cppcheck:
-	cppcheck --template gcc --enable=all -UUNUSED --suppress=unusedStructMember *.[ch]
+	cppcheck --template gcc --enable=all $(SUPPRESSIONS) --suppress=unusedStructMember *.[ch]
 
 SOURCES = Makefile *.[ch] *.[yl]
 DOCS = README COPYING NEWS AUTHORS BUGS control cvs-fast-export.asc

@@ -483,10 +483,8 @@ static void keyreplace(enum markers marker)
 {
 	const char *target_lockedby = NULL;	// Not wired in yet
 
-	char const *xxp;
 	char *leader = NULL;
 	char date_string[25];
-	uchar *kdelim_ptr = NULL;
 	enum expand_mode exp = Gexpand;
 	char const *sp = Keyword[(int)marker];
 
@@ -550,6 +548,8 @@ static void keyreplace(enum markers marker)
 #endif
 
 	if (marker == Log) {
+		char const *xxp;
+		uchar *kdelim_ptr = NULL;
 		int c;
 		size_t cs, cw, ls;
 		/*

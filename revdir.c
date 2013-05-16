@@ -122,8 +122,13 @@ rev_pack_files (rev_file **files, int nfiles, int *ndr)
 	{
 	    if (i > start) {
 		rd = rev_pack_dir (files + start, i - start);
-		if (nds == sds)
+		if (nds == sds) {
 		    rds = realloc (rds, (sds *= 2) * sizeof (rev_dir *));
+		    if (rds == NULL) {
+			free(rds);
+			exit(1);
+		    }
+		}
 		rds[nds++] = rd;
 	    }
 	    start = i;
@@ -136,8 +141,13 @@ rev_pack_files (rev_file **files, int nfiles, int *ndr)
 	}
     }
     rd = rev_pack_dir (files + start, nfiles - start);
-    if (nds == sds)
-    	    rds = realloc (rds, (sds *= 2) * sizeof (rev_dir *));
+    if (nds == sds) {
+	rds = realloc (rds, (sds *= 2) * sizeof (rev_dir *));
+	if (rds == NULL) {
+	    free(rds);
+	    exit(1);
+	}
+    }
     rds[nds++] = rd;
     
     *ndr = nds;
