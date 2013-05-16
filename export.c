@@ -25,13 +25,13 @@ struct mark {
     bool emitted;
 };
 static struct mark *markmap;
-static int seqno;
+static int seqno, mark;
 static char blobdir[PATH_MAX];
 
 void
 export_init(void)
 {
-    seqno = 0;
+    seqno = mark = 0;
     snprintf(blobdir, sizeof(blobdir), "/tmp/cvs-fast-export-%d", getpid());
     mkdir(blobdir, 0770);
 }
@@ -134,7 +134,6 @@ static const char *utc_offset_timestamp(const time_t *timep, const char *tz)
     return outbuf;
 }
 
-static int export_current_blob = 0;
 static int export_total_commits;
 static int export_current_commit;
 static char *export_current_head;
@@ -169,7 +168,6 @@ export_commit(rev_commit *commit, char *branch, int strip)
     time_t ct;
     rev_file	*f, *f2;
     int		i, j, i2, j2;
-    int maxblob = 0;
     struct fileop {
 	char op;
 	mode_t mode;
@@ -218,8 +216,6 @@ export_commit(rev_commit *commit, char *branch, int strip)
 		else
 			op->mode = 0644;
 		op->serial = f->serial;
-		if (op->serial > maxblob)
-		    maxblob = op->serial;
 		(void)strncpy(op->path, stripped, PATH_MAX-1);
 		op++;
 		if (op > operations + noperations)
@@ -281,19 +277,24 @@ export_commit(rev_commit *commit, char *branch, int strip)
 	}
     }
 
-    for (i = export_current_blob + 1; i <= maxblob; i++) {
-	char *fn = blobfile(i);
-	FILE *rfp = fopen(fn, "r");
-	char c;
-	if (rfp)
+    for (op2 = operations; op2 < op; op2++)
+    {
+	if (op2->op == 'M' && !markmap[op2->serial].emitted)
 	{
-	    printf("blob\nmark :%d\n", i);
-	    while ((c = fgetc(rfp)) != EOF)
-		putchar(c);
-	    (void) unlink(fn);
+	    char *fn = blobfile(op2->serial);
+	    FILE *rfp = fopen(fn, "r");
+	    char c;
+	    if (rfp)
+	    {
+		markmap[op2->serial].external = ++mark; 
+		printf("blob\nmark :%d\n", mark);
+		while ((c = fgetc(rfp)) != EOF)
+		    putchar(c);
+		(void) unlink(fn);
+		markmap[op2->serial].emitted = true;
+	    }
 	}
     }
-    export_current_blob = maxblob;
 
     author = fullname(commit->author);
     if (!author) {
@@ -307,7 +308,8 @@ export_commit(rev_commit *commit, char *branch, int strip)
     }
 
     printf("commit %s%s\n", branch_prefix, branch);
-    printf("mark :%d\n", ++seqno);
+    markmap[++seqno].external = ++mark;
+    printf("mark :%d\n", mark);
     commit->serial = seqno;
     ct = force_dates ? seqno * commit_time_window * 2 : commit->date;
     ts = utc_offset_timestamp(&ct, timezone);
@@ -315,13 +317,16 @@ export_commit(rev_commit *commit, char *branch, int strip)
     printf("committer %s <%s> %s\n", full, email, ts);
     printf("data %zd\n%s\n", strlen(commit->log), commit->log);
     if (commit->parent)
-	printf("from :%d\n", commit->parent->serial);
+	printf("from :%d\n", markmap[commit->parent->serial].external);
 
     for (op2 = operations; op2 < op; op2++)
     {
 	assert(op2->op == 'M' || op2->op == 'D');
 	if (op2->op == 'M')
-	    printf("M 100%o :%d %s\n", op2->mode, op2->serial, op2->path);
+	    printf("M 100%o :%d %s\n", 
+		   op2->mode, 
+		   markmap[op2->serial].external, 
+		   op2->path);
 	if (op2->op == 'D')
 	    printf("D %s\n", op2->path);
     }
@@ -366,7 +371,8 @@ export_commits (rev_list *rl, int strip)
     int alloc, n, i;
 
     export_total_commits = export_ncommit (rl);
-    markmap = xmalloc(sizeof(struct mark) * (seqno + export_total_commits));
+    /* the +1 is because mark indices are 1-origin, slot 0 always empty */
+    markmap = xmalloc(sizeof(struct mark) * (seqno + export_total_commits + 1));
     export_current_commit = 0;
     for (h = rl->heads; h; h = h->next) {
 	export_current_head = h->name;
@@ -392,14 +398,17 @@ export_commits (rev_list *rl, int strip)
 		export_commit (history[i], h->name, strip);
 		for (t = all_tags; t; t = t->next)
 		    if (t->commit == history[i])
-			printf("reset refs/tags/%s\nfrom :%d\n\n", t->name, history[i]->serial);
+			printf("reset refs/tags/%s\nfrom :%d\n\n", t->name, markmap[history[i]->serial].external);
 	    }
 
 	    free(history);
 	}
 	fprintf(STATUS, "\n");
 	fflush(STATUS);
-	printf("reset %s%s\nfrom :%d\n\n", branch_prefix, h->name, h->commit->serial);
+	printf("reset %s%s\nfrom :%d\n\n", 
+	       branch_prefix, 
+	       h->name, 
+	       markmap[h->commit->serial].external);
     }
     fprintf (STATUS, "\n");
     free(markmap);
