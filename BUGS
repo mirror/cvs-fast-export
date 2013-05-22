@@ -1,6 +1,6 @@
 			cvs-fast-export bugs
 
-1. One paragraph from Keith's original notes is still relevant:
+One paragraph from Keith's original notes is still relevant:
 
 	Disjoint branch resolution. Branches occurring in a subset of the
 	files are not correctly resolved; instead, an entirely disjoint
@@ -10,9 +10,6 @@
 	branch parent, which may not be the case. In any case, the right
 	revision will have a superset of the revisions present in the
 	original branch parent; perhaps that will suffice.
-
-2. Support for CVS-NT, which adds some fields to the RCS format, is
-   untested.
 
 
 
