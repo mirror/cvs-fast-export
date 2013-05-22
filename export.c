@@ -116,7 +116,6 @@ void export_wrap(void)
 static const char *utc_offset_timestamp(const time_t *timep, const char *tz)
 {
     static char outbuf[BUFSIZ];
-
     struct tm *tm;
     char tzbuf[BUFSIZ];
     /* coverity[tainted_data] */
@@ -130,8 +129,13 @@ static const char *utc_offset_timestamp(const time_t *timep, const char *tz)
     tzset();  // just in case ...
 
     tm = localtime(timep);
+#ifndef __CYGWIN__
     strftime(outbuf, sizeof(outbuf), "%s %z", tm);
-
+#else
+		// Cygdwin doesn't have %s for strftime
+    int x = sprintf(outbuf, "%li", *timep);
+    strftime(outbuf + x, sizeof(outbuf) - x, " %z", tm);
+#endif
     if (oldtz != NULL)
 	setenv("TZ", tzbuf, 1);
     else
@@ -245,7 +249,7 @@ static void export_commit(rev_commit *commit, char *branch, int strip)
 		op->serial = f->serial;
 		(void)strncpy(op->path, stripped, PATH_MAX-1);
 		op++;
-		if (op > operations + noperations)
+		if (op == operations + noperations)
 		{
 		    noperations += OP_CHUNK;
 		    operations = realloc(operations, sizeof(struct fileop) * noperations);
@@ -253,6 +257,8 @@ static void export_commit(rev_commit *commit, char *branch, int strip)
 			free(operations);	/* pacifies cppcheck */
 			exit(1);
 		    }
+		    // realloc can move operations
+		    op = operations + noperations - OP_CHUNK;
 		}
 
 		if (revision_map || reposurgeon) {
@@ -300,7 +306,7 @@ static void export_commit(rev_commit *commit, char *branch, int strip)
 				  export_filename(f, strip),
 				  PATH_MAX-1);
 		    op++;
-		    if (op > operations + noperations)
+		    if (op == operations + noperations)
 		    {
 			noperations += OP_CHUNK;
 			operations = realloc(operations, sizeof(struct fileop) * noperations);
@@ -308,6 +314,8 @@ static void export_commit(rev_commit *commit, char *branch, int strip)
 			    free(operations);	/* pacifies cppcheck */
 			    exit(1);
 			}
+			// realloc can move operations
+			op = operations + noperations - OP_CHUNK;
 		    }
 		}
 	    }

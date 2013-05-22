@@ -129,10 +129,19 @@ revisions	: revisions revision
 		|
 		  { $$ = &this_file->versions; }
 		;
-revtrailer	: deltatype kopt permissions commitid mergepoint filename
-		  { $$ = $4; }	/* CVS-NT */
-		| opt_commitid
-		  { $$ = $1; }	/* CVS */
+
+revtrailer	: paramlist opt_commitid paramlist 
+      { $$ = $2; }
+    |
+		  { $$ = NULL; }
+		;
+
+paramlist : /* empty */ | paramseq
+
+paramseq : parameter | paramseq parameter;
+
+/* ignored items from cvsnt */
+parameter : deltatype | kopt | permissions | mergepoint | filename;
 
 revision	: NUMBER date author state branches next revtrailer
 		  {
@@ -184,11 +193,11 @@ opt_number	: NUMBER
 		|
 		  { $$.c = 0; }
 		;
-opt_commitid	: commitid
-		  { $$ = $1; }
-		|
+opt_commitid : commitid
+      { $$ = $1; }
+    |
 		  { $$ = NULL; }
-		;
+    ;
 commitid	: COMMITID NAME SEMI
 		  { $$ = $2; }
 		;
@@ -231,13 +240,9 @@ permissions	: PERMISSIONS NAME SEMI
 		;
 filename	: FILENAME NAME SEMI
 			{ $$ = $2; }
-		|
-		  	{ $$ = NULL; }
 		;
 mergepoint	: MERGEPOINT NUMBER SEMI
 			{ $$ = $2; }
-		|
-			{ cvs_number x; $$ = x; }
 		;
 %%
 

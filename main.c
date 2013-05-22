@@ -385,6 +385,26 @@ strcommon (char *a, char *b)
     return c;
 }
 
+static int
+strcommonendingwith(char *a, char *b, char endc)
+/* return the length of the common prefix of strings a and b ending with endc */
+{
+    int c = 0;
+    int d = 0;
+    while (*a == *b) {
+	if (!*a) {
+	    break;
+ 	}
+	a++;
+	b++;
+	c++;
+	if (*a == endc) {
+	    d = c + 1;
+	}
+    }
+    return d;
+}
+
 typedef struct _rev_filename {
     struct _rev_filename	*next;
     char		*file;
@@ -520,7 +540,7 @@ main (int argc, char **argv)
 	*fn_tail = fn;
 	fn_tail = &fn->next;
 	if (strip > 0 && last != NULL) {
-	    c = strcommon (fn->file, last);
+	    c = strcommonendingwith (fn->file, last, '/');
 	    if (c < strip)
 		strip = c;
 	} else if (strip < 0) {

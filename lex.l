@@ -30,7 +30,7 @@ static void fast_export_sanitize(void);
 }
     
 %}
-%s CONTENT SKIP COMMIT PERM REVISION FNAME
+%s CONTENT SKIP COMMIT PERM REVISION FNAME KCONTENT
 %%
 <INITIAL>head			BEGIN(CONTENT); return HEAD;
 <INITIAL>branch			BEGIN(CONTENT); return BRANCH;
@@ -47,7 +47,7 @@ static void fast_export_sanitize(void);
 <INITIAL>author			BEGIN(CONTENT); return AUTHOR;
 <INITIAL>state			BEGIN(CONTENT); return STATE;
 <INITIAL>deltatype		BEGIN(CONTENT); return DELTATYPE;
-<INITIAL>kopt			BEGIN(CONTENT); return KOPT;
+<INITIAL>kopt			BEGIN(KCONTENT); return KOPT;
 <INITIAL>permissions		BEGIN(PERM); return PERMISSIONS;
 <INITIAL>filename		BEGIN(FNAME); return FILENAME;
 <INITIAL>mergepoint1		BEGIN(REVISION); return MERGEPOINT;
@@ -60,6 +60,11 @@ static void fast_export_sanitize(void);
 					return TEXT_DATA;
 				}
 <CONTENT>[-a-zA-Z_+%][-a-zA-Z_0-9+/%.~^\\*?]* {
+					fast_export_sanitize();
+					yylval.s = atom (yytext);
+					return NAME;
+				}
+<KCONTENT>[-i@a-zA-Z_+%][-@a-zA-Z_0-9+/%.~^\\*?]* {
 					fast_export_sanitize();
 					yylval.s = atom (yytext);
 					return NAME;
@@ -183,7 +188,9 @@ lex_date (cvs_number *n)
 	tm.tm_min = n->n[4];
 	tm.tm_sec = n->n[5];
 	tm.tm_isdst = 0;
+	#ifndef __CYGWIN__
 	tm.tm_zone = 0;
+	#endif
 	d = mktime (&tm);
 	if (d == 0) {
 	    int i;
