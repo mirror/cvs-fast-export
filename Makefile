@@ -29,6 +29,12 @@ cvs-fast-export: $(OBJS)
 	cc $(CFLAGS) -o $@ $(OBJS)
 
 $(OBJS): cvs.h
+
+gram.c: gram.y
+	@echo "Expect conflicts: 10 shift/reduce, 2 reduce/reduce"
+	yacc $(YFLAGS) gram.y 
+	mv -f y.tab.c gram.c
+
 lex.o: y.tab.h
 
 lex.o: lex.c
