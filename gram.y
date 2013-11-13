@@ -57,7 +57,7 @@ time_t skew_vulnerable = 0;
 %type <s>	desc name
 %type <s>	author state
 %type <s>	deltatype
-%type <s>	kopt
+%type <s>	kopt opt_name
 %type <s>	permissions
 %type <s>	filename
 %type <number>	mergepoint
@@ -193,6 +193,11 @@ opt_number	: NUMBER
 		|
 		  { $$.c = 0; }
 		;
+opt_name : NAME
+			{ $$ = $1; }
+		|
+			{ $$ = NULL; }
+		;
 opt_commitid : commitid
       { $$ = $1; }
     |
@@ -232,7 +237,7 @@ text		: TEXT TEXT_DATA
 deltatype	: DELTATYPE NAME SEMI
 			{ $$ = $2; }
 		;
-kopt		: KOPT NAME SEMI
+kopt		: KOPT opt_name SEMI
 			{ $$ = $2; }
 		;
 permissions	: PERMISSIONS NAME SEMI
