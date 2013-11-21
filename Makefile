@@ -76,4 +76,4 @@ cvs-fast-export-$(VERSION).tar.gz: $(ALL)
 dist: cvs-fast-export-$(VERSION).tar.gz
 
 release: cvs-fast-export-$(VERSION).tar.gz cvs-fast-export.html
-	shipper -u -m -t; make clean; rm -f SHIPPER.FREECODE
+	shipper version=$(VERSION) | sh -e -x
