@@ -575,9 +575,6 @@ main (int argc, char **argv)
 
 	free(fn);
     }
-    if (skew_vulnerable > 0 && load_total_files > 1)
-	fprintf(stderr, "Commits before this date lack commitids: %s",
-		ctime(&skew_vulnerable));
     load_status_next ();
     rl = rev_list_merge (head);
     if (rl) {
@@ -593,6 +590,9 @@ main (int argc, char **argv)
 	    break;
 	}
     }
+    if (skew_vulnerable > 0 && load_total_files > 1)
+	fprintf(stderr, "Commits before this date lack commitids: %s",
+		ctime(&skew_vulnerable));
     if (rl)
 	rev_list_free (rl, 0);
     while (head) {
