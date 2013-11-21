@@ -1,5 +1,9 @@
 		cvs-fast-export project news
 
+Repository head:
+    Improvements for CVS-NT support.
+    Improve timing of missing-commitids message
+
 0.5 @ 2013-05-21
     CVS-NT support. Code is Coverity-clean.
 
