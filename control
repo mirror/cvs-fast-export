@@ -21,6 +21,6 @@ Homepage: http://www.catb.org/~esr/cvs-fast-export
 
 XBS-HTML-Target: index.html
 
-XBS-Project-Tag-List: version control, cvs, rcs, git
+XBS-Freecode-Tags: version control, cvs, rcs, git
 
 XBS-VC-Tag-Template: %(version)s
