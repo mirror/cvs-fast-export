@@ -8,7 +8,7 @@ can't.  The program can also produce a visualization of the resulting
 commit DAG in the DOT format handled by the graphviz suite.
 
 This program could have been called rcs-fast-export with equal
-appropriateness; the cvs-fast-import name was chosen to avoid
+appropriateness; the cvs-fast-export name was chosen to avoid
 colliding with a pre-existing script with that name by Giuseppe
 Bilotta.
 
