@@ -611,3 +611,5 @@ main (int argc, char **argv)
 	fclose(revision_map);
     return err;
 }
+
+/* end */

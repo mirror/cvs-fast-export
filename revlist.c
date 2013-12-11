@@ -19,11 +19,13 @@
 #include "cvs.h"
 
 /*
- * Add head refs
+ * A revision list is the history for an entire RCS/CVS repository.
+ * THese functions analyze a revlist into a DAG.
  */
 
 rev_ref *
 rev_list_add_head (rev_list *rl, rev_commit *commit, char *name, int degree)
+/* Add head refs */
 {
     rev_ref	*r;
     rev_ref	**list = &rl->heads;
@@ -96,6 +98,7 @@ rev_commit_later (rev_commit *a, rev_commit *b)
 
 static bool
 commit_time_close (time_t a, time_t b)
+/* are two timestamps witin the commit-coalescence window? */
 {
     long	diff = a - b;
     if (diff < 0) diff = -diff;

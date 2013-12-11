@@ -17,6 +17,11 @@
  *  59 Temple Place, Suite 330, Boston, MA 02111-1307 USA.
  */
 
+/*
+ * Grammar for analyzing the content of an RCS/CVS master file into in-core
+ * structures we can walk through to do topological analysis.
+ */
+
 #include "cvs.h"
 
 void yyerror (char *msg);
