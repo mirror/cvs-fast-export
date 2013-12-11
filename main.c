@@ -36,9 +36,10 @@ bool force_dates = false;
 bool suppress_keyword_expansion = false;
 bool reposurgeon;
 FILE *revision_map;
+char *branch_prefix = "refs/heads/";
+
 static int verbose = 0;
 static rev_execution_mode rev_mode = ExecuteExport;
-char *branch_prefix = "refs/heads/";
 
 char *
 stringify_revision (char *name, char *sep, cvs_number *number)
