@@ -234,6 +234,7 @@ static void export_commit(rev_commit *commit, char *branch, int strip)
 			if (strcmp(f->name, f2->name) == 0) {
 			    present = true;
 			    changed = (f->serial != f2->serial);
+			    break;
 			}
 		    }
 		}
@@ -297,6 +298,7 @@ static void export_commit(rev_commit *commit, char *branch, int strip)
 			f2 = dir2->files[j2];
 			if (strcmp(f->name, f2->name) == 0) {
 			    present = true;
+			    break;
 			}
 		    }
 		}
