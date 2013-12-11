@@ -112,7 +112,7 @@ static bool
 rev_commit_match (rev_commit *a, rev_commit *b)
 {
     /*
-     * Very recent versions of CVS place a commitid in
+     * Versions of GNU CVS after 1.12 (2004) place a commitid in
      * each commit to track patch sets. Use it if present
      */
     if (a->commitid && b->commitid)
