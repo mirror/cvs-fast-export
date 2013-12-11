@@ -24,6 +24,13 @@
  *   Copyright 1990, 1991, 1992, 1993, 1994, 1995 Paul Eggert
  *      Distributed under license by the Free Software Foundation, Inc.
  */
+
+/*
+ * The entire aim of this module is rthe last function, which turns
+ * the in-core revision history of a CVS/RCS master file and materializes
+ * all of its revision levels through a specified export hook.
+ */
+
 #include <limits.h>
 #include <stdarg.h>
 #include "cvs.h"
@@ -110,7 +117,7 @@ static void fatal_error(char const *format,...)
 {
 	va_list args;
 
-	fprintf(stderr, "rcsco2git fatal: ");
+	fprintf(stderr, "cvs-fast-export fatal: ");
 	va_start(args, format);
 	vfprintf(stderr, format, args);
 	va_end(args);
@@ -831,7 +838,9 @@ static void enter_branch(Node *node)
 	depth++;
 }
 
-void generate_files(cvs_file *cvs, void (*hook)(Node *node, void *buf, unsigned long len))
+void generate_files(cvs_file *cvs,
+		    void (*hook)(Node *node, void *buf, unsigned long len))
+/* export all the revision states of a CVS/RS master through a hook */
 {
 	if (head_node == NULL)
 		return;
