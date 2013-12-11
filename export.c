@@ -367,9 +367,9 @@ static void export_commit(rev_commit *commit, char *branch, int strip)
     markmap[++seqno].external = ++mark;
     printf("mark :%d\n", mark);
     commit->serial = seqno;
-    ct = force_dates ? seqno * commit_time_window * 2 : commit->date;
+    ct = force_dates ? mark * commit_time_window * 2 : commit->date;
     ts = utc_offset_timestamp(&ct, timezone);
-    printf("author %s <%s> %s\n", full, email, ts);
+    //printf("author %s <%s> %s\n", full, email, ts);
     printf("committer %s <%s> %s\n", full, email, ts);
     printf("data %zd\n%s\n", strlen(commit->log), commit->log);
     if (commit->parent)
