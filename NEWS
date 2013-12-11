@@ -1,5 +1,8 @@
 		cvs-fast-export project news
 
+Repository head:
+    -p option for enabling load status reports.
+
 0.6 @ 2013-12-10
     Improvements for CVS-NT support.
     Improve timing of missing-commitids message

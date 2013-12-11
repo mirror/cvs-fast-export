@@ -425,6 +425,7 @@ main (int argc, char **argv)
     int		    c;
     char	    *file;
     int		    nfile = 0;
+    bool	    progress = false;
 
     while (1) {
 	static struct option options[] = {
@@ -438,6 +439,7 @@ main (int argc, char **argv)
             { "graph",              0, 0, 'g' },
             { "remote",             1, 0, 'e' },
             { "strip",              1, 0, 's' },
+            { "progress",           0, 0, 'p' },
 	};
 	int c = getopt_long(argc, argv, "+hVw:grvA:R:Tke:s:", options, NULL);
 	if (c < 0)
@@ -458,6 +460,7 @@ main (int argc, char **argv)
 		   " -T                              Force deteministic dates\n"
                    " -e --remote                     Relocate branches to refs/remotes/REMOTE\n"
                    " -s --strip                      Strip the given prefix instead of longest common prefix\n"
+		   " -p --progress                   Enable load-status reporting\n" 
 		   "\n"
 		   "Example: find -name '*,v' | cvs-fast-export\n");
 	    return 0;
@@ -499,6 +502,9 @@ main (int argc, char **argv)
 	case 's':
 		strip = strlen(optarg) + 1;
 		break;
+	case 'p':
+	    progress = true;
+	    break;
 	default: /* error message already emitted */
 	    fprintf(stderr, "Try `%s --help' for more information.\n", argv[0]);
 	    return 1;
@@ -567,7 +573,8 @@ main (int argc, char **argv)
 	++load_current_file;
 	if (verbose)
 	    fprintf(stderr, "Processing %s\n", fn->file);
-	load_status (fn->file + strip);
+	if (progress)
+	    load_status (fn->file + strip);
 	rl = rev_list_file (fn->file, &nversions);
 	if (rl->watch)
 	    dump_rev_tree (rl);
@@ -576,7 +583,8 @@ main (int argc, char **argv)
 
 	free(fn);
     }
-    load_status_next ();
+    if (progress)
+	load_status_next ();
     rl = rev_list_merge (head);
     if (rl) {
 	switch (rev_mode) {
@@ -587,7 +595,7 @@ main (int argc, char **argv)
 	    dump_splits (rl);
 	    break;
 	case ExecuteExport:
-	    export_commits (rl, strip);
+	    export_commits (rl, strip, progress);
 	    break;
 	}
     }

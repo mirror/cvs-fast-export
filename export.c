@@ -409,7 +409,7 @@ static int export_ncommit(rev_list *rl)
     return n;
 }
 
-bool export_commits(rev_list *rl, int strip)
+bool export_commits(rev_list *rl, int strip, bool progress)
 /* export a revision list as a git fast-import stream in canonical order */
 {
     rev_ref *h;
@@ -449,7 +449,8 @@ bool export_commits(rev_list *rl, int strip)
 	    // commits, along with any matching tags.
 	    for (i=n-1; i>=0; i--) {
 		++export_current_commit;
-		export_status ();
+		if (progress)
+		    export_status ();
 		export_commit (history[i], h->name, strip);
 		for (t = all_tags; t; t = t->next)
 		    if (t->commit == history[i])
@@ -458,14 +459,18 @@ bool export_commits(rev_list *rl, int strip)
 
 	    free(history);
 	}
-	fprintf(STATUS, "\n");
-	fflush(STATUS);
+	if (progress) 
+	{
+	    fprintf(STATUS, "\n");
+	    fflush(STATUS);
+	}
 	printf("reset %s%s\nfrom :%d\n\n", 
 	       branch_prefix, 
 	       h->name, 
 	       markmap[h->commit->serial].external);
     }
-    fprintf (STATUS, "\n");
+    if (progress)
+	fprintf (STATUS, "\n");
     free(markmap);
     return true;
 }
