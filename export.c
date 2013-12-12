@@ -233,12 +233,9 @@ static void export_commit(rev_commit *commit, char *branch, int strip)
 		    for (j2 = 0; j2 < dir2->nfiles; j2++) {
 			f2 = dir2->files[j2];
 			cmp = strcmp(f->name, f2->name);
-			if (cmp > 0) /* file lists are sorted by name */
-			    break;
 			if (cmp == 0) {
 			    present = true;
 			    changed = (f->serial != f2->serial);
-			    break;
 			}
 		    }
 		}
@@ -301,11 +298,8 @@ static void export_commit(rev_commit *commit, char *branch, int strip)
 		    for (j2 = 0; j2 < dir2->nfiles; j2++) {
 			f2 = dir2->files[j2];
 			cmp = strcmp(f->name, f2->name);
-			if (cmp > 0) /* file lists are sorted by name */
-			    break;
 			if (cmp == 0) {
 			    present = true;
-			    break;
 			}
 		    }
 		}
