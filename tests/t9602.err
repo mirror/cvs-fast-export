@@ -1,0 +1,5 @@
+Commits before this date lack commitids: Tue Jun  3 04:33:13 2003
+t9602 test of branch master: file manifests don't match.
+t9602 test of branch vendorbranch: tag or branch vendorbranch unexpectedly missing
+t9602 test of branch B_SPLIT: file manifests don't match.
+t9602 test of tag T_ALL_INITIAL_FILES: file manifests don't match.
