@@ -25,16 +25,16 @@ neutralize.map:
 
 TESTLOADS := $(shell ls -1 *.tst | sed '/.tst/s///')
 s_rebuild: neutralize.map
-	@-for file in $(TESTLOADS); do \
+	-for file in $(TESTLOADS); do \
 	    echo "Remaking $${file}.chk"; \
 	    make --quiet $${file}.repo; \
-	    find $${file}.repo/$${repo} -name '*,v' | cvs-fast-export -T -A neutralize.map $${file} >$${file}.chk 2>&1; \
+	    find $${file}.repo/$${file} -name '*,v' | cvs-fast-export -T -A neutralize.map >$${file}.chk 2>&1; \
 	done;
 s_regress: neutralize.map
 	@-for file in $(TESTLOADS); do \
 	    echo -n "  $${file} "; grep '##' $${file}.tst  || echo ' ## (no description)'; \
 	    make --quiet $${file}.repo; \
-	    find $${file}.repo/$${repo} -name '*,v' | cvs-fast-export -T -A neutralize.map $${file} 2>&1 | diff -u $${file}.chk -; \
+	    find $${file}.repo/$${file} -name '*,v' | cvs-fast-export -T -A neutralize.map 2>&1 | diff -u $${file}.chk -; \
 	done
 
 PYTESTS=t9601 t9602 t9603
