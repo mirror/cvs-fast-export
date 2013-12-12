@@ -50,4 +50,4 @@ t_rebuild:
 	done
 
 clean:
-	rm -fr neutralize.map *.checkout *.repo *.pyc *.log
+	rm -fr neutralize.map *.checkout *.repo *.pyc *.git.fi
