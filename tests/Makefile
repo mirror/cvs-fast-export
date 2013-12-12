@@ -25,7 +25,7 @@ neutralize.map:
 
 TESTLOADS := $(shell ls -1 *.tst | sed '/.tst/s///')
 s_rebuild: neutralize.map
-	-for file in $(TESTLOADS); do \
+	@-for file in $(TESTLOADS); do \
 	    echo "Remaking $${file}.chk"; \
 	    make --quiet $${file}.repo; \
 	    find $${file}.repo/$${file} -name '*,v' | cvs-fast-export -T -A neutralize.map >$${file}.chk 2>&1; \
