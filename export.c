@@ -39,9 +39,16 @@ static char blobdir[PATH_MAX];
 
 void export_init(void)
 {
+    char *tmp = getenv("TMPDIR");
+    if (tmp == NULL) 
+    	tmp = "/tmp";
     seqno = mark = 0;
-    snprintf(blobdir, sizeof(blobdir), "/tmp/cvs-fast-export-%d", getpid());
-    mkdir(blobdir, 0770);
+    snprintf(blobdir, sizeof(blobdir), "%s/cvs-fast-export-XXXXXXXXXX", tmp);
+    if (mkdtemp(blobdir) == NULL)
+    {
+	fprintf(stderr, "cvs-fast-export: temp directory creation failed.\n");
+	exit(1);
+    }
 }
 
 static char *blobfile(int m)
