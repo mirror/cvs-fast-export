@@ -21,6 +21,7 @@
 #include <sys/types.h>
 #include <errno.h>
 #include <getopt.h>
+#include <regex.h>
 
 #ifndef MAXPATHLEN
 #define MAXPATHLEN  10240
@@ -406,6 +407,95 @@ strcommonendingwith(char *a, char *b, char endc)
     return d;
 }
 
+static int get_int_substr(const char * str, const regmatch_t * p)
+{
+    char buff[256];
+    if(p->rm_so == -1)
+	    return 0;
+    if(p->rm_eo - p->rm_so >= sizeof(buff))
+	    return 0;
+    memcpy(buff, str + p->rm_so, p->rm_eo - p->rm_so);
+    buff[p->rm_eo - p->rm_so] = 0;
+    return atoi(buff);
+}
+
+static time_t mktime_utc(struct tm * tm, const char* tzbuf)
+{
+    /* coverity[tainted_data] */
+    char * old_tz = getenv("TZ");
+    time_t ret;
+
+    setenv("TZ", tzbuf, 1);
+
+    tzset();
+
+    ret = mktime(tm);
+
+    if (old_tz)
+	setenv("TZ", old_tz, 1);
+    else
+	unsetenv("TZ");
+
+    tzset();
+
+    return ret;
+}
+
+static time_t convert_date(const char *dte)
+/* accept a date in anything close to RFC3339 form */
+{
+    static regex_t date_re;
+    static bool init_re;
+
+#define MAX_MATCH 16
+    size_t nmatch = MAX_MATCH;
+    regmatch_t match[MAX_MATCH];
+
+    if (!init_re)
+    {
+	if (regcomp(&date_re, "([0-9]{4})[-/]([0-9]{2})[-/]([0-9]{2})[ T]([0-9]{2}):([0-9]{2}):([0-9]{2})( [-+][0-9]{4})?", REG_EXTENDED)) 
+	{
+	    fprintf(stderr, "cvs-fast-export: date regex compilation error\n");
+	    exit(1);
+	}
+	init_re = true;
+    }
+
+    if (regexec(&date_re, dte, nmatch, match, 0) == 0)
+    {
+	regmatch_t * pm = match;
+	struct tm tm = {0};
+	char tzbuf[32];
+	int offseth, offsetm;
+
+	/* first regmatch_t is match location of entire re */
+	pm++;
+
+	tm.tm_year = get_int_substr(dte, pm++);
+	tm.tm_mon  = get_int_substr(dte, pm++);
+	tm.tm_mday = get_int_substr(dte, pm++);
+	tm.tm_hour = get_int_substr(dte, pm++);
+	tm.tm_min  = get_int_substr(dte, pm++);
+	tm.tm_sec  = get_int_substr(dte, pm++);
+	offseth    = -get_int_substr(dte, pm++);
+
+	offsetm = offseth % 100;
+	if(offsetm < 0)
+	    offsetm *= -1;
+	offseth /= 100;
+	snprintf(tzbuf, sizeof(tzbuf), "UTC%+d:%d", offseth, offsetm);
+
+	tm.tm_year -= 1900;
+	tm.tm_mon--;
+
+	return mktime_utc(&tm, tzbuf);
+    }
+    else
+    {
+	return atoi(dte);
+    }
+}
+
 typedef struct _rev_filename {
     struct _rev_filename	*next;
     char		*file;
@@ -426,6 +516,10 @@ main (int argc, char **argv)
     char	    *file;
     int		    nfile = 0;
     bool	    progress = false;
+    time_t          fromtime = 0;
+
+    /* force times using mktime to be interpreted in UTC */
+    setenv ("TZ", "UTC", 1);
 
     while (1) {
 	static struct option options[] = {
@@ -440,8 +534,9 @@ main (int argc, char **argv)
             { "remote",             1, 0, 'e' },
             { "strip",              1, 0, 's' },
             { "progress",           0, 0, 'p' },
+            { "incremental",        1, 0, 'i' },
 	};
-	int c = getopt_long(argc, argv, "+hVw:grvA:R:Tke:s:p", options, NULL);
+	int c = getopt_long(argc, argv, "+hVw:grvA:R:Tke:s:pi:", options, NULL);
 	if (c < 0)
 	    break;
 	switch (c) {
@@ -460,9 +555,10 @@ main (int argc, char **argv)
 		   " -T                              Force deteministic dates\n"
                    " -e --remote                     Relocate branches to refs/remotes/REMOTE\n"
                    " -s --strip                      Strip the given prefix instead of longest common prefix\n"
-		   " -p --progress                   Enable load-status reporting\n" 
+		   " -p --progress                   Enable load-status reporting\n"
 		   "\n"
 		   "Example: find -name '*,v' | cvs-fast-export\n");
+//		   " -i --incremental TIME           Incremental dump beginning after specified RFC3339-format time.\n"
 	    return 0;
 	case 'g':
 	    rev_mode = ExecuteGraph;
@@ -505,6 +601,9 @@ main (int argc, char **argv)
 	case 'p':
 	    progress = true;
 	    break;
+	case 'i':
+	    fromtime = convert_date(optarg);
+	    break;
 	default: /* error message already emitted */
 	    fprintf(stderr, "Try `%s --help' for more information.\n", argv[0]);
 	    return 1;
@@ -515,8 +614,6 @@ main (int argc, char **argv)
     argv += optind-1;
     argc -= optind-1;
 
-    /* force times using mktime to be interpreted in UTC */
-    setenv ("TZ", "UTC", 1);
     time_now = time (NULL);
     for (;;)
     {
@@ -595,7 +692,7 @@ main (int argc, char **argv)
 	    dump_splits (rl);
 	    break;
 	case ExecuteExport:
-	    export_commits (rl, strip, progress);
+	    export_commits (rl, strip, fromtime, progress);
 	    break;
 	}
     }

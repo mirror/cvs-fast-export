@@ -153,25 +153,6 @@ static const char *utc_offset_timestamp(const time_t *timep, const char *tz)
     return outbuf;
 }
 
-static int export_total_commits;
-static int export_current_commit;
-static char *export_current_head;
-
-#define STATUS	stderr
-#define PROGRESS_LEN	20
-
-static void export_status(void)
-{
-    int	spot = export_current_commit * PROGRESS_LEN / export_total_commits;
-    int	s;
-
-    fprintf (STATUS, "\rSave: %35.35s ", export_current_head);
-    for (s = 0; s < PROGRESS_LEN + 1; s++)
-	putc (s == spot ? '*' : '.', STATUS);
-    fprintf (STATUS, " %5d of %5d ", export_current_commit, export_total_commits);
-    fflush (STATUS);
-}
-
 struct fileop {
     char op;
     mode_t mode;
@@ -430,15 +411,14 @@ bool export_commits(rev_list *rl, int strip, time_t fromtime, bool progress)
     rev_commit **history;
     int alloc, n, i;
     size_t extent;
+    int export_total_commits;
 
     export_total_commits = export_ncommit (rl);
     /* the +1 is because mark indices are 1-origin, slot 0 always empty */
     extent = sizeof(struct mark) * (seqno + export_total_commits + 1);
     markmap = (struct mark *)xmalloc(extent);
     memset(markmap, '\0', extent);
-    export_current_commit = 0;
     for (h = rl->heads; h; h = h->next) {
-	export_current_head = h->name;
 	if (!h->tail) {
 	    // We need to export commits in reverse order; so first of all, we
 	    // convert the linked-list given by h->commit into the array
@@ -460,9 +440,6 @@ bool export_commits(rev_list *rl, int strip, time_t fromtime, bool progress)
 	    // Now walk the history array in reverse order and export the
 	    // commits, along with any matching tags.
 	    for (i=n-1; i>=0; i--) {
-		++export_current_commit;
-		if (progress)
-		    export_status ();
 		/* FIXME: increment fromtime check for incremental dumping */
 		export_commit (history[i], h->name, strip);
 		for (t = all_tags; t; t = t->next)
@@ -472,22 +449,16 @@ bool export_commits(rev_list *rl, int strip, time_t fromtime, bool progress)
 
 	    free(history);
 	}
-	if (progress) 
-	{
-	    fprintf(STATUS, "\n");
-	    fflush(STATUS);
-	}
 	printf("reset %s%s\nfrom :%d\n\n", 
 	       branch_prefix, 
 	       h->name, 
 	       markmap[h->commit->serial].external);
     }
-    if (progress)
-	fprintf (STATUS, "\n");
     free(markmap);
     return true;
 }
 
+#define STATUS stderr
 #define PROGRESS_LEN	20
 
 void load_status (char *name)

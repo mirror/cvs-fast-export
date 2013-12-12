@@ -392,7 +392,7 @@ void
 export_init(void);
 
 bool
-export_commits (rev_list *rl, int strip, bool progress);
+export_commits (rev_list *rl, int strip, time_t fromtime, bool progress);
 
 void
 export_wrap(void);
