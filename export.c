@@ -110,6 +110,7 @@ static char *export_filename(rev_file *file, int strip)
 void export_wrap(void)
 /* clean up after export, removing the blob storage */
 {
+    (void)fputs("done\n");
     (void)rmdir(blobdir);
 }
 
