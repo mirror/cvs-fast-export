@@ -1,9 +1,6 @@
 Commits before this date lack commitids: Mon Feb  9 15:43:16 2004
-Traceback (most recent call last):
-  File "t9601.py", line 51, in <module>
-    "t9601.git/imported-twice.txt")
-  File "/home/esr/public_html/cvs-fast-export/tests/testlifter.py", line 176, in expect_different
-    if filecmp.cmp(a, b, shallow=False):
-  File "/usr/lib/python2.7/filecmp.py", line 43, in cmp
-    s2 = _sig(os.stat(f2))
-OSError: [Errno 2] No such file or directory: 't9601.git/imported-twice.txt'
+t9601.git/imported-twice.txt does not exist in the git conversion.
+t9601.git/imported-modified.txt does not exist in the git conversion.
+t9601.git/imported-modified-imported.txt does not exist in the git conversion.
+t9601.checkout/added-imported.txt and t9601.git/added-imported.txt are not the same.
+t9601.checkout/added-imported.txt and t9601.git/added-imported.txt are not the same.

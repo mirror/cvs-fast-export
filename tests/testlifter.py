@@ -168,11 +168,23 @@ class CVSCheckout:
 
 def expect_same(a, b):
     "Complain if two files aren't identical"
+    if not os.path.exists(a):
+        sys.stderr.write("%s does not exist in CVS.\n" % a)
+        return
+    if not os.path.exists(b):
+        sys.stderr.write("%s does not exist in the git conversion.\n" % b)
+        return
     if not filecmp.cmp(a, b, shallow=False):
         sys.stderr.write("%s and %s are not the same.\n" % (a, b))
     
 def expect_different(a, b):
     "Rejoice if two files are unexpectedly identical"
+    if not os.path.exists(a):
+        sys.stderr.write("%s does not exist in CVS.\n" % a)
+        return
+    if not os.path.exists(b):
+        sys.stderr.write("%s does not exist in the git conversion.\n" % b)
+        return
     if filecmp.cmp(a, b, shallow=False):
         sys.stderr.write("%s and %s are unexpectedly the same.\n" % (a, b))
 
