@@ -236,6 +236,7 @@ static void export_commit(rev_commit *commit, char *branch, int strip)
 			if (cmp == 0) {
 			    present = true;
 			    changed = (f->serial != f2->serial);
+			    break;
 			}
 		    }
 		}
@@ -300,6 +301,7 @@ static void export_commit(rev_commit *commit, char *branch, int strip)
 			cmp = strcmp(f->name, f2->name);
 			if (cmp == 0) {
 			    present = true;
+			    break;
 			}
 		    }
 		}
