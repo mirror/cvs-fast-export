@@ -66,4 +66,5 @@ testlifter.expect_same("t9601.checkout/added-imported.txt",
 testlifter.expect_same("t9601.checkout/added-imported.txt",
                     "t9601.git/added-imported.txt")
 
-os.system("rm -fr t9601.git t9601.checkout")
+co.cleanup()
+

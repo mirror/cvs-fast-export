@@ -66,6 +66,7 @@ class CVSRepository:
         verbose += sys.argv[1:].count("-v")
         self.directory = os.path.join(os.getcwd(), self.name)
         self.checkouts = []
+        self.conversions = []
     def do(self, *cmd):
         "Execute a CVS command in context of this repo."
         if verbose < DEBUG_CVS:
@@ -93,11 +94,14 @@ class CVSRepository:
         vopt = "-v " * (verbose - DEBUG_LIFTER + 1)
         do_or_die("rm -fr {0} && mkdir {0} && git init --quiet {0}".format(gitdir))
         do_or_die('find {0}/{1} -name "*,v" | cvs-fast-export {3} {5} | {4} | (cd {2} >/dev/null; git fast-import --quiet --done && git checkout)'.format(self.directory, module, gitdir, vopt, "tee %s.log" % module if vopt else "cat", more_opts))
+        self.conversions.append(gitdir)
     def cleanup(self):
         "Clean up the repository checkout directories."
         if not self.retain:
             for checkout in self.checkouts:
                 checkout.cleanup()
+            if self.conversions:
+                os.system("rm -fr " % " ".join(conversions))
 
 class CVSCheckout:
     def __init__(self, repo, module, checkout=None):
