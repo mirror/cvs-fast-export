@@ -17,11 +17,6 @@
  *  59 Temple Place, Suite 330, Boston, MA 02111-1307 USA.
  */
 
-/*
- * Grammar for analyzing the content of an RCS/CVS master file into in-core
- * structures we can walk through to do topological analysis.
- */
-
 #include "cvs.h"
 
 void yyerror (char *msg);
@@ -45,7 +40,7 @@ time_t skew_vulnerable = 0;
 
 %token		HEAD BRANCH ACCESS SYMBOLS LOCKS COMMENT DATE
 %token		BRANCHES DELTATYPE NEXT COMMITID EXPAND
-%token		KOPT PERMISSIONS FILENAME MERGEPOINT
+%token		GROUP KOPT OWNER PERMISSIONS FILENAME MERGEPOINT
 %token		DESC LOG TEXT STRICT AUTHOR STATE
 %token		SEMI COLON INT
 %token		BRAINDAMAGED_NUMBER
@@ -62,7 +57,9 @@ time_t skew_vulnerable = 0;
 %type <s>	desc name
 %type <s>	author state
 %type <s>	deltatype
-%type <s>	kopt opt_name
+%type <s>	group
+%type <s>	kopt
+%type <s>	owner
 %type <s>	permissions
 %type <s>	filename
 %type <number>	mergepoint
@@ -146,7 +143,7 @@ paramlist : /* empty */ | paramseq
 paramseq : parameter | paramseq parameter;
 
 /* ignored items from cvsnt */
-parameter : deltatype | kopt | permissions | mergepoint | filename;
+parameter : owner | group | deltatype | kopt | permissions | mergepoint | filename;
 
 revision	: NUMBER date author state branches next revtrailer
 		  {
@@ -198,11 +195,6 @@ opt_number	: NUMBER
 		|
 		  { $$.c = 0; }
 		;
-opt_name : NAME
-			{ $$ = $1; }
-		|
-			{ $$ = NULL; }
-		;
 opt_commitid : commitid
       { $$ = $1; }
     |
@@ -242,7 +234,13 @@ text		: TEXT TEXT_DATA
 deltatype	: DELTATYPE NAME SEMI
 			{ $$ = $2; }
 		;
-kopt		: KOPT opt_name SEMI
+group		: GROUP NAME SEMI
+			{ $$ = $2; }
+		;
+kopt		: KOPT NAME SEMI
+			{ $$ = $2; }
+		;
+owner		: OWNER NAME SEMI
 			{ $$ = $2; }
 		;
 permissions	: PERMISSIONS NAME SEMI
