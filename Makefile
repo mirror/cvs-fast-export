@@ -54,6 +54,9 @@ clean:
 	rm -f cvs-fast-export.1 cvs-fast-export.html
 	rm -f MANIFEST index.html *.tar.gz
 
+check:
+	@(cd tests >/dev/null; make --quiet)
+
 install: cvs-fast-export.1 all
 	$(INSTALL) -d "$(target)/bin"
 	$(INSTALL) -d "$(target)/share/man/man1"
