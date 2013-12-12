@@ -441,7 +441,7 @@ main (int argc, char **argv)
             { "strip",              1, 0, 's' },
             { "progress",           0, 0, 'p' },
 	};
-	int c = getopt_long(argc, argv, "+hVw:grvA:R:Tke:s:", options, NULL);
+	int c = getopt_long(argc, argv, "+hVw:grvA:R:Tke:s:p", options, NULL);
 	if (c < 0)
 	    break;
 	switch (c) {
