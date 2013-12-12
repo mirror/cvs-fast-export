@@ -421,7 +421,7 @@ static int export_ncommit(rev_list *rl)
     return n;
 }
 
-bool export_commits(rev_list *rl, int strip, bool progress)
+bool export_commits(rev_list *rl, int strip, time_t fromtime, bool progress)
 /* export a revision list as a git fast-import stream in canonical order */
 {
     rev_ref *h;
@@ -463,6 +463,7 @@ bool export_commits(rev_list *rl, int strip, bool progress)
 		++export_current_commit;
 		if (progress)
 		    export_status ();
+		/* FIXME: increment fromtime check for incremental dumping */
 		export_commit (history[i], h->name, strip);
 		for (t = all_tags; t; t = t->next)
 		    if (t->commit == history[i])
