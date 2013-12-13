@@ -491,7 +491,7 @@ rev_list_set_refs (rev_list *rl, cvs_file *cvs)
 	    n.c -= 2;
 	    h->parent = rev_list_find_branch (rl, &n);
 	    if (!h->parent && ! cvs_is_vendor (&h->number))
-		fprintf (stderr, "Warning: %s: branch %s has no parent\n",
+		announce("warning - %s branch %s has no parent\n",
 			 cvs->name, h->name);
 	}
 	if (h->parent && !h->name) {
@@ -499,7 +499,7 @@ rev_list_set_refs (rev_list *rl, cvs_file *cvs)
 	    char	rev[CVS_MAX_REV_LEN];
 
 	    cvs_number_string (&h->number, rev);
-	    fprintf (stderr, "Warning: %s: unnamed branch %s from %s\n",
+	    announce("warning - %s unnamed branch %s from %s\n",
 		     cvs->name, rev, h->parent->name);
 	    sprintf (name, "%s-UNNAMED-BRANCH", h->parent->name);
 	    h->name = atom (name);

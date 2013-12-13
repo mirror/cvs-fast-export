@@ -41,7 +41,7 @@ void tag_commit(rev_commit *c, char *name)
 {
 	Tag *tag = find_tag(name);
 	if (tag->last == this_file->name) {
-		fprintf(stderr, "duplicate tag %s in %s, ignoring\n",
+		announce("duplicate tag %s in %s, ignoring\n",
 			name, this_file->name);
 		return;
 	}

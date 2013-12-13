@@ -289,7 +289,7 @@ rev_ref_tsort (rev_ref *refs, rev_list *head)
 	    }
 	}
 	if (!r) {
-	    fprintf (stderr, "Error: branch cycle\n");
+	    announce("error - branch cycle\n");
 	    return NULL;
 	}
 	*prev = r->next;
@@ -768,10 +768,10 @@ Kill:
 	    }
 	} else if ((*tail = rev_commit_locate_date (branch->parent,
 						  commits[present]->date)))
-	    fprintf (stderr, "Warning: branch point %s -> %s matched by date\n",
+	    announce("warning - branch point %s -> %s matched by date\n",
 		     branch->name, branch->parent->name);
 	else {
-	    fprintf (stderr, "Error: branch point %s -> %s not found.",
+	    fprintf(stderr, "Error: branch point %s -> %s not found.",
 		     branch->name, branch->parent->name);
 
 	    if ((lost = rev_branch_of_commit (rl, commits[present])))
@@ -917,7 +917,7 @@ rev_ref_parent (rev_ref **refs, int nref, rev_list *rl)
     for (h = rl->heads; h; h = h->next)
 	if (parent->name == h->name)
 	    return h;
-    fprintf (stderr, "Reference missing in merge: %s\n", parent->name);
+    announce("reference missing in merge: %s\n", parent->name);
     return NULL;
 }
 #endif
@@ -996,7 +996,7 @@ rev_list_merge (rev_list *head)
 	if (commits)
 	    rev_tag_search(t, commits, rl);
 	else
-	    fprintf (stderr, "lost tag %s\n", t->name);
+	    announce("lost tag %s\n", t->name);
 	free(commits);
     }
     rev_list_validate (rl);
