@@ -46,7 +46,7 @@ void export_init(void)
     snprintf(blobdir, sizeof(blobdir), "%s/cvs-fast-export-XXXXXXXXXX", tmp);
     if (mkdtemp(blobdir) == NULL)
     {
-	fprintf(stderr, "cvs-fast-export: temp directory creation failed.\n");
+	(void)fprintf(stderr, "cvs-fast-export: temp dir creation failed\n");
 	exit(1);
     }
 }
@@ -402,20 +402,31 @@ static int export_ncommit(rev_list *rl)
     return n;
 }
 
+struct commit_seq {
+    rev_commit *commit;
+    rev_ref *head;
+};
+
+static int sort_by_date(const void *ap, const void *bp)
+{
+    struct commit_seq *ac = (struct commit_seq *)ap;
+    struct commit_seq *bc = (struct commit_seq *)bp;
+
+    return ac->commit->date - bc->commit->date;
+}
+
+
 bool export_commits(rev_list *rl, int strip, time_t fromtime, bool progress)
 /* export a revision list as a git fast-import stream in canonical order */
 {
     rev_ref *h;
     Tag *t;
     rev_commit *c;
-    struct commit_seq {
-	rev_commit *commit;
-	rev_ref *head;
-    };
-    struct commit_seq *history;
+    struct commit_seq *history, *hp;
     int n, branchbase;
     size_t extent;
     int export_total_commits;
+    bool sortable;
 
     export_total_commits = export_ncommit (rl);
     /* the +1 is because mark indices are 1-origin, slot 0 always empty */
@@ -436,8 +447,8 @@ bool export_commits(rev_list *rl, int strip, time_t fromtime, bool progress)
      * But there's a hitch; the branches themselves need to be dumped
      * in forward order, otherwise not all ancestor marks will be defined.
      * Since the branch commits need to be dumped in reverse, the easiest
-     * way to arrange this is to reverse the branches in place, fill
-     * the array in forward order, and dump it forward (whew!)
+     * way to arrange this is to reverse the branches in the array, fill
+     * the array in forward order, and dump it forward order.
      */
     history = (struct commit_seq *)calloc(export_total_commits, 
 					  sizeof(struct commit_seq));
@@ -461,6 +472,24 @@ bool export_commits(rev_list *rl, int strip, time_t fromtime, bool progress)
 	    branchbase += branchlength;
 	}
     }
+ 
+    /* 
+     * Check that the topo order is consistent with time order.
+     * If so, we can sort commits by date without worrying that
+     * we'll try to ship a mark before it's defined.
+     */
+    sortable = true;
+    for (hp = history; hp < history + export_total_commits; hp++) {
+	if (hp->commit->parent && hp->commit->parent->date > hp->commit->date) {
+	    sortable = false;
+	    (void)fprintf(stderr, "cvs-fast-export: some parent commits are younger than children.\n");
+	    break;
+	}
+    }
+    if (sortable)
+	qsort((void *)history, 
+	      export_total_commits, sizeof(struct commit_seq),
+	      sort_by_date);
 
     for (n = 0; n < export_total_commits; n++) {
 	/* FIXME: implement fromtime check for incremental dumping */

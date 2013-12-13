@@ -144,39 +144,39 @@ from :19
 
 blob
 mark :20
-data 30
-I'm back in the saddle again.
-
-commit refs/heads/master
-mark :21
-committer foo <foo> 12600 +0000
-data 44
-This commit should alter the master branch.
-
-from :19
-M 100644 :20 README
-
-reset refs/tags/illegal
-from :21
-
-blob
-mark :22
 data 38
 This is alternate content for README.
 
 commit refs/heads/samplebranch
-mark :23
-committer foo <foo> 13800 +0000
+mark :21
+committer foo <foo> 12600 +0000
 data 34
 Do we get branch detection right?
 
 from :19
+M 100644 :20 README
+
+blob
+mark :22
+data 30
+I'm back in the saddle again.
+
+commit refs/heads/master
+mark :23
+committer foo <foo> 13800 +0000
+data 44
+This commit should alter the master branch.
+
+from :19
 M 100644 :22 README
 
+reset refs/tags/illegal
+from :23
+
 reset refs/heads/master
-from :21
+from :23
 
 reset refs/heads/samplebranch
-from :23
+from :21
 
 done
