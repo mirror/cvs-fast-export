@@ -107,44 +107,6 @@ static struct {
 #define Ggapsize stack[depth].gapsize
 #define Glinemax stack[depth].linemax
 
-static void fatal_system_error(char const *s)
-{
-	perror(s);
-	exit(1);
-}
-
-static void fatal_error(char const *format,...)
-{
-	va_list args;
-
-	fprintf(stderr, "cvs-fast-export fatal: ");
-	va_start(args, format);
-	vfprintf(stderr, format, args);
-	va_end(args);
-	fprintf(stderr, "\n");
-	exit(1);
-}
-
-void* xmalloc(size_t size)
-{
-        void *ret = malloc(size);
-        if (!ret && !size)
-                ret = malloc(1);
-        if (!ret)
-                fatal_system_error("Out of memory, malloc failed");
-        return ret;
-}
-
-void* xrealloc(void *ptr, size_t size)
-{
-        void *ret = realloc(ptr, size);
-        if (!ret && !size)
-                ret = realloc(ptr, 1);
-        if (!ret)
-                fatal_system_error("Out of memory, realloc failed");
-        return ret;
-}
-
 /* backup one position in the input buffer, unless at start of buffer
  *   return character at new position, or EOF if we could not back up
  */

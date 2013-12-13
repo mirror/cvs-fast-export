@@ -423,6 +423,12 @@ xmalloc(size_t size);
 void* 
 xrealloc(void *ptr, size_t size);
 
+void
+fatal_error(char const *format,...);
+
+void
+fatal_system_error(char const *format);
+
 void hash_version(cvs_version *);
 void hash_patch(cvs_patch *);
 void hash_branch(cvs_branch *);

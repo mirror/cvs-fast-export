@@ -45,10 +45,7 @@ void export_init(void)
     seqno = mark = 0;
     snprintf(blobdir, sizeof(blobdir), "%s/cvs-fast-export-XXXXXXXXXX", tmp);
     if (mkdtemp(blobdir) == NULL)
-    {
-	(void)fprintf(stderr, "cvs-fast-export: temp dir creation failed\n");
-	exit(1);
-    }
+	fatal_error("temp dir creation failed\n");
 }
 
 static char *blobfile(int m)

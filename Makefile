@@ -23,7 +23,7 @@ LFLAGS=-l
 
 OBJS=gram.o lex.o main.o cvsutil.o revdir.o \
 	revlist.o atom.o revcvs.o generate.o export.o \
-	nodehash.o tags.o authormap.o graph.o
+	nodehash.o tags.o authormap.o graph.o utils.o
 
 cvs-fast-export: $(OBJS)
 	cc $(CFLAGS) -o $@ $(OBJS)
