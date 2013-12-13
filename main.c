@@ -117,6 +117,7 @@ dump_rev_head (rev_ref *h)
     }
 }
 
+#ifdef __UNUSED__
 void
 dump_rev_list (rev_list *rl)
 {
@@ -128,6 +129,7 @@ dump_rev_list (rev_list *rl)
 	dump_rev_head (h);
     }
 }
+#endif /* __UNUSED__ */
 
 typedef struct _rev_split {
     struct _rev_split	*next;
@@ -363,8 +365,7 @@ dump_rev_tree (rev_list *rl)
     printf ("}\n");
 }
 
-time_t	time_now;
-
+#ifdef __UNUSED__
 static int
 strcommon (char *a, char *b)
 /* return the length of the common prefix of strings a and b */
@@ -380,6 +381,7 @@ strcommon (char *a, char *b)
     }
     return c;
 }
+#endif /* __UNUSED__ */
 
 static int
 strcommonendingwith(char *a, char *b, char endc)
@@ -605,7 +607,6 @@ main (int argc, char **argv)
     argv += optind-1;
     argc -= optind-1;
 
-    time_now = time (NULL);
     for (;;)
     {
 	struct stat stb;

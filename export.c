@@ -74,12 +74,12 @@ void export_blob(Node *node, void *buf, unsigned long len)
 static void drop_path_component(char *string, const char *drop)
 {
     char *c;
-	int  l, m;
+	int  m;
 	m = strlen(drop);
     while ((c = strstr (string, drop)) &&
 	   (c == string || c[-1] == '/'))
     {
-	l = strlen (c);
+	int l = strlen (c);
 	memmove (c, c + m, l - m + 1);
     }
 }

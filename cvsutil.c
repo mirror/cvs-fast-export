@@ -37,7 +37,6 @@ cvs_same_branch (cvs_number *a, cvs_number *b)
     cvs_number	t;
     int		i;
     int		n;
-    int		an, bn;
 
     if (a->c & 1) {
 	t = *a;
@@ -58,6 +57,7 @@ cvs_same_branch (cvs_number *a, cvs_number *b)
 	return 1;
     n = a->c;
     for (i = 0; i < n - 1; i++) {
+	int		an, bn;
 	an = a->n[i];
 	bn = b->n[i];
 	/*
@@ -93,6 +93,7 @@ cvs_number_compare (cvs_number *a, cvs_number *b)
     return 0;
 }
 
+#ifdef __UNUSED__
 int
 cvs_number_compare_n (cvs_number *a, cvs_number *b, int l)
 /* total ordering for CVS revision number prefixes */
@@ -126,6 +127,7 @@ cvs_is_branch_of (cvs_number *trunk, cvs_number *branch)
     }
     return 0;
 }
+#endif /* __UNUSED__ */
 
 int
 cvs_number_degree (cvs_number *n)
@@ -145,6 +147,7 @@ cvs_number_degree (cvs_number *n)
     return n->c;
 }
 
+#ifdef __UNUSED__
 cvs_number
 cvs_previous_rev (cvs_number *n)
 /* return the revision previous to a specified one */
@@ -213,6 +216,7 @@ cvs_branch_parent (cvs_file *f, cvs_number *branch)
     }
     return n;
 }
+#endif /* __UNUSED__ */
 
 Node *
 cvs_find_version (cvs_file *cvs, cvs_number *number)

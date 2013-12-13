@@ -141,11 +141,10 @@ rev_list_patch_vendor_branch (rev_list *rl, cvs_file *cvs)
     rev_commit	*t, **tp, *v, **vp;
     rev_commit	*vlast;
     rev_ref	**h_p;
-    int		delete_head;
 
     trunk = rl->heads;
     for (h_p = &rl->heads; (h = *h_p);) {
-	delete_head = 0;
+	int delete_head = 0;
 	if (h->commit && cvs_is_vendor (&h->commit->file->number))
 	{
 	    /*
@@ -416,13 +415,12 @@ rev_list_set_refs (rev_list *rl, cvs_file *cvs)
 {
     rev_ref	*h;
     cvs_symbol	*s;
-    rev_commit	*c;
     
     /*
      * Locate a symbolic name for this head
      */
     for (s = cvs->symbols; s; s = s->next) {
-	c = NULL;
+	rev_commit	*c = NULL;
 	if (cvs_is_head (&s->number)) {
 	    for (h = rl->heads; h; h = h->next) {
 		if (cvs_same_branch (&h->commit->file->number, &s->number))
@@ -570,9 +568,9 @@ static void
 rev_list_sort_heads (rev_list *rl, cvs_file *cvs)
 {
     rev_ref	*h, **hp;
-    cvs_symbol	*hs, *hns;
 
     for (hp = &rl->heads; (h = *hp);) {
+	cvs_symbol	*hs, *hns;
 	if (!h->next)
 	    break;
 	hs = cvs_find_symbol (cvs, h->name);
@@ -607,7 +605,6 @@ rev_list_cvs (cvs_file *cvs)
     rev_commit	*branch;
     cvs_version	*cv;
     cvs_branch	*cb;
-    rev_ref	*t;
     cvs_version	*ctrunk = NULL;
 
     build_branches();
@@ -631,6 +628,7 @@ rev_list_cvs (cvs_file *cvs)
 	trunk_number = lex_number ("1.1");
     trunk = rev_branch_cvs (cvs, &trunk_number);
     if (trunk) {
+	rev_ref	*t;
 	t = rev_list_add_head (rl, trunk, atom ("master"), 2);
 	t->number = trunk_number;
     }

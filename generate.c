@@ -212,9 +212,9 @@ inline static void out_putc(int c)
 
 static void out_printf(const char *fmt, ...)
 {
-	int ret, room;
 	va_list ap;
 	while (1) {
+		int ret, room;
 		room = Goutbuf->end_of_text - Goutbuf->ptr;
 		va_start(ap, fmt);
 		ret = vsnprintf(Goutbuf->ptr, room, fmt, ap);
@@ -326,8 +326,8 @@ static char const * getfullRCSname(void)
 static enum markers trymatch(char const *string)
 {
         int j;
-	char const *p, *s;
 	for (j = sizeof(Keyword)/sizeof(*Keyword);  (--j);  ) {
+		char const *p, *s;
 		p = Keyword[j];
 		s = string;
 		while (*p++ == *s++) {
@@ -433,8 +433,8 @@ static int parse_next_delta_command(struct diffcmd *dc)
 
 static void escape_string(register char const *s)
 {
-	register char c;
 	for (;;) {
+		register char c;
 		switch ((c = *s++)) {
 		case 0:		return;
 		case '\t':	out_fputs("\\t"); break;
@@ -450,8 +450,6 @@ static void escape_string(register char const *s)
 /* output the appropriate keyword value(s) */
 static void keyreplace(enum markers marker)
 {
-	const char *target_lockedby = NULL;	// Not wired in yet
-
 	char *leader = NULL;
 	char date_string[25];
 	enum expand_mode exp = Gexpand;
@@ -464,6 +462,8 @@ static void keyreplace(enum markers marker)
 		out_printf("%c%s", KDELIM, sp);
 
 	if (exp != EXPANDKK) {
+		const char *target_lockedby = NULL;	// Not wired in yet
+
 		if (exp != EXPANDKV)
 			out_printf("%c%c", VDELIM, ' ');
 

@@ -58,6 +58,7 @@ rev_find_head (rev_list *rl, char *name)
  * (which are always unique)
  */
 
+#ifdef __UNUSED__
 bool
 rev_file_later (rev_file *af, rev_file *bf)
 {
@@ -80,7 +81,6 @@ rev_file_later (rev_file *af, rev_file *bf)
     return false;
 }
 
-#ifdef __UNUSED__
 bool
 rev_commit_later (rev_commit *a, rev_commit *b)
 {
@@ -156,10 +156,9 @@ rev_list_set_tail (rev_list *rl)
 {
     rev_ref	*head;
     rev_commit	*c;
-    int		tail;
 
     for (head = rl->heads; head; head = head->next) {
-	tail = 1;
+	int tail = 1;
 	if (head->commit && head->commit->seen) {
 	    head->tail = tail;
 	    tail = 0;
@@ -724,7 +723,6 @@ Kill:
     nbranch = rev_commit_date_sort (commits, nbranch);
     if (nbranch && branch->parent )
     {
-	rev_ref	*lost;
 	int	present;
 
 //	present = 0;
@@ -771,6 +769,7 @@ Kill:
 	    announce("warning - branch point %s -> %s matched by date\n",
 		     branch->name, branch->parent->name);
 	else {
+	    rev_ref	*lost;
 	    fprintf(stderr, "Error: branch point %s -> %s not found.",
 		     branch->name, branch->parent->name);
 
@@ -821,7 +820,6 @@ rev_tag_search(Tag *tag, rev_commit **commits, rev_list *rl)
 static void
 rev_ref_set_parent (rev_list *rl, rev_ref *dest, rev_list *source)
 {
-    rev_ref	*sh;
     rev_list	*s;
     rev_ref	*p;
     rev_ref	*max;
@@ -831,6 +829,7 @@ rev_ref_set_parent (rev_list *rl, rev_ref *dest, rev_list *source)
 
     max = NULL;
     for (s = source; s; s = s->next) {
+	rev_ref	*sh;
 	sh = rev_find_head (s, dest->name);
 	if (!sh)
 	    continue;
@@ -931,7 +930,6 @@ rev_list_merge (rev_list *head)
     rev_ref	*lh, *h;
     Tag		*t;
     rev_ref	**refs = calloc (count, sizeof (rev_ref *));
-    int		nref;
 
     /*
      * Find all of the heads across all of the incoming trees
@@ -973,7 +971,7 @@ rev_list_merge (rev_list *head)
 	/*
 	 * Locate branch in every tree
 	 */
-	nref = 0;
+	int nref = 0;
 	for (l = head; l; l = l->next) {
 	    lh = rev_find_head (l, h->name);
 	    if (lh)
