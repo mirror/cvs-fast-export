@@ -174,6 +174,8 @@ static int fileop_sort(const void *a, const void *b)
     return cmp;
 }
 
+#define display_date(c, m)	(force_dates ? ((m) * commit_time_window * 2) : (c)->date)
+
 static void export_commit(rev_commit *commit, char *branch, int strip, bool report)
 /* export a commit (and the blobs it is the first to reference) */
 {
@@ -351,7 +353,7 @@ static void export_commit(rev_commit *commit, char *branch, int strip, bool repo
 	printf("mark :%d\n", mark);
     commit->serial = seqno;
     if (report) {
-	ct = force_dates ? mark * commit_time_window * 2 : commit->date;
+	ct = display_date(commit, mark);
 	ts = utc_offset_timestamp(&ct, timezone);
 	//printf("author %s <%s> %s\n", full, email, ts);
 	printf("committer %s <%s> %s\n", full, email, ts);
@@ -496,14 +498,17 @@ bool export_commits(rev_list *rl, int strip, time_t fromtime, bool progress)
     for (hp = history; hp < history + export_total_commits; hp++) {
 	bool report = true;
 	if (fromtime > 0) {
-	    if (fromtime < hp->commit->date)
+	    if (fromtime >= display_date(hp->commit, mark+1)) {
 		report = false;
-	    else if (!hp->realized) {
+	    } else if (!hp->realized) {
 		struct commit_seq *lp;
-		(void)printf("from %s%s^0\n\n", branch_prefix, hp->head->name);
-		for (lp = hp; lp < history; lp++)
-		    if (lp->head == hp->head)
+		if (hp->commit->parent != NULL && display_date(hp->commit->parent, markmap[hp->commit->parent->serial].external) < fromtime)
+		    (void)printf("from %s%s^0\n\n", branch_prefix, hp->head->name);
+		for (lp = hp; lp < history + export_total_commits; lp++) {
+		    if (lp->head == hp->head) {
 			lp->realized = true;
+		    }
+		}
 	    }
 	}
 	export_commit(hp->commit, hp->head->name, strip, report);
