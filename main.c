@@ -688,7 +688,7 @@ main (int argc, char **argv)
 	}
     }
     if (skew_vulnerable > 0 && load_total_files > 1)
-	fprintf(stderr, "Commits before this date lack commitids: %s",
+	announce("commits before this date lack commitids: %s",
 		ctime(&skew_vulnerable));
     if (rl)
 	rev_list_free (rl, 0);

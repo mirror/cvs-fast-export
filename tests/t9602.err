@@ -1,4 +1,4 @@
-Commits before this date lack commitids: Tue Jun  3 04:33:13 2003
+cvs-fast-export: commits before this date lack commitids: Tue Jun  3 04:33:13 2003
 t9602 test of branch vendorbranch: tag or branch vendorbranch unexpectedly missing
 t9602 test of branch B_FROM_INITIALS: trees unexpectedly match
 t9602 test of branch B_MIXED: trees unexpectedly match
