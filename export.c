@@ -174,7 +174,7 @@ static int fileop_sort(const void *a, const void *b)
     return cmp;
 }
 
-static void export_commit(rev_commit *commit, char *branch, int strip)
+static void export_commit(rev_commit *commit, char *branch, int strip, bool report)
 /* export a commit (and the blobs it is the first to reference) */
 {
 #define OP_CHUNK	32
@@ -248,7 +248,7 @@ static void export_commit(rev_commit *commit, char *branch, int strip)
 
 		if (revision_map || reposurgeon) {
 		    char *fr = stringify_revision(stripped, " ", &f->number);
-		    if (revision_map)
+		    if (report && revision_map)
 			fprintf(revision_map, "%s :%d\n", fr, markmap[f->serial].external);
 		    if (reposurgeon)
 		    {
@@ -313,18 +313,20 @@ static void export_commit(rev_commit *commit, char *branch, int strip)
     {
 	if (op2->op == 'M' && !markmap[op2->serial].emitted)
 	{
-	    char *fn = blobfile(op2->serial);
-	    FILE *rfp = fopen(fn, "r");
-	    if (rfp)
-	    {
-		int c;
-		markmap[op2->serial].external = ++mark; 
-		printf("blob\nmark :%d\n", mark);
-		while ((c = fgetc(rfp)) != EOF)
-		    putchar(c);
-		(void) unlink(fn);
-		markmap[op2->serial].emitted = true;
-		(void)fclose(rfp);
+	    markmap[op2->serial].external = ++mark;
+	    if (report) {
+		char *fn = blobfile(op2->serial);
+		FILE *rfp = fopen(fn, "r");
+		if (rfp)
+		{
+		    int c;
+		    printf("blob\nmark :%d\n", mark);
+		    while ((c = fgetc(rfp)) != EOF)
+			putchar(c);
+		    (void) unlink(fn);
+		    markmap[op2->serial].emitted = true;
+		    (void)fclose(rfp);
+		}
 	    }
 	}
     }
@@ -342,38 +344,44 @@ static void export_commit(rev_commit *commit, char *branch, int strip)
 	timezone = author->timezone ? author->timezone : "UTC";
     }
 
-    printf("commit %s%s\n", branch_prefix, branch);
+    if (report)
+	printf("commit %s%s\n", branch_prefix, branch);
     markmap[++seqno].external = ++mark;
-    printf("mark :%d\n", mark);
+    if (report)
+	printf("mark :%d\n", mark);
     commit->serial = seqno;
-    ct = force_dates ? mark * commit_time_window * 2 : commit->date;
-    ts = utc_offset_timestamp(&ct, timezone);
-    //printf("author %s <%s> %s\n", full, email, ts);
-    printf("committer %s <%s> %s\n", full, email, ts);
-    printf("data %zd\n%s\n", strlen(commit->log), commit->log);
-    if (commit->parent)
-	printf("from :%d\n", markmap[commit->parent->serial].external);
+    if (report) {
+	ct = force_dates ? mark * commit_time_window * 2 : commit->date;
+	ts = utc_offset_timestamp(&ct, timezone);
+	//printf("author %s <%s> %s\n", full, email, ts);
+	printf("committer %s <%s> %s\n", full, email, ts);
+	printf("data %zd\n%s\n", strlen(commit->log), commit->log);
+	if (commit->parent)
+	    printf("from :%d\n", markmap[commit->parent->serial].external);
 
-    for (op2 = operations; op2 < op; op2++)
-    {
-	assert(op2->op == 'M' || op2->op == 'D');
-	if (op2->op == 'M')
-	    printf("M 100%o :%d %s\n", 
-		   op2->mode, 
-		   markmap[op2->serial].external, 
-		   op2->path);
-	if (op2->op == 'D')
-	    printf("D %s\n", op2->path);
+	for (op2 = operations; op2 < op; op2++)
+	{
+	    assert(op2->op == 'M' || op2->op == 'D');
+	    if (op2->op == 'M')
+		printf("M 100%o :%d %s\n", 
+		       op2->mode, 
+		       markmap[op2->serial].external, 
+		       op2->path);
+	    if (op2->op == 'D')
+		printf("D %s\n", op2->path);
+	}
     }
     free(operations);
 
     if (reposurgeon) 
     {
-	printf("property cvs-revision %zd %s", strlen(revpairs), revpairs);
+	if (report)
+	    printf("property cvs-revision %zd %s", strlen(revpairs), revpairs);
 	free(revpairs);
     }
 
-    printf ("\n");
+    if (report)
+	printf ("\n");
 #undef OP_CHUNK
     }
 
@@ -486,9 +494,10 @@ bool export_commits(rev_list *rl, int strip, time_t fromtime, bool progress)
 	      sort_by_date);
 
     for (hp = history; hp < history + export_total_commits; hp++) {
+	bool report = true;
 	if (fromtime > 0) {
 	    if (fromtime < hp->commit->date)
-		continue;
+		report = false;
 	    else if (!hp->realized) {
 		struct commit_seq *lp;
 		(void)printf("from %s%s^0\n\n", branch_prefix, hp->head->name);
@@ -497,7 +506,7 @@ bool export_commits(rev_list *rl, int strip, time_t fromtime, bool progress)
 			lp->realized = true;
 	    }
 	}
-	export_commit(hp->commit, hp->head->name, strip);
+	export_commit(hp->commit, hp->head->name, strip, report);
 	for (t = all_tags; t; t = t->next)
 	    if (t->commit == hp->commit)
 		printf("reset refs/tags/%s\nfrom :%d\n\n", t->name, markmap[hp->commit->serial].external);
