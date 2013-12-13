@@ -80,6 +80,7 @@ rev_file_later (rev_file *af, rev_file *bf)
     return false;
 }
 
+#ifdef __UNUSED__
 bool
 rev_commit_later (rev_commit *a, rev_commit *b)
 {
@@ -95,6 +96,7 @@ rev_commit_later (rev_commit *a, rev_commit *b)
 	return true;
     return true;
 }
+#endif /* __UNUSED__ */
 
 static bool
 commit_time_close (time_t a, time_t b)
@@ -107,12 +109,9 @@ commit_time_close (time_t a, time_t b)
     return false;
 }
 
-/*
- * The heart of the merge operation; detect when two
- * commits are "the same"
- */
 static bool
 rev_commit_match (rev_commit *a, rev_commit *b)
+/* are two commits eligible to be coalesced into a changeset? */
 {
     /*
      * Versions of GNU CVS after 1.12 (2004) place a commitid in
