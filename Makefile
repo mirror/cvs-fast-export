@@ -54,7 +54,7 @@ clean:
 	rm -f cvs-fast-export.1 cvs-fast-export.html
 	rm -f MANIFEST index.html *.tar.gz
 
-check:
+check: cvs-fast-export
 	@(cd tests >/dev/null; make --quiet)
 
 install: cvs-fast-export.1 all
@@ -71,7 +71,7 @@ cppcheck:
 	cppcheck --template gcc --enable=all $(SUPPRESSIONS) --suppress=unusedStructMember *.[ch]
 
 SOURCES = Makefile *.[ch] *.[yl]
-DOCS = README COPYING NEWS AUTHORS control cvs-fast-export.asc
+DOCS = README COPYING NEWS AUTHORS TODO control cvs-fast-export.asc
 ALL =  $(SOURCES) $(DOCS)
 cvs-fast-export-$(VERSION).tar.gz: $(ALL)
 	tar --transform='s:^:cvs-fast-export-$(VERSION)/:' --show-transformed-names -cvzf cvs-fast-export-$(VERSION).tar.gz $(ALL)

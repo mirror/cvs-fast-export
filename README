@@ -18,5 +18,7 @@ maintained by Bart Massey before passing to Eric S. Raymond in
 late 2012; ESR wrote the fast-export output stage and renamed the
 program to reflect its new function.
 
-See also the NEWS and BUGS files.
+This code has a regression-test suitep invoke it with "make check".
+
+See also the NEWS file.
 

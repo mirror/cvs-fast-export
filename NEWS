@@ -1,7 +1,10 @@
 		cvs-fast-export project news
 
 Repository head:
+    -i option for incremental dumping
     -p option for enabling load status reports.
+    Many documentation improvements.
+    There is now a regression-test suite for the package.
 
 0.6 @ 2013-12-10
     Improvements for CVS-NT support.

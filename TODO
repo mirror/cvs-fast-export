@@ -1,0 +1,9 @@
+			TO DO
+
+* Add more weird cases to the test suite.
+
+* Write a test for the incremental-dump feature.
+
+* Document what the tool does with inconsistent tags.
+
+* Optimize out O(n**2) operations where possible.
