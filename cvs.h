@@ -424,6 +424,9 @@ void*
 xrealloc(void *ptr, size_t size);
 
 void
+announce(char const *format,...);
+
+void
 fatal_error(char const *format,...);
 
 void

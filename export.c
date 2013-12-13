@@ -90,10 +90,7 @@ static char *export_filename(rev_file *file, int strip)
     int	    len;
     
     if (strlen (file->name) - strip >= MAXPATHLEN)
-    {
-	fprintf(stderr, "File name %s\n too long\n", file->name);
-	exit(1);
-    }
+	fatal_error("File name %s\n too long\n", file->name);
     strcpy (name, file->name + strip);
 	drop_path_component(name, "Attic/");
 	drop_path_component(name, "RCS/");
@@ -479,7 +476,7 @@ bool export_commits(rev_list *rl, int strip, time_t fromtime, bool progress)
     for (hp = history; hp < history + export_total_commits; hp++) {
 	if (hp->commit->parent && hp->commit->parent->date > hp->commit->date) {
 	    sortable = false;
-	    (void)fprintf(stderr, "cvs-fast-export: some parent commits are younger than children.\n");
+	    announce("some parent commits are younger than children.\n");
 	    break;
 	}
     }

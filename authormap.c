@@ -54,7 +54,7 @@ load_author_map (char *filename)
     
     f = fopen (filename, "r");
     if (!f) {
-	fprintf (stderr, "%s: %s\n", filename, strerror (errno));
+	announce("%s: %s\n", filename, strerror (errno));
 	return 1;
     }
     while (fgets (line, sizeof (line) - 1, f)) {
@@ -63,7 +63,7 @@ load_author_map (char *filename)
 	    continue;
 	equal = strchr (line, '=');
 	if (!equal) {
-	    fprintf (stderr, "%s: (%d) missing '='\n", filename, lineno);
+	    announce("%s: (%d) missing '='\n", filename, lineno);
 	    fclose (f);
 	    return 0;
 	}
@@ -73,7 +73,7 @@ load_author_map (char *filename)
 	*equal = '\0';
 	name = atom (line);
 	if (fullname (name)) {
-	    fprintf (stderr, "%s: (%d) duplicate name '%s' ignored\n",
+	    announce("%s: (%d) duplicate name '%s' ignored\n",
 		     filename, lineno, name);
 	    fclose (f);
 	    return 0;
@@ -82,7 +82,7 @@ load_author_map (char *filename)
 	a->name = name;
 	angle = strchr (full, '<');
 	if (!angle) {
-	    fprintf (stderr, "%s: (%d) missing email address '%s'\n",
+	    announce("%s: (%d) missing email address '%s'\n",
 		     filename, lineno, name);
 	    fclose (f);
 	    free(a);
@@ -97,7 +97,7 @@ load_author_map (char *filename)
 	a->full = atom(full);
 	angle = strchr (email, '>');
 	if (!angle) {
-	    fprintf (stderr, "%s: (%d) malformed email address '%s\n",
+	    announce("%s: (%d) malformed email address '%s\n",
 		     filename, lineno, name);
 	    fclose (f);
 	    free(a);

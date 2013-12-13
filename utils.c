@@ -18,6 +18,16 @@ void fatal_error(char const *format,...)
 	exit(1);
 }
 
+void announce(char const *format,...)
+{
+	va_list args;
+
+	fprintf(stderr, "cvs-fast-export: ");
+	va_start(args, format);
+	vfprintf(stderr, format, args);
+	va_end(args);
+}
+
 void* xmalloc(size_t size)
 {
         void *ret = malloc(size);

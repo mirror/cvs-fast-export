@@ -51,10 +51,7 @@ stringify_revision (char *name, char *sep, cvs_number *number)
     if (name != NULL)
     {
 	if (strlen(name) >= sizeof(result) - strlen(sep) - 1)
-	{
-	    fprintf(stderr, "Filename too long\n");
-	    exit(1);
-	}
+	    fatal_error("filename too long");
 	strncpy(result, name, sizeof(result) - strlen(sep) - 1);
 	strcat(result, sep);
     }

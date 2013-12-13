@@ -803,7 +803,7 @@ rev_tag_search(Tag *tag, rev_commit **commits, rev_list *rl)
 	if (tag->parent)
 		tag->commit = rev_commit_locate (tag->parent, commits[0]);
 	if (!tag->commit) {
-		fprintf (stderr, "Unmatched tag %s\n", tag->name);
+		announce("unmatched tag %s\n", tag->name);
 #if 0
 		/*
 		 * ESR: Keith's code appeared to be trying to create a
