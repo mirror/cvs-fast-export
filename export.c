@@ -408,8 +408,12 @@ bool export_commits(rev_list *rl, int strip, time_t fromtime, bool progress)
     rev_ref *h;
     Tag *t;
     rev_commit *c;
-    rev_commit **history;
-    int alloc, n, i;
+    struct commit_seq {
+	rev_commit *commit;
+	rev_ref *head;
+    };
+    struct commit_seq *history;
+    int n, branchbase;
     size_t extent;
     int export_total_commits;
 
@@ -418,37 +422,57 @@ bool export_commits(rev_list *rl, int strip, time_t fromtime, bool progress)
     extent = sizeof(struct mark) * (seqno + export_total_commits + 1);
     markmap = (struct mark *)xmalloc(extent);
     memset(markmap, '\0', extent);
+
+    /*
+     * Commits are in reverse order on per-branch lists.  The branches
+     * have to ship in their current order, otherwise some marks may not 
+     * be resolved.
+     *
+     * Dump them all into a common array necause (a) we're going to
+     * need to ship them back to front, and (b) we'd prefer to ship
+     * them in canonical order by commit date rather than ordered by
+     * branches.
+     *
+     * But there's a hitch; the branches themselves need to be dumped
+     * in forward order, otherwise not all ancestor marks will be defined.
+     * Since the branch commits need to be dumped in reverse, the easiest
+     * way to arrange this is to reverse the branches in place, fill
+     * the array in forward order, and dump it forward (whew!)
+     */
+    history = (struct commit_seq *)calloc(export_total_commits, 
+					  sizeof(struct commit_seq));
+    if (history == NULL) {
+	free(history);	/* pacifies cppcheck */
+	exit(1);
+    }
+    branchbase = 0;
     for (h = rl->heads; h; h = h->next) {
 	if (!h->tail) {
-	    // We need to export commits in reverse order; so first of all, we
-	    // convert the linked-list given by h->commit into the array
-	    // "history".
-	    history = NULL;
-	    alloc = 0;
-	    for (c=h->commit, n=0; c; c=(c->tail ? NULL : c->parent), n++) {
-		if (n >= alloc) {
-		    alloc += 100;
-		    history = (rev_commit **) realloc(history, alloc * sizeof(rev_commit*));
-		    if (history == NULL) {
-			free(history);	/* pacifies cppcheck */
-			exit(1);
-		    }
-		}
-		history[n] = c;
+	    int i = 0, branchlength = 0;
+	    for (c = h->commit; c; c = (c->tail ? NULL : c->parent))
+		branchlength++;
+	    for (c = h->commit; c; c = (c->tail ? NULL : c->parent)) {
+		/* copy commits in reverse order into this branch's span */
+		n = branchbase + branchlength - (i + 1);
+		history[n].commit = c;
+		history[n].head = h;
+		i++;
 	    }
-
-	    // Now walk the history array in reverse order and export the
-	    // commits, along with any matching tags.
-	    for (i=n-1; i>=0; i--) {
-		/* FIXME: increment fromtime check for incremental dumping */
-		export_commit (history[i], h->name, strip);
-		for (t = all_tags; t; t = t->next)
-		    if (t->commit == history[i])
-			printf("reset refs/tags/%s\nfrom :%d\n\n", t->name, markmap[history[i]->serial].external);
-	    }
-
-	    free(history);
+	    branchbase += branchlength;
 	}
+    }
+
+    for (n = 0; n < export_total_commits; n++) {
+	/* FIXME: implement fromtime check for incremental dumping */
+	export_commit(history[n].commit, history[n].head->name, strip);
+	for (t = all_tags; t; t = t->next)
+	    if (t->commit == history[n].commit)
+		printf("reset refs/tags/%s\nfrom :%d\n\n", t->name, markmap[history[n].commit->serial].external);
+    }
+
+    free(history);
+
+    for (h = rl->heads; h; h = h->next) {
 	printf("reset %s%s\nfrom :%d\n\n", 
 	       branch_prefix, 
 	       h->name, 

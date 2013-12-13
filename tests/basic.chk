@@ -159,9 +159,6 @@ M 100644 :20 README
 reset refs/tags/illegal
 from :21
 
-reset refs/heads/master
-from :21
-
 blob
 mark :22
 data 38
@@ -175,6 +172,9 @@ Do we get branch detection right?
 
 from :19
 M 100644 :22 README
+
+reset refs/heads/master
+from :21
 
 reset refs/heads/samplebranch
 from :23
