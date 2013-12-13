@@ -491,12 +491,11 @@ bool export_commits(rev_list *rl, int strip, time_t fromtime, bool progress)
 	      export_total_commits, sizeof(struct commit_seq),
 	      sort_by_date);
 
-    for (n = 0; n < export_total_commits; n++) {
-	/* FIXME: implement fromtime check for incremental dumping */
-	export_commit(history[n].commit, history[n].head->name, strip);
+    for (hp = history; hp < history + export_total_commits; hp++) {
+	export_commit(hp->commit, hp->head->name, strip);
 	for (t = all_tags; t; t = t->next)
-	    if (t->commit == history[n].commit)
-		printf("reset refs/tags/%s\nfrom :%d\n\n", t->name, markmap[history[n].commit->serial].external);
+	    if (t->commit == hp->commit)
+		printf("reset refs/tags/%s\nfrom :%d\n\n", t->name, markmap[hp->commit->serial].external);
     }
 
     free(history);
