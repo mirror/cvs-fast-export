@@ -67,13 +67,13 @@ void hash_version(cvs_version *v)
 	char name[CVS_MAX_REV_LEN];
 	v->node = hash_number(&v->number);
 	if (v->node->v) {
-		fprintf(stderr, "more than one delta with number %s\n",
+		announce("more than one delta with number %s\n",
 			cvs_number_string(&v->node->number, name));
 	} else {
 		v->node->v = v;
 	}
 	if (v->node->number.c & 1) {
-		fprintf(stderr, "revision with odd depth (%s)\n",
+		announce("revision with odd depth (%s)\n",
 			cvs_number_string(&v->node->number, name));
 	}
 }
@@ -84,13 +84,13 @@ void hash_patch(cvs_patch *p)
 	char name[CVS_MAX_REV_LEN];
 	p->node = hash_number(&p->number);
 	if (p->node->p) {
-		fprintf(stderr, "more than one delta with number %s\n",
+		announce("more than one delta with number %s\n",
 			cvs_number_string(&p->node->number, name));
 	} else {
 		p->node->p = p;
 	}
 	if (p->node->number.c & 1) {
-		fprintf(stderr, "patch with odd depth (%s)\n",
+		announce("patch with odd depth (%s)\n",
 			cvs_number_string(&p->node->number, name));
 	}
 }

@@ -625,8 +625,7 @@ rev_branch_merge (rev_ref **branches, int nbranch,
 		if (!start || time_compare(start, c->date) >= 0)
 			continue;
 		if (c->file)
-			fprintf(stderr,
-				"Warning: %s too late date through branch %s\n",
+			announce("warning - %s too late date through branch %s\n",
 					c->file->name, branch->name);
 		commits[n] = NULL;
 	}
@@ -738,7 +737,7 @@ Kill:
 		if (prev && commits[present]->date > prev->date &&
 		    commits[present]->date == rev_commit_first_date (commits[present]))
 		{
-		    fprintf (stderr, "Warning: file %s appears after branch %s date\n",
+		    announce("warning - file %s appears after branch %s date\n",
 			     commits[present]->file->name, branch->name);
 		    continue;
 		}

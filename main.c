@@ -64,10 +64,7 @@ stringify_revision (char *name, char *sep, cvs_number *number)
 	for (i = 0; i < number->c; i++) {
 	    snprintf (digits, sizeof(digits)-1, "%d", number->n[i]);
 	    if (strlen(result) + 1 + strlen(digits) >= sizeof(result))
-	    {
-		fprintf(stderr, "Revision number too long\n");
-		exit(1);
-	    }
+		fatal_error("Revision number too long\n");
 	    strcat(result, digits);
 	    if (i < number->c - 1)
 		strcat (result, ".");
@@ -451,10 +448,7 @@ static time_t convert_date(const char *dte)
     if (!init_re)
     {
 	if (regcomp(&date_re, "([0-9]{4})[-/]([0-9]{2})[-/]([0-9]{2})[ T]([0-9]{2}):([0-9]{2}):([0-9]{2})( [-+][0-9]{4})?", REG_EXTENDED)) 
-	{
-	    fprintf(stderr, "cvs-fast-export: date regex compilation error\n");
-	    exit(1);
-	}
+	    fatal_error("date regex compilation error\n");
 	init_re = true;
     }
 
@@ -602,7 +596,7 @@ main (int argc, char **argv)
 	    fromtime = convert_date(optarg);
 	    break;
 	default: /* error message already emitted */
-	    fprintf(stderr, "Try `%s --help' for more information.\n", argv[0]);
+	    announce("try `%s --help' for more information.\n", argv[0]);
 	    return 1;
 	}
     }
@@ -666,7 +660,7 @@ main (int argc, char **argv)
 	fn_head = fn_head->next;
 	++load_current_file;
 	if (verbose)
-	    fprintf(stderr, "Processing %s\n", fn->file);
+	    announce("processing %s\n", fn->file);
 	if (progress)
 	    load_status (fn->file + strip);
 	rl = rev_list_file (fn->file, &nversions);
