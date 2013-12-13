@@ -1,0 +1,42 @@
+reset refs/tags/samplebranch_root
+from :2
+
+from refs/heads/samplebranch^0
+
+blob
+mark :7
+data 35
+This is random content for README.
+
+commit refs/heads/samplebranch
+mark :8
+committer foo <foo> 4800 +0000
+data 50
+We will put the dump theshold before this commit.
+
+from :4
+M 100644 :7 README
+
+from refs/heads/master^0
+
+blob
+mark :9
+data 30
+I'm back in the saddle again.
+
+commit refs/heads/master
+mark :10
+committer foo <foo> 6000 +0000
+data 44
+This commit should alter the master branch.
+
+from :6
+M 100644 :9 README
+
+reset refs/heads/master
+from :10
+
+reset refs/heads/samplebranch
+from :8
+
+done
