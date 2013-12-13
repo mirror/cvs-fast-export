@@ -405,6 +405,7 @@ static int export_ncommit(rev_list *rl)
 struct commit_seq {
     rev_commit *commit;
     rev_ref *head;
+    bool realized;
 };
 
 static int sort_by_date(const void *ap, const void *bp)
@@ -414,7 +415,6 @@ static int sort_by_date(const void *ap, const void *bp)
 
     return ac->commit->date - bc->commit->date;
 }
-
 
 bool export_commits(rev_list *rl, int strip, time_t fromtime, bool progress)
 /* export a revision list as a git fast-import stream in canonical order */
@@ -492,6 +492,17 @@ bool export_commits(rev_list *rl, int strip, time_t fromtime, bool progress)
 	      sort_by_date);
 
     for (hp = history; hp < history + export_total_commits; hp++) {
+	if (fromtime > 0) {
+	    if (fromtime < hp->commit->date)
+		continue;
+	    else if (!hp->realized) {
+		struct commit_seq *lp;
+		(void)printf("from %s%s^0\n\n", branch_prefix, hp->head->name);
+		for (lp = hp; lp < history; lp++)
+		    if (lp->head == hp->head)
+			lp->realized = true;
+	    }
+	}
 	export_commit(hp->commit, hp->head->name, strip);
 	for (t = all_tags; t; t = t->next)
 	    if (t->commit == hp->commit)

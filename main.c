@@ -556,9 +556,9 @@ main (int argc, char **argv)
                    " -e --remote                     Relocate branches to refs/remotes/REMOTE\n"
                    " -s --strip                      Strip the given prefix instead of longest common prefix\n"
 		   " -p --progress                   Enable load-status reporting\n"
+		   " -i --incremental TIME           Incremental dump beginning after specified RFC3339-format time.\n"
 		   "\n"
 		   "Example: find -name '*,v' | cvs-fast-export\n");
-//		   " -i --incremental TIME           Incremental dump beginning after specified RFC3339-format time.\n"
 	    return 0;
 	case 'g':
 	    rev_mode = ExecuteGraph;
