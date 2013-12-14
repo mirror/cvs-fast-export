@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-## A repo with udentical tags attached to different changesets
+## A repo with identical tags attached to different changesets
 
 import testlifter
 

@@ -288,7 +288,7 @@ rev_ref_tsort (rev_ref *refs, rev_list *head)
 	    }
 	}
 	if (!r) {
-	    announce("error - branch cycle\n");
+	    announce("internal error - branch cycle\n");
 	    return NULL;
 	}
 	*prev = r->next;
@@ -735,6 +735,7 @@ Kill:
 		if (prev && commits[present]->date > prev->date &&
 		    commits[present]->date == rev_commit_first_date (commits[present]))
 		{
+		    /* FIXME: what does this mean? */
 		    announce("warning - file %s appears after branch %s date\n",
 			     commits[present]->file->name, branch->name);
 		    continue;
@@ -747,7 +748,7 @@ Kill:
 						 commits[present])))
 	{
 	    if (prev && time_compare ((*tail)->date, prev->date) > 0) {
-		fprintf (stderr, "Warning: branch point %s -> %s later than branch\n",
+		announce("warning - branch point %s -> %s later than branch\n",
 			 branch->name, branch->parent->name);
 		fprintf (stderr, "\ttrunk(%3d):  %s %s", n,
 			 ctime_nonl (&commits[present]->date),
@@ -801,7 +802,7 @@ rev_tag_search(Tag *tag, rev_commit **commits, rev_list *rl)
 	if (tag->parent)
 		tag->commit = rev_commit_locate (tag->parent, commits[0]);
 	if (!tag->commit) {
-		announce("unmatched tag %s\n", tag->name);
+		announce("tag %s could not be assigned to a commit\n", tag->name);
 #if 0
 		/*
 		 * ESR: Keith's code appeared to be trying to create a

@@ -96,7 +96,7 @@ rev_branch_cvs (cvs_file *cvs, cvs_number *branch)
     for (c = head, gc = NULL; (p = c->parent); gc = c, c = p) {
 	if (time_compare (p->file->date, c->file->date) > 0)
 	{
-	    fprintf (stderr, "Warning: %s:", cvs->name);
+	    fprintf (stderr, "cvs-fast-export: warning - %s:", cvs->name);
 	    dump_number_file (stderr, " ", &p->file->number);
 	    dump_number_file (stderr, " is newer than", &c->file->number);
 

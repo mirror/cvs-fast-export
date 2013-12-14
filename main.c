@@ -688,7 +688,7 @@ main (int argc, char **argv)
 	    break;
 	}
     }
-    if (skew_vulnerable > 0 && load_total_files > 1 && !forcedates)
+    if (skew_vulnerable > 0 && load_total_files > 1 && !force_dates)
 	announce("commits before this date lack commitids: %s",
 		ctime(&skew_vulnerable));
     if (rl)
