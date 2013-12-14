@@ -1,0 +1,47 @@
+cvs-fast-export: commits before this date lack commitids: Sat Dec 14 06:26:25 2013
+blob
+mark :1
+data 46
+The quick brown fox jumped over the lazy dog.
+
+blob
+mark :2
+data 43
+Alve bazige froulju wachtsje op dyn komst.
+
+commit refs/heads/master
+mark :3
+committer foo <foo> 1800 +0000
+data 25
+An example first checkin
+
+M 100644 :1 tweedledum
+M 100644 :2 tweedledee
+
+blob
+mark :4
+data 47
+Portez ce vieux whisky au juge blond qui fume.
+
+blob
+mark :5
+data 38
+Lynx c.q. vos prikt bh: dag zwemjuf!.
+
+commit refs/heads/master
+mark :6
+committer foo <foo> 3600 +0000
+data 26
+An example second checkin
+
+from :3
+M 100644 :4 tweedledum
+M 100644 :5 tweedledee
+
+reset refs/tags/FUBAR
+from :6
+
+reset refs/heads/master
+from :6
+
+done

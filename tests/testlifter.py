@@ -59,12 +59,14 @@ class directory_context:
         os.chdir(self.source)
 
 class RCSRepository:
+    "An RCS file collection."
     def __init__(self, name):
         self.name = name
         self.retain = ("-n" in sys.argv[1:])
         global verbose
         verbose += sys.argv[1:].count("-v")
-        self.directory = os.path.join(os.getcwd(), self.name)
+        # For convenience, emulate the module structure of a CVS repository
+        self.directory = os.path.join(os.getcwd(), self.name + ".repo", self.name)
         self.conversions = []
     def do(self, cmd, *args):
         "Execute a RCS command in context of this repo."
@@ -75,7 +77,7 @@ class RCSRepository:
         do_or_die("cd %s && %s %s %s" % (self.directory, cmd, mute, " ".join(args)))
     def init(self):
         "Initialize the repository."
-        do_or_die("rm -fr {0}; mkdir {0}".format(self.name))
+        do_or_die("rm -fr {0} && mkdir -p {0}".format(self.directory))
     def write(self, fn, content):
         "Create file content in the repository."
         if verbose >= DEBUG_COMMANDS:
@@ -85,13 +87,16 @@ class RCSRepository:
                 fp.write(content)
     def add(self, filename):
         "Add a file to the version-controlled set."
-        self.do("rcs", "-i", filename)
-    def tag(self, name, filename):
+        self.do("rcs", "-t-", "-i", filename)
+    def tag(self, filename, name):
         "Create a tag on a specified file."
-        self.do("rcs", "-n" + name, filename)
-    def commit(self, filename, message):
-        "Commit changes to the specified file."
-        self.do("ci", "-m'%s' %s" % message, filename)
+        self.do("rcs", "-n" + name + ":", filename)
+    def checkout(self, filename):
+        "Check out a writeable copy of the specified file."
+        self.do("co", "-l", filename)
+    def checkin(self, filename, message):
+        "Check in changes to the specified file."
+        self.do("ci", "-m'%s' %s" % (message, filename))
     def convert(self, module, gitdir, more_opts=''):
         "Convert the repo.  Leave the stream dump in a log file."
         vopt = "-v " * (verbose - DEBUG_LIFTER + 1)
