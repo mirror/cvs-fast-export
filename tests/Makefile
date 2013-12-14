@@ -55,7 +55,7 @@ i_regress: neutralize.map
 	done
 
 
-PYTESTS=t9601 t9602 t9603 t9605
+PYTESTS=t9601 t9602 t9603 t9604 t9605
 t_regress:
 	@echo "== Pathological cases =="
 	@for pytest in $(PYTESTS); do \

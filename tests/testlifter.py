@@ -297,6 +297,10 @@ class ConvertComparison:
             if not success_expected and verbose >= DEBUG_STEPS:
                 sys.stderr.write(preamble + "trees diverged as expected\n")
         return success
+    def command_returns(self, cmd, expected):
+        succeeded = capture_or_die(cmd).strip() == expected.strip()
+        if not succeeded:
+            sys.stderr.write(cmd + " return was not as expected\n")
     def cleanup(self):
         os.system("rm -fr {0}.git {0}.checkout".format(self.stem))
 

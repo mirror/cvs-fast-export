@@ -23,12 +23,12 @@ the behavior of the program to change.
 
 == The t9600 group ==
 
-The t960[1-3] are tests taken from the git tree for testing the
-cvsimport facility, adapted for testing cvs-fast-export directly.
-The t9605 test was composed by Chris Rorvick using the git test
-framework but as of December 2013 has not been merged to the git tree.
-These are deliberately malformed repositories that exercise strange
-corner cases.
+The t960[1-4] files are tests taken from the git tree for testing the
+cvsimport facility, adapted for testing cvs-fast-export directly.  The
+t9605 test was composed by Chris Rorvick using the git test framework
+but as of December 2013 has not been merged to the git tree.  These
+are deliberately malformed repositories that exercise strange corner
+cases.
 
 Each repo has a custom-built script using the testlifter framework to check
 properties of the CVS repository against properties of the git conversion.
