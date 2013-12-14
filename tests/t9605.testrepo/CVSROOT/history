@@ -1,0 +1,8 @@
+O52aca380|esr|~/public_html/cvs-fast-export/tests/*0|module||module
+U52aca381|esr|~/public_html/cvs-fast-export/tests/t9605.checkout|module|1.1|a
+U52aca381|esr|~/public_html/cvs-fast-export/tests/t9605.checkout|module|1.1|b
+U52aca381|esr|~/public_html/cvs-fast-export/tests/t9605.checkout|module|1.3|c
+O52aca576|esr|~/public_html/cvs-fast-export/tests/*0|module||module
+U52aca577|esr|~/public_html/cvs-fast-export/tests/t9605.checkout|module|1.1|a
+U52aca577|esr|~/public_html/cvs-fast-export/tests/t9605.checkout|module|1.1|b
+U52aca577|esr|~/public_html/cvs-fast-export/tests/t9605.checkout|module|1.3|c
