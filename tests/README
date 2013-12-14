@@ -29,5 +29,36 @@ repositories that exercise strange corner cases.
 Each repo has a custom-built script using the testlifter framework to check
 properties of the CVS repository against properties of the git conversion.
 
+Summary of results: 
 
+t9601:
+|========================================================================
+|                                            | cvsps    | cvs-fast-export
+|import a module with a vendor branch        | Succeeds | Succeeds 
+|check master out of git repository          | Succeeds | Succeeds 
+|check a file imported once                  | Fails    | Succeeds 
+|check a file imported twice                 | Succeeds | Succeeds 
+|check a file imported then modified on HEAD | Succeeds | Succeeds 
+|...imported, modified, then imported again  | Succeeds | Succeeds 
+|check a file added to HEAD then imported    | Succeeds | Fails
+| a vendor branch whose tag has been removed | Succeeds | Succeeds
+|========================================================================
 
+t9602:
+|========================================================================
+|                                            | cvsps    | cvs-fast-export
+|import module                               | Succeeds | Succeeds 
+|test branch master                          | Succeeds | Succeeds 
+|test branch vendorbranch                    | Succeeds | Fails
+|test_branch B_FROM_INITIALS                 | Fails    | Succeeds
+|test_branch B_FROM_INITIALS_BUT_ONE         | Fails    | Fails
+|test_branch B_MIXED                         | Fails    | Succeeds
+|test_branch B_SPLI                          | Succeeds | Succeeds
+|test branch vendortag                       | Fails    | Succeeds
+|test tag T_ALL_INITIAL_FILES                | Succeeds | Succeeds
+|test tag T_ALL_INITIAL_FILES_BUT_ONE        | Fails    | Fails
+|test_tag T_MIXED                            | Fails    | Succeeds
+|========================================================================
+
+t9603:
+	cvsps fails this test; cvs-fast-export succeeds.

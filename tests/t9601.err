@@ -1,4 +1,2 @@
 cvs-fast-export: commits before this date lack commitids: Mon Feb  9 15:43:16 2004
-t9601.checkout/imported-twice.txt and t9601.git/imported-twice.txt are unexpectedly the same.
-t9601.checkout/added-imported.txt and t9601.git/added-imported.txt are not the same.
 t9601.checkout/added-imported.txt and t9601.git/added-imported.txt are not the same.

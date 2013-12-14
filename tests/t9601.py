@@ -46,25 +46,24 @@ testlifter.expect_same("t9601.checkout/imported-once.txt",
                     "t9601.git/imported-once.txt")
 
 # Check a file that was imported twice
-# This is the test that fails 
-testlifter.expect_different("t9601.checkout/imported-twice.txt",
-                    "t9601.git/imported-twice.txt")
+testlifter.expect_same("t9601.checkout/imported-twice.txt",
+                       "t9601.git/imported-twice.txt")
 
 # Check a file that was imported then modified on HEAD
 testlifter.expect_same("t9601.checkout/imported-modified.txt",
-                    "t9601.git/imported-modified.txt")
+                       "t9601.git/imported-modified.txt")
 
 # Check a file that was imported, modified, then imported
 testlifter.expect_same("t9601.checkout/imported-modified-imported.txt",
-                    "t9601.git/imported-modified-imported.txt")
+                       "t9601.git/imported-modified-imported.txt")
 
 # Check a file that was added to HEAD then imported
 testlifter.expect_same("t9601.checkout/added-imported.txt",
-                    "t9601.git/added-imported.txt")
+                       "t9601.git/added-imported.txt")
 
 # A vendor branch whose tag has been removed
-testlifter.expect_same("t9601.checkout/added-imported.txt",
-                    "t9601.git/added-imported.txt")
+testlifter.expect_same("t9601.checkout/imported-anonymously.txt",
+                       "t9601.git/imported-anonymously.txt")
 
 co.cleanup()
 
