@@ -1,5 +1,7 @@
 = The cvs-fast-export test suite =
 
+You will need RCS and CVS installed to run these tests.
+
 == The test loads ==
 
 There are two groups of tests in this directory.

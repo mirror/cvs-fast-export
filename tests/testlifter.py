@@ -5,7 +5,7 @@ import sys, os, shutil, subprocess, time, filecmp
 
 DEBUG_STEPS    = 1
 DEBUG_COMMANDS = 2
-DEBUG_CVS      = 3
+DEBUG_VCS      = 3
 DEBUG_LIFTER   = 4
 
 verbose = 0
@@ -58,6 +58,52 @@ class directory_context:
     def __exit__(self, extype, value_unused, traceback_unused):
         os.chdir(self.source)
 
+class RCSRepository:
+    def __init__(self, name):
+        self.name = name
+        self.retain = ("-n" in sys.argv[1:])
+        global verbose
+        verbose += sys.argv[1:].count("-v")
+        self.directory = os.path.join(os.getcwd(), self.name)
+        self.conversions = []
+    def do(self, cmd, *args):
+        "Execute a RCS command in context of this repo."
+        if verbose < DEBUG_VCS:
+            mute = '-q'
+        else:
+            mute = ""
+        do_or_die("cd %s && %s %s %s" % (self.directory, cmd, mute, " ".join(args)))
+    def init(self):
+        "Initialize the repository."
+        do_or_die("rm -fr {0}; mkdir {0}".format(self.name))
+    def write(self, fn, content):
+        "Create file content in the repository."
+        if verbose >= DEBUG_COMMANDS:
+            sys.stdout.write("%s <- %s" % (fn, content))
+        with directory_context(self.directory):
+            with open(fn, "w") as fp:
+                fp.write(content)
+    def add(self, filename):
+        "Add a file to the version-controlled set."
+        self.do("rcs", "-i", filename)
+    def tag(self, name, filename):
+        "Create a tag on a specified file."
+        self.do("rcs", "-n" + name, filename)
+    def commit(self, filename, message):
+        "Commit changes to the specified file."
+        self.do("ci", "-m'%s' %s" % message, filename)
+    def convert(self, module, gitdir, more_opts=''):
+        "Convert the repo.  Leave the stream dump in a log file."
+        vopt = "-v " * (verbose - DEBUG_LIFTER + 1)
+        do_or_die("rm -fr {0} && mkdir {0} && git init --quiet {0}".format(gitdir))
+        do_or_die('find {0} -name "*,v" | cvs-fast-export {2} {3} | tee {1}.fi | (cd {1} >/dev/null; git fast-import --quiet --done && git checkout)'.format(self.directory, gitdir, vopt, more_opts))
+        self.conversions.append(gitdir)
+    def cleanup(self):
+        "Clean up the repository conversions."
+        if not self.retain:
+            if self.conversions:
+                os.system("rm -fr " % " ".join(conversions))
+
 class CVSRepository:
     def __init__(self, name):
         self.name = name
@@ -69,7 +115,7 @@ class CVSRepository:
         self.conversions = []
     def do(self, *cmd):
         "Execute a CVS command in context of this repo."
-        if verbose < DEBUG_CVS:
+        if verbose < DEBUG_VCS:
             mute = '-Q'
         else:
             mute = ""
