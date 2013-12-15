@@ -245,12 +245,12 @@ def expect_different(a, b):
 
 class ConvertComparison:
     "Compare a CVS repository and its conversion for equality."
-    def __init__(self, stem, module):
+    def __init__(self, stem, module, options=""):
         self.stem = stem
         self.module = module
         self.repo = CVSRepository(stem + ".testrepo")
         self.checkout = self.repo.checkout(module, stem + ".checkout")
-        self.repo.convert("module", stem + ".git")
+        self.repo.convert("module", stem + ".git", more_opts=options)
         with directory_context(stem + ".git"):
             self.branches = [name for name in capture_or_die("git branch -l").split()]
             self.tags = [name for name in capture_or_die("git tag -l").split()]
@@ -298,7 +298,8 @@ class ConvertComparison:
                 sys.stderr.write(preamble + "trees diverged as expected\n")
         return success
     def command_returns(self, cmd, expected):
-        succeeded = capture_or_die(cmd).strip() == expected.strip()
+        seen = capture_or_die(cmd)
+        succeeded = (seen.strip() == expected.strip())
         if not succeeded:
             sys.stderr.write(cmd + " return was not as expected\n")
     def cleanup(self):
