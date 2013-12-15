@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-## Testing for correct timsrtamp handling in author maps.
+## Testing for correct timsetamp handling in author maps.
 import testlifter, tempfile, os
 
 uncorrected = """\

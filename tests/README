@@ -68,5 +68,8 @@ t9602:
 t9603:
 	cvsps fails this test; cvs-fast-export succeeds.
 
+t9604:
+	cvpss and cvs-fast-export both succeed. at this test.
+
 t9605:
 	cvsps fails this test; cvs-fast-export succeeds.
