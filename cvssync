@@ -43,24 +43,34 @@ if __name__ == '__main__':
             oopt = arg
         if opt == '-v':
             verbose += 1
-    
-    if len(arguments) < 2:
+
+    if len(arguments) == 1 and arguments[0].startswith("cvs://"):
+        try:
+            (host, module) = arguments[0][6:].split("#")
+            i = host.find('/')
+            (host, path) = (host[:i], host[i:])
+            if "@" in host:
+                host = host.split("@")[1]
+        except ValueError:
+            sys.stderr.write("cvssync: ill-formed CVS URL\n")
+            sys.exit(1)
+    elif len(arguments) == 2:
+        host = arguments[0]
+        module = arguments[1]
+        if "@" in host:
+            host = host.split("@")[1]
+        if ":" not in host:
+            sys.stderr.write("cvssync: repository path is missing.\n")
+            sys.exit(1)
+        (host, path) = host.split(":")
+    else:
         sys.stderr.write("cvssync: requires a host/path and module argument")
-    host = arguments[0]
-    module = arguments[1]
-    directory = module or oopt
-
-    # First, discard the login credentials.
-    if "@" in host:
-        host = host.split("@")[1]
-
-    # A repository path is required
-    if ":" not in host:
-        sys.stderr.write("cvssync: repository path is missing.\n")
         sys.exit(1)
 
-    # Then, split the repo path from the host:
-    (host, path) = host.split(":")
+    if verbose:
+        print "host = %s, path = %s, module = %s" % (host, path, module)
+
+    directory = module or oopt
 
     # Savannah retrievals work by pasting the pieces together
     # in the default way.

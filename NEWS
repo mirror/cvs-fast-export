@@ -1,5 +1,8 @@
 		cvs-fast-export project news
 
+Repository head:
+    cvssync can now take a CVS URL argument.
+
 0.7 @ 2013-12-15
     -i option for incremental dumping
     -p option for enabling load status reports.
