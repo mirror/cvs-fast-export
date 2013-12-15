@@ -38,6 +38,7 @@ bool suppress_keyword_expansion = false;
 bool reposurgeon;
 FILE *revision_map;
 char *branch_prefix = "refs/heads/";
+bool progress = false;
 
 static int verbose = 0;
 static rev_execution_mode rev_mode = ExecuteExport;
@@ -508,7 +509,6 @@ main (int argc, char **argv)
     int		    c;
     char	    *file;
     int		    nfile = 0;
-    bool	    progress = false;
     time_t          fromtime = 0;
 
     /* force times using mktime to be interpreted in UTC */

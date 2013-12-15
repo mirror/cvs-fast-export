@@ -37,6 +37,30 @@ static struct mark *markmap;
 static int seqno, mark;
 static char blobdir[PATH_MAX];
 
+#define STATUS stderr
+
+static void save_status_begin(void)
+{
+    if (!progress)
+	return;
+    fputs("Save: ", STATUS);
+}
+
+static void save_status(int num, int total)
+{
+    if (!progress)
+	return;
+    fprintf(STATUS, "%2d%%...\b\b\b\b\b\b", (int)(num * 100.0 / total));
+}
+
+static void save_status_end(void)
+{
+    if (!progress)
+	return;
+    fputs("100%...done\n", STATUS);
+}
+
+
 void export_init(void)
 {
     char *tmp = getenv("TMPDIR");
@@ -495,6 +519,8 @@ bool export_commits(rev_list *rl, int strip, time_t fromtime, bool progress)
 	      export_total_commits, sizeof(struct commit_seq),
 	      sort_by_date);
 
+    save_status_begin();
+
     for (hp = history; hp < history + export_total_commits; hp++) {
 	bool report = true;
 	if (fromtime > 0) {
@@ -511,6 +537,7 @@ bool export_commits(rev_list *rl, int strip, time_t fromtime, bool progress)
 		}
 	    }
 	}
+	save_status(hp - history, export_total_commits);
 	export_commit(hp->commit, hp->head->name, strip, report);
 	for (t = all_tags; t; t = t->next)
 	    if (t->commit == hp->commit)
@@ -526,10 +553,12 @@ bool export_commits(rev_list *rl, int strip, time_t fromtime, bool progress)
 	       markmap[h->commit->serial].external);
     }
     free(markmap);
+
+    save_status_end();
+
     return true;
 }
 
-#define STATUS stderr
 #define PROGRESS_LEN	20
 
 void load_status (char *name)

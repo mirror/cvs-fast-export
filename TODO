@@ -4,5 +4,5 @@
 
 * Optimize out O(n**2) operations where possible.
 
-* Issue a warning when the same tag is attached to multople commits.
+* Issue a warning when the same tag is attached to multiple commits.
   At the moment it's just silently reported attached to the last.

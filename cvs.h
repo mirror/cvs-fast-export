@@ -140,6 +140,8 @@ extern bool suppress_keyword_expansion;
 
 extern char *branch_prefix;
 
+extern bool progress;
+
 typedef struct _rev_commit {
     struct _rev_commit	*parent;
     char		tail;
