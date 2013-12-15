@@ -70,7 +70,7 @@ if __name__ == '__main__':
     if verbose:
         print "host = %s, path = %s, module = %s" % (host, path, module)
 
-    directory = module or oopt
+    directory = oopt or module 
 
     # Savannah retrievals work by pasting the pieces together
     # in the default way.
@@ -83,6 +83,6 @@ if __name__ == '__main__':
             path = path[1:]
 
     vopt = "v" if verbose else ""
-    do_or_die("rsync -a%sz %s:%s/%s %s" % (vopt, host, path, module, directory))
+    do_or_die("rsync -a%sz %s:%s/%s/ %s" % (vopt, host, path, module, directory))
 
 # end
