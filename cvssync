@@ -71,18 +71,20 @@ if __name__ == '__main__':
         print "host = %s, path = %s, module = %s" % (host, path, module)
 
     directory = oopt or module 
+    vopt = "v" if verbose else ""
 
+    if "sourceforge" in host:
+        # On SourceForge you need to double the colon and strip the
+        # leading / to invoke the rsync module facility.
+        source = "%s::%s/%s/" % (host, path[1:], module)
+    elif "berlios" in host:
+        # The pattern is rsync -av cvs.berlios.de::<projectname>_cvs cvs
+        source = "cvs.berlios.de::%s_cvs" % module
     # Savannah retrievals work by pasting the pieces together
     # in the default way.
+    else:
+        source = "%s:%s/%s/" % (host, path, module)
 
-    # On SourceForge you need to double the colon to invoke the
-    # rsync module facility.
-    if "sourceforge" in host:
-        host += ":"
-        if path.startswith("/"):
-            path = path[1:]
-
-    vopt = "v" if verbose else ""
-    do_or_die("rsync -a%sz %s:%s/%s/ %s" % (vopt, host, path, module, directory))
+    do_or_die("rsync -a%sz %s %s" % (vopt, source, directory))
 
 # end
