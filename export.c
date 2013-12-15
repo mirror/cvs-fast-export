@@ -256,7 +256,7 @@ static void export_commit(rev_commit *commit, char *branch, int strip, bool repo
 		    {
 			if (strlen(revpairs) + strlen(fr) + 2 > revpairsize)
 			{
-			    revpairsize += strlen(fr) + 2;
+			    revpairsize *= 2;
 			    revpairs = xrealloc(revpairs, revpairsize);
 			    if (revpairs == NULL)
 				exit(1);
