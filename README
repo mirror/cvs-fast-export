@@ -19,7 +19,8 @@ late 2012; ESR wrote the fast-export output stage and renamed the
 program to reflect its new function.
 
 The distribution includes a tool, cvssync, for fetching masters from
-CVS remote reposotories so cvs-fast-export can see them.
+CVS remote reposotiries so cvs-fast-export can see them.  You will
+need rsync installed to use it.
 
 This code has a regression-test suite; invoke it with "make check".
 You will need RCS and SCCS installed to run the tests, but they're 
