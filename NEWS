@@ -5,6 +5,7 @@ Repository head:
     -p option for enabling load status reports.
     Many documentation improvements.
     There is now a regression-test suite for the package.
+    cvssync tool for mitrroring remote CVS repos added.
 
 0.6 @ 2013-12-10
     Improvements for CVS-NT support.

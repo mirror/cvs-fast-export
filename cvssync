@@ -1,0 +1,78 @@
+#!/usr/bin/python
+"""
+cvssync - discover and fetch a CVS repository using rsync
+
+This tool is a front end for rsync that attempts to deduce how to get
+a copy of a CVS repository by analyzing the arguments you are told
+to pass CVS to check out a copy.
+
+The magic (when there is any) is in knowing how to construct the
+actual path to the repository from the path and module arguments.
+"""
+
+import sys, getopt, subprocess
+
+verbose = False
+execute = True
+
+def do_or_die(dcmd):
+    "Either execute a command or raise a fatal exception."
+    if verbose:
+        sys.stdout.write("cvssync: executing '%s'\n" % (dcmd,))
+    if execute:
+        try:
+            retcode = subprocess.call(dcmd, shell=True)
+            if retcode < 0:
+                sys.stderr.write("cvssync: child was terminated by signal %d.\n" % -retcode)
+                sys.exit(1)
+            elif retcode != 0:
+                sys.stderr.write("cvssync: child returned %d.\n" % retcode)
+                sys.exit(1)
+        except (OSError, IOError) as e:
+            sys.stderr.write("cvssync: execution of %s%s failed: %s\n" % (dcmd, legend, e))
+            sys.exit(1)
+
+if __name__ == '__main__':
+
+    (opts, arguments) = getopt.getopt(sys.argv[1:], "no:v")
+    oopt = None
+    for (opt, arg) in opts:
+        if opt == '-n':
+            execute = False
+        if opt == '-o':
+            oopt = arg
+        if opt == '-v':
+            verbose += 1
+    
+    if len(arguments) < 2:
+        sys.stderr.write("cvssync: requires a host/path and module argument")
+    host = arguments[0]
+    module = arguments[1]
+    directory = module or oopt
+
+    # First, discard the login credentials.
+    if "@" in host:
+        host = host.split("@")[1]
+
+    # A repository path is required
+    if ":" not in host:
+        sys.stderr.write("cvssync: repository path is missing.\n")
+        sys.exit(1)
+
+    # Then, split the repo path from the host:
+    (host, path) = host.split(":")
+
+    # Savannah retrievals work by pasting the pieces together
+    # in the default way.
+
+    # On SourceForge you need to double the colon to invoke the
+    # rsync module facility.
+    if "sourceforge" in host:
+        host += ":"
+        if path.startswith("/"):
+            path = path[1:]
+
+    vopt = "v" if verbose else ""
+    do_or_die("rsync -a%sz %s:%s/%s %s" % (vopt, host, path, module, directory))
+
+# end
