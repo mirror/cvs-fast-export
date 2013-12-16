@@ -232,7 +232,7 @@ static void export_commit(rev_commit *commit, char *branch, int strip, bool repo
     const char *ts;
     time_t ct;
     rev_file	*f, *f2;
-    int		i, j;
+    int		i, j, i2, j2;
     struct fileop *operations, *op, *op2;
     int noperations;
 
@@ -240,6 +240,39 @@ static void export_commit(rev_commit *commit, char *branch, int strip, bool repo
     {
 	revpairs = xmalloc((revpairsize = 1024));
 	revpairs[0] = '\0';
+    }
+
+    /*
+     * Precompute mutual parent-child pointers 
+     */
+    if (commit->parent) {
+	for (i = 0; i < commit->ndirs; i++) {
+	    rev_dir	*dir = commit->dirs[i];	
+	    for (j = 0; j < dir->nfiles; j++)
+		dir->files[j]->u.other = NULL;
+	}
+	for (i2 = 0; i2 < commit->parent->ndirs; i2++) {
+	    rev_dir	*dir2 = commit->parent->dirs[i2];
+	    for (j2 = 0; j2 < dir2->nfiles; j2++)
+		dir2->files[j2]->u.other = NULL;
+	}
+	for (i = 0; i < commit->ndirs; i++) {
+	    rev_dir	*dir = commit->dirs[i];	
+	    for (j = 0; j < dir->nfiles; j++) {
+		f = dir->files[j];
+		for (i2 = 0; i2 < commit->parent->ndirs; i2++) {
+		    rev_dir	*dir2 = commit->parent->dirs[i2];
+		    for (j2 = 0; j2 < dir2->nfiles; j2++) {
+			f2 = dir2->files[j2];
+			if (strcmp(f->name, f2->name) == 0) {
+			    f->u.other = f2;
+			    f2->u.other = f;
+			    break;
+			}
+		    }
+		}
+	    }
+	}
     }
 
     noperations = OP_CHUNK;
@@ -255,9 +288,8 @@ static void export_commit(rev_commit *commit, char *branch, int strip, bool repo
 	    present = false;
 	    changed = false;
 	    if (commit->parent) {
-		f2 = find_fileop_in(commit->parent, f);
-		present = (f2 != NULL);
-		changed = present && (f->serial != f2->serial);
+		present = (f->u.other != NULL);
+		changed = present && (f->serial != f->u.other->serial);
 	    }
 	    if (!present || changed) {
 
@@ -312,8 +344,7 @@ static void export_commit(rev_commit *commit, char *branch, int strip, bool repo
 		bool present;
 		present = false;
 		f = dir->files[j];
-		f2 = find_fileop_in(commit, f);
-		present = (f2 != NULL);
+		present = (f->u.other != NULL);
 		if (!present) {
 		    op->op = 'D';
 		    (void)strncpy(op->path, 
