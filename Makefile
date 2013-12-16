@@ -21,6 +21,9 @@ CFLAGS=-O2 -g $(GCC_WARNINGS) -DVERSION=\"$(VERSION)\"
 YFLAGS=-d -l
 LFLAGS=-l
 
+# To enable profiling, uncomment the following line
+# CFLAGS += -pg
+
 OBJS=gram.o lex.o main.o cvsutil.o revdir.o \
 	revlist.o atom.o revcvs.o generate.o export.o \
 	nodehash.o tags.o authormap.o graph.o utils.o
