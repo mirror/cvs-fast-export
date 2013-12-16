@@ -212,35 +212,30 @@ static void compute_parent_links(rev_commit *commit)
 /* this is the worst single computational hotspot in the code... */
 {
     rev_commit *parent = commit->parent; 
-    int		i, j, i2, j2;
     int ncommit = 0, nparent = 0, maxmatch;
+    rev_dir **ddir, **ddir2;
+    rev_file **df, **df2;
 
-    for (i = 0; i < commit->ndirs; i++) {
-	rev_dir	*dir = commit->dirs[i];	
-	for (j = 0; j < dir->nfiles; j++) {
-	    dir->files[j]->u.other = NULL;
+    for (ddir = commit->dirs; ddir < commit->dirs + commit->ndirs; ddir++) {
+	for (df = (*ddir)->files; df < (*ddir)->files + (*ddir)->nfiles; df++) {
+	    (*df)->u.other = NULL;
 	    ncommit++;
 	}
     }
-    for (i2 = 0; i2 < parent->ndirs; i2++) {
-	rev_dir	*dir2 = parent->dirs[i2];
-	for (j2 = 0; j2 < dir2->nfiles; j2++) {
-	    dir2->files[j2]->u.other = NULL;
+    for (ddir2 = parent->dirs; ddir2 < parent->dirs + parent->ndirs; ddir2++) {
+	for (df2 = (*ddir2)->files; df2 < (*ddir2)->files + (*ddir2)->nfiles; df2++) {
+	    (*df2)->u.other = NULL;
 	    nparent++;
 	}
     }
     maxmatch = (nparent < ncommit) ? nparent : ncommit;
-    for (i = 0; i < commit->ndirs; i++) {
-	rev_dir	*dir = commit->dirs[i];	
-	for (j = 0; j < dir->nfiles; j++) {
-	    rev_file *f = dir->files[j];
-	    for (i2 = 0; i2 < parent->ndirs; i2++) {
-		rev_dir	*dir2 = parent->dirs[i2];
-		for (j2 = 0; j2 < dir2->nfiles; j2++) {
-		    rev_file *f2 = dir2->files[j2];
-		    if (f->name == f2->name) {
-			f->u.other = f2;
-			f2->u.other = f;
+    for (ddir = commit->dirs; ddir < commit->dirs + commit->ndirs; ddir++) {
+	for (df = (*ddir)->files; df < (*ddir)->files + (*ddir)->nfiles; df++) {
+	    for (ddir2 = parent->dirs; ddir2 < parent->dirs + parent->ndirs; ddir2++) {
+		for (df2 = (*ddir2)->files; df2 < (*ddir2)->files + (*ddir2)->nfiles; df2++) {
+		    if ((*df)->name == (*df2)->name) {
+			(*df)->u.other = *df2;
+			(*df2)->u.other = *df;
 			if (--maxmatch == 0)
 			    return;
 			break;
