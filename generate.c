@@ -641,75 +641,78 @@ static int expandline(void)
 		switch (c) {
 		    case EOF:
 			goto uncache_exit;
-		    default:
-			out_putc(c);
-			r = 0;
-			break;
 		    case '\n':
 			out_putc(c);
 			r = 2;
 			goto uncache_exit;
 		    case KDELIM:
-			r = 0;
-                        /* check for keyword */
-                        /* first, copy a long enough string into keystring */
-			tp = Gkeyval;
-			*tp++ = KDELIM;
-			for (;;) {
-			    c = in_buffer_getc();
-			    if (tp <= &Gkeyval[KEYLENGTH] && latin1_alpha(c))
-					*tp++ = c;
-			    else	break;
-                        }
-			*tp++ = c; *tp = '\0';
-			matchresult = trymatch(Gkeyval+1);
-			if (matchresult==Nomatch) {
+			if (!suppress_keyword_expansion) {
+			    r = 0;
+			    /* check for keyword */
+			    /* first, copy a long enough string into keystring */
+			    tp = Gkeyval;
+			    *tp++ = KDELIM;
+			    for (;;) {
+				c = in_buffer_getc();
+				if (tp <= &Gkeyval[KEYLENGTH] && latin1_alpha(c))
+				    *tp++ = c;
+				else	break;
+			    }
+			    *tp++ = c; *tp = '\0';
+			    matchresult = trymatch(Gkeyval+1);
+			    if (matchresult==Nomatch) {
 				tp[-1] = 0;
 				out_fputs(Gkeyval);
 				continue;   /* last c handled properly */
-			}
+			    }
 
-			/* Now we have a keyword terminated with a K/VDELIM */
-			if (c==VDELIM) {
-			      /* try to find closing KDELIM, and replace value */
-			      tlim = Gkeyval + Gkvlen;
-			      for (;;) {
-				     c = in_buffer_getc();
-				      if (c=='\n' || c==KDELIM)
+			    /* Now we have a keyword terminated with a K/VDELIM */
+			    if (c==VDELIM) {
+				/* try to find closing KDELIM, and replace value */
+				tlim = Gkeyval + Gkvlen;
+				for (;;) {
+				    c = in_buffer_getc();
+				    if (c=='\n' || c==KDELIM)
 					break;
-				      *tp++ =c;
-				      if (tlim <= tp) {
-					    orig_size = Gkvlen;
-					    Gkvlen *= 2;
-					    Gkeyval = xrealloc(Gkeyval, Gkvlen);
-					    tlim = Gkeyval + Gkvlen;
-					    tp = Gkeyval + orig_size;
+				    *tp++ =c;
+				    if (tlim <= tp) {
+					orig_size = Gkvlen;
+					Gkvlen *= 2;
+					Gkeyval = xrealloc(Gkeyval, Gkvlen);
+					tlim = Gkeyval + Gkvlen;
+					tp = Gkeyval + orig_size;
 
-					}
-				      if (c==EOF)
-					   goto keystring_eof;
-			      }
-			      if (c!=KDELIM) {
+				    }
+				    if (c==EOF)
+					goto keystring_eof;
+				}
+				if (c!=KDELIM) {
 				    /* couldn't find closing KDELIM -- give up */
 				    *tp = 0;
 				    out_fputs(Gkeyval);
 				    continue;   /* last c handled properly */
-			      }
-			}
-			/*
-			 * CVS will expand keywords that have
-			 * overlapping delimiters, eg "$Name$Id$".  To
-			 * support that (mis)feature, push the closing
-			 * delimiter back on the input so that the
-			 * loop will resume processing starting with
-			 * it.
-			 */
-			if (c == KDELIM)
+				}
+			    }
+			    /*
+			     * CVS will expand keywords that have
+			     * overlapping delimiters, eg "$Name$Id$".  To
+			     * support that (mis)feature, push the closing
+			     * delimiter back on the input so that the
+			     * loop will resume processing starting with
+			     * it.
+			     */
+			    if (c == KDELIM)
 				in_buffer_ungetc();
 
-			/* now put out the new keyword value */
-			keyreplace(matchresult);
-			e = 1;
+			    /* now put out the new keyword value */
+			    keyreplace(matchresult);
+			    e = 1;
+			    break;
+			}
+			/* FALL THROUGH */
+		    default:
+			out_putc(c);
+			r = 0;
 			break;
                 }
 		break;
