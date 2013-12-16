@@ -83,7 +83,7 @@ SUPPRESSIONS = -U__UNUSED__ -UYYPARSE_PARAM -UYYTYPE_INT16 -UYYTYPE_INT8 \
 cppcheck:
 	cppcheck --template gcc --enable=all $(SUPPRESSIONS) --suppress=unusedStructMember *.[ch]
 
-SOURCES = Makefile *.[ch] *.[yl]
+SOURCES = Makefile *.[ch] *.[yl] cvssync
 DOCS = README COPYING NEWS AUTHORS TODO control cvs-fast-export.asc
 ALL =  $(SOURCES) $(DOCS)
 cvs-fast-export-$(VERSION).tar.gz: $(ALL)

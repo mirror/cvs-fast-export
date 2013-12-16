@@ -39,6 +39,7 @@ bool reposurgeon;
 FILE *revision_map;
 char *branch_prefix = "refs/heads/";
 bool progress = false;
+time_t start_time;
 
 static int verbose = 0;
 static rev_execution_mode rev_mode = ExecuteExport;
@@ -510,6 +511,8 @@ main (int argc, char **argv)
     char	    *file;
     int		    nfile = 0;
     time_t          fromtime = 0;
+
+    start_time = time(NULL);
 
     /* force times using mktime to be interpreted in UTC */
     setenv ("TZ", "UTC", 1);

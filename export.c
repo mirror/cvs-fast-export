@@ -36,6 +36,7 @@ struct mark {
 static struct mark *markmap;
 static int seqno, mark;
 static char blobdir[PATH_MAX];
+static int export_total_commits;
 
 #define STATUS stderr
 
@@ -43,21 +44,28 @@ static void save_status_begin(void)
 {
     if (!progress)
 	return;
-    fputs("Save: ", STATUS);
+    fputs("Save:       ", STATUS);
 }
 
 static void save_status(int num, int total)
 {
     if (!progress)
 	return;
-    fprintf(STATUS, "%2d%%...\b\b\b\b\b\b", (int)(num * 100.0 / total));
+    fprintf(STATUS, "\b\b\b\b\b\b%2d%%...", (int)(num * 100.0 / total));
 }
 
 static void save_status_end(void)
 {
+
     if (!progress)
 	return;
-    fputs("100%...done\n", STATUS);
+    else {
+	time_t elapsed = time(NULL) - start_time;
+
+	fprintf(STATUS, "done, %d commits in %zdsec (%d commits/sec)\n",
+		export_total_commits, elapsed,
+		(int)(export_total_commits / elapsed));
+    }
 }
 
 
@@ -485,7 +493,6 @@ bool export_commits(rev_list *rl, int strip, time_t fromtime, bool progress)
     struct commit_seq *history, *hp;
     int n, branchbase;
     size_t extent;
-    int export_total_commits;
     bool sortable;
 
     export_total_commits = export_ncommit (rl);

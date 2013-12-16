@@ -145,6 +145,8 @@ extern char *branch_prefix;
 
 extern bool progress;
 
+extern time_t start_time;
+
 typedef struct _rev_commit {
     struct _rev_commit	*parent;
     char		tail;
