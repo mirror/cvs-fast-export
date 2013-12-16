@@ -208,25 +208,6 @@ static int fileop_sort(const void *a, const void *b)
 
 #define display_date(c, m)	(force_dates ? ((m) * commit_time_window * 2) : (c)->date)
 
-static rev_file *find_fileop_in(rev_commit *commit, rev_file *f)
-{
-    int		cmp, i2, j2;
-    rev_file	*f2;
-
-    for (i2 = 0; i2 < commit->ndirs; i2++) {
-	rev_dir	*dir2 = commit->dirs[i2];
-	for (j2 = 0; j2 < dir2->nfiles; j2++) {
-	    f2 = dir2->files[j2];
-	    cmp = strcmp(f->name, f2->name);
-	    if (cmp == 0) {
-		return f2;
-	    }
-	}
-    }
-    return NULL;
-}
-
-
 static void export_commit(rev_commit *commit, char *branch, int strip, bool report)
 /* export a commit (and the blobs it is the first to reference) */
 {
