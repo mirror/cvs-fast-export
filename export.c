@@ -211,6 +211,7 @@ static int fileop_sort(const void *a, const void *b)
 static void compute_parent_links(rev_commit *commit)
 /* this is the worst single computational hotspot in the code... */
 {
+    rev_commit *parent = commit->parent; 
     int		i, j, i2, j2;
     int ncommit = 0, nparent = 0, maxmatch;
 
@@ -221,8 +222,8 @@ static void compute_parent_links(rev_commit *commit)
 	    ncommit++;
 	}
     }
-    for (i2 = 0; i2 < commit->parent->ndirs; i2++) {
-	rev_dir	*dir2 = commit->parent->dirs[i2];
+    for (i2 = 0; i2 < parent->ndirs; i2++) {
+	rev_dir	*dir2 = parent->dirs[i2];
 	for (j2 = 0; j2 < dir2->nfiles; j2++) {
 	    dir2->files[j2]->u.other = NULL;
 	    nparent++;
@@ -233,8 +234,8 @@ static void compute_parent_links(rev_commit *commit)
 	rev_dir	*dir = commit->dirs[i];	
 	for (j = 0; j < dir->nfiles; j++) {
 	    rev_file *f = dir->files[j];
-	    for (i2 = 0; i2 < commit->parent->ndirs; i2++) {
-		rev_dir	*dir2 = commit->parent->dirs[i2];
+	    for (i2 = 0; i2 < parent->ndirs; i2++) {
+		rev_dir	*dir2 = parent->dirs[i2];
 		for (j2 = 0; j2 < dir2->nfiles; j2++) {
 		    rev_file *f2 = dir2->files[j2];
 		    if (f->name == f2->name) {
