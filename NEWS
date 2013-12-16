@@ -1,6 +1,7 @@
 		cvs-fast-export project news
 
-Repository head:
+0.8 @ 2013-12-16
+    Processing speed has approximately tripled since last release.
     cvs-fast-export has save progress metering again.
     cvssync can now take a CVS URL argument.
 
