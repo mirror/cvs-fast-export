@@ -72,7 +72,7 @@ install: cvs-fast-export.1 all
 
 PROFILE_REPO = ~/software/groff-conversion/groff-mirror/groff
 gmon.out: cvs-fast-export
-	find $(PROFILE_REPO) -name '*,v' | cvs-fast-export -p >/dev/null
+	find $(PROFILE_REPO) -name '*,v' | cvs-fast-export -k -p >/dev/null
 PROFILE: gmon.out
 	gprof cvs-fast-export >PROFILE
 
