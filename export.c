@@ -272,7 +272,7 @@ static void export_commit(rev_commit *commit, char *branch, int strip, bool repo
 		    rev_dir	*dir2 = commit->parent->dirs[i2];
 		    for (j2 = 0; j2 < dir2->nfiles; j2++) {
 			f2 = dir2->files[j2];
-			if (strcmp(f->name, f2->name) == 0) {
+			if (f->name == f2->name) {
 			    f->u.other = f2;
 			    f2->u.other = f;
 			    break;
