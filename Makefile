@@ -55,7 +55,7 @@ y.tab.h: gram.c
 clean:
 	rm -f $(OBJS) y.tab.h gram.c lex.c cvs-fast-export docbook-xsl.css
 	rm -f cvs-fast-export.1 cvs-fast-export.html
-	rm -f cvssync.1 cvssync.html
+	rm -f cvssync.1 cvssync.html PROFILE gmon.out
 	rm -f MANIFEST index.html *.tar.gz
 
 check: cvs-fast-export
@@ -67,6 +67,13 @@ install: cvs-fast-export.1 all
 	$(INSTALL) cvs-fast-export "$(target)/bin"
 	$(INSTALL) -m 644 cvs-fast-export.1 "$(target)/share/man/man1"
 	$(INSTALL) -m 644 cvssync.1 "$(target)/share/man/man1"
+
+PROFILE_REPO = ~/software/groff-conversion/groff-mirror/groff
+gmon.out: cvs-fast-export
+	find $(PROFILE_REPO) -name '*,v' | cvs-fast-export -p >/dev/null
+PROFILE: gmon.out
+	gprof cvs-fast-export >PROFILE
+
 
 # Weird suppressions are required because of strange tricks in Bison.
 SUPPRESSIONS = -U__UNUSED__ -UYYPARSE_PARAM -UYYTYPE_INT16 -UYYTYPE_INT8 \
