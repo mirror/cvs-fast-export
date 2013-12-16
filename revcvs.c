@@ -94,7 +94,7 @@ rev_branch_cvs (cvs_file *cvs, cvs_number *branch)
      * align with newer revisions.
      */
     for (c = head, gc = NULL; (p = c->parent); gc = c, c = p) {
-	if (time_compare (p->file->date, c->file->date) > 0)
+	if (time_compare (p->file->u.date, c->file->u.date) > 0)
 	{
 	    fprintf (stderr, "cvs-fast-export: warning - %s:", cvs->name);
 	    dump_number_file (stderr, " ", &p->file->number);
@@ -104,14 +104,14 @@ rev_branch_cvs (cvs_file *cvs, cvs_number *branch)
 	     * clock set wrong.  Dont push back all commits for that,
 	     * just fix up the current commit instead of the
 	     * parent. */
-	    if (gc && time_compare (p->file->date, gc->file->date) <= 0)
+	    if (gc && time_compare (p->file->u.date, gc->file->u.date) <= 0)
 	    {
 	      dump_number_file (stderr, ", adjusting", &c->file->number);
-	      c->file->date = p->file->date;
+	      c->file->u.date = p->file->u.date;
 	      c->date = p->date;
 	    } else {
 	      dump_number_file (stderr, ", adjusting", &c->file->number);
-	      p->file->date = c->file->date;
+	      p->file->u.date = c->file->u.date;
 	      p->date = c->date;
 	    }
 	    fprintf (stderr, "\n");
@@ -168,8 +168,8 @@ rev_list_patch_vendor_branch (rev_list *rl, cvs_file *cvs)
 	    while ((t = *tp))
 	    {
 		if (!t->parent || 
-		    time_compare (vlast->file->date,
-				  t->parent->file->date) >= 0)
+		    time_compare (vlast->file->u.date,
+				  t->parent->file->u.date) >= 0)
 		{
 		    break;
 		}
@@ -182,8 +182,8 @@ rev_list_patch_vendor_branch (rev_list *rl, cvs_file *cvs)
 		 * of the vendor branch, paste them together and
 		 * nuke the vendor branch
 		 */
-		if (time_compare (vlast->file->date,
-				  t->file->date) >= 0)
+		if (time_compare (vlast->file->u.date,
+				  t->file->u.date) >= 0)
 		{
 		    delete_head = 1;
 		}
@@ -249,8 +249,8 @@ rev_list_patch_vendor_branch (rev_list *rl, cvs_file *cvs)
 	     */
 	    while (t && v)
 	    {
-		if (time_compare (v->file->date,
-				  t->file->date) >= 0)
+		if (time_compare (v->file->u.date,
+				  t->file->u.date) >= 0)
 		{
 		    *tp = v;
 		    tp = &v->parent;

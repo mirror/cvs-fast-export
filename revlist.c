@@ -759,7 +759,7 @@ Kill:
 				      &commits[present]->file->number);
 		fprintf (stderr, "\n");
 		fprintf (stderr, "\tbranch(%3d): %s  ", n,
-			 ctime_nonl (&prev->file->date));
+			 ctime_nonl (&prev->file->u.date));
 		dump_number_file (stderr,
 				  prev->file->name,
 				  &prev->file->number);
@@ -1040,7 +1040,7 @@ rev_file_rev (char *name, cvs_number *n, time_t date)
 
     f->name = name;
     f->number = *n;
-    f->date = date;
+    f->u.date = date;
     return f;
 }
 

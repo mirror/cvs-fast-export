@@ -113,7 +113,10 @@ typedef struct {
 typedef struct _rev_file {
     char		*name;
     cvs_number		number;
-    time_t		date;
+    union {
+	time_t		date;
+	struct _rev_file *other;
+    } u;
     int                 serial;
     mode_t		mode;
     struct _rev_file	*link;
