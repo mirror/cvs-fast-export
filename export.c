@@ -209,12 +209,19 @@ static int fileop_sort(const void *a, const void *b)
 #define display_date(c, m)	(force_dates ? ((m) * commit_time_window * 2) : (c)->date)
 
 static void compute_parent_links(rev_commit *commit)
-/* this is the worst single computational hotspot in the code... */
+/* create reciprocal link pairs between file refs in a commit and its parent */
 {
     rev_commit *parent = commit->parent; 
     int ncommit = 0, nparent = 0, maxmatch;
     rev_dir **ddir, **ddir2;
     rev_file **df, **df2;
+
+    /*
+     * This is the worst single computational hotspot in the code, accounting
+     * for upwards of 30% of the running time.  Unfortunately, we absolutely
+     * need these links to generate M and D ops with, and the setup is
+     * intrinsically expensive.
+     */
 
     for (ddir = commit->dirs; ddir < commit->dirs + commit->ndirs; ddir++) {
 	for (df = (*ddir)->files; df < (*ddir)->files + (*ddir)->nfiles; df++) {
