@@ -22,6 +22,7 @@ YFLAGS=-d -l
 LFLAGS=-l
 
 # To enable profiling, uncomment the following line
+# Note: the profiler gets confused if you don't also turn off -O flags.
 # CFLAGS += -pg
 
 OBJS=gram.o lex.o main.o cvsutil.o revdir.o \
