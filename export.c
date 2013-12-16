@@ -208,6 +208,48 @@ static int fileop_sort(const void *a, const void *b)
 
 #define display_date(c, m)	(force_dates ? ((m) * commit_time_window * 2) : (c)->date)
 
+static void compute_parent_links(rev_commit *commit)
+/* this is the worst single computational hotspot in the code... */
+{
+    int		i, j, i2, j2;
+    int ncommit = 0, nparent = 0, maxmatch;
+
+    for (i = 0; i < commit->ndirs; i++) {
+	rev_dir	*dir = commit->dirs[i];	
+	for (j = 0; j < dir->nfiles; j++) {
+	    dir->files[j]->u.other = NULL;
+	    ncommit++;
+	}
+    }
+    for (i2 = 0; i2 < commit->parent->ndirs; i2++) {
+	rev_dir	*dir2 = commit->parent->dirs[i2];
+	for (j2 = 0; j2 < dir2->nfiles; j2++) {
+	    dir2->files[j2]->u.other = NULL;
+	    nparent++;
+	}
+    }
+    maxmatch = (nparent < ncommit) ? nparent : ncommit;
+    for (i = 0; i < commit->ndirs; i++) {
+	rev_dir	*dir = commit->dirs[i];	
+	for (j = 0; j < dir->nfiles; j++) {
+	    rev_file *f = dir->files[j];
+	    for (i2 = 0; i2 < commit->parent->ndirs; i2++) {
+		rev_dir	*dir2 = commit->parent->dirs[i2];
+		for (j2 = 0; j2 < dir2->nfiles; j2++) {
+		    rev_file *f2 = dir2->files[j2];
+		    if (f->name == f2->name) {
+			f->u.other = f2;
+			f2->u.other = f;
+			if (--maxmatch == 0)
+			    return;
+			break;
+		    }
+		}
+	    }
+	}
+    }
+}
+
 static void export_commit(rev_commit *commit, char *branch, int strip, bool report)
 /* export a commit (and the blobs it is the first to reference) */
 {
@@ -220,8 +262,8 @@ static void export_commit(rev_commit *commit, char *branch, int strip, bool repo
     size_t revpairsize = 0;
     const char *ts;
     time_t ct;
-    rev_file	*f, *f2;
-    int		i, j, i2, j2;
+    rev_file	*f;
+    int		i, j;
     struct fileop *operations, *op, *op2;
     int noperations;
 
@@ -233,46 +275,9 @@ static void export_commit(rev_commit *commit, char *branch, int strip, bool repo
 
     /*
      * Precompute mutual parent-child pointers.
-     * This is the worst single computational hotspot in the code.
      */
-    if (commit->parent) {
-	int ncommit = 0, nparent = 0, maxmatch;
-	for (i = 0; i < commit->ndirs; i++) {
-	    rev_dir	*dir = commit->dirs[i];	
-	    for (j = 0; j < dir->nfiles; j++) {
-		dir->files[j]->u.other = NULL;
-		ncommit++;
-	    }
-	}
-	for (i2 = 0; i2 < commit->parent->ndirs; i2++) {
-	    rev_dir	*dir2 = commit->parent->dirs[i2];
-	    for (j2 = 0; j2 < dir2->nfiles; j2++) {
-		dir2->files[j2]->u.other = NULL;
-		nparent++;
-	    }
-	}
-	maxmatch = (nparent < ncommit) ? nparent : ncommit;
-	for (i = 0; i < commit->ndirs; i++) {
-	    rev_dir	*dir = commit->dirs[i];	
-	    for (j = 0; j < dir->nfiles; j++) {
-		f = dir->files[j];
-		for (i2 = 0; i2 < commit->parent->ndirs; i2++) {
-		    rev_dir	*dir2 = commit->parent->dirs[i2];
-		    for (j2 = 0; j2 < dir2->nfiles; j2++) {
-			f2 = dir2->files[j2];
-			if (f->name == f2->name) {
-			    f->u.other = f2;
-			    f2->u.other = f;
-			    if (--maxmatch == 0)
-				goto breakout;
-			    break;
-			}
-		    }
-		}
-	    }
-	}
-    breakout:;
-    }
+    if (commit->parent) 
+	compute_parent_links(commit);
 
     noperations = OP_CHUNK;
     op = operations = xmalloc(sizeof(struct fileop) * noperations);
