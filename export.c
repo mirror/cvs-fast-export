@@ -218,6 +218,25 @@ static rev_file *find_precursor_of(rev_commit *commit, rev_file *f)
     return NULL;
 }
 
+static rev_file *find_fileop_in(rev_commit *commit, rev_file *f)
+{
+    int		cmp, i2, j2;
+    rev_file	*f2;
+
+    for (i2 = 0; i2 < commit->ndirs; i2++) {
+	rev_dir	*dir2 = commit->dirs[i2];
+	for (j2 = 0; j2 < dir2->nfiles; j2++) {
+	    f2 = dir2->files[j2];
+	    cmp = strcmp(f->name, f2->name);
+	    if (cmp == 0) {
+		return f2;
+	    }
+	}
+    }
+    return NULL;
+}
+
+
 static void export_commit(rev_commit *commit, char *branch, int strip, bool report)
 /* export a commit (and the blobs it is the first to reference) */
 {
@@ -231,9 +250,9 @@ static void export_commit(rev_commit *commit, char *branch, int strip, bool repo
     const char *ts;
     time_t ct;
     rev_file	*f, *f2;
-    int		i, j, i2, j2;
+    int		i, j;
     struct fileop *operations, *op, *op2;
-    int noperations, cmp;
+    int noperations;
 
     if (reposurgeon)
     {
@@ -309,19 +328,10 @@ static void export_commit(rev_commit *commit, char *branch, int strip, bool repo
 
 	    for (j = 0; j < dir->nfiles; j++) {
 		bool present;
-		f = dir->files[j];
 		present = false;
-		for (i2 = 0; i2 < commit->ndirs; i2++) {
-		    rev_dir	*dir2 = commit->dirs[i2];
-		    for (j2 = 0; j2 < dir2->nfiles; j2++) {
-			f2 = dir2->files[j2];
-			cmp = strcmp(f->name, f2->name);
-			if (cmp == 0) {
-			    present = true;
-			    break;
-			}
-		    }
-		}
+		f = dir->files[j];
+		f2 = find_fileop_in(commit, f);
+		present = (f2 != NULL);
 		if (!present) {
 		    op->op = 'D';
 		    (void)strncpy(op->path, 
