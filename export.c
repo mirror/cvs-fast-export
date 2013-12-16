@@ -251,19 +251,26 @@ static void export_commit(rev_commit *commit, char *branch, int strip, bool repo
     }
 
     /*
-     * Precompute mutual parent-child pointers 
+     * Precompute mutual parent-child pointers.
+     * This is the worst single computational hotspot in the code.
      */
     if (commit->parent) {
+	int ncommit = 0, nparent = 0, maxmatch;
 	for (i = 0; i < commit->ndirs; i++) {
 	    rev_dir	*dir = commit->dirs[i];	
-	    for (j = 0; j < dir->nfiles; j++)
+	    for (j = 0; j < dir->nfiles; j++) {
 		dir->files[j]->u.other = NULL;
+		ncommit++;
+	    }
 	}
 	for (i2 = 0; i2 < commit->parent->ndirs; i2++) {
 	    rev_dir	*dir2 = commit->parent->dirs[i2];
-	    for (j2 = 0; j2 < dir2->nfiles; j2++)
+	    for (j2 = 0; j2 < dir2->nfiles; j2++) {
 		dir2->files[j2]->u.other = NULL;
+		nparent++;
+	    }
 	}
+	maxmatch = (nparent < ncommit) ? nparent : ncommit;
 	for (i = 0; i < commit->ndirs; i++) {
 	    rev_dir	*dir = commit->dirs[i];	
 	    for (j = 0; j < dir->nfiles; j++) {
@@ -275,12 +282,15 @@ static void export_commit(rev_commit *commit, char *branch, int strip, bool repo
 			if (f->name == f2->name) {
 			    f->u.other = f2;
 			    f2->u.other = f;
+			    if (--maxmatch == 0)
+				goto breakout;
 			    break;
 			}
 		    }
 		}
 	    }
 	}
+    breakout:;
     }
 
     noperations = OP_CHUNK;
