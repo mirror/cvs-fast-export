@@ -13,7 +13,7 @@ GCC_WARNINGS1=-Wall -Wpointer-arith -Wstrict-prototypes
 GCC_WARNINGS2=-Wmissing-prototypes -Wmissing-declarations
 GCC_WARNINGS3=-Wno-unused-function -Wno-unused-label
 GCC_WARNINGS=$(GCC_WARNINGS1) $(GCC_WARNINGS2) $(GCC_WARNINGS3)
-CFLAGS=-g $(GCC_WARNINGS) -DVERSION=\"$(VERSION)\"
+CFLAGS=-$(GCC_WARNINGS) -DVERSION=\"$(VERSION)\"
 
 # To enable debugging of the Yacc grammar, uncomment the following line
 #CFLAGS += -DYYDEBUG=1
@@ -23,7 +23,8 @@ LFLAGS=-l
 
 # To enable profiling, uncomment the following line
 # Note: the profiler gets confused if you don't also turn off -O flags.
-CFLAGS += -pg
+#CFLAGS += -pg
+CFLAGS += -O
 
 OBJS=gram.o lex.o main.o cvsutil.o revdir.o \
 	revlist.o atom.o revcvs.o generate.o export.o \
