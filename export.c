@@ -56,14 +56,14 @@ static void save_status(int num, int total)
 
 static void save_status_end(void)
 {
-
     if (!progress)
 	return;
     else {
 	time_t elapsed = time(NULL) - start_time;
 
-	fprintf(STATUS, "done, %d commits in %zdsec (%d commits/sec)\n",
-		export_total_commits, elapsed,
+	fprintf(STATUS, "\b\b\b\b\b\b100%%, %d commits in %zdsec (%d commits/sec)\n",
+		export_total_commits,
+		elapsed,
 		(int)(export_total_commits / elapsed));
     }
 }
