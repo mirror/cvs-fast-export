@@ -28,7 +28,7 @@
 #endif
 
 typedef enum _rev_execution_mode {
-    ExecuteExport, ExecuteGraph, ExecuteSplits
+    ExecuteExport, ExecuteGraph,
 } rev_execution_mode;
 
 /* options */
@@ -184,104 +184,6 @@ rev_list_file (char *name, int *nversions)
     *nversions = this_file->nversions;
     cvs_file_free (this_file);
     return rl;
-}
-
-void
-dump_splits (rev_list *rl)
-{
-#if 0
-    rev_split	*splits = NULL, *s;
-    rev_ref	*head;
-    rev_commit	*c, *a, *b;
-    int		ai, bi;
-    rev_file	*af, *bf;
-    char	*which;
-
-    /* Find tails and mark splits */
-    for (head = rl->heads; head; head = head->next) {
-	if (head->tail)
-	    continue;
-	for (c = head->commit; c; c = c->parent)
-	    if (c->tail) {
-		for (s = splits; s; s = s->next)
-		    if (s->parent == c->parent)
-			break;
-		if (!s) {
-		    s = xcalloc (1, sizeof (rev_split), "dump_splits");
-		    s->parent = c->parent;
-		    s->childa = c;
-		    s->topa = head->commit;
-		    s->next = splits;
-		    splits = s;
-		}
-	    }
-    }
-    /* Find join points */
-    for (s = splits; s; s = s->next) {
-	for (head = rl->heads; head; head = head->next) {
-	    if (head->tail)
-		continue;
-	    for (c = head->commit; c; c = c->parent) {
-		if (c->parent == s->parent && c != s->childa) {
-		    s->childb = c;
-		    s->topb = head->commit;
-		}
-	    }
-	}
-    }
-    for (s = splits; s; s = s->next) {
-	if (s->parent && s->childa && s->childb) {
-	    for (head = rl->heads; head; head = head->next) {
-		if (head->commit == s->topa)
-		    fprintf (stderr, "%s ", head->name);
-	    }
-	    fprintf (stderr, "->");
-	    for (head = rl->heads; head; head = head->next) {
-		if (head->commit == s->topb)
-		    fprintf (stderr, "%s ", head->name);
-	    }
-	    fprintf (stderr, "\n");
-	    a = s->childa;
-	    b = s->childb;
-	    ai = bi = 0;
-	    while (ai < a->nfiles && bi < b->nfiles) {
-		af = a->files[ai];
-		bf = b->files[bi];
-		if (af != bf) {
-		    if (rev_file_later (af, bf)) {
-			fprintf (stderr, "a : %s ", ctime_nonl (&af->date));
-			dump_number_file (stderr, af->name, &af->number);
-			ai++;
-		    } else {
-			fprintf (stderr, " b: %s ", ctime_nonl (&bf->date));
-			dump_number_file (stderr, bf->name, &bf->number);
-			bi++;
-		    }
-		    fprintf (stderr, "\n");
-		} else {
-//		    fprintf (stderr, "ab: %s ", ctime_nonl (&af->date));
-//		    dump_number_file (stderr, af->name, &af->number);
-//		    fprintf (stderr, "\n");
-		    ai++;
-		    bi++;
-		}
-	    }
-	    which = "a ";
-	    if (ai >= a->nfiles) {
-		a = b;
-		ai = bi;
-		which = " b";
-	    }
-	    while (ai < a->nfiles) {
-		af = a->files[ai];
-		fprintf (stderr, "%s: ", which);
-		dump_number_file (stderr, af->name, &af->number);
-		fprintf (stderr, "\n");
-		ai++;
-	    }
-	}
-    }
-#endif
 }
 
 void
@@ -682,9 +584,6 @@ main (int argc, char **argv)
 	switch (rev_mode) {
 	case ExecuteGraph:
 	    dump_rev_graph (rl, NULL);
-	    break;
-	case ExecuteSplits:
-	    dump_splits (rl);
 	    break;
 	case ExecuteExport:
 	    export_commits (rl, strip, fromtime, progress);
