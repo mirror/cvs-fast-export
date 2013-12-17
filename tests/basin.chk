@@ -1,0 +1,61 @@
+blob
+mark :1
+data 14
+random content
+commit refs/heads/master
+mark :2
+committer foo <foo> 1200 +0000
+data 5
+root
+
+M 100644 :1 f
+
+reset refs/tags/br_0
+from :2
+
+blob
+mark :3
+data 24
+different random content
+commit refs/heads/master
+mark :4
+committer foo <foo> 2400 +0000
+data 16
+commit in trunk
+
+from :2
+M 100644 :3 f
+
+blob
+mark :5
+data 24
+even more random content
+commit refs/heads/br
+mark :6
+committer foo <foo> 3600 +0000
+data 13
+commit in br
+
+from :2
+M 100644 :5 f
+
+blob
+mark :7
+data 34
+even more different random content
+commit refs/heads/master
+mark :8
+committer foo <foo> 4800 +0000
+data 23
+second commit in trunk
+
+from :4
+M 100644 :7 f
+
+reset refs/heads/master
+from :8
+
+reset refs/heads/br
+from :6
+
+done

@@ -169,6 +169,10 @@ class CVSCheckout:
         "Execute a command in the checkout directory."
         with directory_context(self.directory):
             apply(self.repo.do, [cmd] + list(args))
+    def outdo(self, cmd):
+        "Execute a command in the checkout directory."
+        with directory_context(self.directory):
+            do_or_die(cmd)
     def add(self, *filenames):
         "Add a file to the version-controlled set."
         apply(self.do, ["add"] + list(filenames))
