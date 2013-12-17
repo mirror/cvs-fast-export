@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-## Illya Basin's test, failed by cvsps-3.x
+## Ilya Basin's test, failed by cvsps-3.x
 """
 Date: Sat, 20 Apr 2013 14:38:55 +0400
 From: Ilya Basin <basinilya@gmail.com>
