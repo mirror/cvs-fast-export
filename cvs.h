@@ -425,10 +425,13 @@ void
 load_status_next (void);
 
 void* 
-xmalloc(size_t size);
+xmalloc(size_t size, char const *legend);
+
+void*
+xcalloc(size_t, size_t, char const *legend);
 
 void* 
-xrealloc(void *ptr, size_t size);
+xrealloc(void *ptr, size_t size, char const *legend);
 
 void
 announce(char const *format,...);
@@ -437,7 +440,7 @@ void
 fatal_error(char const *format,...);
 
 void
-fatal_system_error(char const *format);
+fatal_system_error(char const *format, ...);
 
 void hash_version(cvs_version *);
 void hash_patch(cvs_patch *);

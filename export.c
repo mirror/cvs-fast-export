@@ -272,7 +272,7 @@ static void export_commit(rev_commit *commit, char *branch, int strip, bool repo
 
     if (reposurgeon)
     {
-	revpairs = xmalloc((revpairsize = 1024));
+	revpairs = xmalloc((revpairsize = 1024), "revpair allocation");
 	revpairs[0] = '\0';
     }
 
@@ -283,7 +283,7 @@ static void export_commit(rev_commit *commit, char *branch, int strip, bool repo
 	compute_parent_links(commit);
 
     noperations = OP_CHUNK;
-    op = operations = xmalloc(sizeof(struct fileop) * noperations);
+    op = operations = xmalloc(sizeof(struct fileop) * noperations, "fileop allocation");
     for (i = 0; i < commit->ndirs; i++) {
 	rev_dir	*dir = commit->dirs[i];
 	
@@ -330,9 +330,7 @@ static void export_commit(rev_commit *commit, char *branch, int strip, bool repo
 			if (strlen(revpairs) + strlen(fr) + 2 > revpairsize)
 			{
 			    revpairsize *= 2;
-			    revpairs = xrealloc(revpairs, revpairsize);
-			    if (revpairs == NULL)
-				exit(1);
+			    revpairs = xrealloc(revpairs, revpairsize, "revpair allocation");
 			}
 			strcat(revpairs, fr);
 			strcat(revpairs, "\n");
@@ -497,7 +495,7 @@ bool export_commits(rev_list *rl, int strip, time_t fromtime, bool progress)
     export_total_commits = export_ncommit (rl);
     /* the +1 is because mark indices are 1-origin, slot 0 always empty */
     extent = sizeof(struct mark) * (seqno + export_total_commits + 1);
-    markmap = (struct mark *)xmalloc(extent);
+    markmap = (struct mark *)xmalloc(extent, "markmap allocation");
     memset(markmap, '\0', extent);
 
     /*
@@ -516,12 +514,9 @@ bool export_commits(rev_list *rl, int strip, time_t fromtime, bool progress)
      * way to arrange this is to reverse the branches in the array, fill
      * the array in forward order, and dump it forward order.
      */
-    history = (struct commit_seq *)calloc(export_total_commits, 
-					  sizeof(struct commit_seq));
-    if (history == NULL) {
-	free(history);	/* pacifies cppcheck */
-	exit(1);
-    }
+    history = (struct commit_seq *)xcalloc(export_total_commits, 
+					   sizeof(struct commit_seq),
+					   "export");
     branchbase = 0;
     for (h = rl->heads; h; h = h->next) {
 	if (!h->tail) {

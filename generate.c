@@ -169,10 +169,10 @@ static void in_buffer_init(uchar *text, int bypass_initial)
 static void out_buffer_init(void)
 {
 	char *t;
-	Goutbuf = xmalloc(sizeof(struct out_buffer_type));
+	Goutbuf = xmalloc(sizeof(struct out_buffer_type), "out_buffer_init");
 	memset(Goutbuf, 0, sizeof(struct out_buffer_type));
 	Goutbuf->size = initial_out_buffer_size;
-	t = xmalloc(Goutbuf->size);
+	t = xmalloc(Goutbuf->size, "out+buffer_init");
 	Goutbuf->text = t;
 	Goutbuf->ptr = t;
 	Goutbuf->end_of_text = t + Goutbuf->size;
@@ -182,7 +182,7 @@ static void out_buffer_enlarge(void)
 {
 	int ptroffset = Goutbuf->ptr - Goutbuf->text;
 	Goutbuf->size *= 2;
-	Goutbuf->text = xrealloc(Goutbuf->text, Goutbuf->size);
+	Goutbuf->text = xrealloc(Goutbuf->text, Goutbuf->size, "out_buffer_enlarge");
 	Goutbuf->end_of_text = Goutbuf->text + Goutbuf->size;
 	Goutbuf->ptr = Goutbuf->text + ptroffset;
 }
@@ -293,11 +293,12 @@ static char const * getfullRCSname(void)
 
 	/* Get working directory and strip any trailing slashes */
 	wdbuflen = _POSIX_PATH_MAX + 1;
-	wdbuf = xmalloc(wdbuflen);
+	wdbuf = xmalloc(wdbuflen, "getcwd");
 	while (!getcwd(wdbuf, wdbuflen)) {
 		if (errno == ERANGE)
-			xrealloc(wdbuf, wdbuflen<<1);
-		else	fatal_system_error("getcwd");
+		    xrealloc(wdbuf, wdbuflen<<1, "getcwd");
+		else 
+		    fatal_system_error("getcwd");
 	}
 
 	/* Trim off trailing slashes */
@@ -312,7 +313,7 @@ static char const * getfullRCSname(void)
 			r++;
 
 	/* Build full pathname.  */
-	Gabspath = d = xmalloc(dlen + strlen(r) + 2);
+	Gabspath = d = xmalloc(dlen + strlen(r) + 2, "pathname building");
 	memcpy(d, wdbuf, dlen);
 	d += dlen;
 	*d++ = '/';
@@ -353,10 +354,10 @@ static void insertline(unsigned long n, uchar * l)
 	if (!Ggapsize) {
 		if (Glinemax) {
 			Ggap = Ggapsize = Glinemax; Glinemax <<= 1;
-			Gline = xrealloc(Gline, sizeof(uchar *) * Glinemax);
+			Gline = xrealloc(Gline, sizeof(uchar *) * Glinemax, "insertline");
 		} else {
 			Glinemax = Ggapsize = 1024;
-			Gline = xmalloc(sizeof(uchar *) *  Glinemax);
+			Gline = xmalloc(sizeof(uchar *) *  Glinemax, "insertline");
 		}
 	}
 	if (n < Ggap)
@@ -557,7 +558,7 @@ static void keyreplace(enum markers marker)
 		}
 
 		/* Copy characters before `$Log' into LEADER.  */
-		xxp = leader = xmalloc(kdelim_ptr - in_buffer_loc());
+		xxp = leader = xmalloc(kdelim_ptr - in_buffer_loc(), "keyword expansion");
 		for (cs = 0; ;  cs++) {
 			c = in_buffer_getc();
 			if (c == KDELIM)
@@ -630,7 +631,7 @@ static int expandline(void)
 
 	if (Gkvlen < KEYLENGTH+3) {
 		Gkvlen = KEYLENGTH + 3;
-		Gkeyval = xrealloc(Gkeyval, Gkvlen);
+		Gkeyval = xrealloc(Gkeyval, Gkvlen, "expandline");
 	}
 	e = 0;
 	r = -1;
@@ -678,7 +679,7 @@ static int expandline(void)
 				    if (tlim <= tp) {
 					orig_size = Gkvlen;
 					Gkvlen *= 2;
-					Gkeyval = xrealloc(Gkeyval, Gkvlen);
+					Gkeyval = xrealloc(Gkeyval, Gkvlen, "expandline");
 					tlim = Gkeyval + Gkvlen;
 					tp = Gkeyval + orig_size;
 
@@ -795,7 +796,7 @@ static void snapshotedit(void)
 
 static void enter_branch(Node *node)
 {
-	uchar **p = xmalloc(sizeof(uchar *) * stack[depth].linemax);
+    uchar **p = xmalloc(sizeof(uchar *) * stack[depth].linemax, "enter branch");
 	memcpy(p, stack[depth].line, sizeof(uchar *) * stack[depth].linemax);
 	stack[depth + 1] = stack[depth];
 	stack[depth + 1].next_branch = node->sib;

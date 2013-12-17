@@ -1,8 +1,15 @@
 #include "cvs.h"
 
-void fatal_system_error(char const *s)
+void fatal_system_error(char const *format,...)
 {
-	perror(s);
+	va_list args;
+
+	fprintf(stderr, "cvs-fast-export fatal: ");
+	va_start(args, format);
+	vfprintf(stderr, format, args);
+	va_end(args);
+	fputs(": ", stderr);
+	perror(NULL);
 	exit(1);
 }
 
@@ -28,23 +35,34 @@ void announce(char const *format,...)
 	va_end(args);
 }
 
-void* xmalloc(size_t size)
+void* xmalloc(size_t size, char const *legend)
 {
         void *ret = malloc(size);
         if (!ret && !size)
                 ret = malloc(1);
         if (!ret)
-                fatal_system_error("Out of memory, malloc failed");
+	    fatal_system_error("Out of memory, malloc failed in %s",
+			       legend);
         return ret;
 }
 
-void* xrealloc(void *ptr, size_t size)
+void* xcalloc(size_t nmemb, size_t size, char const *legend)
+{
+	void *ret = calloc(nmemb, size);
+        if (!ret)
+	    fatal_system_error("Out of memory, calloc failed in %s",
+			       legend);
+        return ret;
+}
+
+void* xrealloc(void *ptr, size_t size, char const *legend)
 {
         void *ret = realloc(ptr, size);
         if (!ret && !size)
                 ret = realloc(ptr, 1);
         if (!ret)
-                fatal_system_error("Out of memory, realloc failed");
+	    fatal_system_error("Out of memory, realloc failed in %s",
+			       legend);
         return ret;
 }
 

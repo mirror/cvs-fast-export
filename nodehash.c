@@ -30,7 +30,7 @@ static Node *hash_number(cvs_number *n)
 		if (i == key.c)
 			return p;
 	}
-	p = calloc(1, sizeof(Node));
+	p = xcalloc(1, sizeof(Node), "hash number generation");
 	p->number = key;
 	p->hash_next = table[hash];
 	table[hash] = p;

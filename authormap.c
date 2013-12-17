@@ -78,7 +78,7 @@ load_author_map (char *filename)
 	    fclose (f);
 	    return 0;
 	}
-	a = calloc (1, sizeof (cvs_author));
+	a = xcalloc (1, sizeof (cvs_author), "authormap creation");
 	a->name = name;
 	angle = strchr (full, '<');
 	if (!angle) {

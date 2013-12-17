@@ -27,7 +27,7 @@ static Tag *find_tag(char *name)
 	for (tag = table[hash]; tag; tag = tag->hash_next)
 		if (tag->name == name)
 			return tag;
-	tag = calloc(1, sizeof(Tag));
+	tag = xcalloc(1, sizeof(Tag), "tag lookup");
 	tag->name = name;
 	tag->hash_next = table[hash];
 	table[hash] = tag;

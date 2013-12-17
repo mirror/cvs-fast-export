@@ -65,7 +65,7 @@ rev_branch_cvs (cvs_file *cvs, cvs_number *branch)
 	rev_commit *c;
 	if (!v)
 	     continue;
-	c = calloc (1, sizeof (rev_commit));
+	c = xcalloc (1, sizeof (rev_commit), "branch construction");
 	c->date = v->date;
 	c->commitid = v->commitid;
 	c->author = v->author;
@@ -599,7 +599,7 @@ rev_list_sort_heads (rev_list *rl, cvs_file *cvs)
 rev_list *
 rev_list_cvs (cvs_file *cvs)
 {
-    rev_list	*rl = calloc (1, sizeof (rev_list));
+    rev_list	*rl = xcalloc (1, sizeof (rev_list), "rev_list_cvs");
     cvs_number	trunk_number;
     rev_commit	*trunk; 
     rev_commit	*branch;

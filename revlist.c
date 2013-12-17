@@ -20,7 +20,7 @@
 
 /*
  * A revision list is the history for an entire RCS/CVS repository.
- * THese functions analyze a revlist into a DAG.
+ * These functions analyze a revlist into a DAG.
  */
 
 rev_ref *
@@ -32,7 +32,7 @@ rev_list_add_head (rev_list *rl, rev_commit *commit, char *name, int degree)
 
     while (*list)
 	list = &(*list)->next;
-    r = calloc (1, sizeof (rev_ref));
+    r = xcalloc (1, sizeof (rev_ref), "adding head reference");
     r->commit = commit;
     r->name = name;
     r->next = *list;
@@ -438,8 +438,8 @@ rev_commit_build (rev_commit **commits, rev_commit *leader, int ncommit)
     
     rds = rev_pack_files (files, nfile, &nds);
         
-    commit = calloc (1, sizeof (rev_commit) +
-		     nds * sizeof (rev_dir *));
+    commit = xcalloc (1, sizeof (rev_commit) +
+		      nds * sizeof (rev_dir *), "creating commit");
     
     commit->date = leader->date;
     commit->commitid = leader->commitid;
@@ -583,7 +583,7 @@ rev_branch_merge (rev_ref **branches, int nbranch,
 	int n;
 	rev_commit *prev = NULL;
 	rev_commit *head = NULL, **tail = &head;
-	rev_commit **commits = calloc (nbranch, sizeof (rev_commit *));
+	rev_commit **commits = xcalloc (nbranch, sizeof (rev_commit *), "merging per-file branches");
 	rev_commit *commit;
 	rev_commit *latest;
 	rev_commit **p;
@@ -926,11 +926,11 @@ rev_list *
 rev_list_merge (rev_list *head)
 {
     int		count = rev_list_count (head);
-    rev_list	*rl = calloc (1, sizeof (rev_list));
+    rev_list	*rl = xcalloc (1, sizeof (rev_list), "list merge");
     rev_list	*l;
     rev_ref	*lh, *h;
     Tag		*t;
-    rev_ref	**refs = calloc (count, sizeof (rev_ref *));
+    rev_ref	**refs = xcalloc (count, sizeof (rev_ref *), "list merge");
 
     /*
      * Find all of the heads across all of the incoming trees
@@ -1036,7 +1036,7 @@ rev_file_free_marked (void)
 rev_file *
 rev_file_rev (char *name, cvs_number *n, time_t date)
 {
-    rev_file	*f = calloc (1, sizeof (rev_file));
+    rev_file	*f = xcalloc (1, sizeof (rev_file), "allocating file rev");
 
     f->name = name;
     f->number = *n;
@@ -1120,7 +1120,7 @@ rev_uniq_file (rev_commit *uniq, rev_commit *common, int *nuniqp)
 	rev_dir	*dir = uniq->dirs[i];
 	for (j = 0; j < dir->nfiles; j++)
 	    if (!rev_commit_has_file (common, dir->files[j])) {
-		fl = calloc (1, sizeof (rev_file_list));
+		fl = xcalloc (1, sizeof (rev_file_list), "rev_uniq_file");
 		fl->file = dir->files[j];
 		*tail = fl;
 		tail = &fl->next;
@@ -1147,7 +1147,7 @@ rev_file_list_has_filename (rev_file_list *fl, char *name)
 rev_diff *
 rev_commit_diff (rev_commit *old, rev_commit *new)
 {
-    rev_diff	*diff = calloc (1, sizeof (rev_diff));
+    rev_diff	*diff = xcalloc (1, sizeof (rev_diff), "rev_commit_diff");
 
     diff->del = rev_uniq_file (old, new, &diff->ndel);
     diff->add = rev_uniq_file (new, old, &diff->nadd);

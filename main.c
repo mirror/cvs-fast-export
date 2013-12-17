@@ -169,7 +169,7 @@ rev_list_file (char *name, int *nversions)
     }
     yyfilename = name;
     yylineno = 0;
-    this_file = calloc (1, sizeof (cvs_file));
+    this_file = xcalloc (1, sizeof (cvs_file), "rev_list_file");
     this_file->name = name;
     if (yyin)
 	assert (fstat (fileno (yyin), &buf) == 0);
@@ -207,7 +207,7 @@ dump_splits (rev_list *rl)
 		    if (s->parent == c->parent)
 			break;
 		if (!s) {
-		    s = calloc (1, sizeof (rev_split));
+		    s = xcalloc (1, sizeof (rev_split), "dump_splits");
 		    s->parent = c->parent;
 		    s->childa = c;
 		    s->topa = head->commit;
@@ -634,7 +634,7 @@ main (int argc, char **argv)
 	else if (S_ISDIR(stb.st_mode) != 0)
 	    continue;
 
-	fn = calloc (1, sizeof (rev_filename));
+	fn = xcalloc (1, sizeof (rev_filename), "filename gathering");
 	fn->file = atom (file);
 	*fn_tail = fn;
 	fn_tail = &fn->next;
