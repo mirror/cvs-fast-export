@@ -237,7 +237,7 @@ rev_list_patch_vendor_branch (rev_list *rl, cvs_file *cvs)
 		for (vr = vendor->commit; vr; vr = vr->parent)
 		{
 		    if (!vr->parent) {
-			vr->tail = 1;
+			vr->tail = true;
 			vr->parent = v;
 			break;
 		    }
@@ -331,7 +331,7 @@ rev_list_graft_branches (rev_list *rl, cvs_file *cvs)
 					    &c->file->number) == 0)
 		    {
 			c->parent = rev_find_cvs_commit (rl, &cv->number);
-			c->tail = 1;
+			c->tail = true;
 			break;
 		    }
 		}

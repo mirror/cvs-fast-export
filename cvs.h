@@ -159,8 +159,8 @@ extern time_t start_time;
 
 typedef struct _rev_commit {
     struct _rev_commit	*parent;
-    char		tail;
-    char		seen;
+    flag		tail;
+    uint8_t		seen;
     flag		tailed;
     flag		tagged;
     time_t		date;

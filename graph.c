@@ -356,7 +356,7 @@ static void dot_rev_graph_nodes (rev_list *rl, char *title)
 {
     rev_ref	*h;
     rev_commit	*c, *p;
-    int		tail;
+    bool	tail;
 
     printf ("nodesep=0.1;\n");
     printf ("ranksep=0.1;\n");

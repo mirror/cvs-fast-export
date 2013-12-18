@@ -158,15 +158,15 @@ rev_list_set_tail (rev_list *rl)
     rev_commit	*c;
 
     for (head = rl->heads; head; head = head->next) {
-	int tail = 1;
+	flag tail = true;
 	if (head->commit && head->commit->seen) {
 	    head->tail = tail;
-	    tail = 0;
+	    tail = false;
 	}
 	for (c = head->commit; c; c = c->parent) {
 	    if (tail && c->parent && c->seen < c->parent->seen) {
-		c->tail = 1;
-		tail = 0;
+		c->tail = true;
+		tail = false;
 	    }
 	    c->seen++;
 	}
@@ -780,7 +780,7 @@ Kill:
 	}
 	if (*tail) {
 	    if (prev)
-		prev->tail = 1;
+		prev->tail = true;
 	} else 
 	    *tail = rev_commit_build (commits, commits[0], nbranch);
     }
