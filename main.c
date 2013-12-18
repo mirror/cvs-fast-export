@@ -394,6 +394,31 @@ static time_t convert_date(const char *dte)
     }
 }
 
+static void print_sizes(void)
+{
+    printf("sizeof(char *)        = %lu\n", sizeof(char *));
+    printf("sizeof(long)          = %lu\n", sizeof(long));
+    printf("sizeof(int)           = %lu\n", sizeof(int));
+    printf("sizeof(short)         = %lu\n", sizeof(short));
+    printf("sizeof(cvs_number)    = %lu\n", sizeof(cvs_number));
+    printf("sizeof(Node)          = %lu\n", sizeof(Node));
+    printf("sizeof(cvs_symbol)    = %lu\n", sizeof(cvs_symbol));
+    printf("sizeof(cvs_branch)    = %lu\n", sizeof(cvs_branch));
+    printf("sizeof(cvs_version)   = %lu\n", sizeof(cvs_version));
+    printf("sizeof(cvs_patch)     = %lu\n", sizeof(cvs_patch));
+    printf("sizeof(cvs_file)      = %lu\n", sizeof(cvs_file));
+    printf("sizeof(rev_file)      = %lu\n", sizeof(rev_file));
+    printf("sizeof(rev_dir)       = %lu\n", sizeof(rev_dir));
+    printf("sizeof(rev_commit)    = %lu\n", sizeof(rev_commit));
+    printf("sizeof(rev_ref)       = %lu\n", sizeof(rev_ref));
+    printf("sizeof(rev_list)      = %lu\n", sizeof(rev_list));
+    printf("sizeof(rev_file_list) = %lu\n", sizeof(rev_file_list));
+    printf("sizeof(rev_diff)      = %lu\n", sizeof(rev_diff));
+    printf("sizeof(cvs_author)    = %lu\n", sizeof(cvs_author));
+    printf("sizeof(Chunk)         = %lu\n", sizeof(Chunk));
+    printf("sizeof(Tag)           = %lu\n", sizeof(Tag));
+}
+
 typedef struct _rev_filename {
     struct _rev_filename	*next;
     char		*file;
@@ -435,8 +460,9 @@ main (int argc, char **argv)
             { "progress",           0, 0, 'p' },
             { "incremental",        1, 0, 'i' },
             { "branchorder",        0, 0, 'B' },	/* undocumented */
+	    { "sizes",              0, 0, 'S' },	/* undocumented */
 	};
-	int c = getopt_long(argc, argv, "+hVw:grvA:R:Tke:s:pi:", options, NULL);
+	int c = getopt_long(argc, argv, "+hVw:grvA:R:Tke:s:pi:BS", options, NULL);
 	if (c < 0)
 	    break;
 	switch (c) {
@@ -493,13 +519,10 @@ main (int argc, char **argv)
 	    break;
 	case 'e':
 	    branch_prefix = (char*) malloc(strlen(optarg) + 15);
-       sprintf(branch_prefix, "refs/remotes/%s/", optarg);
-			break;
+	    sprintf(branch_prefix, "refs/remotes/%s/", optarg);
+	    break;
 	case 's':
-		strip = strlen(optarg) + 1;
-		break;
-	case 'B':
-	    branchorder = true;
+	    strip = strlen(optarg) + 1;
 	    break;
 	case 'p':
 	    progress = true;
@@ -507,6 +530,12 @@ main (int argc, char **argv)
 	case 'i':
 	    fromtime = convert_date(optarg);
 	    break;
+	case 'B':
+	    branchorder = true;
+	    break;
+	case 'S':
+	    print_sizes();
+	    return 0;
 	default: /* error message already emitted */
 	    announce("try `%s --help' for more information.\n", argv[0]);
 	    return 1;
