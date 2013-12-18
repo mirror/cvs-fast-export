@@ -66,7 +66,7 @@ typedef struct node {
 	struct node *down;
 	struct node *sib;
 	struct _rev_file *file;
-	int starts;
+	flag starts;
 } Node;
 
 typedef struct _cvs_symbol {
@@ -87,11 +87,11 @@ typedef struct _cvs_version {
     time_t		date;
     char		*author;
     char		*state;
-    flag		dead;
     cvs_branch		*branches;
     cvs_number		parent;	/* next in ,v file */
     char		*commitid;
     Node		*node;
+    flag		dead;
 } cvs_version;
 
 typedef struct _cvs_patch {
@@ -113,7 +113,7 @@ typedef struct {
     mode_t		mode;
     int			nversions;
     char 		*expand;
-	char		*description;
+    char		*description;
 } cvs_file;
 
 typedef struct _rev_file {
