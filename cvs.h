@@ -153,7 +153,6 @@ typedef struct _rev_commit {
     struct _rev_commit	*parent;
     char		tail;
     char		seen;
-    char		used;
     bool		tailed;
     bool		tagged;
     time_t		date;
