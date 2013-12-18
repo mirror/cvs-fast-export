@@ -19,6 +19,8 @@
 #include <limits.h>
 #include <assert.h>
 #include <stdlib.h>
+#include <sys/resource.h>
+
 #include "cvs.h"
 
 /*
@@ -44,11 +46,14 @@ static void save_status_end(void)
 	return;
     else {
 	time_t elapsed = time(NULL) - start_time;
+	struct rusage rusage;
 
-	progress_end("100%%, %d commits in %zdsec (%d commits/sec)",
-		export_total_commits,
-		elapsed,
-		(int)(export_total_commits / elapsed));
+	(void)getrusage(RUSAGE_SELF, &rusage);
+	progress_end("100%%, %d commits in %zdsec (%d commits/sec) using %ldKb.",
+		     export_total_commits,
+		     elapsed,
+		     (int)(export_total_commits / elapsed),
+		     rusage.ru_maxrss);
     }
 }
 
