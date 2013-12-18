@@ -39,6 +39,7 @@ bool reposurgeon;
 FILE *revision_map;
 char *branch_prefix = "refs/heads/";
 bool progress = false;
+bool branchorder = false;
 time_t start_time;
 
 static int verbose = 0;
@@ -433,6 +434,7 @@ main (int argc, char **argv)
             { "strip",              1, 0, 's' },
             { "progress",           0, 0, 'p' },
             { "incremental",        1, 0, 'i' },
+            { "branchorder",        0, 0, 'B' },	/* undocumented */
 	};
 	int c = getopt_long(argc, argv, "+hVw:grvA:R:Tke:s:pi:", options, NULL);
 	if (c < 0)
@@ -496,6 +498,9 @@ main (int argc, char **argv)
 	case 's':
 		strip = strlen(optarg) + 1;
 		break;
+	case 'B':
+	    branchorder = true;
+	    break;
 	case 'p':
 	    progress = true;
 	    break;

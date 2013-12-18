@@ -487,10 +487,8 @@ bool export_commits(rev_list *rl, int strip, time_t fromtime, bool progress)
     rev_ref *h;
     Tag *t;
     rev_commit *c;
-    struct commit_seq *history, *hp;
-    int n, branchbase;
+    int n;
     size_t extent;
-    bool sortable;
 
     export_total_commits = export_ncommit (rl);
     /* the +1 is because mark indices are 1-origin, slot 0 always empty */
@@ -498,86 +496,133 @@ bool export_commits(rev_list *rl, int strip, time_t fromtime, bool progress)
     markmap = (struct mark *)xmalloc(extent, "markmap allocation");
     memset(markmap, '\0', extent);
 
-    /*
-     * Commits are in reverse order on per-branch lists.  The branches
-     * have to ship in their current order, otherwise some marks may not 
-     * be resolved.
-     *
-     * Dump them all into a common array necause (a) we're going to
-     * need to ship them back to front, and (b) we'd prefer to ship
-     * them in canonical order by commit date rather than ordered by
-     * branches.
-     *
-     * But there's a hitch; the branches themselves need to be dumped
-     * in forward order, otherwise not all ancestor marks will be defined.
-     * Since the branch commits need to be dumped in reverse, the easiest
-     * way to arrange this is to reverse the branches in the array, fill
-     * the array in forward order, and dump it forward order.
-     */
-    history = (struct commit_seq *)xcalloc(export_total_commits, 
-					   sizeof(struct commit_seq),
-					   "export");
-    branchbase = 0;
-    for (h = rl->heads; h; h = h->next) {
-	if (!h->tail) {
-	    int i = 0, branchlength = 0;
-	    for (c = h->commit; c; c = (c->tail ? NULL : c->parent))
-		branchlength++;
-	    for (c = h->commit; c; c = (c->tail ? NULL : c->parent)) {
-		/* copy commits in reverse order into this branch's span */
-		n = branchbase + branchlength - (i + 1);
-		history[n].commit = c;
-		history[n].head = h;
-		i++;
-	    }
-	    branchbase += branchlength;
-	}
-    }
- 
-    /* 
-     * Check that the topo order is consistent with time order.
-     * If so, we can sort commits by date without worrying that
-     * we'll try to ship a mark before it's defined.
-     */
-    sortable = true;
-    for (hp = history; hp < history + export_total_commits; hp++) {
-	if (hp->commit->parent && hp->commit->parent->date > hp->commit->date) {
-	    sortable = false;
-	    announce("some parent commits are younger than children.\n");
-	    break;
-	}
-    }
-    if (sortable)
-	qsort((void *)history, 
-	      export_total_commits, sizeof(struct commit_seq),
-	      sort_by_date);
-
     save_status_begin();
 
-    for (hp = history; hp < history + export_total_commits; hp++) {
-	bool report = true;
-	if (fromtime > 0) {
-	    if (fromtime >= display_date(hp->commit, mark+1)) {
-		report = false;
-	    } else if (!hp->realized) {
-		struct commit_seq *lp;
-		if (hp->commit->parent != NULL && display_date(hp->commit->parent, markmap[hp->commit->parent->serial].external) < fromtime)
-		    (void)printf("from %s%s^0\n\n", branch_prefix, hp->head->name);
-		for (lp = hp; lp < history + export_total_commits; lp++) {
-		    if (lp->head == hp->head) {
-			lp->realized = true;
+    if (branchorder) {
+	/*
+	 * Dump by branch order, not by commit date.  Slightly faster and
+	 * less memory-intensive, but (a) incremental dump won't work, and
+	 * (b) it's not git-fast-export  canonical form and cannot be 
+	 * compared to the output of other tools.
+	 */
+	rev_commit **history;
+	int alloc, i;
+
+	for (h = rl->heads; h; h = h->next) {
+	    if (!h->tail) {
+		// We need to export commits in reverse order; so
+		// first of all, we convert the linked-list given by
+		// h->commit into the array "history".
+		history = NULL;
+		alloc = 0;
+		for (c=h->commit, n=0; c; c=(c->tail ? NULL : c->parent), n++) {
+		    if (n >= alloc) {
+			alloc += 1024;
+			history = (rev_commit **)xrealloc(history, alloc *sizeof(rev_commit*), "export");
+		    }
+		    history[n] = c;
+		}
+
+		// Now walk the history array in reverse order and export the
+		// commits, along with any matching tags.
+		for (i=n-1; i>=0; i--) {
+		    export_commit (history[i], h->name, strip, true);
+		    for (t = all_tags; t; t = t->next)
+			if (t->commit == history[i])
+			    printf("reset refs/tags/%s\nfrom :%d\n\n", t->name, markmap[history[i]->serial].external);
+		}
+
+		free(history);
+	    }
+	}
+    }
+    else 
+    {
+	/*
+	 * Dump in strict git-fast-export order.
+	 *
+	 * Commits are in reverse order on per-branch lists.  The branches
+	 * have to ship in their current order, otherwise some marks may not 
+	 * be resolved.
+	 *
+	 * Dump them all into a common array necause (a) we're going to
+	 * need to ship them back to front, and (b) we'd prefer to ship
+	 * them in canonical order by commit date rather than ordered by
+	 * branches.
+	 *
+	 * But there's a hitch; the branches themselves need to be dumped
+	 * in forward order, otherwise not all ancestor marks will be defined.
+	 * Since the branch commits need to be dumped in reverse, the easiest
+	 * way to arrange this is to reverse the branches in the array, fill
+	 * the array in forward order, and dump it forward order.
+	 */
+	struct commit_seq *history, *hp;
+	bool sortable;
+	int branchbase;
+
+	history = (struct commit_seq *)xcalloc(export_total_commits, 
+					       sizeof(struct commit_seq),
+					       "export");
+	branchbase = 0;
+	for (h = rl->heads; h; h = h->next) {
+	    if (!h->tail) {
+		int i = 0, branchlength = 0;
+		for (c = h->commit; c; c = (c->tail ? NULL : c->parent))
+		    branchlength++;
+		for (c = h->commit; c; c = (c->tail ? NULL : c->parent)) {
+		    /* copy commits in reverse order into this branch's span */
+		    n = branchbase + branchlength - (i + 1);
+		    history[n].commit = c;
+		    history[n].head = h;
+		    i++;
+		}
+		branchbase += branchlength;
+	    }
+	}
+ 
+	/* 
+	 * Check that the topo order is consistent with time order.
+	 * If so, we can sort commits by date without worrying that
+	 * we'll try to ship a mark before it's defined.
+	 */
+	sortable = true;
+	for (hp = history; hp < history + export_total_commits; hp++) {
+	    if (hp->commit->parent && hp->commit->parent->date > hp->commit->date) {
+		sortable = false;
+		announce("some parent commits are younger than children.\n");
+		break;
+	    }
+	}
+	if (sortable)
+	    qsort((void *)history, 
+		  export_total_commits, sizeof(struct commit_seq),
+		  sort_by_date);
+
+	for (hp = history; hp < history + export_total_commits; hp++) {
+	    bool report = true;
+	    if (fromtime > 0) {
+		if (fromtime >= display_date(hp->commit, mark+1)) {
+		    report = false;
+		} else if (!hp->realized) {
+		    struct commit_seq *lp;
+		    if (hp->commit->parent != NULL && display_date(hp->commit->parent, markmap[hp->commit->parent->serial].external) < fromtime)
+			(void)printf("from %s%s^0\n\n", branch_prefix, hp->head->name);
+		    for (lp = hp; lp < history + export_total_commits; lp++) {
+			if (lp->head == hp->head) {
+			    lp->realized = true;
+			}
 		    }
 		}
 	    }
+	    save_status(hp - history, export_total_commits);
+	    export_commit(hp->commit, hp->head->name, strip, report);
+	    for (t = all_tags; t; t = t->next)
+		if (t->commit == hp->commit)
+		    printf("reset refs/tags/%s\nfrom :%d\n\n", t->name, markmap[hp->commit->serial].external);
 	}
-	save_status(hp - history, export_total_commits);
-	export_commit(hp->commit, hp->head->name, strip, report);
-	for (t = all_tags; t; t = t->next)
-	    if (t->commit == hp->commit)
-		printf("reset refs/tags/%s\nfrom :%d\n\n", t->name, markmap[hp->commit->serial].external);
-    }
 
-    free(history);
+	free(history);
+    }
 
     for (h = rl->heads; h; h = h->next) {
 	printf("reset %s%s\nfrom :%d\n\n", 
