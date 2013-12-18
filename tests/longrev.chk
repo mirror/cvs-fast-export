@@ -203,70 +203,6 @@ Updated for branch12
 from :24
 M 100644 :25 README
 
-reset refs/tags/branch13_root
-from :26
-
-blob
-mark :27
-data 8
-branch13
-commit refs/heads/branch13
-mark :28
-committer foo <foo> 16800 +0000
-data 21
-Updated for branch13
-
-from :26
-M 100644 :27 README
-
-reset refs/tags/branch14_root
-from :28
-
-blob
-mark :29
-data 8
-branch14
-commit refs/heads/branch14
-mark :30
-committer foo <foo> 18000 +0000
-data 21
-Updated for branch14
-
-from :28
-M 100644 :29 README
-
-reset refs/tags/branch15_root
-from :30
-
-blob
-mark :31
-data 8
-branch15
-commit refs/heads/branch15
-mark :32
-committer foo <foo> 19200 +0000
-data 21
-Updated for branch15
-
-from :30
-M 100644 :31 README
-
-reset refs/tags/branch16_root
-from :32
-
-blob
-mark :33
-data 8
-branch16
-commit refs/heads/branch16
-mark :34
-committer foo <foo> 20400 +0000
-data 21
-Updated for branch16
-
-from :32
-M 100644 :33 README
-
 reset refs/heads/master
 from :2
 
@@ -305,17 +241,5 @@ from :24
 
 reset refs/heads/branch12
 from :26
-
-reset refs/heads/branch13
-from :28
-
-reset refs/heads/branch14
-from :30
-
-reset refs/heads/branch15
-from :32
-
-reset refs/heads/branch16
-from :34
 
 done

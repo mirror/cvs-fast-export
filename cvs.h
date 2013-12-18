@@ -38,7 +38,9 @@
 #define MAXPATHLEN  10240
 #endif
 
-#define CVS_MAX_DEPTH	34
+/* CVS_MAX_BRANCHWIDTH should match the number in the longrev test*/
+#define CVS_MAX_BRANCHWIDTH	12
+#define CVS_MAX_DEPTH		(2*CVS_MAX_BRANCHWIDTH + 2)
 #define CVS_MAX_REV_LEN	(CVS_MAX_DEPTH * 11)
 
 /*

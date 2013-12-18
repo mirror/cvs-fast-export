@@ -12,7 +12,7 @@ co.write("README", "A test of multiple tags.\n")
 co.add("README")
 co.commit("Initial revision")
 
-for i in range(16):
+for i in range(12):
     branchname = ("branch%s" % (i+1))
     co.branch( branchname )
     co.switch( branchname )
