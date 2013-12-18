@@ -181,7 +181,6 @@ typedef struct _rev_ref {
 typedef struct _rev_list {
     struct _rev_list	*next;
     rev_ref	*heads;
-    int		watch;
 } rev_list;
 
 typedef struct _rev_file_list {

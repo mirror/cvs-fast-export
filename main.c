@@ -187,6 +187,7 @@ rev_list_file (char *name, int *nversions)
     return rl;
 }
 
+#ifdef __UNUSED__
 void
 dump_rev_tree (rev_list *rl)
 {
@@ -270,7 +271,6 @@ dump_rev_tree (rev_list *rl)
     printf ("}\n");
 }
 
-#ifdef __UNUSED__
 static int
 strcommon (char *a, char *b)
 /* return the length of the common prefix of strings a and b */
@@ -575,8 +575,6 @@ main (int argc, char **argv)
 	if (progress)
 	    load_status (fn->file + strip);
 	rl = rev_list_file (fn->file, &nversions);
-	if (rl->watch)
-	    dump_rev_tree (rl);
 	*tail = rl;
 	tail = &rl->next;
 
