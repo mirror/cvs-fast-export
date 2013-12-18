@@ -167,10 +167,10 @@ typedef struct _rev_commit {
     char		*log;
     char		*author;
     char		*commitid;
-    int                 serial;
     rev_file		*file;		/* first file */
-    int			nfiles;
-    int			ndirs;
+    int                 serial;
+    short		nfiles;
+    short		ndirs;
     rev_dir		*dirs[0];
 } rev_commit;
 
