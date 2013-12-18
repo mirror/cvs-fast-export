@@ -161,7 +161,6 @@ typedef struct _rev_commit {
     char		*author;
     char		*commitid;
     int                 serial;
-    struct _rev_commit	*user;
     rev_file		*file;		/* first file */
     int			nfiles;
     int			ndirs;
