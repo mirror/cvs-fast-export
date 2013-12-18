@@ -227,7 +227,7 @@ void static fast_export_sanitize(void)
     *tp = '\0';
     if (strlen(yytext) == 0) {
 	fprintf(stderr,
-		"%s: (%d) ag or branch name was empty after sanitization.\n", 
+		"%s: (%d) tag or branch name was empty after sanitization.\n", 
 		yyfilename, yylineno);
 	exit(1);
     }
