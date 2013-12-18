@@ -304,15 +304,10 @@ static int
 rev_list_count (rev_list *head)
 {
     int	count = 0;
-    progress_begin("Counting revisions", NO_MAX);
     while (head) {
 	count++;
 	head = head->next;
-	if (count % 100 == 0)
-	    progress_jump(count);
     }
-    progress_jump(count);
-    progress_end(NULL);
     return count;
 }
 
