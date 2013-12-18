@@ -440,6 +440,7 @@ main (int argc, char **argv)
     char	    *file;
     int		    nfile = 0;
     time_t          fromtime = 0;
+    off_t	    textsize = 0;
 
     start_time = time(NULL);
 
@@ -547,7 +548,7 @@ main (int argc, char **argv)
     argv += optind-1;
     argc -= optind-1;
 
-    progress_begin("Reading list of files", -1);
+    progress_begin("Reading list of files", NO_MAX);
     for (;;)
     {
 	struct stat stb;
@@ -571,6 +572,8 @@ main (int argc, char **argv)
 	    continue;
 	else if (S_ISDIR(stb.st_mode) != 0)
 	    continue;
+	else
+	    textsize += stb.st_size;
 
 	fn = xcalloc (1, sizeof (rev_filename), "filename gathering");
 	fn->file = atom (file);
@@ -593,7 +596,7 @@ main (int argc, char **argv)
 	if (progress && nfile % 100 == 0)
 		progress_jump(nfile);
     }
-    progress_end("done, %d files", nfile);
+    progress_end("done, %dKB in %d files", textsize/1024, nfile);
     if (rev_mode == ExecuteExport)
 	export_init();
     load_total_files = nfile;
