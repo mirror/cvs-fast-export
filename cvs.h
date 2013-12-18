@@ -459,6 +459,7 @@ void build_branches(void);
 extern Node *head_node;
 
 extern time_t skew_vulnerable;
+extern unsigned int total_revisions;
 
 void progress_begin(char * /*msg*/, int /*max*/);
 void progress_step(void);

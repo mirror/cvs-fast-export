@@ -22,6 +22,7 @@
 void yyerror (char *msg);
 
 time_t skew_vulnerable = 0;
+unsigned int total_revisions = 0;
 %}
 
 %union {
@@ -127,7 +128,7 @@ name		: NAME
 		  }
 		;
 revisions	: revisions revision
-		  { *$1 = $2; $$ = &$2->next; }
+{ *$1 = $2; $$ = &$2->next; total_revisions++; }
 		|
 		  { $$ = &this_file->versions; }
 		;
