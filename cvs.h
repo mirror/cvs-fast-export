@@ -153,6 +153,7 @@ extern char *branch_prefix;
 
 extern bool progress;
 #define STATUS stderr
+#define NO_MAX	-1
 
 extern bool branchorder;
 

@@ -304,7 +304,7 @@ static int
 rev_list_count (rev_list *head)
 {
     int	count = 0;
-    progress_begin("Counting revisions", -1);
+    progress_begin("Counting revisions", NO_MAX);
     while (head) {
 	count++;
 	head = head->next;
@@ -960,7 +960,7 @@ rev_list_merge (rev_list *head)
     /*
      * Sort by degree so that finding branch points always works
      */
-    progress_begin("Sorting", -1);
+    progress_begin("Sorting", NO_MAX);
 //    rl->heads = rev_ref_sel_sort (rl->heads);
     rl->heads = rev_ref_tsort (rl->heads, head);
     if (!rl->heads) {
@@ -974,7 +974,7 @@ rev_list_merge (rev_list *head)
     /*
      * Find branch parent relationships
      */
-    progress_begin("Find branch parent relationships", -1);
+    progress_begin("Find branch parent relationships", NO_MAX);
     for (h = rl->heads; h; h = h->next) {
 	rev_ref_set_parent (rl, h, head);
 //	dump_ref_name (stderr, h);
@@ -984,7 +984,7 @@ rev_list_merge (rev_list *head)
     /*
      * Merge common branches
      */
-    progress_begin("Merge common branches", -1);
+    progress_begin("Merge common branches", NO_MAX);
     for (h = rl->heads; h; h = h->next) {
 	/*
 	 * Locate branch in every tree
@@ -1003,7 +1003,7 @@ rev_list_merge (rev_list *head)
     /*
      * Compute 'tail' values
      */
-    progress_begin("Compute tail values", -1);
+    progress_begin("Compute tail values", NO_MAX);
     rev_list_set_tail (rl);
     progress_end(NULL);
 
@@ -1011,7 +1011,7 @@ rev_list_merge (rev_list *head)
     /*
      * Find tag locations
      */
-    progress_begin("Find tag locations", -1);
+    progress_begin("Find tag locations", NO_MAX);
     for (t = all_tags; t; t = t->next) {
 	rev_commit **commits = tagged(t);
 	if (commits)
@@ -1021,7 +1021,7 @@ rev_list_merge (rev_list *head)
 	free(commits);
     }
     progress_end(NULL);
-    progress_begin("Validate", -1);
+    progress_begin("Validate", NO_MAX);
     rev_list_validate (rl);
     progress_end(NULL);
     return rl;

@@ -77,7 +77,7 @@ void* xrealloc(void *ptr, size_t size, char const *legend)
  */
 
 static char *progress_msg = "";
-static int progress_max = -1;
+static int progress_max = NO_MAX;
 static int progress_counter = 0;
 static va_list _unused_va_list;
 

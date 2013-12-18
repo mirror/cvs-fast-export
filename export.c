@@ -90,8 +90,8 @@ void export_blob(Node *node, void *buf, size_t len)
 static void drop_path_component(char *string, const char *drop)
 {
     char *c;
-	int  m;
-	m = strlen(drop);
+    int  m;
+    m = strlen(drop);
     while ((c = strstr (string, drop)) &&
 	   (c == string || c[-1] == '/'))
     {
