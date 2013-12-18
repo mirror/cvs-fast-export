@@ -178,12 +178,12 @@ typedef struct _rev_ref {
     struct _rev_ref	*next;
     rev_commit		*commit;
     struct _rev_ref	*parent;	/* link into tree */
-    int			tail;
-    int			degree;	/* number of digits in original CVS version */
-    int			depth;	/* depth in branching tree (1 is trunk) */
     cvs_number		number;
     char		*name;
+    uint8_t		depth;	/* depth in branching tree (1 is trunk) */
+    uint8_t		degree;	/* number of digits in original CVS version */
     flag		shown;
+    flag		tail;
 } rev_ref;
 
 typedef struct _rev_list {
