@@ -546,6 +546,7 @@ main (int argc, char **argv)
     argv += optind-1;
     argc -= optind-1;
 
+    progress_begin("Reading list of files", -1);
     for (;;)
     {
 	struct stat stb;
@@ -588,7 +589,10 @@ main (int argc, char **argv)
 	}
 	last = fn->file;
 	nfile++;
+	if (progress && nfile % 100 == 0)
+		progress_jump(nfile);
     }
+    progress_end("done, %d files", nfile);
     if (rev_mode == ExecuteExport)
 	export_init();
     load_total_files = nfile;

@@ -304,10 +304,15 @@ static int
 rev_list_count (rev_list *head)
 {
     int	count = 0;
+    progress_begin("Counting revisions", -1);
     while (head) {
 	count++;
 	head = head->next;
+	if (count % 100 == 0)
+	    progress_jump(count);
     }
+    progress_jump(count);
+    progress_end(NULL);
     return count;
 }
 
@@ -926,6 +931,7 @@ rev_list *
 rev_list_merge (rev_list *head)
 {
     int		count = rev_list_count (head);
+    int		n; /* used only in progress messages */
     rev_list	*rl = xcalloc (1, sizeof (rev_list), "list merge");
     rev_list	*l;
     rev_ref	*lh, *h;
@@ -936,6 +942,8 @@ rev_list_merge (rev_list *head)
      * Find all of the heads across all of the incoming trees
      * Yes, this is currently very inefficient
      */
+    progress_begin("Find heads", count);
+    n = 0;
     for (l = head; l; l = l->next) {
 	for (lh = l->heads; lh; lh = lh->next) {
 	    h = rev_find_head (rl, lh->name);
@@ -944,30 +952,39 @@ rev_list_merge (rev_list *head)
 	    else if (lh->degree > h->degree)
 		h->degree = lh->degree;
 	}
+	if (++n % 100 == 0)
+	    progress_jump(n);
     }
+    progress_jump(n);
+    progress_end(NULL);
     /*
      * Sort by degree so that finding branch points always works
      */
+    progress_begin("Sorting", -1);
 //    rl->heads = rev_ref_sel_sort (rl->heads);
     rl->heads = rev_ref_tsort (rl->heads, head);
     if (!rl->heads) {
 	free(refs);
 	return NULL;
     }
+    progress_end(NULL);
 //    for (h = rl->heads; h; h = h->next)
 //	fprintf (stderr, "head %s (%d)\n",
 //		 h->name, h->degree);
     /*
      * Find branch parent relationships
      */
+    progress_begin("Find branch parent relationships", -1);
     for (h = rl->heads; h; h = h->next) {
 	rev_ref_set_parent (rl, h, head);
 //	dump_ref_name (stderr, h);
 //	fprintf (stderr, "\n");
     }
+    progress_end(NULL);
     /*
      * Merge common branches
      */
+    progress_begin("Merge common branches", -1);
     for (h = rl->heads; h; h = h->next) {
 	/*
 	 * Locate branch in every tree
@@ -980,16 +997,21 @@ rev_list_merge (rev_list *head)
 	}
 	if (nref)
 	    rev_branch_merge (refs, nref, h, rl);
+	progress_step();
     }
+    progress_end(NULL);
     /*
      * Compute 'tail' values
      */
+    progress_begin("Compute tail values", -1);
     rev_list_set_tail (rl);
+    progress_end(NULL);
 
     free(refs);
     /*
      * Find tag locations
      */
+    progress_begin("Find tag locations", -1);
     for (t = all_tags; t; t = t->next) {
 	rev_commit **commits = tagged(t);
 	if (commits)
@@ -998,7 +1020,10 @@ rev_list_merge (rev_list *head)
 	    announce("lost tag %s\n", t->name);
 	free(commits);
     }
+    progress_end(NULL);
+    progress_begin("Validate", -1);
     rev_list_validate (rl);
+    progress_end(NULL);
     return rl;
 }
 

@@ -152,6 +152,7 @@ extern bool suppress_keyword_expansion;
 extern char *branch_prefix;
 
 extern bool progress;
+#define STATUS stderr
 
 extern bool branchorder;
 
@@ -457,5 +458,10 @@ void build_branches(void);
 extern Node *head_node;
 
 extern time_t skew_vulnerable;
+
+void progress_begin(char * /*msg*/, int /*max*/);
+void progress_step(void);
+void progress_jump(int /*count*/);
+void progress_end(const char * /*format*/, ...);
 
 #endif /* _CVS_H_ */

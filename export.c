@@ -38,22 +38,6 @@ static int seqno, mark;
 static char blobdir[PATH_MAX];
 static int export_total_commits;
 
-#define STATUS stderr
-
-static void save_status_begin(void)
-{
-    if (!progress)
-	return;
-    fputs("Save:       ", STATUS);
-}
-
-static void save_status(int num, int total)
-{
-    if (!progress)
-	return;
-    fprintf(STATUS, "\b\b\b\b\b\b%2d%%...", (int)(num * 100.0 / total));
-}
-
 static void save_status_end(void)
 {
     if (!progress)
@@ -61,7 +45,7 @@ static void save_status_end(void)
     else {
 	time_t elapsed = time(NULL) - start_time;
 
-	fprintf(STATUS, "\b\b\b\b\b\b100%%, %d commits in %zdsec (%d commits/sec)\n",
+	progress_end("100%%, %d commits in %zdsec (%d commits/sec)",
 		export_total_commits,
 		elapsed,
 		(int)(export_total_commits / elapsed));
@@ -499,7 +483,7 @@ bool export_commits(rev_list *rl, int strip, time_t fromtime, bool progress)
     markmap = (struct mark *)xmalloc(extent, "markmap allocation");
     memset(markmap, '\0', extent);
 
-    save_status_begin();
+    progress_begin("Save", export_total_commits);
 
     if (branchorder) {
 	/*
@@ -509,7 +493,7 @@ bool export_commits(rev_list *rl, int strip, time_t fromtime, bool progress)
 	 * directly compared to the output of other tools.
 	 */
 	rev_commit **history;
-	int alloc, i, cc = 1;
+	int alloc, i;
 
 	for (h = rl->heads; h; h = h->next) {
 	    if (!h->tail) {
@@ -530,7 +514,7 @@ bool export_commits(rev_list *rl, int strip, time_t fromtime, bool progress)
 		// commits, along with any matching tags.
 		for (i=n-1; i>=0; i--) {
 		    export_commit (history[i], h->name, strip, true);
-		    save_status(cc++, export_total_commits);
+		    progress_step();
 		    for (t = all_tags; t; t = t->next)
 			if (t->commit == history[i])
 			    printf("reset refs/tags/%s\nfrom :%d\n\n", t->name, markmap[history[i]->serial].external);
@@ -618,7 +602,7 @@ bool export_commits(rev_list *rl, int strip, time_t fromtime, bool progress)
 		    }
 		}
 	    }
-	    save_status(hp - history, export_total_commits);
+	    progress_jump(hp - history);
 	    export_commit(hp->commit, hp->head->name, strip, report);
 	    for (t = all_tags; t; t = t->next)
 		if (t->commit == hp->commit)
@@ -636,7 +620,7 @@ bool export_commits(rev_list *rl, int strip, time_t fromtime, bool progress)
     }
     free(markmap);
 
-    save_status_end();
+    save_status_end(); /* calls progress_end() */
 
     return true;
 }
