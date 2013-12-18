@@ -41,6 +41,12 @@
 #define CVS_MAX_DEPTH	35
 #define CVS_MAX_REV_LEN	(CVS_MAX_DEPTH * 11)
 
+/*
+ * Use instead of bool in frequently used structures to reduce
+ * working-set size.
+ */
+typedef char flag;
+
 typedef struct _cvs_number {
     int			c;
     short		n[CVS_MAX_DEPTH];
@@ -81,7 +87,7 @@ typedef struct _cvs_version {
     time_t		date;
     char		*author;
     char		*state;
-    bool		dead;
+    flag		dead;
     cvs_branch		*branches;
     cvs_number		parent;	/* next in ,v file */
     char		*commitid;
@@ -153,8 +159,8 @@ typedef struct _rev_commit {
     struct _rev_commit	*parent;
     char		tail;
     char		seen;
-    bool		tailed;
-    bool		tagged;
+    flag		tailed;
+    flag		tagged;
     time_t		date;
     char		*log;
     char		*author;
@@ -175,7 +181,7 @@ typedef struct _rev_ref {
     int			depth;	/* depth in branching tree (1 is trunk) */
     cvs_number		number;
     char		*name;
-    bool		shown;
+    flag		shown;
 } rev_ref;
 
 typedef struct _rev_list {
