@@ -206,7 +206,7 @@ typedef struct _cvs_author {
 
 cvs_author * fullname (char *);
 
-int load_author_map (char *);
+bool load_author_map (char *);
 
 extern cvs_file     *this_file;
 
@@ -259,10 +259,10 @@ void tag_commit(rev_commit *c, char *name);
 rev_commit **tagged(Tag *tag);
 void discard_tags(void);
 
-int
+bool
 cvs_is_head (cvs_number *n);
 
-int
+bool
 cvs_same_branch (cvs_number *a, cvs_number *b);
 
 int
@@ -271,7 +271,7 @@ cvs_number_compare (cvs_number *a, cvs_number *b);
 int
 cvs_number_compare_n (cvs_number *a, cvs_number *b, int l);
 
-int
+bool
 cvs_is_branch_of (cvs_number *trunk, cvs_number *branch);
 
 int
@@ -292,10 +292,10 @@ cvs_branch_parent (cvs_file *f, cvs_number *branch);
 Node *
 cvs_find_version (cvs_file *cvs, cvs_number *number);
 
-int
+bool
 cvs_is_trunk (cvs_number *number);
 
-int
+bool
 cvs_is_vendor (cvs_number *number);
 
 void
@@ -354,13 +354,13 @@ discard_atoms (void);
 rev_ref *
 rev_list_add_head (rev_list *rl, rev_commit *commit, char *name, int degree);
 
-int
+bool
 rev_commit_has_file (rev_commit *c, rev_file *f);
 
 rev_diff *
 rev_commit_diff (rev_commit *old, rev_commit *new);
 
-int
+bool
 rev_file_list_has_filename (rev_file_list *fl, char *name);
 
 void

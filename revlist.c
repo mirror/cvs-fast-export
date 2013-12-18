@@ -260,17 +260,17 @@ rev_ref_find_name (rev_ref *h, char *name)
     return NULL;
 }
 
-static int
+static bool
 rev_ref_is_ready (char *name, rev_list *source, rev_ref *ready)
 {
     for (; source; source = source->next) {
 	rev_ref *head = rev_find_head(source, name);
 	if (head) {
 	    if (head->parent && !rev_ref_find_name(ready, head->parent->name))
-		    return 0;
+		    return false;
 	}
     }
-    return 1;
+    return true;
 }
 
 static rev_ref *
@@ -368,20 +368,20 @@ rev_commit_date_sort (rev_commit **commits, int ncommit)
     return ncommit;
 }
 
-int
+bool
 rev_commit_has_file (rev_commit *c, rev_file *f)
 {
     int	i, j;
 
     if (!c)
-	return 0;
+	return false;
     for (i = 0; i < c->ndirs; i++) {
 	rev_dir	*dir = c->dirs[i];
 	for (j = 0; j < dir->nfiles; j++)
 	    if (dir->files[j] == f)
-		return 1;
+		return true;
     }
-    return 0;
+    return false;
 }
 
 #ifdef __UNUSED__
@@ -466,15 +466,15 @@ rev_ref_find_commit_file (rev_ref *branch, rev_file *file)
     return NULL;
 }
 
-static int
+static bool
 rev_commit_is_ancestor (rev_commit *old, rev_commit *young)
 {
     while (young) {
 	if (young == old)
-	    return 1;
+	    return true;
 	young = young->parent;
     }
-    return 0;
+    return false;
 }
 #endif
 
@@ -867,15 +867,15 @@ rev_head_find_parent (rev_list *rl, rev_ref *h, rev_list *lhead)
 #endif
 
 #ifdef __UNUSED__
-static int
+static bool
 rev_branch_name_is_ancestor (rev_ref *old, rev_ref *young)
 {
     while (young) {
 	if (young->name == old->name)
-	    return 1;
+	    return true;
 	young = young->parent;
     }
-    return 0;
+    return false;
 }
 #endif
 
@@ -1131,13 +1131,13 @@ rev_uniq_file (rev_commit *uniq, rev_commit *common, int *nuniqp)
     return head;
 }
 
-int
+bool
 rev_file_list_has_filename (rev_file_list *fl, char *name)
 {
     for (; fl; fl = fl->next)
 	if (fl->file->name == name)
-	    return 1;
-    return 0;
+	    return true;
+    return false;
 }
 
 /*

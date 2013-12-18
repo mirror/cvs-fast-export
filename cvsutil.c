@@ -22,7 +22,7 @@
 #define min(a,b) ((a) < (b) ? (a) : (b))
 #define max(a,b) ((a) > (b) ? (a) : (b))
 
-int
+bool
 cvs_is_head (cvs_number *n)
 /* is a specified CVS revision a branch head? */
 {
@@ -30,7 +30,7 @@ cvs_is_head (cvs_number *n)
     return (n->c > 2 && (n->c & 1) == 0 && n->n[n->c-2] == 0);
 }
 
-int
+bool
 cvs_same_branch (cvs_number *a, cvs_number *b)
 /* are two specified CVS revisions on the same branch? */
 {
@@ -49,12 +49,12 @@ cvs_same_branch (cvs_number *a, cvs_number *b)
 	return cvs_same_branch (a, &t);
     }
     if (a->c != b->c)
-	return 0;
+	return false;
     /*
      * Everything on x.y is trunk
      */
     if (a->c == 2)
-	return 1;
+	return true;
     n = a->c;
     for (i = 0; i < n - 1; i++) {
 	int		an, bn;
@@ -68,9 +68,9 @@ cvs_same_branch (cvs_number *a, cvs_number *b)
 	    if (bn == 0) bn = b->n[i+1];
 	}
 	if (an != bn)
-	    return 0;
+	    return false;
     }
-    return 1;
+    return true;
 }
 
 int
@@ -114,7 +114,7 @@ cvs_number_compare_n (cvs_number *a, cvs_number *b, int l)
     return 0;
 }
 
-int
+bool
 cvs_is_branch_of (cvs_number *trunk, cvs_number *branch)
 /* is the specified branch rooted at the specified trunk revision */
 {
@@ -125,7 +125,7 @@ cvs_is_branch_of (cvs_number *trunk, cvs_number *branch)
 	n.c -= 2;
 	return cvs_same_branch (trunk, &n);
     }
-    return 0;
+    return false;
 }
 #endif /* __UNUSED__ */
 
@@ -234,7 +234,7 @@ cvs_find_version (cvs_file *cvs, cvs_number *number)
     return nv ? nv->node : NULL;
 }
 
-int
+bool
 cvs_is_trunk (cvs_number *number)
 /* does the specified CVS release number describe a trunk revision? */
 {
@@ -244,18 +244,18 @@ cvs_is_trunk (cvs_number *number)
 /*
  * Import branches are of the form 1.1.x where x is odd
  */
-int
+bool
 cvs_is_vendor (cvs_number *number)
 /* is the specified CVS release number on a vendor branch? */
 {
     if (number->c != 4) return 0;
     if (number->n[0] != 1)
-	return 0;
+	return false;
     if (number->n[1] != 1)
-	return 0;
+	return false;
     if ((number->n[2] & 1) != 1)
-	return 0;
-    return 1;
+	return false;
+    return true;
 }
 
 static void

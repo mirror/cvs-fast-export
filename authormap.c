@@ -38,7 +38,7 @@ free_author_map (void)
     }
 }
 
-int
+bool
 load_author_map (char *filename)
 /* load author-map information from a file */
 {
@@ -55,7 +55,7 @@ load_author_map (char *filename)
     f = fopen (filename, "r");
     if (!f) {
 	announce("%s: authormap open failed, %s\n", filename, strerror (errno));
-	return 1;
+	return false;
     }
     while (fgets (line, sizeof (line) - 1, f)) {
 	lineno++;
@@ -65,7 +65,7 @@ load_author_map (char *filename)
 	if (!equal) {
 	    announce("\"%s\", line %d: missing '='\n", filename, lineno);
 	    fclose (f);
-	    return 0;
+	    return false;
 	}
 	full = equal + 1;
 	while (equal > line && equal[-1] == ' ')
@@ -86,7 +86,7 @@ load_author_map (char *filename)
 		     filename, lineno, name);
 	    fclose (f);
 	    free(a);
-	    return 0;
+	    return false;
 	}
 	email = angle + 1;
 	while (full < angle && full[0] == ' ')
@@ -101,7 +101,7 @@ load_author_map (char *filename)
 		     filename, lineno, name);
 	    fclose (f);
 	    free(a);
-	    return 0;
+	    return false;
 	}
 	*angle = '\0';
 	a->email = atom (email);
@@ -123,7 +123,7 @@ load_author_map (char *filename)
 	*bucket = a;
     }
     fclose (f);
-    return 1;
+    return true;
 }
 
 /* end */

@@ -240,17 +240,17 @@ static void out_awrite(char const *s, size_t len)
 		out_putc(*s++);
 }
 
-static int latin1_alpha(int c)
+static bool latin1_alpha(int c)
 {
-	if (c >= 192 && c != 215 && c != 247 ) return 1;
-	if ((c >= 97 && c < 123) || (c >= 65 && c < 91)) return 1;
-	return 0;
+	if (c >= 192 && c != 215 && c != 247 ) return true;
+	if ((c >= 97 && c < 123) || (c >= 65 && c < 91)) return true;
+	return false;
 }
 
 static int latin1_whitespace(uchar c)
 {
-	if (c == 32 || (c >= 8 && c <= 13 && c != 10)) return 1;
-	return 0;
+	if (c == 32 || (c >= 8 && c <= 13 && c != 10)) return true;
+	return false;
 }
 
 static enum expand_mode expand_override(char const *s)
