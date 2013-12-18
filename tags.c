@@ -47,7 +47,7 @@ void tag_commit(rev_commit *c, char *name)
 	}
 	tag->last = this_file->name;
 	if (!tag->left) {
-		Chunk *v = malloc(sizeof(Chunk));
+		Chunk *v = xmalloc(sizeof(Chunk), __func__);
 		v->next = tag->commits;
 		tag->commits = v;
 		tag->left = Ncommits;
@@ -62,7 +62,7 @@ rev_commit **tagged(Tag *tag)
 	rev_commit **v = NULL;
 
 	if (tag->count) {
-		rev_commit **p = malloc(tag->count * sizeof(*p));
+		rev_commit **p = xmalloc(tag->count * sizeof(*p), __func__);
 		Chunk *c = tag->commits;
 		int n = Ncommits - tag->left;
 

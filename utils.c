@@ -41,8 +41,8 @@ void* xmalloc(size_t size, char const *legend)
         if (!ret && !size)
                 ret = malloc(1);
         if (!ret)
-	    fatal_system_error("Out of memory, malloc failed in %s",
-			       legend);
+	    fatal_system_error("Out of memory, malloc(%zd) failed in %s",
+			       size, legend);
         return ret;
 }
 
@@ -50,8 +50,8 @@ void* xcalloc(size_t nmemb, size_t size, char const *legend)
 {
 	void *ret = calloc(nmemb, size);
         if (!ret)
-	    fatal_system_error("Out of memory, calloc failed in %s",
-			       legend);
+	    fatal_system_error("Out of memory, calloc(%zd, %zd) failed in %s",
+			       nmemb, size, legend);
         return ret;
 }
 
@@ -61,8 +61,8 @@ void* xrealloc(void *ptr, size_t size, char const *legend)
         if (!ret && !size)
                 ret = realloc(ptr, 1);
         if (!ret)
-	    fatal_system_error("Out of memory, realloc failed in %s",
-			       legend);
+	    fatal_system_error("Out of memory, realloc(%zd) failed in %s",
+			       size, legend);
         return ret;
 }
 

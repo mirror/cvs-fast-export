@@ -88,7 +88,7 @@ static char *blobfile(int m)
     return path;
 }
 
-void export_blob(Node *node, void *buf, unsigned long len)
+void export_blob(Node *node, void *buf, size_t len)
 /* save the blob where it will be available for random access */
 {
     FILE *wfp;
@@ -312,7 +312,8 @@ static void export_commit(rev_commit *commit, char *branch, int strip, bool repo
 		if (op == operations + noperations)
 		{
 		    noperations += OP_CHUNK;
-		    operations = realloc(operations, sizeof(struct fileop) * noperations);
+		    operations = xrealloc(operations,
+				sizeof(struct fileop) * noperations, __func__);
 		    if (operations == NULL) {
 			free(operations);	/* pacifies cppcheck */
 			exit(1);
@@ -359,7 +360,9 @@ static void export_commit(rev_commit *commit, char *branch, int strip, bool repo
 		    if (op == operations + noperations)
 		    {
 			noperations += OP_CHUNK;
-			operations = realloc(operations, sizeof(struct fileop) * noperations);
+			operations = xrealloc(operations,
+					sizeof(struct fileop) * noperations,
+					__func__);
 			if (operations == NULL) {
 			    free(operations);	/* pacifies cppcheck */
 			    exit(1);

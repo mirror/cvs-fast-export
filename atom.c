@@ -75,7 +75,7 @@ atom (char *string)
 	    return b->string;
 	head = &(b->next);
     }
-    b = malloc (sizeof (hash_bucket_t) + len + 1);
+    b = xmalloc (sizeof (hash_bucket_t) + len + 1, __func__);
     b->next = 0;
     b->crc = crc;
     memcpy (b->string, string, len + 1);

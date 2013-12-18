@@ -400,7 +400,7 @@ rev_list_validate (rev_list *rl);
 #define time_compare(a,b) ((long) (a) - (long) (b))
 
 void 
-export_blob(Node *node, void *buf, unsigned long len);
+export_blob(Node *node, void *buf, size_t len);
 
 void
 export_init(void);

@@ -424,7 +424,7 @@ rev_commit_build (rev_commit **commits, rev_commit *leader, int ncommit)
 	files = 0;
     }
     if (!files)
-	files = malloc ((sfiles = ncommit) * sizeof (rev_file *));
+	files = xmalloc ((sfiles = ncommit) * sizeof (rev_file *), __func__);
     
     nfile = 0;
     for (n = 0; n < ncommit; n++)

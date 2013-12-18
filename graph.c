@@ -285,7 +285,7 @@ static void dot_tags(rev_list *rl, char *title, char *shape)
     for (r = all_tags, count = 0; r; r = r->next, count++)
 	;
 
-    v = calloc(count, sizeof(*v));
+    v = xcalloc(count, sizeof(*v), __func__);
 
     for (r = all_tags, i = 0; r; r = r->next)
 	v[i++].t = r;

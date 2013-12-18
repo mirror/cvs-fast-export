@@ -147,7 +147,8 @@ parameter : owner | group | deltatype | kopt | permissions | mergepoint | filena
 
 revision	: NUMBER date author state branches next revtrailer
 		  {
-			$$ = calloc (1, sizeof (cvs_version));
+			$$ = xcalloc (1, sizeof (cvs_version),
+					"gram.y::revision");
 			$$->number = $1;
 			$$->date = $2;
 			$$->author = $3;
@@ -179,7 +180,8 @@ branches	: BRANCHES numbers SEMI
 		;
 numbers		: NUMBER numbers
 		  {
-			$$ = calloc (1, sizeof (cvs_branch));
+			$$ = xcalloc (1, sizeof (cvs_branch),
+				    "gram.y::numbers");
 			$$->next = $2;
 			$$->number = $1;
 			hash_branch($$);
@@ -212,7 +214,7 @@ patches		: patches patch
 		  { $$ = &this_file->patches; }
 		;
 patch		: NUMBER log text
-		  { $$ = calloc (1, sizeof (cvs_patch));
+		  { $$ = xcalloc (1, sizeof (cvs_patch), "gram.y::patch");
 		    $$->number = $1;
 			if (!strcmp($2, "Initial revision\n")) {
 				if (strlen(this_file->description) == 0)

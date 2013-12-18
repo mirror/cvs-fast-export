@@ -396,27 +396,27 @@ static time_t convert_date(const char *dte)
 
 static void print_sizes(void)
 {
-    printf("sizeof(char *)        = %lu\n", sizeof(char *));
-    printf("sizeof(long)          = %lu\n", sizeof(long));
-    printf("sizeof(int)           = %lu\n", sizeof(int));
-    printf("sizeof(short)         = %lu\n", sizeof(short));
-    printf("sizeof(cvs_number)    = %lu\n", sizeof(cvs_number));
-    printf("sizeof(Node)          = %lu\n", sizeof(Node));
-    printf("sizeof(cvs_symbol)    = %lu\n", sizeof(cvs_symbol));
-    printf("sizeof(cvs_branch)    = %lu\n", sizeof(cvs_branch));
-    printf("sizeof(cvs_version)   = %lu\n", sizeof(cvs_version));
-    printf("sizeof(cvs_patch)     = %lu\n", sizeof(cvs_patch));
-    printf("sizeof(cvs_file)      = %lu\n", sizeof(cvs_file));
-    printf("sizeof(rev_file)      = %lu\n", sizeof(rev_file));
-    printf("sizeof(rev_dir)       = %lu\n", sizeof(rev_dir));
-    printf("sizeof(rev_commit)    = %lu\n", sizeof(rev_commit));
-    printf("sizeof(rev_ref)       = %lu\n", sizeof(rev_ref));
-    printf("sizeof(rev_list)      = %lu\n", sizeof(rev_list));
-    printf("sizeof(rev_file_list) = %lu\n", sizeof(rev_file_list));
-    printf("sizeof(rev_diff)      = %lu\n", sizeof(rev_diff));
-    printf("sizeof(cvs_author)    = %lu\n", sizeof(cvs_author));
-    printf("sizeof(Chunk)         = %lu\n", sizeof(Chunk));
-    printf("sizeof(Tag)           = %lu\n", sizeof(Tag));
+    printf("sizeof(char *)        = %zu\n", sizeof(char *));
+    printf("sizeof(long)          = %zu\n", sizeof(long));
+    printf("sizeof(int)           = %zu\n", sizeof(int));
+    printf("sizeof(short)         = %zu\n", sizeof(short));
+    printf("sizeof(cvs_number)    = %zu\n", sizeof(cvs_number));
+    printf("sizeof(Node)          = %zu\n", sizeof(Node));
+    printf("sizeof(cvs_symbol)    = %zu\n", sizeof(cvs_symbol));
+    printf("sizeof(cvs_branch)    = %zu\n", sizeof(cvs_branch));
+    printf("sizeof(cvs_version)   = %zu\n", sizeof(cvs_version));
+    printf("sizeof(cvs_patch)     = %zu\n", sizeof(cvs_patch));
+    printf("sizeof(cvs_file)      = %zu\n", sizeof(cvs_file));
+    printf("sizeof(rev_file)      = %zu\n", sizeof(rev_file));
+    printf("sizeof(rev_dir)       = %zu\n", sizeof(rev_dir));
+    printf("sizeof(rev_commit)    = %zu\n", sizeof(rev_commit));
+    printf("sizeof(rev_ref)       = %zu\n", sizeof(rev_ref));
+    printf("sizeof(rev_list)      = %zu\n", sizeof(rev_list));
+    printf("sizeof(rev_file_list) = %zu\n", sizeof(rev_file_list));
+    printf("sizeof(rev_diff)      = %zu\n", sizeof(rev_diff));
+    printf("sizeof(cvs_author)    = %zu\n", sizeof(cvs_author));
+    printf("sizeof(Chunk)         = %zu\n", sizeof(Chunk));
+    printf("sizeof(Tag)           = %zu\n", sizeof(Tag));
 }
 
 typedef struct _rev_filename {
@@ -518,7 +518,7 @@ main (int argc, char **argv)
 	    force_dates = true;
 	    break;
 	case 'e':
-	    branch_prefix = (char*) malloc(strlen(optarg) + 15);
+	    branch_prefix = (char*) xmalloc(strlen(optarg) + 15, __func__);
 	    sprintf(branch_prefix, "refs/remotes/%s/", optarg);
 	    break;
 	case 's':

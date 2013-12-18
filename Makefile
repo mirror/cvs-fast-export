@@ -61,7 +61,7 @@ clean:
 	rm -f MANIFEST index.html *.tar.gz
 
 check: cvs-fast-export
-	@(cd tests >/dev/null; make --quiet)
+	@(cd tests >/dev/null; make -s)
 
 install: cvs-fast-export.1 all
 	$(INSTALL) -d "$(target)/bin"

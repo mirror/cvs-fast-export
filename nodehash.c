@@ -174,7 +174,7 @@ void build_branches(void)
 	if (entries == 0)
 		return;
 
-	Node **v = malloc(sizeof(Node *) * entries), **p = v;
+	Node **v = xmalloc(sizeof(Node *) * entries, __func__), **p = v;
 	int i;
 
 	for (i = 0; i < 4096; i++) {

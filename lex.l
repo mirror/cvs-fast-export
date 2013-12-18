@@ -117,7 +117,7 @@ struct varbuf {
 static inline void addbuf(struct varbuf *buf, char c)
 {
 	if (buf->cur == buf->len) 
-		buf->string = realloc(buf->string, buf->len *= 2);
+		buf->string = xrealloc(buf->string, buf->len *= 2, __func__);
 	buf->string[buf->cur++] = c;
 }
 
@@ -130,7 +130,7 @@ parse_data (int strip)
 
     buf.cur = 0;
     buf.len = 256;
-    buf.string = malloc(buf.len);
+    buf.string = xmalloc(buf.len, __func__);
 
     if (!strip)
     	addbuf(&buf, '@');
