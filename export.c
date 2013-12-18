@@ -503,10 +503,10 @@ bool export_commits(rev_list *rl, int strip, time_t fromtime, bool progress)
 	 * Dump by branch order, not by commit date.  Slightly faster and
 	 * less memory-intensive, but (a) incremental dump won't work, and
 	 * (b) it's not git-fast-export  canonical form and cannot be 
-	 * compared to the output of other tools.
+	 * directly compared to the output of other tools.
 	 */
 	rev_commit **history;
-	int alloc, i;
+	int alloc, i, cc = 1;
 
 	for (h = rl->heads; h; h = h->next) {
 	    if (!h->tail) {
@@ -527,6 +527,7 @@ bool export_commits(rev_list *rl, int strip, time_t fromtime, bool progress)
 		// commits, along with any matching tags.
 		for (i=n-1; i>=0; i--) {
 		    export_commit (history[i], h->name, strip, true);
+		    save_status(cc++, export_total_commits);
 		    for (t = all_tags; t; t = t->next)
 			if (t->commit == history[i])
 			    printf("reset refs/tags/%s\nfrom :%d\n\n", t->name, markmap[history[i]->serial].external);
