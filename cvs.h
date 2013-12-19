@@ -161,10 +161,6 @@ extern time_t start_time;
 
 typedef struct _rev_commit {
     struct _rev_commit	*parent;
-    flag		tail;
-    uint8_t		seen;
-    flag		tailed;
-    flag		tagged;
     time_t		date;
     char		*log;
     char		*author;
@@ -173,6 +169,11 @@ typedef struct _rev_commit {
     int                 serial;
     short		nfiles;
     short		ndirs;
+    short		mark;
+    uint8_t		seen:1;
+    flag		tail:1;
+    flag		tailed:1;
+    flag		tagged:1;
     rev_dir		*dirs[0];
 } rev_commit;
 
