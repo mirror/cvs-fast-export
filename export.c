@@ -401,7 +401,7 @@ static void export_commit(rev_commit *commit, char *branch, int strip, bool repo
 
     if (report)
 	printf("commit %s%s\n", branch_prefix, branch);
-    commit->mark = markmap[++seqno].external = ++mark;
+    markmap[++seqno].external = ++mark;
     if (report)
 	printf("mark :%d\n", mark);
     commit->serial = seqno;
