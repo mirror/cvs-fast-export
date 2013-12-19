@@ -112,7 +112,7 @@ dump_log (FILE *f, char *log)
 	if (log[j] == '"')
 	    putc ('\\', f);
 	putc (log[j], f);
-	if (log[j] == '.' && isspace (log[j+1]))
+	if (log[j] == '.' && isspace ((unsigned char)log[j+1]))
 	    break;
     }
 }

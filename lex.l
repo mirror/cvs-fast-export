@@ -207,14 +207,14 @@ lex_date (cvs_number *n)
 	return d;
 }
 
-void static fast_export_sanitize(void)
+static void fast_export_sanitize(void)
 {
     char *sp, *tp;
 
 #define SUFFIX(a, s)	(strcmp(a + strlen(a) - strlen(s), s) == 0) 
 #define BADCHARS	"~^\\*?"
     for (sp = tp = yytext; *sp; sp++) {
-	if (isgraph(*sp) && strchr(BADCHARS, *sp) == NULL) {
+	if (isgraph((unsigned char)*sp) && strchr(BADCHARS, *sp) == NULL) {
 	    *tp++ = *sp;
 	    if (SUFFIX(yytext, "@{") || SUFFIX(yytext, "..")) {
 		fprintf(stderr,

@@ -805,7 +805,7 @@ static void enter_branch(Node *node)
 }
 
 void generate_files(cvs_file *cvs,
-		    void (*hook)(Node *node, void *buf, unsigned long len))
+		    void (*hook)(Node *node, void *buf, size_t len))
 /* export all the revision states of a CVS/RS master through a hook */
 {
 	if (head_node == NULL)

@@ -584,7 +584,7 @@ main (int argc, char **argv)
 	    if (c < strip)
 		strip = c;
 	} else if (strip < 0) {
-	    int i;
+	    size_t i;
 
 	    strip = 0;
 	    for (i = 0; i < strlen (fn->file); i++)
@@ -596,7 +596,7 @@ main (int argc, char **argv)
 	if (progress && nfile % 100 == 0)
 		progress_jump(nfile);
     }
-    progress_end("done, %dKB in %d files", textsize/1024, nfile);
+    progress_end("done, %ldKB in %d files", (long)(textsize/1024), nfile);
     if (rev_mode == ExecuteExport)
 	export_init();
     load_total_files = nfile;

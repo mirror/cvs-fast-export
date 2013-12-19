@@ -81,7 +81,8 @@ static int progress_max = NO_MAX;
 static int progress_counter = 0;
 static va_list _unused_va_list;
 
-static void _progress_print(bool /*newline*/, const char * /*format*/, va_list);
+static void _progress_print(bool /*newline*/, const char * /*format*/, va_list)
+	_printflike(2, 0);
 
 void
 progress_begin(char *msg, int max)
@@ -92,7 +93,7 @@ progress_begin(char *msg, int max)
     progress_msg = msg;
     progress_max = max;
     progress_counter = 0;
-    _progress_print(false, NULL, _unused_va_list);
+    _progress_print(false, "", _unused_va_list);
 }
 
 void
@@ -102,7 +103,7 @@ progress_step(void)
     if (!progress)
 	return;
     progress_counter++;
-    _progress_print(false, NULL, _unused_va_list);
+    _progress_print(false, "", _unused_va_list);
 }
 
 void
@@ -112,7 +113,7 @@ progress_jump(int count)
     if (!progress)
 	return;
     progress_counter = count;
-    _progress_print(false, NULL, _unused_va_list);
+    _progress_print(false, "", _unused_va_list);
 }
 
 void
@@ -136,14 +137,14 @@ _progress_print(bool newline, const char *format, va_list args)
 	return;
 
     /*
-     * If a format and args were given, use them.
+     * If a non-empty format was given, use the format and args.
      * Otherwise, try to print as much information as possible,
      * such as: <message>: <count> of <max> (<percent>)
      * or:      <message>: <count>
      * or:      <message>: done
      * or just: <message>
      */
-    if (format) {
+    if (format && *format) {
 	fprintf(STATUS, "\r%s: ", progress_msg);
 	vfprintf(STATUS, format, args);
     } else if (progress_max > 0) {

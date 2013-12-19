@@ -49,10 +49,10 @@ static void save_status_end(void)
 	struct rusage rusage;
 
 	(void)getrusage(RUSAGE_SELF, &rusage);
-	progress_end("100%%, %d commits in %zdsec (%d commits/sec) using %ldKb.",
+	progress_end("100%%, %d commits in %dsec (%d commits/sec) using %ldKb.",
 		     export_total_commits,
-		     elapsed,
-		     (int)(export_total_commits / elapsed),
+		     (int)elapsed,
+		     (int)(export_total_commits / (elapsed > 0 ? elapsed : 1)),
 		     rusage.ru_maxrss);
     }
 }

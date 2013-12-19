@@ -34,6 +34,23 @@
 #include <errno.h>
 #include <stdbool.h>
 
+/*
+ * Use _printflike(M, N) to mark functions that take printf-like formats
+ * and parameter lists.  M refers to the format arg, and N refers to
+ * the first variable arg (typically M+1), or N = 0 if the function takes
+ * a va_list.
+ *
+ * If the compiler is GCC version 2.7 or later, this is implemented
+ * using __attribute__((__format__(...))).
+ */
+#if defined(__GNUC__) \
+    && (__GNUC__ > 2) || (__GNUC__ == 2 && __GNUC_MINOR__ >= 7)
+#define _printflike(fmtarg, firstvararg)       \
+            __attribute__((__format__(__printf__, fmtarg, firstvararg)))
+#else
+#define _printflike(fmtarg, firstvararg)       /* nothing */
+#endif
+
 #ifndef MAXPATHLEN
 #define MAXPATHLEN  10240
 #endif
@@ -416,7 +433,7 @@ export_wrap(void);
 void
 free_author_map (void);
 
-void generate_files(cvs_file *cvs, void (*hook)(Node *node, void *buf, unsigned long len));
+void generate_files(cvs_file *cvs, void (*hook)(Node *node, void *buf, size_t len));
 
 rev_dir **
 rev_pack_files (rev_file **files, int nfiles, int *ndr);
@@ -443,13 +460,13 @@ void*
 xrealloc(void *ptr, size_t size, char const *legend);
 
 void
-announce(char const *format,...);
+announce(char const *format,...) _printflike(1, 2);
 
 void
-fatal_error(char const *format,...);
+fatal_error(char const *format, ...) _printflike(1, 2);
 
 void
-fatal_system_error(char const *format, ...);
+fatal_system_error(char const *format, ...) _printflike(1, 2);
 
 void hash_version(cvs_version *);
 void hash_patch(cvs_patch *);
@@ -464,6 +481,6 @@ extern unsigned int total_revisions;
 void progress_begin(char * /*msg*/, int /*max*/);
 void progress_step(void);
 void progress_jump(int /*count*/);
-void progress_end(const char * /*format*/, ...);
+void progress_end(const char * /*format*/, ...) _printflike(1, 2);
 
 #endif /* _CVS_H_ */
