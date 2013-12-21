@@ -937,7 +937,7 @@ rev_list_merge (rev_list *head)
      * Find all of the heads across all of the incoming trees
      * Yes, this is currently very inefficient
      */
-    progress_begin("Find heads", count);
+    progress_begin("Find heads...", count);
     n = 0;
     for (l = head; l; l = l->next) {
 	for (lh = l->heads; lh; lh = lh->next) {
@@ -955,7 +955,7 @@ rev_list_merge (rev_list *head)
     /*
      * Sort by degree so that finding branch points always works
      */
-    progress_begin("Sorting", NO_MAX);
+    progress_begin("Sorting...", count);
 //    rl->heads = rev_ref_sel_sort (rl->heads);
     rl->heads = rev_ref_tsort (rl->heads, head);
     if (!rl->heads) {
@@ -969,7 +969,7 @@ rev_list_merge (rev_list *head)
     /*
      * Find branch parent relationships
      */
-    progress_begin("Find branch parent relationships", NO_MAX);
+    progress_begin("Find branch parent relationships...", count);
     for (h = rl->heads; h; h = h->next) {
 	rev_ref_set_parent (rl, h, head);
 //	dump_ref_name (stderr, h);
@@ -979,7 +979,7 @@ rev_list_merge (rev_list *head)
     /*
      * Merge common branches
      */
-    progress_begin("Merge common branches", rev_list_count(rl));
+    progress_begin("Merge common branches...", count);
     for (h = rl->heads; h; h = h->next) {
 	/*
 	 * Locate branch in every tree
@@ -998,7 +998,7 @@ rev_list_merge (rev_list *head)
     /*
      * Compute 'tail' values
      */
-    progress_begin("Compute tail values", NO_MAX);
+    progress_begin("Compute tail values...", NO_MAX);
     rev_list_set_tail (rl);
     progress_end(NULL);
 
@@ -1006,7 +1006,7 @@ rev_list_merge (rev_list *head)
     /*
      * Find tag locations
      */
-    progress_begin("Find tag locations", NO_MAX);
+    progress_begin("Find tag locations...", NO_MAX);
     for (t = all_tags; t; t = t->next) {
 	rev_commit **commits = tagged(t);
 	if (commits)
@@ -1016,7 +1016,7 @@ rev_list_merge (rev_list *head)
 	free(commits);
     }
     progress_end(NULL);
-    progress_begin("Validate", NO_MAX);
+    progress_begin("Validate...", NO_MAX);
     rev_list_validate (rl);
     progress_end(NULL);
     return rl;

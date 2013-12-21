@@ -488,7 +488,7 @@ bool export_commits(rev_list *rl, int strip, time_t fromtime, bool progress)
     markmap = (struct mark *)xmalloc(extent, "markmap allocation");
     memset(markmap, '\0', extent);
 
-    progress_begin("Save", export_total_commits);
+    progress_begin("Save: ", export_total_commits);
 
     if (branchorder) {
 	/*

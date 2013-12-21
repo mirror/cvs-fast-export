@@ -1,8 +1,15 @@
 #include "cvs.h"
 
+static int progress_max = NO_MAX;
+
 void fatal_system_error(char const *format,...)
 {
 	va_list args;
+
+	if (progress_max != NO_MAX) {
+	    fputc('\n', stderr);
+	    progress_max = NO_MAX;
+	}
 
 	fprintf(stderr, "cvs-fast-export fatal: ");
 	va_start(args, format);
@@ -17,6 +24,11 @@ void fatal_error(char const *format,...)
 {
 	va_list args;
 
+	if (progress_max != NO_MAX) {
+	    fputc('\n', stderr);
+	    progress_max = NO_MAX;
+	}
+
 	fprintf(stderr, "cvs-fast-export fatal: ");
 	va_start(args, format);
 	vfprintf(stderr, format, args);
@@ -28,6 +40,11 @@ void fatal_error(char const *format,...)
 void announce(char const *format,...)
 {
 	va_list args;
+
+	if (progress_max != NO_MAX) {
+	    fputc('\n', stderr);
+	    progress_max = NO_MAX;
+	}
 
 	fprintf(stderr, "cvs-fast-export: ");
 	va_start(args, format);
@@ -77,7 +94,6 @@ void* xrealloc(void *ptr, size_t size, char const *legend)
  */
 
 static char *progress_msg = "";
-static int progress_max = NO_MAX;
 static int progress_counter = 0;
 static va_list _unused_va_list;
 
@@ -126,6 +142,7 @@ progress_end(const char *format, ...)
     progress_max = progress_counter; /* message will say "100%" or "done" */
     va_start(args, format);
     _progress_print(true, format, args);
+    progress_max = NO_MAX;
     va_end(args);
 }
 
@@ -145,17 +162,17 @@ _progress_print(bool newline, const char *format, va_list args)
      * or just: <message>
      */
     if (format && *format) {
-	fprintf(STATUS, "\r%s: ", progress_msg);
+	fprintf(STATUS, "\r%s", progress_msg);
 	vfprintf(STATUS, format, args);
     } else if (progress_max > 0) {
-	fprintf(STATUS, "\r%s: %d of %d (%d%%)", progress_msg,
+	fprintf(STATUS, "\r%s%d of %d (%d%%)   ", progress_msg,
 		progress_counter, progress_max,
 		(progress_counter * 100 / progress_max));
     } else if (progress_counter > 0) {
-	fprintf(STATUS, "\r%s: %d", progress_msg, progress_counter);
+	fprintf(STATUS, "\r%s%d", progress_msg, progress_counter);
     } else if (progress_counter == progress_max) {
 	/* they should both be zero at this point, but it still means "done" */
-	fprintf(STATUS, "\r%s: done", progress_msg);
+	fprintf(STATUS, "\r%sdone                             ", progress_msg);
     } else {
 	fprintf(STATUS, "\r%s", progress_msg);
     }

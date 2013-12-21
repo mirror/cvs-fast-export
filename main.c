@@ -552,7 +552,7 @@ main (int argc, char **argv)
     argv += optind-1;
     argc -= optind-1;
 
-    progress_begin("Reading list of files", NO_MAX);
+    progress_begin("Reading list of files...", NO_MAX);
     for (;;)
     {
 	struct stat stb;
