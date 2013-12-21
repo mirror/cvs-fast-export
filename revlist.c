@@ -979,7 +979,7 @@ rev_list_merge (rev_list *head)
     /*
      * Merge common branches
      */
-    progress_begin("Merge common branches", NO_MAX);
+    progress_begin("Merge common branches", rev_list_count(rl));
     for (h = rl->heads; h; h = h->next) {
 	/*
 	 * Locate branch in every tree
