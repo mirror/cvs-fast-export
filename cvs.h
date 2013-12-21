@@ -66,7 +66,12 @@
  */
 typedef char flag;
 
+/*
+ * Structures built by master file parsing begin.
+ */
+
 typedef struct _cvs_number {
+    /* digested form of a CVS revision */
     int			c;
     short		n[CVS_MAX_DEPTH];
 } cvs_number;
@@ -89,18 +94,21 @@ typedef struct node {
 } Node;
 
 typedef struct _cvs_symbol {
+    /* a CVS symbol-to-revision association */
     struct _cvs_symbol	*next;
     char		*name;
     cvs_number		number;
 } cvs_symbol;
 
 typedef struct _cvs_branch {
+    /* a CVS branch name */
     struct _cvs_branch	*next;
     cvs_number		number;
     Node		*node;
 } cvs_branch;
 
 typedef struct _cvs_version {
+    /* metadata of a delta within a CVS file */
     struct _cvs_version	*next;
     cvs_number		number;
     time_t		date;
@@ -114,6 +122,7 @@ typedef struct _cvs_version {
 } cvs_version;
 
 typedef struct _cvs_patch {
+    /* a CVS patch structure */
     struct _cvs_patch	*next;
     cvs_number		number;
     char		*log;
@@ -121,8 +130,8 @@ typedef struct _cvs_patch {
     Node		*node;
 } cvs_patch;
 
-
 typedef struct {
+    /* this represents the entire metadata content of a CVS master file */
     char		*name;
     cvs_number		head;
     cvs_number		branch;
@@ -136,6 +145,7 @@ typedef struct {
 } cvs_file;
 
 typedef struct _rev_file {
+    /* a CVS file revision state (composed from delta in a master) */
     char		*name;
     cvs_number		number;
     union {
@@ -148,9 +158,14 @@ typedef struct _rev_file {
 } rev_file;
 
 typedef struct _rev_dir {
+    /* a directory containing a collection of file states */
     int			nfiles;
     rev_file		*files[0];
 } rev_dir;
+
+/*
+ * Structures built by master file parsing end.
+ */
 
 extern time_t	time_now;
 
@@ -177,6 +192,7 @@ extern bool branchorder;
 extern time_t start_time;
 
 typedef struct _rev_commit {
+    /* a changeset */
     struct _rev_commit	*parent;
     time_t		date;
     char		*log;
@@ -195,6 +211,7 @@ typedef struct _rev_commit {
 } rev_commit;
 
 typedef struct _rev_ref {
+    /* CVS context for changesets before coalescence */
     struct _rev_ref	*next;
     rev_commit		*commit;
     struct _rev_ref	*parent;	/* link into tree */
