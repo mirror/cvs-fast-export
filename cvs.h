@@ -72,7 +72,7 @@ typedef char flag;
 
 typedef struct _cvs_number {
     /* digested form of a CVS revision */
-    int			c;
+    short		c;
     short		n[CVS_MAX_DEPTH];
 } cvs_number;
 
@@ -215,12 +215,12 @@ typedef struct _rev_ref {
     struct _rev_ref	*next;
     rev_commit		*commit;
     struct _rev_ref	*parent;	/* link into tree */
-    cvs_number		number;
     char		*name;
-    uint8_t		depth;	/* depth in branching tree (1 is trunk) */
-    uint8_t		degree;	/* number of digits in original CVS version */
-    flag		shown;
-    flag		tail;
+    cvs_number		number;
+    unsigned		depth:4;	/* depth in branching tree (1 is trunk) */
+    unsigned		degree:4;	/* number of digits in original CVS version */
+    flag		shown:1;
+    flag		tail:1;
 } rev_ref;
 
 typedef struct _rev_list {
