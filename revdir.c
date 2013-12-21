@@ -145,10 +145,6 @@ rev_pack_files (rev_file **files, int nfiles, int *ndr)
     rd = rev_pack_dir (files + start, nfiles - start);
     if (nds == sds) {
 	rds = xrealloc (rds, (sds *= 2) * sizeof (rev_dir *), __func__);
-	if (rds == NULL) {
-	    free(rds);
-	    exit(1);
-	}
     }
     rds[nds++] = rd;
     
