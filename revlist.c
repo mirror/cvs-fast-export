@@ -579,144 +579,144 @@ static void
 rev_branch_merge (rev_ref **branches, int nbranch,
 		  rev_ref *branch, rev_list *rl)
 {
-	int nlive;
-	int n;
-	rev_commit *prev = NULL;
-	rev_commit *head = NULL, **tail = &head;
-	rev_commit **commits = xcalloc (nbranch, sizeof (rev_commit *), "merging per-file branches");
-	rev_commit *commit;
-	rev_commit *latest;
-	rev_commit **p;
-	time_t start = 0;
+    int nlive;
+    int n;
+    rev_commit *prev = NULL;
+    rev_commit *head = NULL, **tail = &head;
+    rev_commit **commits = xcalloc (nbranch, sizeof (rev_commit *), "merging per-file branches");
+    rev_commit *commit;
+    rev_commit *latest;
+    rev_commit **p;
+    time_t start = 0;
 
+    nlive = 0;
+    for (n = 0; n < nbranch; n++) {
+	rev_commit *c;
+	/*
+	 * Initialize commits to head of each branch
+	 */
+	c = commits[n] = branches[n]->commit;
+	/*
+	 * Compute number of branches with remaining entries
+	 */
+	if (!c)
+	    continue;
+	if (branches[n]->tail) {
+	    c->tailed = true;
+	    continue;
+	}
+	nlive++;
+	while (c && !c->tail) {
+	    if (!start || time_compare(c->date, start) < 0)
+		start = c->date;
+	    c = c->parent;
+	}
+	if (c && (c->file || c->date != c->parent->date)) {
+	    if (!start || time_compare(c->date, start) < 0)
+		start = c->date;
+	}
+    }
+
+    for (n = 0; n < nbranch; n++) {
+	rev_commit *c = commits[n];
+	if (!c->tailed)
+	    continue;
+	if (!start || time_compare(start, c->date) >= 0)
+	    continue;
+	if (c->file)
+	    announce("warning - %s too late date through branch %s\n",
+		     c->file->name, branch->name);
+	commits[n] = NULL;
+    }
+    /*
+     * Walk down branches until each one has merged with the
+     * parent branch
+     */
+    while (nlive > 0 && nbranch > 0) {
+	for (n = 0, p = commits, latest = NULL; n < nbranch; n++) {
+	    rev_commit *c = commits[n];
+	    if (!c)
+		continue;
+	    *p++ = c;
+	    if (c->tailed)
+		continue;
+	    if (!latest || time_compare(latest->date, c->date) < 0)
+		latest = c;
+	}
+	nbranch = p - commits;
+
+	/*
+	 * Construct current commit
+	 */
+	commit = rev_commit_build (commits, latest, nbranch);
+
+	/*
+	 * Step each branch
+	 */
 	nlive = 0;
 	for (n = 0; n < nbranch; n++) {
-		rev_commit *c;
+	    rev_commit *c = commits[n];
+	    rev_commit *to;
+	    /* already got to parent branch? */
+	    if (c->tailed)
+		continue;
+	    /* not affected? */
+	    if (c != latest && !rev_commit_match(c, latest)) {
+		if (c->parent || c->file)
+		    nlive++;
+		continue;
+	    }
+	    to = c->parent;
+	    /* starts here? */
+	    if (!to)
+		goto Kill;
+
+	    if (c->tail) {
 		/*
-		 * Initialize commits to head of each branch
+		 * Adding file independently added on another
+		 * non-trunk branch.
 		 */
-		c = commits[n] = branches[n]->commit;
+		if (!to->parent && !to->file)
+		    goto Kill;
 		/*
-		* Compute number of branches with remaining entries
-		*/
-		if (!c)
-			continue;
-		if (branches[n]->tail) {
-			c->tailed = true;
-			continue;
-		}
+		 * If the parent is at the beginning of trunk
+		 * and it is younger than some events on our
+		 * branch, we have old CVS adding file
+		 * independently
+		 * added on another branch.
+		 */
+		if (start && time_compare(start, to->date) < 0)
+		    goto Kill;
+		/*
+		 * XXX: we still can't be sure that it's
+		 * not a file added on trunk after parent
+		 * branch had forked off it but before
+		 * our branch's creation.
+		 */
+		to->tailed = true;
+	    } else if (to->file) {
 		nlive++;
-		while (c && !c->tail) {
-			if (!start || time_compare(c->date, start) < 0)
-				start = c->date;
-			c = c->parent;
-		}
-		if (c && (c->file || c->date != c->parent->date)) {
-			if (!start || time_compare(c->date, start) < 0)
-				start = c->date;
-		}
-	}
-
-	for (n = 0; n < nbranch; n++) {
-		rev_commit *c = commits[n];
-		if (!c->tailed)
-			continue;
-		if (!start || time_compare(start, c->date) >= 0)
-			continue;
-		if (c->file)
-			announce("warning - %s too late date through branch %s\n",
-					c->file->name, branch->name);
-		commits[n] = NULL;
-	}
-	/*
-	 * Walk down branches until each one has merged with the
-	 * parent branch
-	 */
-	while (nlive > 0 && nbranch > 0) {
-		for (n = 0, p = commits, latest = NULL; n < nbranch; n++) {
-			rev_commit *c = commits[n];
-			if (!c)
-				continue;
-			*p++ = c;
-			if (c->tailed)
-				continue;
-			if (!latest || time_compare(latest->date, c->date) < 0)
-				latest = c;
-		}
-		nbranch = p - commits;
-
+	    } else {
 		/*
-		 * Construct current commit
+		 * See if it's recent CVS adding a file
+		 * independently added on another branch.
 		 */
-		commit = rev_commit_build (commits, latest, nbranch);
-
-		/*
-		 * Step each branch
-		 */
-		nlive = 0;
-		for (n = 0; n < nbranch; n++) {
-			rev_commit *c = commits[n];
-			rev_commit *to;
-			/* already got to parent branch? */
-			if (c->tailed)
-				continue;
-			/* not affected? */
-			if (c != latest && !rev_commit_match(c, latest)) {
-				if (c->parent || c->file)
-					nlive++;
-				continue;
-			}
-			to = c->parent;
-			/* starts here? */
-			if (!to)
-				goto Kill;
-
-			if (c->tail) {
-				/*
-				 * Adding file independently added on another
-				 * non-trunk branch.
-				 */
-				if (!to->parent && !to->file)
-					goto Kill;
-				/*
-				 * If the parent is at the beginning of trunk
-				 * and it is younger than some events on our
-				 * branch, we have old CVS adding file
-				 * independently
-				 * added on another branch.
-				 */
-				if (start && time_compare(start, to->date) < 0)
-					goto Kill;
-				/*
-				 * XXX: we still can't be sure that it's
-				 * not a file added on trunk after parent
-				 * branch had forked off it but before
-				 * our branch's creation.
-				 */
-				to->tailed = true;
-			} else if (to->file) {
-				nlive++;
-			} else {
-				/*
-				 * See if it's recent CVS adding a file
-				 * independently added on another branch.
-				 */
-				if (!to->parent)
-					goto Kill;
-				if (to->tail && to->date == to->parent->date)
-					goto Kill;
-				nlive++;
-			}
-			commits[n] = to;
-			continue;
-Kill:
-			commits[n] = NULL;
-		}
-
-		*tail = commit;
-		tail = &commit->parent;
-		prev = commit;
+		if (!to->parent)
+		    goto Kill;
+		if (to->tail && to->date == to->parent->date)
+		    goto Kill;
+		nlive++;
+	    }
+	    commits[n] = to;
+	    continue;
+	Kill:
+	    commits[n] = NULL;
 	}
+
+	*tail = commit;
+	tail = &commit->parent;
+	prev = commit;
+    }
     /*
      * Connect to parent branch
      */
@@ -766,13 +766,13 @@ Kill:
 		fprintf (stderr, "\n");
 	    }
 	} else if ((*tail = rev_commit_locate_date (branch->parent,
-						  commits[present]->date)))
+						    commits[present]->date)))
 	    announce("warning - branch point %s -> %s matched by date\n",
 		     branch->name, branch->parent->name);
 	else {
 	    rev_ref	*lost;
 	    fprintf(stderr, "Error: branch point %s -> %s not found.",
-		     branch->name, branch->parent->name);
+		    branch->name, branch->parent->name);
 
 	    if ((lost = rev_branch_of_commit (rl, commits[present])))
 		fprintf (stderr, " Possible match on %s.", lost->name);
@@ -797,25 +797,25 @@ Kill:
 static void
 rev_tag_search(Tag *tag, rev_commit **commits, rev_list *rl)
 {
-	rev_commit_date_sort(commits, tag->count);
-	tag->parent = rev_branch_of_commit(rl, commits[0]);
-	if (tag->parent)
-		tag->commit = rev_commit_locate (tag->parent, commits[0]);
-	if (!tag->commit) {
-		announce("tag %s could not be assigned to a commit\n", tag->name);
+    rev_commit_date_sort(commits, tag->count);
+    tag->parent = rev_branch_of_commit(rl, commits[0]);
+    if (tag->parent)
+	tag->commit = rev_commit_locate (tag->parent, commits[0]);
+    if (!tag->commit) {
+	announce("tag %s could not be assigned to a commit\n", tag->name);
 #if 0
-		/*
-		 * ESR: Keith's code appeared to be trying to create a
-		 * synthetic commit for unmmatched tags. The comment 
-		 * from "AV" below points at one reason this is probably
-		 * not a good idea.  Better to fail cleanly than risk
-		 * doing somethging wacky to the DAG.
-		 */
-		/* AV: shouldn't we put it on some branch? */
-		tag->commit = rev_commit_build(commits, commits[0], tag->count);
+	/*
+	 * ESR: Keith's code appeared to be trying to create a
+	 * synthetic commit for unmmatched tags. The comment 
+	 * from "AV" below points at one reason this is probably
+	 * not a good idea.  Better to fail cleanly than risk
+	 * doing somethging wacky to the DAG.
+	 */
+	/* AV: shouldn't we put it on some branch? */
+	tag->commit = rev_commit_build(commits, commits[0], tag->count);
 #endif
-	}
-	tag->commit->tagged = (tag->commit != NULL);
+    }
+    tag->commit->tagged = (tag->commit != NULL);
 }
 
 static void
@@ -1194,3 +1194,4 @@ rev_diff_free (rev_diff *d)
     free (d);
 }
 
+/* end */
