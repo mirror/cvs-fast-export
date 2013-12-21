@@ -200,7 +200,7 @@ typedef struct _rev_commit {
     char		*commitid;
     rev_file		*file;		/* first file */
     unsigned int        serial;
-    unsigned int	mark;		/* only used on export */
+    //unsigned int	mark;		/* only used on export */
     uint8_t		seen;
     unsigned		tail:1;
     unsigned		tailed:1;
