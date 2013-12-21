@@ -93,6 +93,7 @@ dump_number (char *name, cvs_number *number)
 
 void
 dump_rev_commit (rev_commit *c)
+/* dump all delta/revision pairs associated with a commit */
 {
     rev_file	*f;
     int		i, j;
@@ -111,6 +112,7 @@ dump_rev_commit (rev_commit *c)
 
 void
 dump_rev_head (rev_ref *h)
+/* dump all commits associated wit the specified head */
 {
     rev_commit	*c;
     for (c = h->commit; c; c = c->parent) {
@@ -123,6 +125,7 @@ dump_rev_head (rev_ref *h)
 #ifdef __UNUSED__
 void
 dump_rev_list (rev_list *rl)
+/* dump an entire revision list */
 {
     rev_ref	*h;
 
@@ -143,6 +146,7 @@ typedef struct _rev_split {
 
 char *
 ctime_nonl (time_t *date)
+/* ctime(3) with trailing \n removed */
 {
     char	*d = ctime (date);
     
@@ -594,7 +598,7 @@ main (int argc, char **argv)
 	last = fn->file;
 	nfile++;
 	if (progress && nfile % 100 == 0)
-		progress_jump(nfile);
+	    progress_jump(nfile);
     }
     progress_end("done, %ldKB in %d files", (long)(textsize/1024), nfile);
     if (rev_mode == ExecuteExport)
