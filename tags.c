@@ -60,13 +60,13 @@ void tag_commit(cvs_commit *c, char *name)
     tag->count++;
 }
 
-rev_commit **tagged(Tag *tag)
+cvs_commit **tagged(Tag *tag)
 /* return an allocated list of pointers to commits with the specified tag */
 {
-    rev_commit **v = NULL;
+    cvs_commit **v = NULL;
 
     if (tag->count) {
-	rev_commit **p = xmalloc(tag->count * sizeof(*p), __func__);
+	cvs_commit **p = xmalloc(tag->count * sizeof(*p), __func__);
 	Chunk *c = tag->commits;
 	int n = Ncommits - tag->left;
 

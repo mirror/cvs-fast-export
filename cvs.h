@@ -304,7 +304,7 @@ typedef struct _tag {
 
 extern Tag *all_tags;
 void tag_commit(cvs_commit *c, char *name);
-rev_commit **tagged(Tag *tag);
+cvs_commit **tagged(Tag *tag);
 void discard_tags(void);
 
 bool

@@ -1010,7 +1010,7 @@ rev_list_merge (rev_list *head)
      */
     progress_begin("Find tag locations...", NO_MAX);
     for (t = all_tags; t; t = t->next) {
-	rev_commit **commits = tagged(t);
+	cvs_commit **commits = tagged(t);
 	if (commits)
 	    rev_tag_search(t, commits, rl);
 	else
@@ -1073,9 +1073,9 @@ rev_file_free (rev_file *f)
 }
 
 static void
-rev_commit_free (rev_commit *commit, int free_files)
+rev_commit_free (cvs_commit *commit, int free_files)
 {
-    rev_commit	*c;
+    cvs_commit	*c;
 
     while ((c = commit)) {
 	commit = c->parent;
@@ -1113,7 +1113,7 @@ void
 rev_list_validate (rev_list *rl)
 {
     rev_ref	*h;
-    rev_commit	*c;
+    git_commit	*c;
     for (h = rl->heads; h; h = h->next) {
 	if (h->tail)
 	    continue;
