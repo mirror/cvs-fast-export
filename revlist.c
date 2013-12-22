@@ -24,7 +24,7 @@
  */
 
 rev_ref *
-rev_list_add_head (rev_list *rl, rev_commit *commit, char *name, int degree)
+rev_list_add_head (rev_list *rl, cvs_commit *commit, char *name, int degree)
 /* Add head refs */
 {
     rev_ref	*r;
@@ -155,7 +155,7 @@ void
 rev_list_set_tail (rev_list *rl)
 {
     rev_ref	*head;
-    rev_commit	*c;
+    cvs_commit	*c;
 
     for (head = rl->heads; head; head = head->next) {
 	flag tail = true;
@@ -459,7 +459,7 @@ git_commit_build (cvs_commit **revisions, cvs_commit *leader, int nrevisions)
 static git_commit *
 rev_ref_find_commit_file (rev_ref *branch, rev_file *file)
 {
-    rev_commit	*c;
+    git_commit	*c;
 
     for (c = branch->commit; c; c = c->parent)
 	if (git_commit_has_file (c, file))
@@ -479,10 +479,10 @@ git_commit_is_ancestor (git_commit *old, git_commit *young)
 }
 #endif
 
-static cvs_commit *
-rev_commit_locate_date (rev_ref *branch, time_t date)
+static git_commit *
+git_commit_locate_date (rev_ref *branch, time_t date)
 {
-    rev_commit	*commit;
+    git_commit	*commit;
 
     for (commit = branch->commit; commit; commit = commit->parent)
     {
@@ -492,10 +492,10 @@ rev_commit_locate_date (rev_ref *branch, time_t date)
     return NULL;
 }
 
-static rev_commit *
-rev_commit_locate_one (rev_ref *branch, rev_commit *file)
+static git_commit *
+git_commit_locate_one (rev_ref *branch, cvs_commit *file)
 {
-    rev_commit	*commit;
+    git_commit	*commit;
 
     if (!branch)
 	return NULL;
@@ -510,28 +510,28 @@ rev_commit_locate_one (rev_ref *branch, rev_commit *file)
     return NULL;
 }
 
-static rev_commit *
-rev_commit_locate_any (rev_ref *branch, rev_commit *file)
+static git_commit *
+git_commit_locate_any (rev_ref *branch, cvs_commit *file)
 {
-    rev_commit	*commit;
+    git_commit	*commit;
 
     if (!branch)
 	return NULL;
-    commit = rev_commit_locate_any (branch->next, file);
+    commit = git_commit_locate_any (branch->next, file);
     if (commit)
 	return commit;
-    return rev_commit_locate_one (branch, file);
+    return git_commit_locate_one (branch, file);
 }
 
-static rev_commit *
-rev_commit_locate (rev_ref *branch, rev_commit *file)
+static git_commit *
+git_commit_locate (rev_ref *branch, cvs_commit *file)
 {
-    rev_commit	*commit;
+    git_commit	*commit;
 
     /*
      * Check the presumed trunk first
      */
-    commit = rev_commit_locate_one (branch, file);
+    commit = git_commit_locate_one (branch, file);
     if (commit)
 	return commit;
     /*
@@ -539,7 +539,7 @@ rev_commit_locate (rev_ref *branch, rev_commit *file)
      */
     while (branch->parent)
 	branch = branch->parent;
-    return rev_commit_locate_any (branch, file);
+    return git_commit_locate_any (branch, file);
 }
 
 rev_ref *
@@ -566,7 +566,7 @@ rev_branch_of_commit (rev_list *rl, cvs_commit *commit)
  * Time of first commit along entire history
  */
 static time_t
-cvs_commit_first_date (rev_commit *commit)
+cvs_commit_first_date (cvs_commit *commit)
 {
     while (commit->parent)
 	commit = commit->parent;
@@ -582,17 +582,17 @@ rev_branch_merge (rev_ref **branches, int nbranch,
 {
     int nlive;
     int n;
-    rev_commit *prev = NULL;
+    git_commit *prev = NULL;
     git_commit *head = NULL, **tail = &head;
     cvs_commit **revisions = xcalloc (nbranch, sizeof (cvs_commit *), "merging per-file branches");
     git_commit *commit;
-    rev_commit *latest;
-    rev_commit **p;
+    cvs_commit *latest;
+    cvs_commit **p;
     time_t start = 0;
 
     nlive = 0;
     for (n = 0; n < nbranch; n++) {
-	rev_commit *c;
+	cvs_commit *c;
 	/*
 	 * Initialize revisions to head of each branch
 	 */
@@ -635,14 +635,14 @@ rev_branch_merge (rev_ref **branches, int nbranch,
      */
     while (nlive > 0 && nbranch > 0) {
 	for (n = 0, p = revisions, latest = NULL; n < nbranch; n++) {
-	    cvs_commit *c = revisions[n];
-	    if (!c)
+	    cvs_commit *rev = revisions[n];
+	    if (!rev)
 		continue;
-	    *p++ = c;
-	    if (c->tailed)
+	    *p++ = rev;
+	    if (rev->tailed)
 		continue;
-	    if (!latest || time_compare(latest->date, c->date) < 0)
-		latest = c;
+	    if (!latest || time_compare(latest->date, rev->date) < 0)
+		latest = rev;
 	}
 	nbranch = p - revisions;
 
@@ -745,7 +745,7 @@ rev_branch_merge (rev_ref **branches, int nbranch,
 	    }
 	if (present == nbranch)
 	    *tail = NULL;
-	else if ((*tail = rev_commit_locate_one (branch->parent,
+	else if ((*tail = git_commit_locate_one (branch->parent,
 						 revisions[present])))
 	{
 	    if (prev && time_compare ((*tail)->date, prev->date) > 0) {
@@ -766,7 +766,7 @@ rev_branch_merge (rev_ref **branches, int nbranch,
 				  &prev->file->number);
 		fprintf (stderr, "\n");
 	    }
-	} else if ((*tail = rev_commit_locate_date (branch->parent,
+	} else if ((*tail = git_commit_locate_date (branch->parent,
 						    revisions[present]->date)))
 	    announce("warning - branch point %s -> %s matched by date\n",
 		     branch->name, branch->parent->name);
@@ -802,7 +802,7 @@ rev_tag_search(Tag *tag, cvs_commit **revisions, rev_list *rl)
     /* tag gets parented with branch of most recent matching commit */
     tag->parent = rev_branch_of_commit(rl, revisions[0]);
     if (tag->parent)
-	tag->commit = rev_commit_locate (tag->parent, revisions[0]);
+	tag->commit = git_commit_locate (tag->parent, revisions[0]);
     if (!tag->commit) {
 	announce("tag %s could not be assigned to a commit\n", tag->name);
 #if 0

@@ -371,9 +371,6 @@ void
 dump_log (FILE *f, char *log);
 
 void
-dump_commit (rev_commit *e);
-
-void
 dump_git_commit (git_commit *e);
 
 void
@@ -400,7 +397,7 @@ void
 discard_atoms (void);
 
 rev_ref *
-rev_list_add_head (rev_list *rl, rev_commit *commit, char *name, int degree);
+rev_list_add_head (rev_list *rl, cvs_commit *commit, char *name, int degree);
 
 bool
 git_commit_has_file (git_commit *c, rev_file *f);
@@ -415,7 +412,7 @@ void
 rev_diff_free (rev_diff *d);
 
 rev_ref *
-rev_branch_of_commit (rev_list *rl, rev_commit *commit);
+rev_branch_of_commit (rev_list *rl, cvs_commit *commit);
 
 rev_file *
 rev_file_rev (char *name, cvs_number *n, time_t date);
@@ -428,9 +425,6 @@ rev_list_set_tail (rev_list *rl);
 
 bool
 rev_file_later (rev_file *a, rev_file *b);
-
-bool
-rev_commit_later (rev_commit *a, rev_commit *b);
 
 void
 rev_list_validate (rev_list *rl);
