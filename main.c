@@ -599,6 +599,7 @@ main (int argc, char **argv)
 	export_init();
     load_total_files = nfile;
     load_current_file = 0;
+    /* analyze the files for CVS revision structure */
     while (fn_head) {
 	int nversions;
 	
@@ -617,7 +618,9 @@ main (int argc, char **argv)
     }
     if (progress)
 	load_status_next ();
+    /* commit set coalescence happens here */
     rl = rev_list_merge (head);
+    /* report on the DAG */
     if (rl) {
 	switch (rev_mode) {
 	case ExecuteGraph:
