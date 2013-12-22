@@ -41,11 +41,11 @@ static Tag *find_tag(char *name)
 }
 
 void tag_commit(rev_commit *c, char *name)
-/* add a commit to the list associated with a named tag (this_file implicit) */
+/* add a CVS commit to the list associated with a named tag (this_file implicit) */
 {
     Tag *tag = find_tag(name);
     if (tag->last == this_file->name) {
-	announce("duplicate tag %s in %s, ignoring\n",
+	announce("duplicate tag %s in CVS master %s, ignoring\n",
 		 name, this_file->name);
 	return;
     }
