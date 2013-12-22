@@ -127,7 +127,7 @@ dot_ref_name (FILE *f, rev_ref *ref)
     fprintf (f, "%s", ref->name);
 }
 
-static void dot_commit_graph (rev_commit *c, rev_ref *branch)
+static void dot_commit_graph (git_commit *c, rev_ref *branch)
 {
     rev_file	*f;
 
@@ -141,7 +141,7 @@ static void dot_commit_graph (rev_commit *c, rev_ref *branch)
     dump_log (stdout, c->log);
     printf ("\\n");
     if (difffiles) {
-	rev_diff    *diff = rev_commit_diff (c->parent, c);
+	rev_diff    *diff = git_commit_diff (c->parent, c);
 	rev_file_list   *fl;
 
 	for (fl = diff->add; fl; fl = fl->next) {
@@ -190,10 +190,10 @@ static void dot_tag_name(FILE *f, Tag *tag)
     fprintf (f, "%s", tag->name);
 }
 
-static rev_ref *dump_find_branch (rev_list *rl, rev_commit *commit)
+static rev_ref *dump_find_branch (rev_list *rl, git_commit *commit)
 {
     rev_ref	*h;
-    rev_commit	*c;
+    git_commit	*c;
 
     for (h = rl->heads; h; h = h->next)
     {
@@ -338,8 +338,8 @@ static void dot_tags(rev_list *rl, char *title, char *shape)
  */
 bool elide = false;
 
-static rev_commit *
-dump_get_rev_parent (rev_commit *c)
+static git_commit *
+dump_get_rev_parent (git_commit *c)
 {
     int	seen = c->seen;
 
@@ -355,7 +355,7 @@ dump_get_rev_parent (rev_commit *c)
 static void dot_rev_graph_nodes (rev_list *rl, char *title)
 {
     rev_ref	*h;
-    rev_commit	*c, *p;
+    git_commit	*c, *p;
     bool	tail;
 
     printf ("nodesep=0.1;\n");

@@ -82,7 +82,7 @@ rev_file_later (rev_file *af, rev_file *bf)
 }
 
 bool
-rev_commit_later (rev_commit *a, rev_commit *b)
+git_commit_later (git_commit *a, git_commit *b)
 {
     long	t;
 
@@ -110,7 +110,7 @@ commit_time_close (time_t a, time_t b)
 }
 
 static bool
-rev_commit_match (rev_commit *a, rev_commit *b)
+cvs_commit_match (cvs_commit *a, cvs_commit *b)
 /* are two commits eligible to be coalesced into a changeset? */
 {
     /*
@@ -132,7 +132,7 @@ rev_commit_match (rev_commit *a, rev_commit *b)
 
 #ifdef __UNUSED__
 static void
-rev_commit_dump (FILE *f, char *title, rev_commit *c, rev_commit *m)
+git_commit_dump (FILE *f, char *title, git_commit *c, git_commit *m)
 {
     fprintf (f, "\n%s\n", title);
     while (c) {
@@ -312,10 +312,10 @@ rev_list_count (rev_list *head)
 }
 
 static int
-rev_commit_date_compare (const void *av, const void *bv)
+cvs_commit_date_compare (const void *av, const void *bv)
 {
-    const rev_commit	*a = *(const rev_commit **) av;
-    const rev_commit	*b = *(const rev_commit **) bv;
+    const cvs_commit	*a = *(const cvs_commit **) av;
+    const cvs_commit	*b = *(const cvs_commit **) bv;
     int			t;
 
     /*
@@ -356,10 +356,10 @@ rev_commit_date_compare (const void *av, const void *bv)
 }
 
 static int
-rev_commit_date_sort (rev_commit **commits, int ncommit)
+cvs_commit_date_sort (cvs_commit **commits, int ncommit)
 {
-    qsort (commits, ncommit, sizeof (rev_commit *),
-	   rev_commit_date_compare);
+    qsort (commits, ncommit, sizeof (cvs_commit *),
+	   cvs_commit_date_compare);
     /*
      * Trim off NULL entries
      */
@@ -386,7 +386,7 @@ git_commit_has_file (git_commit *c, rev_file *f)
 
 #ifdef __UNUSED__
 static rev_file *
-rev_commit_find_file (rev_commit *c, char *name)
+git_commit_find_file (git_commit *c, char *name)
 {
     int	n;
 
@@ -411,11 +411,11 @@ git_commit_cleanup (void)
 }
 
 static git_commit *
-git_commit_build (rev_commit **revisions, rev_commit *leader, int nrevisions)
+git_commit_build (cvs_commit **revisions, cvs_commit *leader, int nrevisions)
 /* build a changeset commit from a clique of CVS revisions */
 {
     int		n, nfile;
-    rev_commit	*commit;
+    git_commit	*commit;
     int		nds;
     rev_dir	**rds;
     rev_file	*first;
@@ -439,7 +439,7 @@ git_commit_build (rev_commit **revisions, rev_commit *leader, int nrevisions)
     
     rds = rev_pack_files (files, nfile, &nds);
         
-    commit = xcalloc (1, sizeof (rev_commit) +
+    commit = xcalloc (1, sizeof (git_commit) +
 		      nds * sizeof (rev_dir *), "creating commit");
     
     commit->date = leader->date;
@@ -479,7 +479,7 @@ git_commit_is_ancestor (git_commit *old, git_commit *young)
 }
 #endif
 
-static rev_commit *
+static cvs_commit *
 rev_commit_locate_date (rev_ref *branch, time_t date)
 {
     rev_commit	*commit;
@@ -504,7 +504,7 @@ rev_commit_locate_one (rev_ref *branch, rev_commit *file)
 	 commit;
 	 commit = commit->parent)
     {
-	if (rev_commit_match (commit, file))
+	if (cvs_commit_match (commit, file))
 	    return commit;
     }
     return NULL;
@@ -543,17 +543,17 @@ rev_commit_locate (rev_ref *branch, rev_commit *file)
 }
 
 rev_ref *
-rev_branch_of_commit (rev_list *rl, rev_commit *commit)
+rev_branch_of_commit (rev_list *rl, cvs_commit *commit)
 {
     rev_ref	*h;
-    rev_commit	*c;
+    cvs_commit	*c;
 
     for (h = rl->heads; h; h = h->next)
     {
 	if (h->tail)
 	    continue;
 	for (c = h->commit; c; c = c->parent) {
-	    if (rev_commit_match (c, commit))
+	    if (cvs_commit_match (c, commit))
 		return h;
 	    if (c->tail)
 		break;
@@ -566,7 +566,7 @@ rev_branch_of_commit (rev_list *rl, rev_commit *commit)
  * Time of first commit along entire history
  */
 static time_t
-rev_commit_first_date (rev_commit *commit)
+cvs_commit_first_date (rev_commit *commit)
 {
     while (commit->parent)
 	commit = commit->parent;
@@ -584,7 +584,7 @@ rev_branch_merge (rev_ref **branches, int nbranch,
     int n;
     rev_commit *prev = NULL;
     git_commit *head = NULL, **tail = &head;
-    rev_commit **revisions = xcalloc (nbranch, sizeof (rev_commit *), "merging per-file branches");
+    cvs_commit **revisions = xcalloc (nbranch, sizeof (cvs_commit *), "merging per-file branches");
     git_commit *commit;
     rev_commit *latest;
     rev_commit **p;
@@ -619,7 +619,7 @@ rev_branch_merge (rev_ref **branches, int nbranch,
     }
 
     for (n = 0; n < nbranch; n++) {
-	rev_commit *c = revisions[n];
+	cvs_commit *c = revisions[n];
 	if (!c->tailed)
 	    continue;
 	if (!start || time_compare(start, c->date) >= 0)
@@ -635,7 +635,7 @@ rev_branch_merge (rev_ref **branches, int nbranch,
      */
     while (nlive > 0 && nbranch > 0) {
 	for (n = 0, p = revisions, latest = NULL; n < nbranch; n++) {
-	    rev_commit *c = revisions[n];
+	    cvs_commit *c = revisions[n];
 	    if (!c)
 		continue;
 	    *p++ = c;
@@ -656,13 +656,13 @@ rev_branch_merge (rev_ref **branches, int nbranch,
 	 */
 	nlive = 0;
 	for (n = 0; n < nbranch; n++) {
-	    rev_commit *c = revisions[n];
-	    rev_commit *to;
+	    cvs_commit *c = revisions[n];
+	    cvs_commit *to;
 	    /* already got to parent branch? */
 	    if (c->tailed)
 		continue;
 	    /* not affected? */
-	    if (c != latest && !rev_commit_match(c, latest)) {
+	    if (c != latest && !cvs_commit_match(c, latest)) {
 		if (c->parent || c->file)
 		    nlive++;
 		continue;
@@ -721,7 +721,7 @@ rev_branch_merge (rev_ref **branches, int nbranch,
     /*
      * Connect to parent branch
      */
-    nbranch = rev_commit_date_sort (revisions, nbranch);
+    nbranch = cvs_commit_date_sort (revisions, nbranch);
     if (nbranch && branch->parent )
     {
 	int	present;
@@ -734,7 +734,7 @@ rev_branch_merge (rev_ref **branches, int nbranch,
 		 * the first commit along the branch
 		 */
 		if (prev && revisions[present]->date > prev->date &&
-		    revisions[present]->date == rev_commit_first_date (revisions[present]))
+		    revisions[present]->date == cvs_commit_first_date (revisions[present]))
 		{
 		    /* FIXME: what does this mean? */
 		    announce("warning - file %s appears after branch %s date\n",
@@ -796,13 +796,13 @@ rev_branch_merge (rev_ref **branches, int nbranch,
  * Locate position in tree corresponding to specific tag
  */
 static void
-rev_tag_search(Tag *tag, rev_commit **commits, rev_list *rl)
+rev_tag_search(Tag *tag, cvs_commit **revisions, rev_list *rl)
 {
-    rev_commit_date_sort(commits, tag->count);
+    cvs_commit_date_sort(revisions, tag->count);
     /* tag gets parented with branch of most recent matching commit */
-    tag->parent = rev_branch_of_commit(rl, commits[0]);
+    tag->parent = rev_branch_of_commit(rl, revisions[0]);
     if (tag->parent)
-	tag->commit = rev_commit_locate (tag->parent, commits[0]);
+	tag->commit = rev_commit_locate (tag->parent, revisions[0]);
     if (!tag->commit) {
 	announce("tag %s could not be assigned to a commit\n", tag->name);
 #if 0
@@ -814,7 +814,7 @@ rev_tag_search(Tag *tag, rev_commit **commits, rev_list *rl)
 	 * doing something wacky to the DAG.
 	 */
 	/* AV: shouldn't we put it on some branch? */
-	tag->commit = git_commit_build(commits, commits[0], tag->count);
+	tag->commit = git_commit_build(revisions, revisions[0], tag->count);
 #endif
     }
     tag->commit->tagged = (tag->commit != NULL);
@@ -1088,7 +1088,7 @@ rev_commit_free (rev_commit *commit, int free_files)
     }
 }
 
-void
+static void
 rev_head_free (rev_ref *head, int free_files)
 {
     rev_ref	*h;
@@ -1130,7 +1130,7 @@ rev_list_validate (rev_list *rl)
  */
 
 static rev_file_list *
-rev_uniq_file (rev_commit *uniq, rev_commit *common, int *nuniqp)
+rev_uniq_file (git_commit *uniq, git_commit *common, int *nuniqp)
 {
     int	i, j;
     int nuniq = 0;
@@ -1163,13 +1163,13 @@ rev_file_list_has_filename (rev_file_list *fl, char *name)
 }
 
 /*
- * Generate a diff between two commits. Either may be NULL
+ * Generate a diff between two gitspace commits. Either may be NULL
  */
 
 rev_diff *
-rev_commit_diff (rev_commit *old, rev_commit *new)
+git_commit_diff (git_commit *old, git_commit *new)
 {
-    rev_diff	*diff = xcalloc (1, sizeof (rev_diff), "rev_commit_diff");
+    rev_diff	*diff = xcalloc (1, sizeof (rev_diff), __func__);
 
     diff->del = rev_uniq_file (old, new, &diff->ndel);
     diff->add = rev_uniq_file (new, old, &diff->nadd);

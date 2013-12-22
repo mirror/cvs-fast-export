@@ -217,7 +217,7 @@ typedef rev_commit cvs_commit;
 typedef struct _rev_ref {
     /* CVS context for changesets before coalescence */
     struct _rev_ref	*next;
-    rev_commit		*commit;
+    cvs_commit		*commit;
     struct _rev_ref	*parent;	/* link into tree */
     char		*name;
     cvs_number		number;
@@ -287,7 +287,7 @@ enum { Ncommits = 256 };
 
 typedef struct _chunk {
 	struct _chunk *next;
-	rev_commit *v[Ncommits];
+	cvs_commit *v[Ncommits];
 } Chunk;
 
 typedef struct _tag {
@@ -297,7 +297,7 @@ typedef struct _tag {
 	Chunk *commits;
 	int count;
 	int left;
-	rev_commit *commit;
+	git_commit *commit;
 	rev_ref *parent;
 	char *last;
 } Tag;
@@ -406,7 +406,7 @@ bool
 git_commit_has_file (git_commit *c, rev_file *f);
 
 rev_diff *
-rev_commit_diff (rev_commit *old, rev_commit *new);
+git_commit_diff (git_commit *old, git_commit *new);
 
 bool
 rev_file_list_has_filename (rev_file_list *fl, char *name);
@@ -422,9 +422,6 @@ rev_file_rev (char *name, cvs_number *n, time_t date);
 
 void
 rev_file_free (rev_file *f);
-
-void
-rev_head_free (rev_ref *heads, int free_files);
 
 void
 rev_list_set_tail (rev_list *rl);

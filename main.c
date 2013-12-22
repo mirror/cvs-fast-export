@@ -190,7 +190,7 @@ dump_rev_tree (rev_list *rl)
 {
     rev_ref	*h;
     rev_ref	*oh;
-    rev_commit	*c, *p;
+    git_commit	*c, *p;
     int		tail;
 
     printf ("rev_list {\n");
@@ -407,7 +407,8 @@ static void print_sizes(void)
     printf("sizeof(cvs_file)      = %zu\n", sizeof(cvs_file));
     printf("sizeof(rev_file)      = %zu\n", sizeof(rev_file));
     printf("sizeof(rev_dir)       = %zu\n", sizeof(rev_dir));
-    printf("sizeof(rev_commit)    = %zu\n", sizeof(rev_commit));
+    printf("sizeof(cvs_commit)    = %zu\n", sizeof(cvs_commit));
+    printf("sizeof(git_commit)    = %zu\n", sizeof(git_commit));
     printf("sizeof(rev_ref)       = %zu\n", sizeof(rev_ref));
     printf("sizeof(rev_list)      = %zu\n", sizeof(rev_list));
     printf("sizeof(rev_file_list) = %zu\n", sizeof(rev_file_list));
