@@ -450,7 +450,8 @@ static int export_ncommit(rev_list *rl)
     for (h = rl->heads; h; h = h->next) {
 	if (h->tail)
 	    continue;
-	for (c = h->commit; c; c = c->parent) {
+	/* PUNNING: see the big comment in cvs.h */ 
+	for (c = (git_commit *)h->commit; c; c = c->parent) {
 	    n++;
 	    if (c->tail)
 		break;
@@ -507,7 +508,8 @@ bool export_commits(rev_list *rl, int strip, time_t fromtime, bool progress)
 		// h->commit into the array "history".
 		history = NULL;
 		alloc = 0;
-		for (c=h->commit, n=0; c; c=(c->tail ? NULL : c->parent), n++) {
+		/* PUNNING: see the big comment in cvs.h */ 
+		for (c=(git_commit *)h->commit, n=0; c; c=(c->tail ? NULL : c->parent), n++) {
 		    if (n >= alloc) {
 			alloc += 1024;
 			history = (git_commit **)xrealloc(history, alloc *sizeof(git_commit *), "export");
@@ -560,9 +562,11 @@ bool export_commits(rev_list *rl, int strip, time_t fromtime, bool progress)
 	for (h = rl->heads; h; h = h->next) {
 	    if (!h->tail) {
 		int i = 0, branchlength = 0;
-		for (c = h->commit; c; c = (c->tail ? NULL : c->parent))
+		/* PUNNING: see the big comment in cvs.h */ 
+		for (c = (git_commit *)h->commit; c; c = (c->tail ? NULL : c->parent))
 		    branchlength++;
-		for (c = h->commit; c; c = (c->tail ? NULL : c->parent)) {
+		/* PUNNING: see the big comment in cvs.h */ 
+		for (c = (git_commit *)h->commit; c; c = (c->tail ? NULL : c->parent)) {
 		    /* copy commits in reverse order into this branch's span */
 		    n = branchbase + branchlength - (i + 1);
 		    history[n].commit = c;

@@ -199,7 +199,8 @@ static rev_ref *dump_find_branch (rev_list *rl, git_commit *commit)
     {
 	if (h->tail)
 	    continue;
-	for (c = h->commit; c; c = c->parent)
+	/* PUNNING: see the big comment in cvs.h */ 
+	for (c = (git_commit *)h->commit; c; c = c->parent)
 	{
 	    if (c == commit)
 		return h;
@@ -261,8 +262,9 @@ static void dot_refs (rev_list *rl, rev_ref *refs, char *title, char *shape)
 	    printf ("\"");
 	    printf (" -> ");
 	    if (r->commit)
-		dot_commit_graph (r->commit, dump_find_branch (rl,
-								r->commit));
+		/* PUNNING: see the big comment in cvs.h */ 
+		dot_commit_graph ((git_commit *)r->commit, dump_find_branch (rl,
+									     (git_commit *)r->commit));
 	    else
 		printf ("LOST");
 	    printf (" [weight=%d];\n", !r->tail ? 100 : 3);
@@ -367,7 +369,8 @@ static void dot_rev_graph_nodes (rev_list *rl, char *title)
     for (h = rl->heads; h; h = h->next) {
 	if (h->tail)
 	    continue;
-	for (c = h->commit; c; c = p) {
+	/* PUNNING: see the big comment in cvs.h */ 
+	for (c = (git_commit *)h->commit; c; c = p) {
 	    p = dump_get_rev_parent (c);
 	    tail = c->tail;
 	    if (!p)

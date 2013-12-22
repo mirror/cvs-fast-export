@@ -484,7 +484,8 @@ git_commit_locate_date (rev_ref *branch, time_t date)
 {
     git_commit	*commit;
 
-    for (commit = branch->commit; commit; commit = commit->parent)
+    /* PUNNING: see the big comment in cvs.h */ 
+    for (commit = (git_commit *)branch->commit; commit; commit = commit->parent)
     {
 	if (time_compare (commit->date, date) <= 0)
 	    return commit;
@@ -500,11 +501,13 @@ git_commit_locate_one (rev_ref *branch, cvs_commit *file)
     if (!branch)
 	return NULL;
 
-    for (commit = branch->commit;
+    /* PUNNING: see the big comment in cvs.h */ 
+    for (commit = (git_commit *)branch->commit;
 	 commit;
 	 commit = commit->parent)
     {
-	if (cvs_commit_match (commit, file))
+	/* PUNNING: see the big comment in cvs.h */ 
+	if (cvs_commit_match ((cvs_commit *)commit, file))
 	    return commit;
     }
     return NULL;
@@ -789,7 +792,8 @@ rev_branch_merge (rev_ref **branches, int nbranch,
 	if (revisions[n])
 	    revisions[n]->tailed = false;
     free (revisions);
-    branch->commit = head;
+    /* PUNNING: see the big comment in cvs.h */ 
+    branch->commit = (cvs_commit *)head;
 }
 
 /*
@@ -1117,7 +1121,8 @@ rev_list_validate (rev_list *rl)
     for (h = rl->heads; h; h = h->next) {
 	if (h->tail)
 	    continue;
-	for (c = h->commit; c && c->parent; c = c->parent) {
+	/* PUNNING: see the big comment in cvs.h */ 
+	for (c = (git_commit *)h->commit; c && c->parent; c = c->parent) {
 	    if (c->tail)
 		break;
 //	    assert (time_compare (c->date, c->parent->date) >= 0);
