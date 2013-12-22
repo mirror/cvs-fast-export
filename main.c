@@ -91,9 +91,10 @@ dump_number (char *name, cvs_number *number)
     dump_number_file (stdout, name, number);
 }
 
+#ifdef __UNUSED__
 void
-dump_rev_commit (rev_commit *c)
-/* dump all delta/revision pairs associated with a commit */
+dump_git_commit (git_commit *c)
+/* dump all delta/revision pairs associated with a gitspace commit */
 {
     rev_file	*f;
     int		i, j;
@@ -112,17 +113,16 @@ dump_rev_commit (rev_commit *c)
 
 void
 dump_rev_head (rev_ref *h)
-/* dump all commits associated wit the specified head */
+/* dump all gitspace commits associated wit the specified head */
 {
-    rev_commit	*c;
+    git_commit	*c;
     for (c = h->commit; c; c = c->parent) {
-	dump_rev_commit (c);
+	dump_git_commit (c);
 	if (c->tail)
 	    break;
     }
 }
 
-#ifdef __UNUSED__
 void
 dump_rev_list (rev_list *rl)
 /* dump an entire revision list */
@@ -136,13 +136,6 @@ dump_rev_list (rev_list *rl)
     }
 }
 #endif /* __UNUSED__ */
-
-typedef struct _rev_split {
-    struct _rev_split	*next;
-    rev_commit		*childa, *childb;
-    rev_commit		*parent;
-    rev_commit		*topa, *topb;
-} rev_split;
 
 char *
 ctime_nonl (time_t *date)
@@ -647,7 +640,7 @@ main (int argc, char **argv)
     discard_atoms ();
     discard_tags ();
     rev_free_dirs ();
-    rev_commit_cleanup ();
+    git_commit_cleanup ();
     export_wrap();
     free_author_map ();
     if (revision_map)

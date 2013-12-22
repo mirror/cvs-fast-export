@@ -192,7 +192,7 @@ extern bool branchorder;
 extern time_t start_time;
 
 typedef struct _rev_commit {
-    /* a changeset */
+    /* a CVS revision or gitspace changeset */
     struct _rev_commit	*parent;
     time_t		date;
     char		*log;
@@ -209,6 +209,10 @@ typedef struct _rev_commit {
     short		ndirs;
     rev_dir		*dirs[0];
 } rev_commit;
+
+/* same structure expressing  a changeset */
+typedef rev_commit git_commit;
+typedef rev_commit cvs_commit;
 
 typedef struct _rev_ref {
     /* CVS context for changesets before coalescence */
@@ -299,7 +303,7 @@ typedef struct _tag {
 } Tag;
 
 extern Tag *all_tags;
-void tag_commit(rev_commit *c, char *name);
+void tag_commit(cvs_commit *c, char *name);
 rev_commit **tagged(Tag *tag);
 void discard_tags(void);
 
@@ -370,7 +374,7 @@ void
 dump_commit (rev_commit *e);
 
 void
-dump_rev_commit (rev_commit *e);
+dump_git_commit (git_commit *e);
 
 void
 dump_rev_head (rev_ref *h);
@@ -399,7 +403,7 @@ rev_ref *
 rev_list_add_head (rev_list *rl, rev_commit *commit, char *name, int degree);
 
 bool
-rev_commit_has_file (rev_commit *c, rev_file *f);
+git_commit_has_file (git_commit *c, rev_file *f);
 
 rev_diff *
 rev_commit_diff (rev_commit *old, rev_commit *new);
@@ -460,7 +464,7 @@ void
 rev_free_dirs (void);
     
 void
-rev_commit_cleanup (void);
+git_commit_cleanup (void);
 
 void 
 load_status (char *name);

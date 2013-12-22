@@ -24,11 +24,11 @@
  * Given a single-file tree, locate the specific version number
  */
 
-static rev_commit *
-rev_find_cvs_commit (rev_list *rl, cvs_number *number)
+static cvs_commit *
+rev_find_cvs_revision (rev_list *rl, cvs_number *number)
 {
     rev_ref	*h;
-    rev_commit	*c;
+    cvs_commit	*c;
     rev_file	*f;
 
     for (h = rl->heads; h; h = h->next) {
@@ -49,12 +49,12 @@ rev_find_cvs_commit (rev_list *rl, cvs_number *number)
 /*
  * Construct a branch using CVS revision numbers
  */
-static rev_commit *
+static cvs_commit *
 rev_branch_cvs (cvs_file *cvs, cvs_number *branch)
 {
     cvs_number	n;
-    rev_commit	*head = NULL;
-    rev_commit	*c, *p, *gc;
+    cvs_commit	*head = NULL;
+    cvs_commit	*c, *p, *gc;
     Node	*node;
 
     n = *branch;
@@ -62,10 +62,10 @@ rev_branch_cvs (cvs_file *cvs, cvs_number *branch)
     for (node = cvs_find_version (cvs, &n); node; node = node->next) {
 	cvs_version *v = node->v;
 	cvs_patch *p = node->p;
-	rev_commit *c;
+	cvs_commit *c;
 	if (!v)
 	     continue;
-	c = xcalloc (1, sizeof (rev_commit), "branch construction");
+	c = xcalloc (1, sizeof (cvs_commit), "branch construction");
 	c->date = v->date;
 	c->commitid = v->commitid;
 	c->author = v->author;
@@ -138,8 +138,8 @@ rev_list_patch_vendor_branch (rev_list *rl, cvs_file *cvs)
     rev_ref	*trunk = NULL;
     rev_ref	*vendor = NULL;
     rev_ref	*h;
-    rev_commit	*t, **tp, *v, **vp;
-    rev_commit	*vlast;
+    cvs_commit	*t, **tp, *v, **vp;
+    cvs_commit	*vlast;
     rev_ref	**h_p;
 
     trunk = rl->heads;
@@ -219,7 +219,7 @@ rev_list_patch_vendor_branch (rev_list *rl, cvs_file *cvs)
 	     * Patch up the remaining vendor branch pieces
 	     */
 	    if (!delete_head) {
-		rev_commit  *vr;
+		cvs_commit  *vr;
 		if (!vendor->name) {
 		    char	rev[CVS_MAX_REV_LEN];
 		    char	name[MAXPATHLEN];
@@ -293,7 +293,7 @@ static void
 rev_list_graft_branches (rev_list *rl, cvs_file *cvs)
 {
     rev_ref	*h;
-    rev_commit	*c;
+    cvs_commit	*c;
     cvs_version	*cv;
     cvs_branch	*cb;
 
@@ -330,7 +330,7 @@ rev_list_graft_branches (rev_list *rl, cvs_file *cvs)
 		    if (cvs_number_compare (&cb->number,
 					    &c->file->number) == 0)
 		    {
-			c->parent = rev_find_cvs_commit (rl, &cv->number);
+			c->parent = rev_find_cvs_revision (rl, &cv->number);
 			c->tail = true;
 			break;
 		    }
@@ -344,14 +344,14 @@ rev_list_graft_branches (rev_list *rl, cvs_file *cvs)
 		    for (cb = cv->branches; cb; cb = cb->next) {
 			if (cvs_is_vendor (&cb->number)) {
 			    cvs_number	v_n;
-			    rev_commit	*v_c, *n_v_c;
+			    cvs_commit	*v_c, *n_v_c;
 			    fprintf (stderr, "Found merge into vendor branch\n");
 			    v_n = cb->number;
 			    v_c = NULL;
 			    /*
 			     * Walk to head of vendor branch
 			     */
-			    while ((n_v_c = rev_find_cvs_commit (rl, &v_n)))
+			    while ((n_v_c = rev_find_cvs_revision (rl, &v_n)))
 			    {
 				/*
 				 * Stop if we reach a date after the
@@ -420,7 +420,7 @@ rev_list_set_refs (rev_list *rl, cvs_file *cvs)
      * Locate a symbolic name for this head
      */
     for (s = cvs->symbols; s; s = s->next) {
-	rev_commit	*c = NULL;
+	cvs_commit	*c = NULL;
 	if (cvs_is_head (&s->number)) {
 	    for (h = rl->heads; h; h = h->next) {
 		if (cvs_same_branch (&h->commit->file->number, &s->number))
@@ -439,7 +439,7 @@ rev_list_set_refs (rev_list *rl, cvs_file *cvs)
 		n = s->number;
 		while (n.c >= 4) {
 		    n.c -= 2;
-		    c = rev_find_cvs_commit (rl, &n);
+		    c = rev_find_cvs_revision (rl, &n);
 		    if (c)
 			break;
 		}
@@ -450,7 +450,7 @@ rev_list_set_refs (rev_list *rl, cvs_file *cvs)
 	    if (h)
 		h->number = s->number;
 	} else {
-	    c = rev_find_cvs_commit (rl, &s->number);
+	    c = rev_find_cvs_revision (rl, &s->number);
 	    if (c)
 		tag_commit(c, s->name);
 	}
@@ -460,7 +460,7 @@ rev_list_set_refs (rev_list *rl, cvs_file *cvs)
      */
     for (h = rl->heads; h; h = h->next) {
 	cvs_number	n;
-	rev_commit	*c;
+	cvs_commit	*c;
 
 	if (h->name)
 	    continue;
@@ -515,7 +515,7 @@ static void
 rev_list_free_dead_files (rev_list *rl)
 {
     rev_ref	*h;
-    rev_commit	*c;
+    cvs_commit	*c;
 
     for (h = rl->heads; h; h = h->next) {
 	if (h->tail)
@@ -601,8 +601,8 @@ rev_list_cvs (cvs_file *cvs)
 {
     rev_list	*rl = xcalloc (1, sizeof (rev_list), "rev_list_cvs");
     cvs_number	trunk_number;
-    rev_commit	*trunk; 
-    rev_commit	*branch;
+    cvs_commit	*trunk; 
+    cvs_commit	*branch;
     cvs_version	*cv;
     cvs_branch	*cb;
     cvs_version	*ctrunk = NULL;

@@ -197,10 +197,10 @@ static int fileop_sort(const void *a, const void *b)
 
 #define display_date(c, m)	(force_dates ? ((m) * commit_time_window * 2) : (c)->date)
 
-static void compute_parent_links(rev_commit *commit)
+static void compute_parent_links(git_commit *commit)
 /* create reciprocal link pairs between file refs in a commit and its parent */
 {
-    rev_commit *parent = commit->parent; 
+    git_commit *parent = commit->parent; 
     int ncommit = 0, nparent = 0, maxmatch;
     rev_dir **ddir, **ddir2;
     rev_file **df, **df2;
@@ -242,7 +242,7 @@ static void compute_parent_links(rev_commit *commit)
     }
 }
 
-static void export_commit(rev_commit *commit, char *branch, int strip, bool report)
+static void export_commit(git_commit *commit, char *branch, int strip, bool report)
 /* export a commit (and the blobs it is the first to reference) */
 {
 #define OP_CHUNK	32
@@ -444,7 +444,7 @@ static int export_ncommit(rev_list *rl)
 /* return a count of converted commits */
 {
     rev_ref	*h;
-    rev_commit	*c;
+    git_commit	*c;
     int		n = 0;
     
     for (h = rl->heads; h; h = h->next) {
@@ -460,7 +460,7 @@ static int export_ncommit(rev_list *rl)
 }
 
 struct commit_seq {
-    rev_commit *commit;
+    git_commit *commit;
     rev_ref *head;
     bool realized;
 };
@@ -478,7 +478,7 @@ bool export_commits(rev_list *rl, int strip, time_t fromtime, bool progress)
 {
     rev_ref *h;
     Tag *t;
-    rev_commit *c;
+    git_commit *c;
     int n;
     size_t extent;
 
@@ -497,7 +497,7 @@ bool export_commits(rev_list *rl, int strip, time_t fromtime, bool progress)
 	 * (b) it's not git-fast-export  canonical form and cannot be 
 	 * directly compared to the output of other tools.
 	 */
-	rev_commit **history;
+	git_commit **history;
 	int alloc, i;
 
 	for (h = rl->heads; h; h = h->next) {
@@ -510,7 +510,7 @@ bool export_commits(rev_list *rl, int strip, time_t fromtime, bool progress)
 		for (c=h->commit, n=0; c; c=(c->tail ? NULL : c->parent), n++) {
 		    if (n >= alloc) {
 			alloc += 1024;
-			history = (rev_commit **)xrealloc(history, alloc *sizeof(rev_commit*), "export");
+			history = (git_commit **)xrealloc(history, alloc *sizeof(git_commit *), "export");
 		    }
 		    history[n] = c;
 		}

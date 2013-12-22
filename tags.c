@@ -40,7 +40,7 @@ static Tag *find_tag(char *name)
     return tag;
 }
 
-void tag_commit(rev_commit *c, char *name)
+void tag_commit(cvs_commit *c, char *name)
 /* add a CVS commit to the list associated with a named tag (this_file implicit) */
 {
     Tag *tag = find_tag(name);

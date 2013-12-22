@@ -369,7 +369,7 @@ rev_commit_date_sort (rev_commit **commits, int ncommit)
 }
 
 bool
-rev_commit_has_file (rev_commit *c, rev_file *f)
+git_commit_has_file (git_commit *c, rev_file *f)
 {
     int	i, j;
 
@@ -401,7 +401,7 @@ static rev_file **files = NULL;
 static int	    sfiles = 0;
 
 void
-rev_commit_cleanup (void)
+git_commit_cleanup (void)
 {
     if (files) {
 	free (files);
@@ -410,8 +410,8 @@ rev_commit_cleanup (void)
     }
 }
 
-static rev_commit *
-rev_commit_build (rev_commit **revisions, rev_commit *leader, int nrevisions)
+static git_commit *
+git_commit_build (rev_commit **revisions, rev_commit *leader, int nrevisions)
 /* build a changeset commit from a clique of CVS revisions */
 {
     int		n, nfile;
@@ -456,19 +456,19 @@ rev_commit_build (rev_commit **revisions, rev_commit *leader, int nrevisions)
 }
 
 #ifdef __UNUSED__
-static rev_commit *
+static git_commit *
 rev_ref_find_commit_file (rev_ref *branch, rev_file *file)
 {
     rev_commit	*c;
 
     for (c = branch->commit; c; c = c->parent)
-	if (rev_commit_has_file (c, file))
+	if (git_commit_has_file (c, file))
 	    return c;
     return NULL;
 }
 
 static bool
-rev_commit_is_ancestor (rev_commit *old, rev_commit *young)
+git_commit_is_ancestor (git_commit *old, git_commit *young)
 {
     while (young) {
 	if (young == old)
@@ -583,9 +583,9 @@ rev_branch_merge (rev_ref **branches, int nbranch,
     int nlive;
     int n;
     rev_commit *prev = NULL;
-    rev_commit *head = NULL, **tail = &head;
+    git_commit *head = NULL, **tail = &head;
     rev_commit **revisions = xcalloc (nbranch, sizeof (rev_commit *), "merging per-file branches");
-    rev_commit *commit;
+    git_commit *commit;
     rev_commit *latest;
     rev_commit **p;
     time_t start = 0;
@@ -649,7 +649,7 @@ rev_branch_merge (rev_ref **branches, int nbranch,
 	/*
 	 * Construct current commit
 	 */
-	commit = rev_commit_build (revisions, latest, nbranch);
+	commit = git_commit_build (revisions, latest, nbranch);
 
 	/*
 	 * Step each branch
@@ -783,7 +783,7 @@ rev_branch_merge (rev_ref **branches, int nbranch,
 	    if (prev)
 		prev->tail = true;
 	} else 
-	    *tail = rev_commit_build (revisions, revisions[0], nbranch);
+	    *tail = git_commit_build (revisions, revisions[0], nbranch);
     }
     for (n = 0; n < nbranch; n++)
 	if (revisions[n])
@@ -814,7 +814,7 @@ rev_tag_search(Tag *tag, rev_commit **commits, rev_list *rl)
 	 * doing something wacky to the DAG.
 	 */
 	/* AV: shouldn't we put it on some branch? */
-	tag->commit = rev_commit_build(commits, commits[0], tag->count);
+	tag->commit = git_commit_build(commits, commits[0], tag->count);
 #endif
     }
     tag->commit->tagged = (tag->commit != NULL);
@@ -1141,7 +1141,7 @@ rev_uniq_file (rev_commit *uniq, rev_commit *common, int *nuniqp)
     for (i = 0; i < uniq->ndirs; i++) {
 	rev_dir	*dir = uniq->dirs[i];
 	for (j = 0; j < dir->nfiles; j++)
-	    if (!rev_commit_has_file (common, dir->files[j])) {
+	    if (!git_commit_has_file (common, dir->files[j])) {
 		fl = xcalloc (1, sizeof (rev_file_list), "rev_uniq_file");
 		fl->file = dir->files[j];
 		*tail = fl;
