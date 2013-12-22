@@ -61,7 +61,7 @@ void tag_commit(rev_commit *c, char *name)
 }
 
 rev_commit **tagged(Tag *tag)
-/* return an allocated list of of pointers to commits with the specified tag */
+/* return an allocated list of pointers to commits with the specified tag */
 {
     rev_commit **v = NULL;
 

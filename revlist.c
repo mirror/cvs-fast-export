@@ -1012,7 +1012,7 @@ rev_list_merge (rev_list *head)
 	if (commits)
 	    rev_tag_search(t, commits, rl);
 	else
-	    announce("lost tag %s\n", t->name);
+	    announce("internal error - lost tag %s\n", t->name);
 	free(commits);
     }
     progress_end(NULL);
