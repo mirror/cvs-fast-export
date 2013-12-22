@@ -411,7 +411,8 @@ rev_commit_cleanup (void)
 }
 
 static rev_commit *
-rev_commit_build (rev_commit **commits, rev_commit *leader, int ncommit)
+rev_commit_build (rev_commit **revisions, rev_commit *leader, int nrevisions)
+/* build a changeset commit from a clique of CVS revisions */
 {
     int		n, nfile;
     rev_commit	*commit;
@@ -419,17 +420,17 @@ rev_commit_build (rev_commit **commits, rev_commit *leader, int ncommit)
     rev_dir	**rds;
     rev_file	*first;
 
-    if (ncommit > sfiles) {
+    if (nrevisions > sfiles) {
 	free (files);
 	files = 0;
     }
     if (!files)
-	files = xmalloc ((sfiles = ncommit) * sizeof (rev_file *), __func__);
+	files = xmalloc ((sfiles = nrevisions) * sizeof (rev_file *), __func__);
     
     nfile = 0;
-    for (n = 0; n < ncommit; n++)
-	if (commits[n] && commits[n]->file)
-	    files[nfile++] = commits[n]->file;
+    for (n = 0; n < nrevisions; n++)
+	if (revisions[n] && revisions[n]->file)
+	    files[nfile++] = revisions[n]->file;
     
     if (nfile)
 	first = files[0];
@@ -583,7 +584,7 @@ rev_branch_merge (rev_ref **branches, int nbranch,
     int n;
     rev_commit *prev = NULL;
     rev_commit *head = NULL, **tail = &head;
-    rev_commit **commits = xcalloc (nbranch, sizeof (rev_commit *), "merging per-file branches");
+    rev_commit **revisions = xcalloc (nbranch, sizeof (rev_commit *), "merging per-file branches");
     rev_commit *commit;
     rev_commit *latest;
     rev_commit **p;
@@ -593,9 +594,9 @@ rev_branch_merge (rev_ref **branches, int nbranch,
     for (n = 0; n < nbranch; n++) {
 	rev_commit *c;
 	/*
-	 * Initialize commits to head of each branch
+	 * Initialize revisions to head of each branch
 	 */
-	c = commits[n] = branches[n]->commit;
+	c = revisions[n] = branches[n]->commit;
 	/*
 	 * Compute number of branches with remaining entries
 	 */
@@ -618,7 +619,7 @@ rev_branch_merge (rev_ref **branches, int nbranch,
     }
 
     for (n = 0; n < nbranch; n++) {
-	rev_commit *c = commits[n];
+	rev_commit *c = revisions[n];
 	if (!c->tailed)
 	    continue;
 	if (!start || time_compare(start, c->date) >= 0)
@@ -626,15 +627,15 @@ rev_branch_merge (rev_ref **branches, int nbranch,
 	if (c->file)
 	    announce("warning - %s too late date through branch %s\n",
 		     c->file->name, branch->name);
-	commits[n] = NULL;
+	revisions[n] = NULL;
     }
     /*
      * Walk down branches until each one has merged with the
      * parent branch
      */
     while (nlive > 0 && nbranch > 0) {
-	for (n = 0, p = commits, latest = NULL; n < nbranch; n++) {
-	    rev_commit *c = commits[n];
+	for (n = 0, p = revisions, latest = NULL; n < nbranch; n++) {
+	    rev_commit *c = revisions[n];
 	    if (!c)
 		continue;
 	    *p++ = c;
@@ -643,19 +644,19 @@ rev_branch_merge (rev_ref **branches, int nbranch,
 	    if (!latest || time_compare(latest->date, c->date) < 0)
 		latest = c;
 	}
-	nbranch = p - commits;
+	nbranch = p - revisions;
 
 	/*
 	 * Construct current commit
 	 */
-	commit = rev_commit_build (commits, latest, nbranch);
+	commit = rev_commit_build (revisions, latest, nbranch);
 
 	/*
 	 * Step each branch
 	 */
 	nlive = 0;
 	for (n = 0; n < nbranch; n++) {
-	    rev_commit *c = commits[n];
+	    rev_commit *c = revisions[n];
 	    rev_commit *to;
 	    /* already got to parent branch? */
 	    if (c->tailed)
@@ -707,10 +708,10 @@ rev_branch_merge (rev_ref **branches, int nbranch,
 		    goto Kill;
 		nlive++;
 	    }
-	    commits[n] = to;
+	    revisions[n] = to;
 	    continue;
 	Kill:
-	    commits[n] = NULL;
+	    revisions[n] = NULL;
 	}
 
 	*tail = commit;
@@ -720,24 +721,24 @@ rev_branch_merge (rev_ref **branches, int nbranch,
     /*
      * Connect to parent branch
      */
-    nbranch = rev_commit_date_sort (commits, nbranch);
+    nbranch = rev_commit_date_sort (revisions, nbranch);
     if (nbranch && branch->parent )
     {
 	int	present;
 
 //	present = 0;
 	for (present = 0; present < nbranch; present++)
-	    if (commits[present]->file) {
+	    if (revisions[present]->file) {
 		/*
 		 * Skip files which appear in the repository after
 		 * the first commit along the branch
 		 */
-		if (prev && commits[present]->date > prev->date &&
-		    commits[present]->date == rev_commit_first_date (commits[present]))
+		if (prev && revisions[present]->date > prev->date &&
+		    revisions[present]->date == rev_commit_first_date (revisions[present]))
 		{
 		    /* FIXME: what does this mean? */
 		    announce("warning - file %s appears after branch %s date\n",
-			     commits[present]->file->name, branch->name);
+			     revisions[present]->file->name, branch->name);
 		    continue;
 		}
 		break;
@@ -745,18 +746,18 @@ rev_branch_merge (rev_ref **branches, int nbranch,
 	if (present == nbranch)
 	    *tail = NULL;
 	else if ((*tail = rev_commit_locate_one (branch->parent,
-						 commits[present])))
+						 revisions[present])))
 	{
 	    if (prev && time_compare ((*tail)->date, prev->date) > 0) {
 		announce("warning - branch point %s -> %s later than branch\n",
 			 branch->name, branch->parent->name);
 		fprintf (stderr, "\ttrunk(%3d):  %s %s", n,
-			 ctime_nonl (&commits[present]->date),
-			 commits[present]->file ? " " : "D" );
-		if (commits[present]->file)
+			 ctime_nonl (&revisions[present]->date),
+			 revisions[present]->file ? " " : "D" );
+		if (revisions[present]->file)
 		    dump_number_file (stderr,
-				      commits[present]->file->name,
-				      &commits[present]->file->number);
+				      revisions[present]->file->name,
+				      &revisions[present]->file->number);
 		fprintf (stderr, "\n");
 		fprintf (stderr, "\tbranch(%3d): %s  ", n,
 			 ctime_nonl (&prev->file->u.date));
@@ -766,7 +767,7 @@ rev_branch_merge (rev_ref **branches, int nbranch,
 		fprintf (stderr, "\n");
 	    }
 	} else if ((*tail = rev_commit_locate_date (branch->parent,
-						    commits[present]->date)))
+						    revisions[present]->date)))
 	    announce("warning - branch point %s -> %s matched by date\n",
 		     branch->name, branch->parent->name);
 	else {
@@ -774,7 +775,7 @@ rev_branch_merge (rev_ref **branches, int nbranch,
 	    fprintf(stderr, "Error: branch point %s -> %s not found.",
 		    branch->name, branch->parent->name);
 
-	    if ((lost = rev_branch_of_commit (rl, commits[present])))
+	    if ((lost = rev_branch_of_commit (rl, revisions[present])))
 		fprintf (stderr, " Possible match on %s.", lost->name);
 	    fprintf (stderr, "\n");
 	}
@@ -782,12 +783,12 @@ rev_branch_merge (rev_ref **branches, int nbranch,
 	    if (prev)
 		prev->tail = true;
 	} else 
-	    *tail = rev_commit_build (commits, commits[0], nbranch);
+	    *tail = rev_commit_build (revisions, revisions[0], nbranch);
     }
     for (n = 0; n < nbranch; n++)
-	if (commits[n])
-	    commits[n]->tailed = false;
-    free (commits);
+	if (revisions[n])
+	    revisions[n]->tailed = false;
+    free (revisions);
     branch->commit = head;
 }
 
@@ -798,6 +799,7 @@ static void
 rev_tag_search(Tag *tag, rev_commit **commits, rev_list *rl)
 {
     rev_commit_date_sort(commits, tag->count);
+    /* tag gets parented with branch of most recent matching commit */
     tag->parent = rev_branch_of_commit(rl, commits[0]);
     if (tag->parent)
 	tag->commit = rev_commit_locate (tag->parent, commits[0]);
