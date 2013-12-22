@@ -230,7 +230,7 @@ typedef struct _cvs_commit {
     unsigned		tail:1;
     unsigned		tailed:1;
     unsigned		tagged:1;
-    short		nfiles;
+    unsigned		dead:1;
 } cvs_commit;
 
 typedef struct _git_commit {
@@ -246,8 +246,9 @@ typedef struct _git_commit {
     unsigned		tail:1;
     unsigned		tailed:1;
     unsigned		tagged:1;
-    short		nfiles;
+    unsigned		dead:1;		/* not actually used in gitspace */
     /* gitspace-only members begin here */
+    short		nfiles;
     short		ndirs;
     rev_dir		*dirs[0];
 } git_commit;

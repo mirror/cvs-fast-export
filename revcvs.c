@@ -71,10 +71,7 @@ rev_branch_cvs (cvs_file *cvs, cvs_number *branch)
 	c->author = v->author;
 	if (p)
 	    c->log = p->log;
-	if (v->dead)
-	    c->nfiles = 0;
-	else
-	    c->nfiles = 1;
+	 c->dead = v->dead;
 	/* leave this around so the branch merging stuff can find numbers */
 	c->file = rev_file_rev (cvs->name, &v->number, v->date);
 	if (!v->dead) {
@@ -465,7 +462,7 @@ rev_list_set_refs (rev_list *rl, cvs_file *cvs)
 	if (h->name)
 	    continue;
 	for (c = h->commit; c; c = c->parent) {
-	    if (c->nfiles)
+	    if (!c->dead)
 		break;
 	}
 	if (!c)
@@ -521,7 +518,7 @@ rev_list_free_dead_files (rev_list *rl)
 	if (h->tail)
 	    continue;
 	for (c = h->commit; c; c = c->parent) {
-	    if (c->nfiles == 0) {
+	    if (c->dead) {
 		rev_file_free (c->file);
 		c->file = 0;
 	    }
