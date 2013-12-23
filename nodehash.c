@@ -64,15 +64,16 @@ static Node *find_parent(cvs_number *n, int depth)
 void hash_version(cvs_version *v)
 /* intern a version onto the node list */
 {
-    char name[CVS_MAX_REV_LEN];
     v->node = hash_number(&v->number);
     if (v->node->version) {
+	char name[CVS_MAX_REV_LEN];
 	announce("more than one delta with number %s\n",
 		 cvs_number_string(&v->node->number, name));
     } else {
 	v->node->version = v;
     }
     if (v->node->number.c & 1) {
+	char name[CVS_MAX_REV_LEN];
 	announce("revision with odd depth (%s)\n",
 		 cvs_number_string(&v->node->number, name));
     }
@@ -81,15 +82,16 @@ void hash_version(cvs_version *v)
 void hash_patch(cvs_patch *p)
 /* intern a patch onto the node list */
 {
-    char name[CVS_MAX_REV_LEN];
     p->node = hash_number(&p->number);
     if (p->node->patch) {
+	char name[CVS_MAX_REV_LEN];
 	announce("more than one delta with number %s\n",
 		 cvs_number_string(&p->node->number, name));
     } else {
 	p->node->patch = p;
     }
     if (p->node->number.c & 1) {
+	char name[CVS_MAX_REV_LEN];
 	announce("patch with odd depth (%s)\n",
 		 cvs_number_string(&p->node->number, name));
     }
