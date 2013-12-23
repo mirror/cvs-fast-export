@@ -167,7 +167,7 @@ typedef struct _rev_file {
 	cvstime_t		date;
 	struct _rev_file *other;
     } u;
-    int                 serial;
+    serial_t            serial;
     mode_t		mode;
     struct _rev_file	*link;
 } rev_file;
