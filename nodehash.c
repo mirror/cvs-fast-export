@@ -6,7 +6,7 @@ static int entries;
 Node *head_node;
 
 static Node *hash_number(cvs_number *n)
-/* look up the node associated with a specifued CVS release number */
+/* look up the node associated with a specified CVS release number */
 {
     cvs_number key = *n;
     Node *p;
@@ -195,8 +195,7 @@ void build_branches(void)
 	b = find_parent(&a->number, 2);
 	if (!b) {
 	    char name[CVS_MAX_REV_LEN];
-	    fprintf(stderr, "no parent for %s\n",
-		    cvs_number_string(&a->number, name));
+	    announce("no parent for %s\n", cvs_number_string(&a->number, name));
 	    continue;
 	}
 	a->sib = b->down;
