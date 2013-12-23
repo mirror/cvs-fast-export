@@ -76,6 +76,10 @@ typedef char flag;
 typedef uint32_t	cvstime_t;
 #define RCS_EPOCH	378691200	/* 1982-01-01T00:00:00 */
 
+/*
+ * This type must be wide enough to enumerte every CVS revision.
+ */
+typedef uint32_t	serial_t;
 
 /*
  * Structures built by master file parsing begin.
@@ -234,8 +238,8 @@ typedef struct _cvs_commit {
     char		*commitid;
     rev_file		*file;		/* first file */
     cvstime_t		date;
-    unsigned int        serial;
-    uint8_t		seen;
+    serial_t            serial;
+    serial_t		seen;
     unsigned		tail:1;
     unsigned		tailed:1;
     unsigned		tagged:1;
@@ -250,8 +254,8 @@ typedef struct _git_commit {
     char		*commitid;
     rev_file		*file;		/* first file */
     cvstime_t		date;
-    unsigned int        serial;
-    uint8_t		seen;
+    serial_t            serial;
+    serial_t		seen;
     unsigned		tail:1;
     unsigned		tailed:1;
     unsigned		tagged:1;

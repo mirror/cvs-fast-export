@@ -36,9 +36,9 @@ struct mark {
     bool emitted;
 };
 static struct mark *markmap;
-static int seqno, mark;
+static serial_t seqno, mark;
 static char blobdir[PATH_MAX];
-static int export_total_commits;
+static serial_t export_total_commits;
 
 static void save_status_end(void)
 {
@@ -171,7 +171,7 @@ static const char *utc_offset_timestamp(const time_t *timep, const char *tz)
 struct fileop {
     char op;
     mode_t mode;
-    int serial;
+    serial_t serial;
     char path[PATH_MAX+1];	/* extra 1 for the sort sentinel */
 };
 
