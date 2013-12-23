@@ -138,10 +138,11 @@ dump_rev_list (rev_list *rl)
 #endif /* __UNUSED__ */
 
 char *
-ctime_nonl (time_t *date)
+ctime_nonl (cvstime_t *date)
 /* ctime(3) with trailing \n removed */
 {
-    char	*d = ctime (date);
+    time_t	udate = RCS_EPOCH + *date;
+    char	*d = ctime (&udate);
     
     d[strlen(d)-1] = '\0';
     return d;
@@ -397,6 +398,7 @@ static void print_sizes(void)
     printf("sizeof(long)          = %zu\n", sizeof(long));
     printf("sizeof(int)           = %zu\n", sizeof(int));
     printf("sizeof(short)         = %zu\n", sizeof(short));
+    printf("sizeof(shortttime_t)  = %zu\n", sizeof(cvstime_t));
     printf("sizeof(time_t)        = %zu\n", sizeof(time_t));
     printf("sizeof(cvs_number)    = %zu\n", sizeof(cvs_number));
     printf("sizeof(Node)          = %zu\n", sizeof(Node));
@@ -631,9 +633,10 @@ main (int argc, char **argv)
 	    break;
 	}
     }
-    if (skew_vulnerable > 0 && load_total_files > 1 && !force_dates)
-	announce("commits before this date lack commitids: %s",
-		ctime(&skew_vulnerable));
+    if (skew_vulnerable > 0 && load_total_files > 1 && !force_dates) {
+	time_t udate = RCS_EPOCH + skew_vulnerable;
+	announce("commits before this date lack commitids: %s",	ctime(&udate));
+    }
     if (rl)
 	rev_list_free (rl, 0);
     while (head) {

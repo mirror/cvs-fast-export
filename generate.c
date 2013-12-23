@@ -456,9 +456,9 @@ static void keyreplace(enum markers marker)
     char date_string[25];
     enum expand_mode exp = Gexpand;
     char const *sp = Keyword[(int)marker];
+    time_t utime = RCS_EPOCH + Gversion->date;
 
-    strftime(date_string, 25,
-	     "%Y/%m/%d %H:%M:%S", localtime(&Gversion->date));
+    strftime(date_string, 25, "%Y/%m/%d %H:%M:%S", localtime(&utime));
 
     if (exp != EXPANDKV)
 	out_printf("%c%s", KDELIM, sp);

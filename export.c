@@ -195,7 +195,7 @@ static int fileop_sort(const void *a, const void *b)
     return cmp;
 }
 
-#define display_date(c, m)	(force_dates ? ((m) * commit_time_window * 2) : (c)->date)
+#define display_date(c, m)	(force_dates ? ((m) * commit_time_window * 2) : ((c)->date + RCS_EPOCH))
 
 static void compute_parent_links(git_commit *commit)
 /* create reciprocal link pairs between file refs in a commit and its parent */

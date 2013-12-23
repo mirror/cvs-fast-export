@@ -67,6 +67,17 @@
 typedef char flag;
 
 /*
+ * On 64-bit Linux a time_t is 8 bytes.  We want to reduce memory
+ * footprint; by storing dates as 32-bit offsets from the beginning of
+ * 1982 (the year RCS was released) we can cover dates all the way to
+ * 2050-01-19T03:14:07 in half that size.  If you're still doing
+ * conversions after that you'll just have to change this to a uint64_t. 
+ */
+typedef uint32_t	cvstime_t;
+#define RCS_EPOCH	378691200	/* 1982-01-01T00:00:00 */
+
+
+/*
  * Structures built by master file parsing begin.
  */
 
@@ -111,13 +122,13 @@ typedef struct _cvs_version {
     /* metadata of a delta within a CVS file */
     struct _cvs_version	*next;
     cvs_number		number;
-    time_t		date;
     char		*author;
     char		*state;
     cvs_branch		*branches;
-    cvs_number		parent;	/* next in ,v file */
     char		*commitid;
     Node		*node;
+    cvs_number		parent;	/* next in ,v file */
+    cvstime_t		date;
     flag		dead;
 } cvs_version;
 
@@ -149,7 +160,7 @@ typedef struct _rev_file {
     char		*name;
     cvs_number		number;
     union {
-	time_t		date;
+	cvstime_t		date;
 	struct _rev_file *other;
     } u;
     int                 serial;
@@ -166,8 +177,6 @@ typedef struct _rev_dir {
 /*
  * Structures built by master file parsing end.
  */
-
-extern time_t	time_now;
 
 extern int commit_time_window;
 
@@ -220,11 +229,11 @@ extern time_t start_time;
 typedef struct _cvs_commit {
     /* a CVS revision */
     struct _cvs_commit	*parent;
-    time_t		date;
     char		*log;
     char		*author;
     char		*commitid;
     rev_file		*file;		/* first file */
+    cvstime_t		date;
     unsigned int        serial;
     uint8_t		seen;
     unsigned		tail:1;
@@ -236,11 +245,11 @@ typedef struct _cvs_commit {
 typedef struct _git_commit {
     /* a gitspace changeset */
     struct _git_commit	*parent;
-    time_t		date;
     char		*log;
     char		*author;
     char		*commitid;
     rev_file		*file;		/* first file */
+    cvstime_t		date;
     unsigned int        serial;
     uint8_t		seen;
     unsigned		tail:1;
@@ -302,12 +311,12 @@ int yyparse (void);
 extern char *yyfilename;
 
 char *
-ctime_nonl (time_t *date);
+ctime_nonl (cvstime_t *date);
 
 cvs_number
 lex_number (char *);
 
-time_t
+cvstime_t
 lex_date (cvs_number *n);
 
 char *
@@ -392,7 +401,7 @@ char *
 cvs_number_string (cvs_number *n, char *str);
 
 long
-time_compare (time_t a, time_t b);
+time_compare (cvstime_t a, cvstime_t b);
 
 void
 dump_ref_name (FILE *f, rev_ref *ref);
@@ -454,7 +463,7 @@ rev_ref *
 rev_branch_of_commit (rev_list *rl, cvs_commit *commit);
 
 rev_file *
-rev_file_rev (char *name, cvs_number *n, time_t date);
+rev_file_rev (char *name, cvs_number *n, cvstime_t date);
 
 void
 rev_file_free (rev_file *f);
@@ -527,7 +536,7 @@ void clean_hash(void);
 void build_branches(void);
 extern Node *head_node;
 
-extern time_t skew_vulnerable;
+extern cvstime_t skew_vulnerable;
 extern unsigned int total_revisions;
 
 void progress_begin(char * /*msg*/, int /*max*/);

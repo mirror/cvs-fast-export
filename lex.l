@@ -175,7 +175,7 @@ lex_number (char *s)
     return n;
 }
 
-time_t
+cvstime_t
 lex_date (cvs_number *n)
 {
 	struct tm	tm;
@@ -204,7 +204,10 @@ lex_date (cvs_number *n)
 	    }
 	    fprintf (stderr, "\n");
 	}
-	return d;
+	if (d < RCS_EPOCH)
+	    fatal_error("%s: (%d) date before RCS epoch: ", yyfilename,
+		     yylineno);
+	return d - RCS_EPOCH;
 }
 
 static void fast_export_sanitize(void)

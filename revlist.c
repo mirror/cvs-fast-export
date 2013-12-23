@@ -99,7 +99,7 @@ git_commit_later (git_commit *a, git_commit *b)
 #endif /* __UNUSED__ */
 
 static bool
-commit_time_close (time_t a, time_t b)
+commit_time_close (cvstime_t a, cvstime_t b)
 /* are two timestamps witin the commit-coalescence window? */
 {
     long	diff = a - b;
@@ -480,7 +480,7 @@ git_commit_is_ancestor (git_commit *old, git_commit *young)
 #endif
 
 static git_commit *
-git_commit_locate_date (rev_ref *branch, time_t date)
+git_commit_locate_date (rev_ref *branch, cvstime_t date)
 {
     git_commit	*commit;
 
@@ -568,7 +568,7 @@ rev_branch_of_commit (rev_list *rl, cvs_commit *commit)
 /*
  * Time of first commit along entire history
  */
-static time_t
+static cvstime_t
 cvs_commit_first_date (cvs_commit *commit)
 {
     while (commit->parent)
@@ -1060,7 +1060,7 @@ rev_file_free_marked (void)
 }
 
 rev_file *
-rev_file_rev (char *name, cvs_number *n, time_t date)
+rev_file_rev (char *name, cvs_number *n, cvstime_t date)
 {
     rev_file	*f = xcalloc (1, sizeof (rev_file), "allocating file rev");
 

@@ -21,13 +21,13 @@
 
 void yyerror (char *msg);
 
-time_t skew_vulnerable = 0;
+cvstime_t skew_vulnerable = 0;
 unsigned int total_revisions = 0;
 %}
 
 %union {
     int		i;
-    time_t	date;
+    cvstime_t	date;
     char	*s;
     cvs_number	number;
     cvs_symbol	*symbol;
