@@ -294,9 +294,9 @@ static void export_commit(git_commit *commit, char *branch, int strip, bool repo
 		op->op = 'M';
 		// git fast-import only supports 644 and 755 file modes
 		if (f->mode & 0100)
-			op->mode = 0755;
+		    op->mode = 0755;
 		else
-			op->mode = 0644;
+		    op->mode = 0644;
 		op->serial = f->serial;
 		(void)strncpy(op->path, stripped, PATH_MAX-1);
 		op++;
@@ -304,7 +304,7 @@ static void export_commit(git_commit *commit, char *branch, int strip, bool repo
 		{
 		    noperations += OP_CHUNK;
 		    operations = xrealloc(operations,
-				sizeof(struct fileop) * noperations, __func__);
+					  sizeof(struct fileop) * noperations, __func__);
 		    if (operations == NULL) {
 			free(operations);	/* pacifies cppcheck */
 			exit(1);
@@ -352,8 +352,8 @@ static void export_commit(git_commit *commit, char *branch, int strip, bool repo
 		    {
 			noperations += OP_CHUNK;
 			operations = xrealloc(operations,
-					sizeof(struct fileop) * noperations,
-					__func__);
+					      sizeof(struct fileop) * noperations,
+					      __func__);
 			if (operations == NULL) {
 			    free(operations);	/* pacifies cppcheck */
 			    exit(1);
@@ -440,7 +440,7 @@ static void export_commit(git_commit *commit, char *branch, int strip, bool repo
     if (report)
 	printf ("\n");
 #undef OP_CHUNK
-    }
+}
 
 static int export_ncommit(rev_list *rl)
 /* return a count of converted commits */
