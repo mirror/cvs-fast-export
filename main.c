@@ -398,7 +398,7 @@ static void print_sizes(void)
     printf("sizeof(long)          = %zu\n", sizeof(long));
     printf("sizeof(int)           = %zu\n", sizeof(int));
     printf("sizeof(short)         = %zu\n", sizeof(short));
-    printf("sizeof(shortttime_t)  = %zu\n", sizeof(cvstime_t));
+    printf("sizeof(cvstime_t)     = %zu\n", sizeof(cvstime_t));
     printf("sizeof(time_t)        = %zu\n", sizeof(time_t));
     printf("sizeof(cvs_number)    = %zu\n", sizeof(cvs_number));
     printf("sizeof(Node)          = %zu\n", sizeof(Node));

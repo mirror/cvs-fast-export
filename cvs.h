@@ -97,7 +97,6 @@ struct _rev_file;
 
 typedef struct node {
 	struct node *hash_next;
-	cvs_number number;
 	struct _cvs_version *v;
 	struct _cvs_patch *p;
 	struct node *next;
@@ -105,6 +104,7 @@ typedef struct node {
 	struct node *down;
 	struct node *sib;
 	struct _rev_file *file;
+	cvs_number number;
 	flag starts;
 } Node;
 
