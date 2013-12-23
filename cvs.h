@@ -148,15 +148,15 @@ typedef struct _cvs_patch {
 typedef struct {
     /* this represents the entire metadata content of a CVS master file */
     char		*name;
-    cvs_number		head;
-    cvs_number		branch;
     cvs_symbol		*symbols;
     cvs_version		*versions;
     cvs_patch		*patches;
-    mode_t		mode;
-    int			nversions;
     char 		*expand;
     char		*description;
+    cvs_number		head;
+    cvs_number		branch;
+    mode_t		mode;
+    serial_t		nversions;
 } cvs_file;
 
 typedef struct _rev_file {
@@ -164,7 +164,7 @@ typedef struct _rev_file {
     char		*name;
     cvs_number		number;
     union {
-	cvstime_t		date;
+	cvstime_t	date;
 	struct _rev_file *other;
     } u;
     serial_t            serial;
@@ -174,7 +174,7 @@ typedef struct _rev_file {
 
 typedef struct _rev_dir {
     /* a directory containing a collection of file states */
-    int			nfiles;
+    serial_t		nfiles;
     rev_file		*files[0];
 } rev_dir;
 
