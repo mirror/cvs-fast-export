@@ -32,7 +32,7 @@
  */
 
 struct mark {
-    int external;
+    serial_t external;
     bool emitted;
 };
 static struct mark *markmap;
