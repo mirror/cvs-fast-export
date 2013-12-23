@@ -108,7 +108,8 @@ static void drop_path_component(char *string, const char *drop)
 static char *export_filename(rev_file *file, int strip)
 {
     static char name[PATH_MAX];
-    int	    len;
+    int	len;
+    char *ignore;
     
     if (strlen (file->name) - strip >= MAXPATHLEN)
 	fatal_error("File name %s\n too long\n", file->name);
@@ -119,11 +120,12 @@ static char *export_filename(rev_file *file, int strip)
     if (len > 2 && !strcmp (name + len - 2, ",v"))
 	name[len-2] = '\0';
 
-    if (strcmp(name, ".cvsignore") == 0)
+    ignore = name + strlen(name) - 10; 
+    if (strcmp(ignore, ".cvsignore") == 0 && (ignore == name || ignore[-1] == '/'))
     {
-	name[1] = 'g';
-	name[2] = 'i';
-	name[3] = 't';
+	*(++ignore) = 'g';
+	*(++ignore) = 'i';
+	*(++ignore) = 't';
     }
 
     return name;
