@@ -60,8 +60,8 @@ rev_branch_cvs (cvs_file *cvs, cvs_number *branch)
     n = *branch;
     n.n[n.c-1] = -1;
     for (node = cvs_find_version (cvs, &n); node; node = node->next) {
-	cvs_version *v = node->v;
-	cvs_patch *p = node->p;
+	cvs_version *v = node->version;
+	cvs_patch *p = node->patch;
 	cvs_commit *c;
 	if (!v)
 	     continue;

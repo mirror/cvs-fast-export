@@ -96,16 +96,16 @@ struct _cvs_patch;
 struct _rev_file;
 
 typedef struct node {
-	struct node *hash_next;
-	struct _cvs_version *v;
-	struct _cvs_patch *p;
-	struct node *next;
-	struct node *to;
-	struct node *down;
-	struct node *sib;
-	struct _rev_file *file;
-	cvs_number number;
-	flag starts;
+    struct node *hash_next;
+    struct _cvs_version *version;
+    struct _cvs_patch *patch;
+    struct _rev_file *file;
+    struct node *next;
+    struct node *to;
+    struct node *down;
+    struct node *sib;
+    cvs_number number;
+    flag starts;
 } Node;
 
 typedef struct _cvs_symbol {
