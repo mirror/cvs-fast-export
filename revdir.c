@@ -144,6 +144,7 @@ rev_pack_files (rev_file **files, int nfiles, int *ndr)
     }
     rd = rev_pack_dir (files + start, nfiles - start);
     if (nds == sds) {
+	/* coverity[sizecheck] Coverity has a bug here */
 	rds = xrealloc (rds, (sds *= 2) * sizeof (rev_dir *), __func__);
     }
     rds[nds++] = rd;

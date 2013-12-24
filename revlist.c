@@ -425,6 +425,7 @@ git_commit_build (cvs_commit **revisions, cvs_commit *leader, int nrevisions)
 	files = 0;
     }
     if (!files)
+	/* coverity[sizecheck] Coverity has a bug here */
 	files = xmalloc ((sfiles = nrevisions) * sizeof (rev_file *), __func__);
     
     nfile = 0;

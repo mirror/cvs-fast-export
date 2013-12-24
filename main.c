@@ -165,10 +165,11 @@ rev_list_file (char *name, int *nversions)
     if (!yyin) {
 	perror (name);
 	++err;
+	return NULL;
     }
     yyfilename = name;
     yylineno = 0;
-    this_file = xcalloc (1, sizeof (cvs_file), "rev_list_file");
+    this_file = xcalloc (1, sizeof (cvs_file), __func__);
     this_file->name = name;
     if (yyin)
 	assert (fstat (fileno (yyin), &buf) == 0);
@@ -320,7 +321,7 @@ static int get_int_substr(const char * str, const regmatch_t * p)
 
 static time_t mktime_utc(struct tm * tm, const char* tzbuf)
 {
-    /* coverity[tainted_data] */
+    /* coverity[tainted_string_return_content] */
     char * old_tz = getenv("TZ");
     time_t ret;
 
