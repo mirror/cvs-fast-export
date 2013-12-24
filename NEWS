@@ -1,12 +1,17 @@
 		cvs-fast-export project news
 
+Repository head:
+    Bug fix: Non-top-level .cvsignores are now converted.
+    More speed and significant lowering of memory usage.
+    Most error messages are now explained on the manual page.
+
 0.8 @ 2013-12-16
     Processing speed has approximately tripled since last release.
     cvs-fast-export has save progress metering again.
     cvssync can now take a CVS URL argument.
 
 0.7 @ 2013-12-15
-    -i option for incremental dumping
+    -i option for incremental dumping.
     -p option for enabling load status reports.
     Many documentation improvements.
     There is now a regression-test suite for the package.
@@ -33,5 +38,3 @@
 
 0.1 @ 2006-03-09
     Original code by Keith Packard; traveled as 'parsecvs'.
-
-
