@@ -63,10 +63,11 @@ clean:
 check: cvs-fast-export
 	@(cd tests >/dev/null; make -s)
 
-install: cvs-fast-export.1 all
+install: cvs-fast-export cvs-fast-export.1 cvssync.1
 	$(INSTALL) -d "$(target)/bin"
 	$(INSTALL) -d "$(target)/share/man/man1"
 	$(INSTALL) cvs-fast-export "$(target)/bin"
+	$(INSTALL) cvssync "$(target)/bin"
 	$(INSTALL) -m 644 cvs-fast-export.1 "$(target)/share/man/man1"
 	$(INSTALL) -m 644 cvssync.1 "$(target)/share/man/man1"
 
