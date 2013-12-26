@@ -494,9 +494,9 @@ rev_list_set_refs (rev_list *rl, cvs_file *cvs)
 	    char	rev[CVS_MAX_REV_LEN];
 
 	    cvs_number_string (&h->number, rev);
-	    announce("warning - %s unnamed branch %s from %s\n",
-		     cvs->name, rev, h->parent->name);
-	    sprintf (name, "%s-UNNAMED-BRANCH", h->parent->name);
+	    sprintf (name, "%s-UNNAMED-BRANCH-%s", h->parent->name, h->commit->commitid);
+	    announce("warning - putting %s rev %s on unnamed branch %s off %s\n",
+		     cvs->name, rev, name, h->parent->name);
 	    h->name = atom (name);
 	}
     }

@@ -240,8 +240,12 @@ deltatype	: DELTATYPE NAME SEMI
 group		: GROUP NAME SEMI
 			{ $$ = $2; }
 		;
-kopt		: KOPT NAME SEMI
-			{ $$ = $2; }
+kopt		: KOPT DATA SEMI
+			{ 
+			fprintf(stderr, "ignoring kopt %s \n", $2);
+			$$ = $2; 
+		}
+                | KOPT SEMI
 		;
 owner		: OWNER NAME SEMI
 			{ $$ = $2; }

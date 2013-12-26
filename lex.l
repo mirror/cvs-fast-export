@@ -21,6 +21,8 @@
     
 static char *
 parse_data (int strip);
+static char *
+parse_data_until_newline (void);
 
 static void fast_export_sanitize(void);
 
@@ -61,12 +63,7 @@ static void fast_export_sanitize(void);
 					BEGIN(INITIAL);
 					return TEXT_DATA;
 				}
-<CONTENT>[-a-zA-Z_+%][-a-zA-Z_0-9+/%.~^\\*?]* {
-					fast_export_sanitize();
-					yylval.s = atom (yytext);
-					return NAME;
-				}
-<KCONTENT>[-i@a-zA-Z_+%][-@a-zA-Z_0-9+/%.~^\\*?]* {
+<CONTENT>[-a-zA-Z_+%][-a-zA-Z_0-9+/%=.~^\\*?]* {
 					fast_export_sanitize();
 					yylval.s = atom (yytext);
 					return NAME;
@@ -93,6 +90,9 @@ static void fast_export_sanitize(void);
 				}
 ;				BEGIN(INITIAL); return SEMI;
 :				return COLON;
+<KCONTENT>[^;]*			{
+				yylval.s = parse_data_until_newline();
+				}
 <INITIAL,CONTENT>@		{
 					yylval.s = parse_data (1);
 					return DATA;
@@ -153,6 +153,31 @@ parse_data (int strip)
     } else {
        ret = buf.string;
     }
+    return ret;
+}
+
+static char *
+parse_data_until_newline ()
+{
+    int c;
+    char *ret;
+    struct varbuf buf;
+
+    buf.cur = 0;
+    buf.len = 256;
+    buf.string = xmalloc(buf.len, __func__);
+
+    for(;;) {
+	c = getc (yyin);
+	if (c == '\n') {
+		break;
+	}
+	addbuf(&buf, c);
+    }
+    ungetc (c, yyin);
+    addbuf(&buf, 0);
+    ret = atom (buf.string);
+    free (buf.string);
     return ret;
 }
 
