@@ -241,11 +241,9 @@ group		: GROUP NAME SEMI
 			{ $$ = $2; }
 		;
 kopt		: KOPT DATA SEMI
-			{ 
-			fprintf(stderr, "ignoring kopt %s \n", $2);
-			$$ = $2; 
-		}
+			{ $$ = $2; }
                 | KOPT SEMI
+			{ $$ = NULL; }
 		;
 owner		: OWNER NAME SEMI
 			{ $$ = $2; }
