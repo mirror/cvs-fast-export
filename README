@@ -16,10 +16,11 @@ The analysis stage of this code originally travelled as "parsecvs"
 and was written by Keith Packard in early 2006.  It was briefly 
 maintained by Bart Massey before passing to Eric S. Raymond in 
 late 2012; ESR wrote the fast-export output stage and renamed the
-program to reflect its new function.
+program to reflect its new function. Alan Barrett wrote the 
+improved progress meter.
 
 The distribution includes a tool, cvssync, for fetching masters from
-CVS remote reposotiries so cvs-fast-export can see them.  You will
+CVS remote repositories so cvs-fast-export can see them.  You will
 need rsync installed to use it.
 
 This code has a regression-test suite; invoke it with "make check".
