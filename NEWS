@@ -1,5 +1,8 @@
 		cvs-fast-export project news
 
+Repository head:
+    Cope with CVS-NT kopt strings containing garbage binary data.
+
 1.0 @ 2013-12-28
     Bug fix: Non-top-level .cvsignores are now converted.
     More speed and significant lowering of memory usage.
