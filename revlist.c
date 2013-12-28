@@ -280,7 +280,7 @@ rev_ref_tsort (rev_ref *refs, rev_list *head)
     rev_ref **done_tail = &done;
     rev_ref *r, **prev;
 
-    fprintf (stderr, "Tsort refs: ");
+//    fprintf (stderr, "Tsort refs:\n");
     while (refs) {
 	for (prev = &refs; (r = *prev); prev = &(*prev)->next) {
 	    if (rev_ref_is_ready (r->name, head, done)) {
@@ -293,11 +293,10 @@ rev_ref_tsort (rev_ref *refs, rev_list *head)
 	}
 	*prev = r->next;
 	*done_tail = r;
-	fprintf (stderr, "%s ", r->name);
+//	fprintf (stderr, "\t%s\n", r->name);
 	r->next = NULL;
 	done_tail = &r->next;
     }
-	fprintf (stderr, "\n");
     return done;
 }
 
@@ -811,6 +810,7 @@ rev_tag_search(Tag *tag, cvs_commit **revisions, rev_list *rl)
 	tag->commit = git_commit_locate (tag->parent, revisions[0]);
     if (!tag->commit) {
 	announce("tag %s could not be assigned to a commit\n", tag->name);
+#if 0
 	/*
 	 * ESR: Keith's code appeared to be trying to create a
 	 * synthetic commit for unmatched tags. The comment 
@@ -819,10 +819,10 @@ rev_tag_search(Tag *tag, cvs_commit **revisions, rev_list *rl)
 	 * doing something wacky to the DAG.
 	 */
 	/* AV: shouldn't we put it on some branch? */
-	// tag->commit = git_commit_build(revisions, revisions[0], tag->count);
-    } else {
-        tag->commit->tagged = (tag->commit != NULL);
+	tag->commit = git_commit_build(revisions, revisions[0], tag->count);
+#endif
     }
+    tag->commit->tagged = (tag->commit != NULL);
 }
 
 static void
