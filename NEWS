@@ -1,6 +1,6 @@
 		cvs-fast-export project news
 
-Repository head:
+1.0 @ 2013-12-28
     Bug fix: Non-top-level .cvsignores are now converted.
     More speed and significant lowering of memory usage.
     Most error messages are now explained on the manual page.
