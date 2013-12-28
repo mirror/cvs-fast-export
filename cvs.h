@@ -55,7 +55,10 @@
 #define MAXPATHLEN  10240
 #endif
 
-/* CVS_MAX_BRANCHWIDTH should match the number in the longrev test*/
+/* 
+ * CVS_MAX_BRANCHWIDTH should match the number in the longrev test.
+ * If it goes above 128 some bitfields widths in rev_ref must increase.
+ */
 #define CVS_MAX_BRANCHWIDTH	10
 #define CVS_MAX_DEPTH		(2*CVS_MAX_BRANCHWIDTH + 2)
 #define CVS_MAX_REV_LEN	(CVS_MAX_DEPTH * 11)
@@ -222,7 +225,7 @@ extern time_t start_time;
  * malloced by splitting the struct into two types. 
  *
  * Because the rev_ref structure contains a pointer to the early
- * version; a few casts are needed at points in the code that erquire
+ * version, a few casts are needed at points in the code that erquire
  * that late-version fields.  (This is mainly in export.c and
  * graph.c).  All these casts are marked with PUNNING in the code.
  * 
@@ -273,8 +276,8 @@ typedef struct _rev_ref {
     struct _rev_ref	*parent;	/* link into tree */
     char		*name;
     cvs_number		number;
-    unsigned		depth:4;	/* depth in branching tree (1 is trunk) */
-    unsigned		degree:4;	/* number of digits in original CVS version */
+    unsigned		depth:7;	/* depth in branching tree (1 is trunk) */
+    unsigned		degree:7;	/* number of digits in original CVS version */
     flag		shown:1;
     flag		tail:1;
 } rev_ref;
