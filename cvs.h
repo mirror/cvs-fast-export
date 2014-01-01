@@ -73,7 +73,7 @@ typedef char flag;
  * On 64-bit Linux a time_t is 8 bytes.  We want to reduce memory
  * footprint; by storing dates as 32-bit offsets from the beginning of
  * 1982 (the year RCS was released) we can cover dates all the way to
- * 2050-01-19T03:14:07 in half that size.  If you're still doing
+ * 2118-02-07T06:28:15 in half that size.  If you're still doing
  * conversions after that you'll just have to change this to a uint64_t. 
  */
 typedef uint32_t	cvstime_t;
