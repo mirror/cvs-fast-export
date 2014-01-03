@@ -232,6 +232,9 @@ lex_date (cvs_number *n)
 	if (d < RCS_EPOCH)
 	    fatal_error("%s: (%d) date before RCS epoch: ", yyfilename,
 		     yylineno);
+	else if (d >= RCS_OMEGA)
+	    fatal_error("%s: (%d) date too far in future: ", yyfilename,
+		     yylineno);
 	return d - RCS_EPOCH;
 }
 
