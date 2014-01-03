@@ -78,8 +78,8 @@ typedef char flag;
  * conversions after that you'll just have to change this to a uint64_t. 
  */
 typedef uint32_t	cvstime_t;
-#define RCS_EPOCH	378691200		/* 1982-01-01T00:00:00 */
-#define RCS_OMEGA	(RCS_EPOCH+UINT_MAX)	/* 2118-02-07T06:28:15 */
+#define RCS_EPOCH	378691200	/* 1982-01-01T00:00:00 */
+#define RCS_OMEGA	UINT32_MAX	/* 2118-02-07T06:28:15 */
 
 /*
  * This type must be wide enough to enumerte every CVS revision.
