@@ -1,6 +1,6 @@
 		cvs-fast-export project news
 
-Repository head:
+1.0 @ 2014-01-03
     Cope with CVS-NT kopt strings containing garbage binary data.
 
 1.0 @ 2013-12-28
