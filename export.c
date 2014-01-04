@@ -71,31 +71,38 @@ void export_init(void)
 	fatal_error("temp dir creation failed\n");
 }
 
-static char *blobfile(int serial)
+static char *blobfile(int serial, bool create)
 /* Random-access location of the blob corresponding to the specified serial */
 {
     static char path[PATH_MAX];
     int m;
     (void)snprintf(path, sizeof(path), "%s", blobdir);
+    /*
+     * FANOUT should be chosen to be the largest directory size that does not
+     * cause slow secondary allocations.  It's something near 256 on ext4
+     * (we think...)
+     */
+#define FANOUT	254
     for (m = serial;;)
     {
-	int digit = m % 10;
-	if ((m = (m - digit) / 10) == 0) {
+	int digit = m % FANOUT;
+	if ((m = (m - digit) / FANOUT) == 0) {
 	    (void)snprintf(path + strlen(path), sizeof(path) - strlen(path),
-			   "/blob%d", digit);
+			   "/b%x", digit);
 	    break;
 	}
 	else
 	{
 	    (void)snprintf(path + strlen(path), sizeof(path) - strlen(path),
-			   "/%d", digit);
+			   "/%x", digit);
 	    /* coverity[toctou] */
-	    if (access(path, R_OK) != 0) {
+	    if (create && access(path, R_OK) != 0) {
 		if (mkdir(path,S_IRWXU | S_IRWXG) != 0)
 		    fatal_error("blob subdir creation of %s failed\n", path);
 	    }
 	}
     }
+#undef FANOUT
     return path;
 }
 
@@ -106,7 +113,7 @@ void export_blob(Node *node, void *buf, size_t len)
     
     node->file->serial = ++seqno;
 
-    wfp = fopen(blobfile(seqno), "w");
+    wfp = fopen(blobfile(seqno, true), "w");
     if (wfp == NULL)
 	fatal_system_error("blobfile open");
     fprintf(wfp, "data %zd\n", len);
@@ -396,7 +403,7 @@ static void export_commit(git_commit *commit, char *branch, int strip, bool repo
 	{
 	    markmap[op2->serial].external = ++mark;
 	    if (report) {
-		char *fn = blobfile(op2->serial);
+		char *fn = blobfile(op2->serial, false);
 		FILE *rfp = fopen(fn, "r");
 		if (rfp)
 		{
