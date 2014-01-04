@@ -22,6 +22,7 @@
 #include <errno.h>
 #include <getopt.h>
 #include <regex.h>
+#include <malloc.h>
 
 #ifndef MAXPATHLEN
 #define MAXPATHLEN  10240
@@ -443,6 +444,7 @@ main (int argc, char **argv)
     time_t          fromtime = 0;
     off_t	    textsize = 0;
 
+    mallopt(M_TOP_PAD,16*1024*1024); /* grab memory in 16MB chunks */
     start_time = time(NULL);
 
     /* force times using mktime to be interpreted in UTC */
