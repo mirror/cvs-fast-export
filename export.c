@@ -279,7 +279,6 @@ static void export_commit(git_commit *commit, char *branch, int strip, bool repo
     char *timezone;
     char *revpairs = NULL;
     size_t revpairsize = 0;
-    const char *ts;
     time_t ct;
     rev_file	*f;
     int		i, j;
@@ -364,7 +363,6 @@ static void export_commit(git_commit *commit, char *branch, int strip, bool repo
 
 	    for (j = 0; j < dir->nfiles; j++) {
 		bool present;
-		present = false;
 		f = dir->files[j];
 		present = (f->u.other != NULL);
 		if (!present) {
@@ -433,6 +431,7 @@ static void export_commit(git_commit *commit, char *branch, int strip, bool repo
 	printf("mark :%d\n", mark);
     commit->serial = seqno;
     if (report) {
+	const char *ts;
 	ct = display_date(commit, mark);
 	ts = utc_offset_timestamp(&ct, timezone);
 	//printf("author %s <%s> %s\n", full, email, ts);
