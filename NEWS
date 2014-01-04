@@ -1,7 +1,7 @@
 		cvs-fast-export project news
 
 1.2 @ 2014-01-04
-    Smarter blob directory creatiuon to reduce search overhead for blobs.
+    Smarter blob directory creation to reduce search overhead for blobs.
 
 1.1 @ 2014-01-03
     Cope with CVS-NT kopt strings containing garbage binary data.

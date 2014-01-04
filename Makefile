@@ -7,7 +7,7 @@ prefix?=/usr/local
 target=$(DESTDIR)$(prefix)
 LEX=/usr/bin/flex
 
-VERSION=1.1
+VERSION=1.2
 
 GCC_WARNINGS1=-Wall -Wpointer-arith -Wstrict-prototypes
 GCC_WARNINGS2=-Wmissing-prototypes -Wmissing-declarations
