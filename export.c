@@ -89,6 +89,7 @@ static char *blobfile(int serial)
 	{
 	    (void)snprintf(path + strlen(path), sizeof(path) - strlen(path),
 			   "/%d", digit);
+	    /* coverity[toctou] */
 	    if (access(path, R_OK) != 0) {
 		if (mkdir(path,S_IRWXU | S_IRWXG) != 0)
 		    fatal_error("blob subdir creation of %s failed\n", path);
