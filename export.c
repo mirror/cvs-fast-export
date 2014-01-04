@@ -19,6 +19,8 @@
 #include <limits.h>
 #include <assert.h>
 #include <stdlib.h>
+#include <sys/types.h>
+#include <sys/stat.h>
 #include <sys/resource.h>
 
 #include "cvs.h"
@@ -69,11 +71,30 @@ void export_init(void)
 	fatal_error("temp dir creation failed\n");
 }
 
-static char *blobfile(int m)
+static char *blobfile(int serial)
 /* Random-access location of the blob corresponding to the specified serial */
 {
     static char path[PATH_MAX];
-    (void)snprintf(path, sizeof(path), "%s/%d", blobdir, m);
+    int m;
+    (void)snprintf(path, sizeof(path), "%s", blobdir);
+    for (m = serial;;)
+    {
+	int digit = m % 10;
+	if ((m = (m - digit) / 10) == 0) {
+	    (void)snprintf(path + strlen(path), sizeof(path) - strlen(path),
+			   "/blob%d", digit);
+	    break;
+	}
+	else
+	{
+	    (void)snprintf(path + strlen(path), sizeof(path) - strlen(path),
+			   "/%d", digit);
+	    if (access(path, R_OK) != 0) {
+		if (mkdir(path,S_IRWXU | S_IRWXG) != 0)
+		    fatal_error("blob subdir creation of %s failed\n", path);
+	    }
+	}
+    }
     return path;
 }
 
@@ -85,7 +106,8 @@ void export_blob(Node *node, void *buf, size_t len)
     node->file->serial = ++seqno;
 
     wfp = fopen(blobfile(seqno), "w");
-    assert(wfp);
+    if (wfp == NULL)
+	fatal_system_error("blobfile open");
     fprintf(wfp, "data %zd\n", len);
     fwrite(buf, len, sizeof(char), wfp);
     fputc('\n', wfp);
@@ -134,8 +156,11 @@ static char *export_filename(rev_file *file, int strip)
 void export_wrap(void)
 /* clean up after export, removing the blob storage */
 {
+    char cmdbuf[PATH_MAX];
     (void)fputs("done\n", stdout);
-    (void)rmdir(blobdir);
+    (void)snprintf(cmdbuf, sizeof(cmdbuf), "rm -r %s", blobdir);
+    if (system(cmdbuf))
+	fatal_error("blob directory deletion failed");
 }
 
 static const char *utc_offset_timestamp(const time_t *timep, const char *tz)
