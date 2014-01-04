@@ -76,19 +76,26 @@ static char *blobfile(int serial, bool create)
 {
     static char path[PATH_MAX];
     int m;
+
+#ifdef FDEBUG
+    (void)fprintf(stderr, "-> blobfile(%d, %d)...\n", serial, create);
+#endif /* FDEBUG */
     (void)snprintf(path, sizeof(path), "%s", blobdir);
     /*
      * FANOUT should be chosen to be the largest directory size that does not
      * cause slow secondary allocations.  It's something near 256 on ext4
      * (we think...)
      */
-#define FANOUT	254
+#define FANOUT	256
     for (m = serial;;)
     {
 	int digit = m % FANOUT;
 	if ((m = (m - digit) / FANOUT) == 0) {
 	    (void)snprintf(path + strlen(path), sizeof(path) - strlen(path),
-			   "/b%x", digit);
+			   "/=%x", digit);
+#ifdef FDEBUG
+	    (void)fprintf(stderr, "path: %s\n", path);
+#endif /* FDEBUG */
 	    break;
 	}
 	else
@@ -96,13 +103,22 @@ static char *blobfile(int serial, bool create)
 	    (void)snprintf(path + strlen(path), sizeof(path) - strlen(path),
 			   "/%x", digit);
 	    /* coverity[toctou] */
+#ifdef FDEBUG
+	    (void)fprintf(stderr, "directory: %s\n", path);
+#endif /* FDEBUG */
 	    if (create && access(path, R_OK) != 0) {
+#ifdef FDEBUG
+		(void)fprintf(stderr, "directory: %s\n", path);
+#endif /* FDEBUG */
 		if (mkdir(path,S_IRWXU | S_IRWXG) != 0)
 		    fatal_error("blob subdir creation of %s failed\n", path);
 	    }
 	}
     }
 #undef FANOUT
+#ifdef FDEBUG
+    (void)fprintf(stderr, "<- ...returned path for %d = %s\n", serial, path);
+#endif /* FDEBUG */
     return path;
 }
 
