@@ -83,7 +83,7 @@ SUPPRESSIONS = -U__UNUSED__ -UYYPARSE_PARAM -UYYTYPE_INT16 -UYYTYPE_INT8 \
 	-UYYTYPE_UINT16 -UYYTYPE_UINT8 -UYY_USER_INIT \
 	-Ushort -Usize_t -Uyytext_ptr -Uyyoverflow
 cppcheck:
-	cppcheck --template gcc --enable=all $(SUPPRESSIONS) --suppress=unusedStructMember *.[ch]
+	cppcheck -I. --template gcc --enable=all $(SUPPRESSIONS) --suppress=unusedStructMember --suppress=unusedFunction --suppress=unreadVariable --suppress=uselessAssignmentPtrArg --suppress=missingIncludeSystem *.[ch]
 
 SOURCES = Makefile *.[ch] *.[yl] cvssync
 DOCS = README COPYING NEWS AUTHORS TODO control cvs-fast-export.asc cvssync.asc
