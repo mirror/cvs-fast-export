@@ -15,13 +15,15 @@
  *  with this program; if not, write to the Free Software Foundation, Inc.,
  *  59 Temple Place, Suite 330, Boston, MA 02111-1307 USA.
  */
-
 #include <limits.h>
 #include <assert.h>
 #include <stdlib.h>
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <sys/resource.h>
+#ifdef ZLIB
+#include <zlib.h>
+#endif
 
 #include "cvs.h"
 
@@ -125,17 +127,36 @@ static char *blobfile(int serial, bool create)
 void export_blob(Node *node, void *buf, size_t len)
 /* save the blob where it will be available for random access */
 {
+#ifndef ZLIB
     FILE *wfp;
+#else
+    gzFile wfp;
+#endif
     
     node->file->serial = ++seqno;
 
+#ifndef ZLIB
     wfp = fopen(blobfile(seqno, true), "w");
+#else
+    /*
+     * Blobs are written compressed.  This costs a little compression time,
+     * but we get it back in reduced disk seeks.
+     */
+    wfp = gzopen(blobfile(seqno, true), "w");
+#endif
     if (wfp == NULL)
 	fatal_system_error("blobfile open");
+#ifndef ZLIB
     fprintf(wfp, "data %zd\n", len);
     fwrite(buf, len, sizeof(char), wfp);
     fputc('\n', wfp);
     (void)fclose(wfp);
+#else
+    gzprintf(wfp, "data %zd\n", len);
+    gzwrite(wfp, buf, len);
+    gzputc(wfp, '\n');
+    (void)gzclose(wfp);
+#endif
 }
 
 static void drop_path_component(char *string, const char *drop)
@@ -420,16 +441,28 @@ static void export_commit(git_commit *commit, char *branch, int strip, bool repo
 	    markmap[op2->serial].external = ++mark;
 	    if (report) {
 		char *fn = blobfile(op2->serial, false);
+#ifndef ZLIB
 		FILE *rfp = fopen(fn, "r");
+#else
+		gzFile rfp = gzopen(fn, "r");
+#endif
 		if (rfp)
 		{
 		    int c;
 		    printf("blob\nmark :%d\n", mark);
+#ifndef ZLIB
 		    while ((c = fgetc(rfp)) != EOF)
+#else
+		    while ((c = gzgetc(rfp)) != EOF)
+#endif
 			putchar(c);
 		    (void) unlink(fn);
 		    markmap[op2->serial].emitted = true;
+#ifndef ZLIB
 		    (void)fclose(rfp);
+#else
+		    (void)gzclose(rfp);
+#endif
 		}
 	    }
 	}

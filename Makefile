@@ -1,6 +1,6 @@
 # Makefile for cvs-fast-export
 #
-# Build requirements: A C compiler, yacc, lex, and asciidoc.
+# Build requirements: A C compiler, yacc, lex, zlib, and asciidoc.
 
 INSTALL = install
 prefix?=/usr/local
@@ -26,12 +26,15 @@ LFLAGS=-l
 #CFLAGS += -pg
 CFLAGS += -O
 
+# To disable blob compression, comment out the following line
+CFLAGS += -DZLIB
+
 OBJS=gram.o lex.o main.o cvsutil.o revdir.o \
 	revlist.o atom.o revcvs.o generate.o export.o \
 	nodehash.o tags.o authormap.o graph.o utils.o
 
 cvs-fast-export: $(OBJS)
-	cc $(CFLAGS) -o $@ $(OBJS)
+	cc $(CFLAGS) -o $@ $(OBJS) -lz
 
 $(OBJS): cvs.h
 
