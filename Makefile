@@ -58,6 +58,8 @@ y.tab.h: gram.c
 .asc.html:
 	a2x --doctype manpage --format xhtml $*.asc
 
+man: cvssync.1 cvs-fast-export.1
+
 clean:
 	rm -f $(OBJS) y.tab.h gram.c lex.c cvs-fast-export docbook-xsl.css
 	rm -f cvs-fast-export.1 cvs-fast-export.html
@@ -67,7 +69,7 @@ clean:
 check: cvs-fast-export
 	@(cd tests >/dev/null; make -s)
 
-install: cvs-fast-export cvs-fast-export.1 cvssync.1
+install: cvs-fast-export man
 	$(INSTALL) -d "$(target)/bin"
 	$(INSTALL) -d "$(target)/share/man/man1"
 	$(INSTALL) cvs-fast-export "$(target)/bin"
