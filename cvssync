@@ -82,7 +82,7 @@ if __name__ == '__main__':
             sys.exit(1)
         (host, path) = host.split(":")
     else:
-        sys.stderr.write("cvssync: requires a host/path and module argument")
+        sys.stderr.write("cvssync: requires a host/path and module argument\n")
         sys.exit(1)
 
     if verbose:
