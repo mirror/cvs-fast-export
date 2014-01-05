@@ -86,7 +86,7 @@ if __name__ == '__main__':
         sys.exit(1)
 
     if verbose:
-        print "host = %s, path = %s, module = %s" % (host, path, module)
+        print("host = %s, path = %s, module = %s" % (host, path, module))
 
     directory = oopt or module 
     vopt = "v" if verbose else ""
