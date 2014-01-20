@@ -538,14 +538,32 @@ rev_order_compare (cvs_number *a, cvs_number *b)
 }
 #endif
 
+static int
+cvs_symbol_name_compare (void *x, void *y)
+{
+    if (x < y)
+	return -1;
+    else if (y < x)
+	return 1;
+    else
+	return 0;
+}
+
 static cvs_symbol *
 cvs_find_symbol (cvs_file *cvs, char *name)
 {
-    cvs_symbol	*s;
+    rbtree_node *n, **tree;
 
-    for (s = cvs->symbols; s; s = s->next)
-	if (s->name == name)
-	    return s;
+    tree = &cvs->symbols_by_name;
+    if (!(*tree)) {
+	cvs_symbol *s;
+	for (s = cvs->symbols; s ; s = s->next)
+	    rbtree_insert (tree, s->name, s, cvs_symbol_name_compare);
+    }
+
+    n = rbtree_lookup (*tree, name, cvs_symbol_name_compare);
+    if (n)
+	return (cvs_symbol*)n->value;
     return NULL;
 }
 

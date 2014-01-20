@@ -30,7 +30,7 @@ CFLAGS += -O
 #CFLAGS += -DZLIB
 #LDFLAGS += -lz
 
-OBJS=gram.o lex.o main.o cvsutil.o revdir.o \
+OBJS=gram.o lex.o rbtree.o main.o cvsutil.o revdir.o \
 	revlist.o atom.o revcvs.o generate.o export.o \
 	nodehash.o tags.o authormap.o graph.o utils.o
 

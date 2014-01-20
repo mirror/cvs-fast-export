@@ -87,6 +87,24 @@ typedef uint32_t	cvstime_t;
 typedef uint32_t	serial_t;
 
 /*
+ * Structures for the red/black tree
+ */
+
+typedef enum _rbtree_color {
+  RED = 0,
+  BLACK = 1,
+} rbtree_color;
+
+typedef struct _rbtree_node {
+    void		*key;
+    void		*value;
+    struct _rbtree_node	*parent;
+    struct _rbtree_node	*left;
+    struct _rbtree_node	*right;
+    rbtree_color	color;
+} rbtree_node;
+
+/*
  * Structures built by master file parsing begin.
  */
 
@@ -154,6 +172,7 @@ typedef struct {
     /* this represents the entire metadata content of a CVS master file */
     char		*name;
     cvs_symbol		*symbols;
+    rbtree_node		*symbols_by_name;
     cvs_version		*versions;
     cvs_patch		*patches;
     char 		*expand;
@@ -519,6 +538,17 @@ load_status (char *name);
 
 void 
 load_status_next (void);
+
+void
+rbtree_insert(rbtree_node **root, void *key, void *value,
+              int (*compare)(void* key1, void* key2));
+
+rbtree_node*
+rbtree_lookup(rbtree_node *root, void* key,
+              int (*compare)(void* key1, void* key2));
+
+void
+rbtree_free(rbtree_node *root);
 
 void* 
 xmalloc(size_t size, char const *legend);

@@ -313,6 +313,7 @@ cvs_file_free (cvs_file *cvs)
 /* discard a file object and its storage */
 {
     cvs_symbol_free (cvs->symbols);
+    rbtree_free (cvs->symbols_by_name);
     cvs_version_free (cvs->versions);
     cvs_patch_free (cvs->patches);
     free (cvs);
