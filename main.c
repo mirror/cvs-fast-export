@@ -22,7 +22,9 @@
 #include <errno.h>
 #include <getopt.h>
 #include <regex.h>
+#if defined(__GNUC__)
 #include <malloc.h>
+#endif /* __GNUC__ */
 
 #ifndef MAXPATHLEN
 #define MAXPATHLEN  10240
@@ -444,7 +446,15 @@ main (int argc, char **argv)
     time_t          fromtime = 0;
     off_t	    textsize = 0;
 
+#if defined(__GNUC__)
+    /* 
+     * The default sbrk call grabs memory from the OS in 128kb chunks
+     * for malloc. As we use up memory in prodigous amounts it is
+     * better to grab it in bigger chunks, and make less calls to
+     * sbrk. 16MB seems to be a decent value.
+     */
     mallopt(M_TOP_PAD,16*1024*1024); /* grab memory in 16MB chunks */
+#endif /* __GNUC__ */
     start_time = time(NULL);
 
     /* force times using mktime to be interpreted in UTC */

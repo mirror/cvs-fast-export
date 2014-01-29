@@ -1,5 +1,8 @@
 		cvs-fast-export project news
 
+Repository head:
+    Performance optimization to call sbrk() less often.
+
 1.3 @ 2014-01-23
     Improved performance of masters with lots of symbols; thank Jens Bethkowsky.
 
