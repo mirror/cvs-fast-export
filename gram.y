@@ -128,14 +128,14 @@ name		: NAME
 		  }
 		;
 revisions	: revisions revision
-{ *$1 = $2; $$ = &$2->next; total_revisions++; }
+		  { *$1 = $2; $$ = &$2->next; total_revisions++; }
 		|
 		  { $$ = &this_file->versions; }
 		;
 
 revtrailer	: paramlist opt_commitid paramlist 
-      { $$ = $2; }
-    |
+		  { $$ = $2; }
+		|
 		  { $$ = NULL; }
 		;
 
