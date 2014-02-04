@@ -1,13 +1,13 @@
 # Makefile for cvs-fast-export
 #
-# Build requirements: A C compiler, yacc, lex, zlib, and asciidoc.
+# Build requirements: A C compiler, bison, flex, and asciidoc.
 
 INSTALL = install
 prefix?=/usr/local
 target=$(DESTDIR)$(prefix)
 LEX=/usr/bin/flex
 
-VERSION=1.3
+VERSION=1.4
 
 GCC_WARNINGS1=-Wall -Wpointer-arith -Wstrict-prototypes
 GCC_WARNINGS2=-Wmissing-prototypes -Wmissing-declarations

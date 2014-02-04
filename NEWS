@@ -1,6 +1,6 @@
 		cvs-fast-export project news
 
-Repository head:
+1.4 @ 20140-02-04
     Optimization to call sbrk() less often needs to be conditioned on GCC.
 
 1.3 @ 2014-01-23
