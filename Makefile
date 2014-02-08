@@ -1,6 +1,7 @@
 # Makefile for cvs-fast-export
 #
 # Build requirements: A C compiler, bison, flex, and asciidoc.
+# For blob compression you will also need zlib.
 
 INSTALL = install
 prefix?=/usr/local

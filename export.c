@@ -21,6 +21,14 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <sys/resource.h>
+
+/*
+ * Blob compression with zlib is not enabled by default because, (a) in general,
+ * any repository large enough to hit a disk-space limit is likely to hit
+ * a core limit on metadata sooner, and (b) compression costs time.  The
+ * option has been left in place for unusual cicumstances and can be enabled
+ * from the Makefile.
+ */
 #ifdef ZLIB
 #include <zlib.h>
 #endif
