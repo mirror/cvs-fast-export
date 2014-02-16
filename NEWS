@@ -1,6 +1,6 @@
 		cvs-fast-export project news
 
-Repository head:
+1.5 @ 20140-02-16
     Skip a hardlinks field, if present.
     Add a -c option to cvssync that makes mirrors with CVSROOTs.
 
