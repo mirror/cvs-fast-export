@@ -1,5 +1,8 @@
 		cvs-fast-export project news
 
+Repository head:
+    Skip a hardlinks field, if present.
+
 1.4 @ 20140-02-04
     Optimization to call sbrk() less often needs to be conditioned on GCC.
 

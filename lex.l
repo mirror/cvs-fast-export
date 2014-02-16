@@ -55,6 +55,7 @@ static void fast_export_sanitize(void);
 <INITIAL>permissions		BEGIN(PERM); return PERMISSIONS;
 <INITIAL>filename		BEGIN(FNAME); return FILENAME;
 <INITIAL>mergepoint1		BEGIN(REVISION); return MERGEPOINT;
+<INITIAL>hardlinks		BEGIN(CONTENT); return HARDLINKS;
 <INITIAL>desc			return DESC;
 <INITIAL>log			return LOG;
 <INITIAL>text			BEGIN(SKIP); return TEXT;
