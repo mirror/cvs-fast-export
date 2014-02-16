@@ -28,7 +28,7 @@ def computesource(host, path, module):
 
 # You should not need to modify anything below this line
 
-import sys, getopt, subprocess
+import os, sys, getopt, subprocess
 
 verbose = False
 execute = True
@@ -52,9 +52,12 @@ def do_or_die(dcmd):
 
 if __name__ == '__main__':
 
-    (opts, arguments) = getopt.getopt(sys.argv[1:], "no:v")
+    (opts, arguments) = getopt.getopt(sys.argv[1:], "cno:v")
     oopt = None
+    checkoutable = False
     for (opt, arg) in opts:
+        if opt == '-c':
+            checkoutable = True
         if opt == '-n':
             execute = False
         if opt == '-o':
@@ -92,6 +95,14 @@ if __name__ == '__main__':
     vopt = "v" if verbose else ""
 
     source = computesource(host, path, module)
+
+    if checkoutable:
+        if not os.path.exists(directory):
+            os.mkdir(directory)
+        dummyroot os.path.join(directory, "CVSROOT")
+        if not os.path.exists(dummyroot):
+            os.mkdir(dummyroot))
+        directory = os.path.join(directory, module)
 
     do_or_die("rsync -a%sz %s %s" % (vopt, source, directory))
 

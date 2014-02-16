@@ -2,6 +2,7 @@
 
 Repository head:
     Skip a hardlinks field, if present.
+    Add a -c option to cvssync that makes mirrors with CVSROOTs.
 
 1.4 @ 20140-02-04
     Optimization to call sbrk() less often needs to be conditioned on GCC.
