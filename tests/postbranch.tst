@@ -91,10 +91,10 @@ Wrong graph, imported with: /usr/bin/cvsps --fast-export proj | git fast-import
 
 import testlifter
 
-repo = testlifter.CVSRepository("basin.repo")
+repo = testlifter.CVSRepository("postbranch.repo")
 repo.init()
-repo.module("basin")
-co = repo.checkout("basin", "basin.checkout")
+repo.module("postbranch")
+co = repo.checkout("postbranch", "postbranch.checkout")
 
 # 1) create file "f"
 co.write("f", "random content")
