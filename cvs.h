@@ -246,8 +246,8 @@ extern time_t start_time;
  * malloced by splitting the struct into two types. 
  *
  * Because the rev_ref structure contains a pointer to the early
- * version, a few casts are needed at points in the code that erquire
- * that late-version fields.  (This is mainly in export.c and
+ * version, a few casts are needed at points in the code that require
+ * the late-version fields.  (This is mainly in export.c and
  * graph.c).  All these casts are marked with PUNNING in the code.
  * 
  * If the common fields in these structures don't remain in the same order,
