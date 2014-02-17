@@ -1,5 +1,8 @@
 		cvs-fast-export project news
 
+1.6 @ 2014-02-17
+    Fix a brown-paper-bag bug in cvssync.
+
 1.5 @ 2014-02-16
     Skip a hardlinks field, if present.
     Add a -c option to cvssync that makes mirrors with CVSROOTs.
