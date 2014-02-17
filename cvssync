@@ -101,7 +101,7 @@ if __name__ == '__main__':
             os.mkdir(directory)
         dummyroot = os.path.join(directory, "CVSROOT")
         if not os.path.exists(dummyroot):
-            os.mkdir(dummyroot))
+            os.mkdir(dummyroot)
         directory = os.path.join(directory, module)
 
     do_or_die("rsync -a%sz %s %s" % (vopt, source, directory))
