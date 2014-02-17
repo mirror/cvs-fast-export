@@ -99,7 +99,7 @@ if __name__ == '__main__':
     if checkoutable:
         if not os.path.exists(directory):
             os.mkdir(directory)
-        dummyroot os.path.join(directory, "CVSROOT")
+        dummyroot = os.path.join(directory, "CVSROOT")
         if not os.path.exists(dummyroot):
             os.mkdir(dummyroot))
         directory = os.path.join(directory, module)
