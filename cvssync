@@ -1,6 +1,6 @@
 #!/usr/bin/python
 """
-cvssync - discover and fetch a CVS repository using rsync
+cvssync - fetch a CVS repository using rsync
 
 This tool is a front end for rsync that attempts to deduce how to get
 a copy of a CVS repository by analyzing the arguments you are told
