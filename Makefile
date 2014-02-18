@@ -65,7 +65,7 @@ clean:
 	rm -f $(OBJS) y.tab.h gram.c lex.c cvs-fast-export docbook-xsl.css
 	rm -f cvs-fast-export.1 cvs-fast-export.html
 	rm -f cvssync.1 cvssync.html PROFILE gmon.out
-	rm -f MANIFEST index.html *.tar.gz
+	rm -f MANIFEST index.html *.tar.gz docbook-xsl.css
 
 check: cvs-fast-export
 	@(cd tests >/dev/null; make -s)

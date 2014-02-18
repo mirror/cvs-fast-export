@@ -4,3 +4,5 @@ y.tab.h
 cvs-fast-export
 test
 lex.c
+*.html
+docbook-xsl.css
