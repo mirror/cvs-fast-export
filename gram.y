@@ -39,6 +39,11 @@ unsigned int total_revisions = 0;
     cvs_file	*file;
 }
 
+/*
+ * There's a good description of the CVS master format at:
+ * http://www.opensource.apple.com/source/cvs/cvs-19/cvs/doc/RCSFILES?txt
+ */
+
 %token		HEAD BRANCH ACCESS SYMBOLS LOCKS COMMENT DATE
 %token		BRANCHES DELTATYPE NEXT COMMITID EXPAND
 %token		GROUP KOPT OWNER PERMISSIONS FILENAME MERGEPOINT HARDLINKS
@@ -88,7 +93,6 @@ header		: HEAD opt_number SEMI
 		| COMMENT DATA SEMI
 		| EXPAND DATA SEMI
 		  { this_file->expand = $2; }
-		| HARDLINKS DATA SEMI
 		;
 locks		: locks lock
 		|
@@ -144,8 +148,8 @@ paramlist : /* empty */ | paramseq
 
 paramseq : parameter | paramseq parameter;
 
-/* ignored items from cvsnt */
-parameter : owner | group | deltatype | kopt | permissions | mergepoint | filename;
+/* ignored items from CVS-NT (except hardlinks which is from late GNU CVS) */
+parameter : owner | group | deltatype | kopt | permissions | mergepoint | filename | hardlinks;
 
 revision	: NUMBER date author state branches next revtrailer
 		  {
@@ -258,6 +262,10 @@ filename	: FILENAME NAME SEMI
 mergepoint	: MERGEPOINT NUMBER SEMI
 			{ $$ = $2; }
 		;
+hardlinks	: HARDLINKS strings SEMI
+		;
+
+strings		: DATA strings | /* empty*/;
 %%
 
 void yyerror (char *msg)
