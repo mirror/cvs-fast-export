@@ -1,5 +1,8 @@
 		cvs-fast-export project news
 
+Repository head:
+    Allow # in symbol names.  Addresses a corner case in the NetBSD repository.
+
 1.6 @ 2014-02-17
     Fix a brown-paper-bag bug in cvssync.
 

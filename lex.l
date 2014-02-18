@@ -64,7 +64,7 @@ static void fast_export_sanitize(void);
 					BEGIN(INITIAL);
 					return TEXT_DATA;
 				}
-<CONTENT>[-a-zA-Z_+%][-a-zA-Z_0-9+/%=.~^\\*?]* {
+<CONTENT>[-a-zA-Z_+%][-a-zA-Z_0-9+/%=.~^\\*?#]* {
 					fast_export_sanitize();
 					yylval.s = atom (yytext);
 					return NAME;
