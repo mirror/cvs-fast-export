@@ -32,7 +32,7 @@ static void fast_export_sanitize(void);
 }
     
 %}
-%s CONTENT SKIP COMMIT PERM REVISION FNAME KCONTENT
+%s CONTENT SKIP COMMIT PERM REVISION FNAME SKIPTOSEMI
 %%
 <INITIAL>head			BEGIN(CONTENT); return HEAD;
 <INITIAL>branch			BEGIN(CONTENT); return BRANCH;
@@ -50,12 +50,12 @@ static void fast_export_sanitize(void);
 <INITIAL>state			BEGIN(CONTENT); return STATE;
 <INITIAL>deltatype		BEGIN(CONTENT); return DELTATYPE;
 <INITIAL>group			BEGIN(PERM); return GROUP;
-<INITIAL>kopt			BEGIN(KCONTENT); return KOPT;
+<INITIAL>kopt			BEGIN(SKIPTOSEMI); return KOPT;
 <INITIAL>owner			BEGIN(PERM); return OWNER;
 <INITIAL>permissions		BEGIN(PERM); return PERMISSIONS;
 <INITIAL>filename		BEGIN(FNAME); return FILENAME;
 <INITIAL>mergepoint1		BEGIN(REVISION); return MERGEPOINT;
-<INITIAL>hardlinks		BEGIN(CONTENT); return HARDLINKS;
+<INITIAL>hardlinks		BEGIN(SKIPTOSEMI); return HARDLINKS;
 <INITIAL>desc			return DESC;
 <INITIAL>log			return LOG;
 <INITIAL>text			BEGIN(SKIP); return TEXT;
@@ -91,7 +91,7 @@ static void fast_export_sanitize(void);
 				}
 ;				BEGIN(INITIAL); return SEMI;
 :				return COLON;
-<KCONTENT>[^;]*			{
+<SKIPTOSEMI>[^;]*			{
 				yylval.s = parse_data_until_newline();
 				}
 <INITIAL,CONTENT>@		{
