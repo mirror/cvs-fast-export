@@ -1,7 +1,7 @@
 		cvs-fast-export project news
 
 Repository head:
-    Processiing of hardlinks field was incorrect, is now fixed. 
+    Processing of hardlinks field was incorrect, is now fixed. 
 
 1.7 @ 2014-02-18
     Allow # in symbol names.  Addresses a corner case in the NetBSD repository.
