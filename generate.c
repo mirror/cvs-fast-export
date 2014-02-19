@@ -648,7 +648,7 @@ static int expandline(void)
 		r = 2;
 		goto uncache_exit;
 	    case KDELIM:
-		if (!suppress_keyword_expansion) {
+		if (suppress_keyword_expansion) {
 		    r = 0;
 		    /* check for keyword */
 		    /* first, copy a long enough string into keystring */
