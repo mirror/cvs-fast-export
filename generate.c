@@ -269,7 +269,7 @@ static enum expand_mode expand_override(char const *s)
 	    if (strcmp(s,expand_names[i]) == 0)
 		return (enum expand_mode) i;
     }
-    return EXPANDKKV;
+    return EXPANDKK;
 }
 
 static char const * basefilename(char const *p)
@@ -464,12 +464,12 @@ static void keyreplace(enum markers marker)
     char *leader = NULL;
     char date_string[25];
     enum expand_mode exp = Gexpand;
-    char const *sp = Keyword[(int)marker];
+    char const *kw = Keyword[(int)marker];
     time_t utime = RCS_EPOCH + Gversion->date;
 
     strftime(date_string, 25, "%Y/%m/%d %H:%M:%S", localtime(&utime));
 
-    out_printf("%c%s", KDELIM, sp);
+    out_printf("%c%s", KDELIM, kw);
 
     if (exp != EXPANDKK) {
 	const char *target_lockedby = NULL;	// Not wired in yet
@@ -539,9 +539,9 @@ static void keyreplace(enum markers marker)
 	if (exp != EXPANDKV)
 	    out_putc(KDELIM);
 
-	sp = Glog;
+	kw = Glog;
 	ls = strlen(Glog);
-	if (sizeof(ciklog)-1<=ls && !memcmp(sp,ciklog,sizeof(ciklog)-1))
+	if (sizeof(ciklog)-1<=ls && !memcmp(kw,ciklog,sizeof(ciklog)-1))
 	    return;
 
 	/* Back up to the start of the current input line */
@@ -614,7 +614,7 @@ static void keyreplace(enum markers marker)
 	    if (!ls)
 		break;
 	    --ls;
-	    c = *sp++;
+	    c = *kw++;
 	    if (c != '\n') {
 		out_awrite(xxp+cw, cs-cw);
 		do {
@@ -622,7 +622,7 @@ static void keyreplace(enum markers marker)
 		    if (!ls)
 			break;
 		    --ls;
-		    c = *sp++;
+		    c = *kw++;
 		} while (c != '\n');
 	    }
 	}
