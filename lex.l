@@ -32,7 +32,7 @@ static void fast_export_sanitize(void);
 }
     
 %}
-%s CONTENT SKIP COMMIT PERM REVISION FNAME SKIPTOSEMI
+%s CONTENT SKIP COMMIT PERM REVISION FNAME SKIPTOSEMI AUTHORSS
 %%
 <INITIAL>head			BEGIN(CONTENT); return HEAD;
 <INITIAL>branch			BEGIN(CONTENT); return BRANCH;
@@ -46,7 +46,7 @@ static void fast_export_sanitize(void);
 <INITIAL>next			BEGIN(CONTENT); return NEXT;
 <INITIAL>commitid		BEGIN(COMMIT); return COMMITID;
 <INITIAL>strict			BEGIN(CONTENT); return STRICT;
-<INITIAL>author			BEGIN(CONTENT); return AUTHOR;
+<INITIAL>author			BEGIN(AUTHORSS); return AUTHOR;
 <INITIAL>state			BEGIN(CONTENT); return STATE;
 <INITIAL>deltatype		BEGIN(CONTENT); return DELTATYPE;
 <INITIAL>group			BEGIN(PERM); return GROUP;
@@ -65,6 +65,11 @@ static void fast_export_sanitize(void);
 					return TEXT_DATA;
 				}
 <CONTENT>[-a-zA-Z_+%][-a-zA-Z_0-9+/%=.~^\\*?#]* {
+					fast_export_sanitize();
+					yylval.s = atom (yytext);
+					return NAME;
+				}
+<AUTHORSS>[-a-zA-Z_0-9+%][-a-zA-Z_0-9+/%=.~^\\*?]* {
 					fast_export_sanitize();
 					yylval.s = atom (yytext);
 					return NAME;

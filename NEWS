@@ -1,5 +1,7 @@
 		cvs-fast-export project news
 
+Repository head:
+    RCS/CVS usernames may now begin with a digit (patch by Jesse Weinstein).
 
 1.8 @ 2014-02-19
     Processing of hardlinks field was incorrect, is now fixed. 
