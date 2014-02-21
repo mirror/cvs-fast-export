@@ -2,6 +2,7 @@
 
 Repository head:
     RCS/CVS usernames may now begin with a digit (patch by Jesse Weinstein).
+    Cleaned up a mess around keyword expansion; it had been misdocumented.
 
 1.8 @ 2014-02-19
     Processing of hardlinks field was incorrect, is now fixed. 

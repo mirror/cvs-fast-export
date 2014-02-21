@@ -37,7 +37,7 @@ typedef enum _rev_execution_mode {
 /* options */
 int commit_time_window = 300;
 bool force_dates = false;
-bool suppress_keyword_expansion = false;
+bool enable_keyword_expansion = false;
 bool reposurgeon;
 FILE *revision_map;
 char *branch_prefix = "refs/heads/";
@@ -487,7 +487,7 @@ main (int argc, char **argv)
                    "Mandatory arguments to long options are mandatory for short options too.\n"
                    " -h --help                       This help\n"
 		   " -g --graph                      Dump the commit graph\n"
-		   " -k                              Suppress keyword expansion\n"
+		   " -k                              Enable keyword expansion\n"
                    " -v --version                    Print version\n"
                    " -w --commit-time-window=WINDOW  Time window for commits (seconds)\n"
 		   " -A --authormap                  Author map file\n"
@@ -505,7 +505,7 @@ main (int argc, char **argv)
 	    rev_mode = ExecuteGraph;
 	    break;
         case 'k':
-	    suppress_keyword_expansion = true;
+	    enable_keyword_expansion = true;
 	    break;
 	case 'v':
 	    verbose++;

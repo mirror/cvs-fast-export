@@ -216,7 +216,7 @@ extern FILE *revision_map;
 
 extern bool reposurgeon;
 
-extern bool suppress_keyword_expansion;
+extern bool enable_keyword_expansion;
 
 extern char *branch_prefix;
 

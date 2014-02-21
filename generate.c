@@ -74,7 +74,13 @@ enum markers { Nomatch, Author, Date, Header, Id, Locker, Log,
 	Name, RCSfile, Revision, Source, State };
 enum stringwork {ENTER, EDIT};
 
-enum expand_mode {EXPANDKKV, EXPANDKKVL, EXPANDKK, EXPANDKV, EXPANDKO, EXPANDKB};
+enum expand_mode {EXPANDKKV,	/* default form, $<key>: <value>$ */
+		  EXPANDKKVL,	/* like KKV but with locker's name inserted */
+		  EXPANDKK,	/* keyword-only expansion, $<key>$ */
+		  EXPANDKV,	/* value-only expansion, $<value>$ */
+		  EXPANDKO,	/* old-value expansion */
+		  EXPANDKB,	/* old-value with no EOL normalization */
+		};
 enum expand_mode Gexpand;
 char * Glog;
 int Gkvlen = 0;
@@ -255,12 +261,15 @@ static int latin1_whitespace(uchar c)
 
 static enum expand_mode expand_override(char const *s)
 {
-    char * const expand_names[] = {"kv", "kvl", "k", "v", "o", "b"};
-    int i;
-    for (i=0; i < 6; ++i)
-	if (strcmp(s,expand_names[i]) == 0)
-	    return (enum expand_mode) i;
-    return EXPANDKK;
+    if (s != NULL)
+    {
+	char * const expand_names[] = {"kv", "kvl", "k", "v", "o", "b"};
+	int i;
+	for (i=0; i < 6; ++i)
+	    if (strcmp(s,expand_names[i]) == 0)
+		return (enum expand_mode) i;
+    }
+    return EXPANDKKV;
 }
 
 static char const * basefilename(char const *p)
@@ -460,8 +469,7 @@ static void keyreplace(enum markers marker)
 
     strftime(date_string, 25, "%Y/%m/%d %H:%M:%S", localtime(&utime));
 
-    if (exp != EXPANDKV)
-	out_printf("%c%s", KDELIM, sp);
+    out_printf("%c%s", KDELIM, sp);
 
     if (exp != EXPANDKK) {
 	const char *target_lockedby = NULL;	// Not wired in yet
@@ -480,7 +488,8 @@ static void keyreplace(enum markers marker)
 	case Header:
 	    if (marker == Id )
 		escape_string(basefilename(Gfilename));
-	    else	escape_string(getfullRCSname());
+	    else
+		escape_string(getfullRCSname());
 	    out_printf(" %s %s %s %s",
 		       Gversion_number, date_string,
 		       Gversion->author, Gversion->state);
@@ -648,7 +657,7 @@ static int expandline(void)
 		r = 2;
 		goto uncache_exit;
 	    case KDELIM:
-		if (suppress_keyword_expansion) {
+		if (enable_keyword_expansion) {
 		    r = 0;
 		    /* check for keyword */
 		    /* first, copy a long enough string into keystring */
@@ -658,7 +667,8 @@ static int expandline(void)
 			c = in_buffer_getc();
 			if (tp <= &Gkeyval[KEYLENGTH] && latin1_alpha(c))
 			    *tp++ = c;
-			else	break;
+			else
+			    break;
 		    }
 		    *tp++ = c; *tp = '\0';
 		    matchresult = trymatch(Gkeyval+1);
@@ -816,7 +826,7 @@ void generate_files(cvs_file *cvs,
     Node *node = head_node;
     depth = 0;
     Gfilename = cvs->name;
-    if (!suppress_keyword_expansion && cvs->expand)
+    if (enable_keyword_expansion)
 	Gexpand = expand_override(cvs->expand);
     else
 	Gexpand = EXPANDKK;
