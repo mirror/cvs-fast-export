@@ -1,14 +1,17 @@
 # Makefile for cvs-fast-export
 #
-# Build requirements: A C compiler, bison, flex, and asciidoc.
+# Build requirements: A C compiler, bisonbyacc, flex, and asciidoc.
 # For blob compression you will also need zlib.
-
-INSTALL = install
-prefix?=/usr/local
-target=$(DESTDIR)$(prefix)
-LEX=/usr/bin/flex
+# For documentation, you will need asciidoc, xsltproc and docbook stylesheets.
 
 VERSION=1.8
+
+prefix?=/usr/local
+target=$(DESTDIR)$(prefix)
+
+INSTALL = install
+YACC = bison -y
+LEX = flex
 
 GCC_WARNINGS1=-Wall -Wpointer-arith -Wstrict-prototypes
 GCC_WARNINGS2=-Wmissing-prototypes -Wmissing-declarations
@@ -25,7 +28,7 @@ LFLAGS=-l
 # To enable profiling, uncomment the following line
 # Note: the profiler gets confused if you don't also turn off -O flags.
 #CFLAGS += -pg
-CFLAGS += -g
+#CFLAGS += -O
 
 # To enable blob compression, uncomment the following:
 #CFLAGS += -DZLIB
@@ -36,13 +39,13 @@ OBJS=gram.o lex.o rbtree.o main.o cvsutil.o revdir.o \
 	nodehash.o tags.o authormap.o graph.o utils.o
 
 cvs-fast-export: $(OBJS)
-	cc $(CFLAGS) -o $@ $(OBJS) $(LDFLAGS)
+	$(CC) $(CFLAGS) $(OBJS) $(LDFLAGS) -o $@ 
 
 $(OBJS): cvs.h
 
 gram.c: gram.y
-	@echo "Expect conflicts: 10 shift/reduce, 2 reduce/reduce"
-	yacc $(YFLAGS) gram.y 
+	@echo "Expect conflicts: 16 shift/reduce, 2 reduce/reduce"
+	$(YACC) $(YFLAGS) gram.y 
 	mv -f y.tab.c gram.c
 
 lex.o: y.tab.h
@@ -53,7 +56,7 @@ y.tab.h: gram.c
 
 .SUFFIXES: .html .asc .txt .1
 
-# Requires asciidoc
+# Requires asciidoc and xsltproc/docbook stylesheets.
 .asc.1:
 	a2x --doctype manpage --format manpage $*.asc
 .asc.html:
