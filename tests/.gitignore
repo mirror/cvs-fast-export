@@ -2,4 +2,4 @@
 *.repo
 *.git
 *.git.fi
-neutralize.map
+*.map
