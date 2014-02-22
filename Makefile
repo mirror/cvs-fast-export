@@ -1,6 +1,6 @@
 # Makefile for cvs-fast-export
 #
-# Build requirements: A C compiler, bisonbyacc, flex, and asciidoc.
+# Build requirements: A C compiler, bison, flex, and asciidoc.
 # For blob compression you will also need zlib.
 # For documentation, you will need asciidoc, xsltproc and docbook stylesheets.
 
@@ -64,11 +64,14 @@ y.tab.h: gram.c
 
 man: cvssync.1 cvs-fast-export.1
 
+html: cvssync.1 cvs-fast-export.1
+
 clean:
 	rm -f $(OBJS) y.tab.h gram.c lex.c cvs-fast-export docbook-xsl.css
 	rm -f cvs-fast-export.1 cvs-fast-export.html
 	rm -f cvssync.1 cvssync.html PROFILE gmon.out
 	rm -f MANIFEST index.html *.tar.gz docbook-xsl.css
+	@(cd tests && make clean)
 
 check: cvs-fast-export
 	@(cd tests >/dev/null; make -s)
