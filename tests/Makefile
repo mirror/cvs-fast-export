@@ -48,7 +48,7 @@ m_regress:
 	@echo "== Master-parsing regressions =="
 	@-for file in $(MASTERS); do \
 	    echo -n "  $${file}: "; sed <$${file},v -n -e '/^comment	@# \(.*\)@;/s//\1/p'; \
-	    cvs-fast-export ${file},v 2>&1 | diff -u $${file}.chk -; \
+	    cvs-fast-export $${file},v 2>&1 | diff -u $${file}.chk -; \
 	done
 
 INCREMENTAL=twobranch
