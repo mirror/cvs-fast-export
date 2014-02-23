@@ -42,7 +42,7 @@ MASTERS := $(shell ls -1 *,v | sed '/,v/s///')
 m_rebuild:
 	@-for file in $(MASTERS); do \
 	    echo "Remaking $${file}.chk"; \
-	    cvs-fast-export ${file},v >$${file}.chk 2>&1; \
+	    cvs-fast-export $${file},v >$${file}.chk 2>&1; \
 	done;
 m_regress:
 	@echo "== Master-parsing regressions =="

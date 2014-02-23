@@ -1,1 +1,155 @@
+blob
+mark :1
+data 386
+AC_DEFUN(AC_C_STRINGIZE, [
+AC_REQUIRE([AC_PROG_CPP])
+AC_MSG_CHECKING([for preprocessor stringizing operator])
+AC_CACHE_VAL(ac_cv_c_stringize,
+AC_EGREP_CPP([#teststring],[
+#define x(y) #y
+
+char *s = x(teststring);
+], ac_cv_c_stringize=no, ac_cv_c_stringize=yes))
+if test "${ac_cv_c_stringize}" = yes
+then
+        AC_DEFINE(HAVE_STRINGIZE)
+fi
+AC_MSG_RESULT([${ac_cv_c_stringize}])
+])dnl
+
+
+commit refs/heads/master
+mark :2
+committer lhecking <lhecking> 908825865 +0000
+data 40
+New file, from deprecated acinclude.m4.
+
+M 100644 :1 hardlinks
+
+reset refs/tags/BETA_349_990106
+from :2
+
+reset refs/tags/BETA_349_981223
+from :2
+
+reset refs/tags/BETA_349_981222
+from :2
+
+reset refs/tags/BETA_349_981221
+from :2
+
+reset refs/tags/BETA_349_981217
+from :2
+
+reset refs/tags/BETA_349_981216
+from :2
+
+reset refs/tags/BETA_349_981215
+from :2
+
+reset refs/tags/BETA_349
+from :2
+
+reset refs/tags/BETA_348_981214
+from :2
+
+reset refs/tags/BETA_348_981210
+from :2
+
+reset refs/tags/BETA_348_981209
+from :2
+
+reset refs/tags/BETA_348_981207
+from :2
+
+reset refs/tags/BETA_348_981206
+from :2
+
+reset refs/tags/BETA_348_release
+from :2
+
+reset refs/tags/BETA_348_981204
+from :2
+
+reset refs/tags/BETA_348_981203
+from :2
+
+reset refs/tags/BETA_348
+from :2
+
+reset refs/tags/BETA_347_981202
+from :2
+
+reset refs/tags/BETA_347_981201
+from :2
+
+reset refs/tags/BETA_347_981130
+from :2
+
+reset refs/tags/BETA_347_981126
+from :2
+
+reset refs/tags/BETA_347_981125
+from :2
+
+reset refs/tags/BETA_347_981123
+from :2
+
+reset refs/tags/BETA_347_pl7
+from :2
+
+reset refs/tags/BETA_347_981121
+from :2
+
+reset refs/tags/BETA_347_98112001
+from :2
+
+reset refs/tags/BETA_347_981120
+from :2
+
+reset refs/tags/BETA_347_981119
+from :2
+
+reset refs/tags/BETA_347_981117
+from :2
+
+reset refs/tags/BETA_347_981116
+from :2
+
+reset refs/tags/BETA_347_981112
+from :2
+
+reset refs/tags/BETA_347_981106
+from :2
+
+reset refs/tags/BETA_347_98110401
+from :2
+
+reset refs/tags/BETA_347_981104
+from :2
+
+reset refs/tags/BETA_347_981103
+from :2
+
+reset refs/tags/BETA_347_981028
+from :2
+
+reset refs/tags/BETA_347_981020
+from :2
+
+reset refs/tags/BETA_347_98101901
+from :2
+
+commit refs/heads/master
+mark :3
+committer lhecking <lhecking> 916149931 +0000
+data 9
+Removed.
+
+from :2
+D hardlinks
+
+reset refs/heads/master
+from :3
+
 done
