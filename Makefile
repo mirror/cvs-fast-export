@@ -71,7 +71,6 @@ clean:
 	rm -f cvs-fast-export.1 cvs-fast-export.html
 	rm -f cvssync.1 cvssync.html PROFILE gmon.out
 	rm -f MANIFEST index.html *.tar.gz docbook-xsl.css
-	@(cd tests && make clean)
 
 check: cvs-fast-export
 	@(cd tests >/dev/null; make -s)
