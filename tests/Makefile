@@ -69,16 +69,17 @@ i_regress: neutralize.map
 
 
 PYTESTS=t9601 t9602 t9603 t9604 t9605
+PATHSTRIP = sed -e '/\/.*tests/s//tests/'
 t_regress:
 	@echo "== Pathological cases =="
 	@for pytest in $(PYTESTS); do \
 		echo -n "  $${pytest} "; grep '##' $${pytest}.py  || echo ' ## (no description)'; \
-		python $${pytest}.py 2>&1 | diff $${pytest}.err -; \
+		python $${pytest}.py 2>&1 | $(PATHSTRIP) | diff $${pytest}.err -; \
 	done
 t_rebuild:
 	@for pytest in $(PYTESTS); do \
 		echo "Remaking $${pytest}.err "; \
-		python $${pytest}.py >$${pytest}.err 2>&1; \
+		python $${pytest}.py 2>&1 | $(PATHSTRIP) >$${pytest}.err; \
 	done
 
 clean:

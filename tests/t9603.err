@@ -1,2 +1,2 @@
-cvs-fast-export: warning - /home/esr/public_html/cvs-fast-export/tests/t9603.testrepo/module/a,v:  1.1 is newer than 1.2, adjusting 1.2
+cvs-fast-export: warning - tests/t9603.testrepo/module/a,v:  1.1 is newer than 1.2, adjusting 1.2
 cvs-fast-export: commits before this date lack commitids: Wed Mar 11 19:09:10 2009
