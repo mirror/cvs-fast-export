@@ -1,7 +1,7 @@
 # Test makefile for cvs-fast-export
 
 PATH := ${PWD}/..:${PATH}
-SHELL = bash	# FIXME: Remove bashisms
+SHELL = sh	# Do not introduce bashisms!
 
 .SUFFIXES: .tst .repo .checkout
 
