@@ -28,7 +28,7 @@ LFLAGS=-l
 # To enable profiling, uncomment the following line
 # Note: the profiler gets confused if you don't also turn off -O flags.
 #CFLAGS += -pg
-#CFLAGS += -O
+CFLAGS += -O3
 
 # To enable blob compression, uncomment the following:
 #CFLAGS += -DZLIB
