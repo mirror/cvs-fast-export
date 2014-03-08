@@ -100,9 +100,9 @@ git_commit_later (git_commit *a, git_commit *b)
 
 static bool
 commit_time_close (cvstime_t a, cvstime_t b)
-/* are two timestamps witin the commit-coalescence window? */
+/* are two timestamps within the commit-coalescence window? */
 {
-    long	diff = a - b;
+    long	diff = (long)a - (long)b;
     if (diff < 0) diff = -diff;
     if (diff < commit_time_window)
 	return true;
