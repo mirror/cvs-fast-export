@@ -1,6 +1,6 @@
 		cvs-fast-export project news
 
-Repository head:
+1.10 @ 2014-03-28
     Prepends CVS default ignores to converted .cvsignores.
     Generates a .gitignore containing default CVS ignores when necessary.
 
