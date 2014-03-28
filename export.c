@@ -51,6 +51,7 @@ static struct mark *markmap;
 static serial_t seqno, mark;
 static char blobdir[PATH_MAX];
 static serial_t export_total_commits;
+static bool need_ignores = true;
 
 /*
  * GNU CVS default ignores.  We omit from this things that CVS ignores
@@ -143,11 +144,17 @@ static char *blobfile(int serial, bool create)
 void export_blob(Node *node, void *buf, size_t len)
 /* save the blob where it will be available for random access */
 {
+    size_t extralen = 0;
 #ifndef ZLIB
     FILE *wfp;
 #else
     gzFile wfp;
 #endif
+
+    if (strcmp(node->file->name, ".cvsignore,v") == 0) {
+	need_ignores = false;
+	extralen = sizeof(CVS_IGNORES) - 1;
+    }
     
     node->file->serial = ++seqno;
 
@@ -163,12 +170,16 @@ void export_blob(Node *node, void *buf, size_t len)
     if (wfp == NULL)
 	fatal_system_error("blobfile open");
 #ifndef ZLIB
-    fprintf(wfp, "data %zd\n", len);
+    fprintf(wfp, "data %zd\n", len + extralen);
+    if (extralen > 0)
+	fwrite(CVS_IGNORES, extralen, sizeof(char), wfp);
     fwrite(buf, len, sizeof(char), wfp);
     fputc('\n', wfp);
     (void)fclose(wfp);
 #else
-    gzprintf(wfp, "data %zd\n", len);
+    gzprintf(wfp, "data %zd\n", len + extralen);
+    if (extralen > 0)
+	gzwrite(CVS_IGNORES, extralen, sizeof(char), wfp);
     gzwrite(wfp, buf, len);
     gzputc(wfp, '\n');
     (void)gzclose(wfp);
@@ -523,6 +534,11 @@ static void export_commit(git_commit *commit, char *branch, int strip, bool repo
 		       op2->path);
 	    if (op2->op == 'D')
 		printf("D %s\n", op2->path);
+	}
+	if (need_ignores) {
+	    need_ignores = false;
+	    printf("M 100644 inline .cvsignore\ndata %zd\n%s\n",
+		   sizeof(CVS_IGNORES)-1, CVS_IGNORES);
 	}
     }
     free(operations);

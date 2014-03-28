@@ -264,7 +264,7 @@ class ConvertComparison:
             for root, dirs, files in os.walk(mydir):
                 for file in files:
                     path = os.path.join(root, file)
-                    if ignore not in path.split(os.sep):
+                    if ignore not in path.split(os.sep) and not path.endswith(".cvsignore"):
                         yield path
         preamble = "%s %s %s: " % (self.stem, legend, tag)
         if tag not in self.tags and tag not in self.branches:
@@ -280,6 +280,11 @@ class ConvertComparison:
         gitfiles = [fn[len(self.stem+".git")+1:] for fn in gitpaths]
         cvsfiles.sort()
         gitfiles.sort()
+        # Ignore .cvsignores in manifest comparison. since we generate them.
+        if ".cvsignore" in cvsfiles:
+            cvsfiles.remove(".cvsignore")
+        if ".cvsignore" in gitfiles:
+            gitfiles.remove(".cvsignore")
         if cvsfiles != gitfiles:
             if success_expected:
                 sys.stderr.write(preamble + "file manifests don't match.\n")

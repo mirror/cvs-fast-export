@@ -10,6 +10,37 @@ data 24
 This is a sample commit
 
 M 100644 :1 README
+M 100644 inline .cvsignore
+data 198
+# CVS default ignores begin
+tags
+TAGS
+.make.state
+.nse_depinfo
+*~
+#*
+.#*
+,*
+_$*
+*$
+*.old
+*.bak
+*.BAK
+*.orig
+*.rej
+.del-*
+*.a
+*.olb
+*.o
+*.obj
+*.so
+*.exe
+*.Z
+*.elc
+*.ln
+core
+# CVS default ignores end
+
 
 blob
 mark :3

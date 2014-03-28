@@ -1,5 +1,9 @@
 		cvs-fast-export project news
 
+Repository head:
+    Prepends CVS default ignores to converted .cvsignores.
+    Generates a .gitignore containing default CVS ignores when necessary.
+
 1.9 @ 2014-03-08
     RCS/CVS usernames may now begin with a digit (patch by Jesse Weinstein).
     Cleaned up a mess around keyword expansion; it had been misdocumented.
