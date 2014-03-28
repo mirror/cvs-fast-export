@@ -52,6 +52,14 @@ static serial_t seqno, mark;
 static char blobdir[PATH_MAX];
 static serial_t export_total_commits;
 
+/*
+ * GNU CVS default ignores.  We omit from this things that CVS ignores
+ * by default but which are highly unlikely to turn up outside an
+ * actual CVS repository and should be conspicuous if they do: RCS
+ * SCCS CVS CVS.adm RCSLOG cvslog.*
+ */
+#define CVS_IGNORES "# CVS default ignores begin\ntags\nTAGS\n.make.state\n.nse_depinfo\n*~\n#*\n.#*\n,*\n_$*\n*$\n*.old\n*.bak\n*.BAK\n*.orig\n*.rej\n.del-*\n*.a\n*.olb\n*.o\n*.obj\n*.so\n*.exe\n*.Z\n*.elc\n*.ln\ncore\n# CVS default ignores end\n"
+
 static void save_status_end(void)
 {
     if (!progress)
