@@ -729,7 +729,7 @@ bool export_commits(rev_list *rl, int strip, time_t fromtime, bool progress)
 	    progress_jump(hp - history);
 	    export_commit(hp->commit, hp->head->name, strip, report);
 	    for (t = all_tags; t; t = t->next)
-		if (t->commit == hp->commit)
+		if (t->commit == hp->commit && display_date(hp->commit, markmap[hp->commit->serial].external) > fromtime)
 		    printf("reset refs/tags/%s\nfrom :%d\n\n", t->name, markmap[hp->commit->serial].external);
 	}
 
@@ -737,6 +737,7 @@ bool export_commits(rev_list *rl, int strip, time_t fromtime, bool progress)
     }
 
     for (h = rl->heads; h; h = h->next) {
+	if (display_date(h->commit, markmap[h->commit->serial].external) > fromtime)
 	printf("reset %s%s\nfrom :%d\n\n", 
 	       branch_prefix, 
 	       h->name, 
