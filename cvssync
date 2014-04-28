@@ -22,8 +22,8 @@ def computesource(host, path, module):
         # The pattern is rsync -av cvs.berlios.de::<projectname>_cvs cvs
         return "cvs.berlios.de::%s_cvs" % module
     elif "sourceware" in host:
-        # The pattern is rsync -av sourceware.org::<projectname>-cvs cvs
-        return "sourceware.org::%s-cvs" % module
+        # The pattern is rsync -av sourceware.org::<projectname>-cvs/<module>/
+        return "%s::%s-cvs/%s/" % (host, path.split('/')[2], module)
     # Savannah retrievals work by pasting the pieces together
     # in the default way.
     else:
