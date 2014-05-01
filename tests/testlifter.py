@@ -37,7 +37,7 @@ def capture_or_die(dcmd, legend=""):
     if verbose >= DEBUG_COMMANDS:
         sys.stdout.write("testframe: executing '%s'%s\n" % (dcmd, legend))
     try:
-        return subprocess.check_output(dcmd, shell=True)
+        return subprocess.Popen(dcmd, shell=True, stdout=subprocess.PIPE).communicate()[0]
     except subprocess.CalledProcessError as e:
         if e.returncode < 0:
             sys.stderr.write("testframe: child was terminated by signal %d." % -e.returncode)
