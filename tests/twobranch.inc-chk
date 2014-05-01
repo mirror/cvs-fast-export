@@ -70,4 +70,3 @@ from :10
 reset refs/heads/samplebranch
 from :8
 
-done
