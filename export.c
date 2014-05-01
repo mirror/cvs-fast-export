@@ -229,7 +229,6 @@ void export_wrap(void)
 /* clean up after export, removing the blob storage */
 {
     char cmdbuf[PATH_MAX];
-    (void)fputs("done\n", stdout);
     (void)snprintf(cmdbuf, sizeof(cmdbuf), "rm -r %s", blobdir);
     if (system(cmdbuf))
 	fatal_error("blob directory deletion failed");
