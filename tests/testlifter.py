@@ -101,7 +101,7 @@ class RCSRepository:
         "Convert the repo.  Leave the stream dump in a log file."
         vopt = "-v " * (verbose - DEBUG_LIFTER + 1)
         do_or_die("rm -fr {0} && mkdir {0} && git init --quiet {0}".format(gitdir))
-        do_or_die('find {0} -name "*,v" | cvs-fast-export {2} {3} | tee {1}.fi | (cd {1} >/dev/null; git fast-import --quiet --done && git checkout)'.format(self.directory, gitdir, vopt, more_opts))
+        do_or_die('find {0} -name "*,v" | cvs-fast-export {2} {3} | tee {1}.fi | (cd {1} >/dev/null; git fast-import --quiet && git checkout)'.format(self.directory, gitdir, vopt, more_opts))
         self.conversions.append(gitdir)
     def cleanup(self):
         "Clean up the repository conversions."
@@ -144,7 +144,7 @@ class CVSRepository:
         "Convert a specified module.  Leave the stream dump in a log file."
         vopt = "-v " * (verbose - DEBUG_LIFTER + 1)
         do_or_die("rm -fr {0} && mkdir {0} && git init --quiet {0}".format(gitdir))
-        do_or_die('find {0}/{1} -name "*,v" | cvs-fast-export {3} {4} | tee {2}.fi | (cd {2} >/dev/null; git fast-import --quiet --done && git checkout)'.format(self.directory, module, gitdir, vopt, more_opts))
+        do_or_die('find {0}/{1} -name "*,v" | cvs-fast-export {3} {4} | tee {2}.fi | (cd {2} >/dev/null; git fast-import --quiet && git checkout)'.format(self.directory, module, gitdir, vopt, more_opts))
         self.conversions.append(gitdir)
     def cleanup(self):
         "Clean up the repository checkout directories."
