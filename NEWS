@@ -1,6 +1,6 @@
 		cvs-fast-export project news
 
-Repository head:
+1.11: 2014-06-06
     Teach cvssync about sourceware.org. 
 
 1.10 @ 2014-03-28

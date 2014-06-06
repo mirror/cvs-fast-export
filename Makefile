@@ -4,7 +4,7 @@
 # For blob compression you will also need zlib.
 # For documentation, you will need asciidoc, xsltproc and docbook stylesheets.
 
-VERSION=1.10
+VERSION=1.11
 
 prefix?=/usr/local
 target=$(DESTDIR)$(prefix)
