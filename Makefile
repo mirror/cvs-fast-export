@@ -91,11 +91,18 @@ PROFILE: gmon.out
 
 
 # Weird suppressions are required because of strange tricks in Bison.
-SUPPRESSIONS = -U__UNUSED__ -UYYPARSE_PARAM -UYYTYPE_INT16 -UYYTYPE_INT8 \
+CSUPPRESSIONS = -U__UNUSED__ -UYYPARSE_PARAM -UYYTYPE_INT16 -UYYTYPE_INT8 \
 	-UYYTYPE_UINT16 -UYYTYPE_UINT8 -UYY_USER_INIT \
 	-Ushort -Usize_t -Uyytext_ptr -Uyyoverflow
 cppcheck:
-	cppcheck -I. --template gcc --enable=all $(SUPPRESSIONS) --suppress=unusedStructMember --suppress=unusedFunction --suppress=unreadVariable --suppress=uselessAssignmentPtrArg --suppress=missingIncludeSystem *.[ch]
+	cppcheck -I. --template gcc --enable=all $(CSUPPRESSIONS) --suppress=unusedStructMember --suppress=unusedFunction --suppress=unreadVariable --suppress=uselessAssignmentPtrArg --suppress=missingIncludeSystem *.[ch]
+
+PYLINTOPTS = --rcfile=/dev/null --reports=n \
+	--msg-template="{path}:{line}: [{msg_id}({symbol}), {obj}] {msg}" \
+	--dummy-variables-rgx='^_'
+PYSUPPRESSIONS = --disable="C0103,C0301"
+pylint:
+	@pylint $(PYLINTOPTS) $(PYSUPPRESSIONS) cvssync
 
 SOURCES = Makefile *.[ch] *.[yl] cvssync
 DOCS = README COPYING NEWS AUTHORS TODO control cvs-fast-export.asc cvssync.asc

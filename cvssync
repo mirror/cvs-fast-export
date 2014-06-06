@@ -12,22 +12,22 @@ actual path to the repository from the host, path and module arguments.
 
 # Hosting-site rules live inside the following function.
 
-def computesource(host, path, module):
-    "Compute an rsync source given a CVS host, path, and module"
-    if "sourceforge" in host:
+def computesource(sourcehost, sourcepath, sourcemodule):
+    "Compute an rsync source given a CVS sourcehost, sourcepath, and sourcemodule"
+    if "sourceforge" in sourcehost:
         # On SourceForge you need to double the colon and strip the
         # leading / to invoke the rsync module facility.
-        return "%s::%s/%s/" % (host, path[1:], module)
-    elif "berlios" in host:
+        return "%s::%s/%s/" % (sourcehost, sourcepath[1:], sourcemodule)
+    elif "berlios" in sourcehost:
         # The pattern is rsync -av cvs.berlios.de::<projectname>_cvs cvs
-        return "cvs.berlios.de::%s_cvs" % module
-    elif "sourceware" in host:
+        return "cvs.berlios.de::%s_cvs" % sourcemodule
+    elif "sourceware" in sourcehost:
         # The pattern is rsync -av sourceware.org::<projectname>-cvs/<module>/
-        return "%s::%s-cvs/%s/" % (host, path.split('/')[2], module)
+        return "%s::%s-cvs/%s/" % (sourcehost, sourcepath.split('/')[2], sourcemodule)
     # Savannah retrievals work by pasting the pieces together
     # in the default way.
     else:
-        return "%s:%s/%s/" % (host, path, module)
+        return "%s:%s/%s/" % (sourcehost, sourcepath, sourcemodule)
 
 # You should not need to modify anything below this line
 
@@ -50,7 +50,7 @@ def do_or_die(dcmd):
                 sys.stderr.write("cvssync: child returned %d.\n" % retcode)
                 sys.exit(1)
         except (OSError, IOError) as e:
-            sys.stderr.write("cvssync: execution of %s%s failed: %s\n" % (dcmd, legend, e))
+            sys.stderr.write("cvssync: execution of %s failed: %s\n" % (dcmd, e))
             sys.exit(1)
 
 if __name__ == '__main__':
@@ -92,9 +92,9 @@ if __name__ == '__main__':
         sys.exit(1)
 
     if verbose:
-        print("host = %s, path = %s, module = %s" % (host, path, module))
+        print "host = %s, path = %s, module = %s" % (host, path, module)
 
-    directory = oopt or module 
+    directory = oopt or module
     vopt = "v" if verbose else ""
 
     source = computesource(host, path, module)
