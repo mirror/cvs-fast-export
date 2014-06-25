@@ -1,5 +1,9 @@
 		cvs-fast-export project news
 
+Repository head:
+  Allow []! in tags.
+  Python in the test suite now runs under 2.6.
+
 1.11: 2014-06-06
     Teach cvssync about sourceware.org. 
 
