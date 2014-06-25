@@ -822,7 +822,8 @@ rev_tag_search(Tag *tag, cvs_commit **revisions, rev_list *rl)
 	tag->commit = git_commit_build(revisions, revisions[0], tag->count);
 #endif
     }
-    tag->commit->tagged = (tag->commit != NULL);
+    if (tag->commit)
+	tag->commit->tagged = (tag->commit != NULL);
 }
 
 static void
