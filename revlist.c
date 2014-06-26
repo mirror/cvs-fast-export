@@ -823,7 +823,7 @@ rev_tag_search(Tag *tag, cvs_commit **revisions, rev_list *rl)
 #endif
     }
     if (tag->commit)
-	tag->commit->tagged = (tag->commit != NULL);
+	tag->commit->tagged = true;
 }
 
 static void
