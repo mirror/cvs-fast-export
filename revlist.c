@@ -447,6 +447,7 @@ git_commit_build (cvs_commit **revisions, cvs_commit *leader, int nrevisions)
     commit->commitid = leader->commitid;
     commit->log = leader->log;
     commit->author = leader->author;
+    commit->tagged = false;
     
     commit->file = first;
     commit->nfiles = nfile;

@@ -3,6 +3,8 @@
 # Build requirements: A C compiler, bison, flex, and asciidoc.
 # For blob compression you will also need zlib.
 # For documentation, you will need asciidoc, xsltproc and docbook stylesheets.
+# The test suite requires Python 2.6, and you will see some meaningless failures
+# with git 1.7.1 and older.
 
 VERSION=1.11
 
