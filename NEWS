@@ -1,6 +1,6 @@
 		cvs-fast-export project news
 
-Repository head:
+1.12: 2014-06-26
   Allow []! in tags.
   Python in the test suite now runs under 2.6.
 
