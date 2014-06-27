@@ -611,12 +611,13 @@ rev_list_sort_heads(rev_list *rl, cvs_file *cvs)
 			passmerges++;
 
 			q = p;
+			qsize = k;
+			psize = 0;
 			for (i = 0; i < k; i++) {
 				if (!q->next) break;
+				psize++;
 				q = q->next;
 			}
-			psize = k - i;
-			qsize = k;
 
 			while (psize || (qsize && q)) {
 				chosep = 0;
