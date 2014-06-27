@@ -488,7 +488,7 @@ main (int argc, char **argv)
                    " -h --help                       This help\n"
 		   " -g --graph                      Dump the commit graph\n"
 		   " -k                              Enable keyword expansion\n"
-                   " -v --version                    Print version\n"
+                   " -V --version                    Print version\n"
                    " -w --commit-time-window=WINDOW  Time window for commits (seconds)\n"
 		   " -A --authormap                  Author map file\n"
 		   " -R --revision-map               Revision map file\n"
@@ -497,6 +497,7 @@ main (int argc, char **argv)
                    " -e --remote                     Relocate branches to refs/remotes/REMOTE\n"
                    " -s --strip                      Strip the given prefix instead of longest common prefix\n"
 		   " -p --progress                   Enable load-status reporting\n"
+		   " -v --verbose                    Show verbose progress messages\n"
 		   " -i --incremental TIME           Incremental dump beginning after specified RFC3339-format time.\n"
 		   "\n"
 		   "Example: find -name '*,v' | cvs-fast-export\n");
