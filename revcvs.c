@@ -629,6 +629,7 @@ rev_list_sort_heads(rev_list *rl, cvs_file *cvs)
 					qsize--;
 				}
 
+				e->next = NULL;
 				if (l) {
 					lastl->next = e;
 					lastl = e;
