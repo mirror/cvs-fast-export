@@ -99,7 +99,7 @@ struct in_buffer_type *Ginbuf = &in_buffer_store;
  * Gline[0 .. Ggap-1] and Gline[Ggap+Ggapsize .. Glinemax-1] hold
  * pointers to lines.  Gline[Ggap .. Ggap+Ggapsize-1] contains garbage.
  * Any @s in lines are duplicated.
- * Lines are terminated by \n, or (for a last partial line only) by single @.
+ * Lines are terminated by \n, or(for a last partial line only) by single @.
  */
 static int depth;
 static struct {
@@ -195,7 +195,7 @@ static void out_buffer_enlarge(void)
 
 static unsigned long  out_buffer_count(void)
 {
-    return (unsigned long) (Goutbuf->ptr - Goutbuf->text);
+    return(unsigned long) (Goutbuf->ptr - Goutbuf->text);
 }
 
 static char *out_buffer_text(void)
@@ -267,7 +267,7 @@ static enum expand_mode expand_override(char const *s)
 	int i;
 	for (i=0; i < 6; ++i)
 	    if (strcmp(s,expand_names[i]) == 0)
-		return (enum expand_mode) i;
+		return(enum expand_mode) i;
     }
     return EXPANDKK;
 }
@@ -276,7 +276,7 @@ static char const * basefilename(char const *p)
 {
     char const *b = p, *q = p;
     for (;;)
-	switch (*q++) {
+	switch(*q++) {
 	case '/': b = q; break;
 	case 0: return b;
 	}
@@ -342,10 +342,10 @@ static enum markers trymatch(char const *string)
 	s = string;
 	while (*p++ == *s++) {
 	    if (!*p) {
-		switch (*s) {
+		switch(*s) {
 		case KDELIM:
 		case VDELIM:
-		    return (enum markers)j;
+		    return(enum markers)j;
 		default:
 		    return Nomatch;
 		}
@@ -397,7 +397,7 @@ static long parsenum(void)
 {
     int c;
     long ret = 0;
-    for(c=in_buffer_getc(); isdigit(c); c=in_buffer_getc())
+    for (c=in_buffer_getc(); isdigit(c); c=in_buffer_getc())
 	ret = (ret * 10) + (c - '0');
     in_buffer_ungetc();
     return ret;
@@ -446,7 +446,7 @@ static void escape_string(register char const *s)
 {
     for (;;) {
 	register char c;
-	switch ((c = *s++)) {
+	switch((c = *s++)) {
 	case 0:		return;
 	case '\t':	out_fputs("\\t"); break;
 	case '\n':	out_fputs("\\n"); break;
@@ -477,7 +477,7 @@ static void keyreplace(enum markers marker)
 	if (exp != EXPANDKV)
 	    out_printf("%c%c", VDELIM, ' ');
 
-	switch (marker) {
+	switch(marker) {
 	case Author:
 	    out_fputs(Gversion->author);
 	    break;
@@ -649,7 +649,7 @@ static int expandline(void)
     for (;;) {
 	c = in_buffer_getc();
 	for (;;) {
-	    switch (c) {
+	    switch(c) {
 	    case EOF:
 		goto uncache_exit;
 	    case '\n':
@@ -708,7 +708,7 @@ static int expandline(void)
 		    /*
 		     * CVS will expand keywords that have
 		     * overlapping delimiters, eg "$Name$Id$".  To
-		     * support that (mis)feature, push the closing
+		     * support that(mis)feature, push the closing
 		     * delimiter back on the input so that the
 		     * loop will resume processing starting with
 		     * it.
@@ -750,9 +750,9 @@ static void process_delta(Node *node, enum stringwork func)
     Gversion = node->version;
     cvs_number_string(&Gversion->number, Gversion_number);
 
-    switch (func) {
+    switch(func) {
     case ENTER:
-	while( (ptr=in_get_line()) )
+	while ( (ptr=in_get_line()) )
 	    insertline(editline++, ptr);
     case EDIT:
 	dc.dafter = dc.adprev = 0;
@@ -760,7 +760,7 @@ static void process_delta(Node *node, enum stringwork func)
 	    if (editor_command) {
 		editline = dc.line1 + adjust;
 		linecnt = dc.nlines;
-		while(linecnt--)
+		while (linecnt--)
 		    insertline(editline++, in_get_line());
 		adjust += dc.nlines;
 	    } else {
@@ -816,7 +816,7 @@ static void enter_branch(Node *node)
 }
 
 void generate_files(cvs_file *cvs,
-		    void (*hook)(Node *node, void *buf, size_t len))
+		    void(*hook)(Node *node, void *buf, size_t len))
 /* export all the revision states of a CVS/RS master through a hook */
 {
     if (head_node == NULL)

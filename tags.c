@@ -41,7 +41,7 @@ static Tag *find_tag(char *name)
 }
 
 void tag_commit(cvs_commit *c, char *name)
-/* add a CVS commit to the list associated with a named tag (this_file implicit) */
+/* add a CVS commit to the list associated with a named tag(this_file implicit) */
 {
     Tag *tag = find_tag(name);
     if (tag->last == this_file->name) {

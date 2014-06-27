@@ -25,7 +25,7 @@
 /*
  * Blob compression with zlib is not enabled by default because, (a) in general,
  * any repository large enough to hit a disk-space limit is likely to hit
- * a core limit on metadata sooner, and (b) compression costs time.  The
+ * a core limit on metadata sooner, and(b) compression costs time.  The
  * option has been left in place for unusual circumstances and can be enabled
  * from the Makefile.
  */
@@ -70,7 +70,7 @@ static void save_status_end(void)
 	struct rusage rusage;
 
 	(void)getrusage(RUSAGE_SELF, &rusage);
-	progress_end("100%%, %d commits in %dsec (%d commits/sec) using %ldKb.",
+	progress_end("100%%, %d commits in %dsec(%d commits/sec) using %ldKb.",
 		     export_total_commits,
 		     (int)elapsed,
 		     (int)(export_total_commits / (elapsed > 0 ? elapsed : 1)),
@@ -191,11 +191,11 @@ static void drop_path_component(char *string, const char *drop)
     char *c;
     int  m;
     m = strlen(drop);
-    while ((c = strstr (string, drop)) &&
+    while ((c = strstr(string, drop)) &&
 	   (c == string || c[-1] == '/'))
     {
-	int l = strlen (c);
-	memmove (c, c + m, l - m + 1);
+	int l = strlen(c);
+	memmove(c, c + m, l - m + 1);
     }
 }
 
@@ -205,13 +205,13 @@ static char *export_filename(rev_file *file, int strip)
     int	len;
     char *ignore;
     
-    if (strlen (file->name) - strip >= MAXPATHLEN)
+    if (strlen(file->name) - strip >= MAXPATHLEN)
 	fatal_error("File name %s\n too long\n", file->name);
-    strcpy (name, file->name + strip);
+    strcpy(name, file->name + strip);
 	drop_path_component(name, "Attic/");
 	drop_path_component(name, "RCS/");
-    len = strlen (name);
-    if (len > 2 && !strcmp (name + len - 2, ",v"))
+    len = strlen(name);
+    if (len > 2 && !strcmp(name + len - 2, ",v"))
 	name[len-2] = '\0';
 
     ignore = name + strlen(name) - 10; 
@@ -342,7 +342,7 @@ static void compute_parent_links(git_commit *commit)
 }
 
 static void export_commit(git_commit *commit, char *branch, int strip, bool report)
-/* export a commit (and the blobs it is the first to reference) */
+/* export a commit(and the blobs it is the first to reference) */
 {
 #define OP_CHUNK	32
     cvs_author *author;
@@ -551,7 +551,7 @@ static void export_commit(git_commit *commit, char *branch, int strip, bool repo
     }
 
     if (report)
-	printf ("\n");
+	printf("\n");
 #undef OP_CHUNK
 }
 
@@ -598,7 +598,7 @@ bool export_commits(rev_list *rl, int strip, time_t fromtime, bool progress)
     int n;
     size_t extent;
 
-    export_total_commits = export_ncommit (rl);
+    export_total_commits = export_ncommit(rl);
     /* the +1 is because mark indices are 1-origin, slot 0 always empty */
     extent = sizeof(struct mark) * (seqno + export_total_commits + 1);
     markmap = (struct mark *)xmalloc(extent, "markmap allocation");
@@ -609,7 +609,7 @@ bool export_commits(rev_list *rl, int strip, time_t fromtime, bool progress)
     if (branchorder) {
 	/*
 	 * Dump by branch order, not by commit date.  Slightly faster and
-	 * less memory-intensive, but (a) incremental dump won't work, and
+	 * less memory-intensive, but(a) incremental dump won't work, and
 	 * (b) it's not git-fast-export  canonical form and cannot be 
 	 * directly compared to the output of other tools.
 	 */
@@ -635,7 +635,7 @@ bool export_commits(rev_list *rl, int strip, time_t fromtime, bool progress)
 		// Now walk the history array in reverse order and export the
 		// commits, along with any matching tags.
 		for (i=n-1; i>=0; i--) {
-		    export_commit (history[i], h->name, strip, true);
+		    export_commit(history[i], h->name, strip, true);
 		    progress_step();
 		    for (t = all_tags; t; t = t->next)
 			if (t->commit == history[i])
@@ -655,8 +655,8 @@ bool export_commits(rev_list *rl, int strip, time_t fromtime, bool progress)
 	 * have to ship in their current order, otherwise some marks may not 
 	 * be resolved.
 	 *
-	 * Dump them all into a common array necause (a) we're going to
-	 * need to ship them back to front, and (b) we'd prefer to ship
+	 * Dump them all into a common array necause(a) we're going to
+	 * need to ship them back to front, and(b) we'd prefer to ship
 	 * them in canonical order by commit date rather than ordered by
 	 * branches.
 	 *
@@ -751,26 +751,26 @@ bool export_commits(rev_list *rl, int strip, time_t fromtime, bool progress)
 
 #define PROGRESS_LEN	20
 
-void load_status (char *name)
+void load_status(char *name)
 {
     int	spot = load_current_file * PROGRESS_LEN / load_total_files;
     int	    s;
     int	    l;
 
-    l = strlen (name);
+    l = strlen(name);
     if (l > 35) name += l - 35;
 
-    fprintf (STATUS, "\rLoad: %35.35s ", name);
+    fprintf(STATUS, "\rLoad: %35.35s ", name);
     for (s = 0; s < PROGRESS_LEN + 1; s++)
-	putc (s == spot ? '*' : '.', STATUS);
-    fprintf (STATUS, " %5d of %5d ", load_current_file, load_total_files);
-    fflush (STATUS);
+	putc(s == spot ? '*' : '.', STATUS);
+    fprintf(STATUS, " %5d of %5d ", load_current_file, load_total_files);
+    fflush(STATUS);
 }
 
-void load_status_next (void)
+void load_status_next(void)
 {
-    fprintf (STATUS, "\n");
-    fflush (STATUS);
+    fprintf(STATUS, "\n");
+    fflush(STATUS);
 }
 
 /* end */

@@ -165,7 +165,7 @@ _progress_print(bool newline, const char *format, va_list args)
 	fprintf(STATUS, "\r%s", progress_msg);
 	vfprintf(STATUS, format, args);
     } else if (progress_max > 0) {
-	fprintf(STATUS, "\r%s%d of %d (%d%%)   ", progress_msg,
+	fprintf(STATUS, "\r%s%d of %d(%d%%)   ", progress_msg,
 		progress_counter, progress_max,
 		(progress_counter * 100 / progress_max));
     } else if (progress_counter > 0) {

@@ -74,7 +74,7 @@ void hash_version(cvs_version *v)
     }
     if (v->node->number.c & 1) {
 	char name[CVS_MAX_REV_LEN];
-	announce("revision with odd depth (%s)\n",
+	announce("revision with odd depth(%s)\n",
 		 cvs_number_string(&v->node->number, name));
     }
 }
@@ -92,7 +92,7 @@ void hash_patch(cvs_patch *p)
     }
     if (p->node->number.c & 1) {
 	char name[CVS_MAX_REV_LEN];
-	announce("patch with odd depth (%s)\n",
+	announce("patch with odd depth(%s)\n",
 		 cvs_number_string(&p->node->number, name));
     }
 }

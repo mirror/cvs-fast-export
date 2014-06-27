@@ -24,7 +24,7 @@
  */
 
 rev_ref *
-rev_list_add_head (rev_list *rl, cvs_commit *commit, char *name, int degree)
+rev_list_add_head(rev_list *rl, cvs_commit *commit, char *name, int degree)
 /* Add head refs */
 {
     rev_ref	*r;
@@ -32,7 +32,7 @@ rev_list_add_head (rev_list *rl, cvs_commit *commit, char *name, int degree)
 
     while (*list)
 	list = &(*list)->next;
-    r = xcalloc (1, sizeof (rev_ref), "adding head reference");
+    r = xcalloc(1, sizeof(rev_ref), "adding head reference");
     r->commit = commit;
     r->name = name;
     r->next = *list;
@@ -42,7 +42,7 @@ rev_list_add_head (rev_list *rl, cvs_commit *commit, char *name, int degree)
 }
 
 static rev_ref *
-rev_find_head (rev_list *rl, char *name)
+rev_find_head(rev_list *rl, char *name)
 {
     rev_ref	*h;
 
@@ -60,7 +60,7 @@ rev_find_head (rev_list *rl, char *name)
 
 #ifdef __UNUSED__
 bool
-rev_file_later (rev_file *af, rev_file *bf)
+rev_file_later(rev_file *af, rev_file *bf)
 {
     long	t;
 
@@ -68,9 +68,9 @@ rev_file_later (rev_file *af, rev_file *bf)
      * When merging file lists, we should never see the same
      * object in both trees
      */
-    assert (af != bf);
+    assert(af != bf);
 
-    t = time_compare (af->date, bf->date);
+    t = time_compare(af->date, bf->date);
 
     if (t > 0)
 	return true;
@@ -82,12 +82,12 @@ rev_file_later (rev_file *af, rev_file *bf)
 }
 
 bool
-git_commit_later (git_commit *a, git_commit *b)
+git_commit_later(git_commit *a, git_commit *b)
 {
     long	t;
 
-    assert (a != b);
-    t = time_compare (a->date, b->date);
+    assert(a != b);
+    t = time_compare(a->date, b->date);
     if (t > 0)
 	return true;
     if (t < 0)
@@ -99,7 +99,7 @@ git_commit_later (git_commit *a, git_commit *b)
 #endif /* __UNUSED__ */
 
 static bool
-commit_time_close (cvstime_t a, cvstime_t b)
+commit_time_close(cvstime_t a, cvstime_t b)
 /* are two timestamps within the commit-coalescence window? */
 {
     long	diff = (long)a - (long)b;
@@ -110,7 +110,7 @@ commit_time_close (cvstime_t a, cvstime_t b)
 }
 
 static bool
-cvs_commit_match (cvs_commit *a, cvs_commit *b)
+cvs_commit_match(cvs_commit *a, cvs_commit *b)
 /* are two commits eligible to be coalesced into a changeset? */
 {
     /*
@@ -121,7 +121,7 @@ cvs_commit_match (cvs_commit *a, cvs_commit *b)
 	return a->commitid == b->commitid;
     if (a->commitid || b->commitid)
 	return false;
-    if (!commit_time_close (a->date, b->date))
+    if (!commit_time_close(a->date, b->date))
 	return false;
     if (a->log != b->log)
 	return false;
@@ -132,27 +132,27 @@ cvs_commit_match (cvs_commit *a, cvs_commit *b)
 
 #ifdef __UNUSED__
 static void
-git_commit_dump (FILE *f, char *title, git_commit *c, git_commit *m)
+git_commit_dump(FILE *f, char *title, git_commit *c, git_commit *m)
 {
-    fprintf (f, "\n%s\n", title);
+    fprintf(f, "\n%s\n", title);
     while (c) {
 	int	i;
 
-	fprintf (f, "%c0x%x %s\n", c == m ? '>' : ' ',
-		(int) c, ctime_nonl (&c->date));
+	fprintf(f, "%c0x%x %s\n", c == m ? '>' : ' ',
+		(int) c, ctime_nonl(&c->date));
 	for (i = 0; i < c->nfiles; i++) {
-	    fprintf (f, "\t%s", ctime_nonl (&c->files[i]->date));
-	    dump_number_file (f, c->files[i]->name, &c->files[i]->number);
-	    fprintf (f, "\n");
+	    fprintf(f, "\t%s", ctime_nonl(&c->files[i]->date));
+	    dump_number_file(f, c->files[i]->name, &c->files[i]->number);
+	    fprintf(f, "\n");
 	}
-	fprintf (f, "\n");
+	fprintf(f, "\n");
 	c = c->parent;
     }
 }
 #endif
 
 void
-rev_list_set_tail (rev_list *rl)
+rev_list_set_tail(rev_list *rl)
 {
     rev_ref	*head;
     cvs_commit	*c;
@@ -176,7 +176,7 @@ rev_list_set_tail (rev_list *rl)
 
 #if 0
 static int
-rev_ref_len (rev_ref *r)
+rev_ref_len(rev_ref *r)
 {
     int	l = 0;
     while (r) {
@@ -187,7 +187,7 @@ rev_ref_len (rev_ref *r)
 }
 
 static rev_ref *
-rev_ref_sel (rev_ref *r, int len)
+rev_ref_sel(rev_ref *r, int len)
 {
     rev_ref	*head, **tail;
     rev_ref	*a = r;
@@ -209,8 +209,8 @@ rev_ref_sel (rev_ref *r, int len)
     /*
      * recurse
      */
-    a = rev_ref_sel (a, alen);
-    b = rev_ref_sel (b, blen);
+    a = rev_ref_sel(a, alen);
+    b = rev_ref_sel(b, blen);
     /*
      * merge
      */
@@ -239,20 +239,20 @@ rev_ref_sel (rev_ref *r, int len)
 }
 
 static rev_ref *
-rev_ref_sel_sort (rev_ref *r)
+rev_ref_sel_sort(rev_ref *r)
 {
     rev_ref	*s;
 
-    r = rev_ref_sel (r, rev_ref_len (r));
+    r = rev_ref_sel(r, rev_ref_len(r));
     for (s = r; s && s->next; s = s->next) {
-	assert (s->degree <= s->next->degree);
+	assert(s->degree <= s->next->degree);
     }
     return r;
 }
 #endif
 
 static rev_ref *
-rev_ref_find_name (rev_ref *h, char *name)
+rev_ref_find_name(rev_ref *h, char *name)
 {
     for (; h; h = h->next)
 	if (h->name == name)
@@ -261,7 +261,7 @@ rev_ref_find_name (rev_ref *h, char *name)
 }
 
 static bool
-rev_ref_is_ready (char *name, rev_list *source, rev_ref *ready)
+rev_ref_is_ready(char *name, rev_list *source, rev_ref *ready)
 {
     for (; source; source = source->next) {
 	rev_ref *head = rev_find_head(source, name);
@@ -274,16 +274,16 @@ rev_ref_is_ready (char *name, rev_list *source, rev_ref *ready)
 }
 
 static rev_ref *
-rev_ref_tsort (rev_ref *refs, rev_list *head)
+rev_ref_tsort(rev_ref *refs, rev_list *head)
 {
     rev_ref *done = NULL;
     rev_ref **done_tail = &done;
     rev_ref *r, **prev;
 
-//    fprintf (stderr, "Tsort refs:\n");
+//    fprintf(stderr, "Tsort refs:\n");
     while (refs) {
 	for (prev = &refs; (r = *prev); prev = &(*prev)->next) {
-	    if (rev_ref_is_ready (r->name, head, done)) {
+	    if (rev_ref_is_ready(r->name, head, done)) {
 		break;
 	    }
 	}
@@ -293,7 +293,7 @@ rev_ref_tsort (rev_ref *refs, rev_list *head)
 	}
 	*prev = r->next;
 	*done_tail = r;
-//	fprintf (stderr, "\t%s\n", r->name);
+//	fprintf(stderr, "\t%s\n", r->name);
 	r->next = NULL;
 	done_tail = &r->next;
     }
@@ -301,7 +301,7 @@ rev_ref_tsort (rev_ref *refs, rev_list *head)
 }
 
 static int
-rev_list_count (rev_list *head)
+rev_list_count(rev_list *head)
 {
     int	count = 0;
     while (head) {
@@ -312,7 +312,7 @@ rev_list_count (rev_list *head)
 }
 
 static int
-cvs_commit_date_compare (const void *av, const void *bv)
+cvs_commit_date_compare(const void *av, const void *bv)
 {
     const cvs_commit	*a = *(const cvs_commit **) av;
     const cvs_commit	*b = *(const cvs_commit **) bv;
@@ -338,11 +338,11 @@ cvs_commit_date_compare (const void *av, const void *bv)
      * tailed entries sort next
      */
     if (a->tailed != b->tailed)
-	return (int)a->tailed - (int)b->tailed;
+	return(int)a->tailed - (int)b->tailed;
     /*
      * Newest entries sort first
      */
-    t = -time_compare (a->date, b->date);
+    t = -time_compare(a->date, b->date);
     if (t)
 	return t;
     /*
@@ -356,9 +356,9 @@ cvs_commit_date_compare (const void *av, const void *bv)
 }
 
 static int
-cvs_commit_date_sort (cvs_commit **commits, int ncommit)
+cvs_commit_date_sort(cvs_commit **commits, int ncommit)
 {
-    qsort (commits, ncommit, sizeof (cvs_commit *),
+    qsort(commits, ncommit, sizeof(cvs_commit *),
 	   cvs_commit_date_compare);
     /*
      * Trim off NULL entries
@@ -369,7 +369,7 @@ cvs_commit_date_sort (cvs_commit **commits, int ncommit)
 }
 
 bool
-git_commit_has_file (git_commit *c, rev_file *f)
+git_commit_has_file(git_commit *c, rev_file *f)
 {
     int	i, j;
 
@@ -386,7 +386,7 @@ git_commit_has_file (git_commit *c, rev_file *f)
 
 #ifdef __UNUSED__
 static rev_file *
-git_commit_find_file (git_commit *c, char *name)
+git_commit_find_file(git_commit *c, char *name)
 {
     int	n;
 
@@ -401,17 +401,17 @@ static rev_file **files = NULL;
 static int	    sfiles = 0;
 
 void
-git_commit_cleanup (void)
+git_commit_cleanup(void)
 {
     if (files) {
-	free (files);
+	free(files);
 	files = NULL;
 	sfiles = 0;
     }
 }
 
 static git_commit *
-git_commit_build (cvs_commit **revisions, cvs_commit *leader, int nrevisions)
+git_commit_build(cvs_commit **revisions, cvs_commit *leader, int nrevisions)
 /* build a changeset commit from a clique of CVS revisions */
 {
     int		n, nfile;
@@ -421,12 +421,12 @@ git_commit_build (cvs_commit **revisions, cvs_commit *leader, int nrevisions)
     rev_file	*first;
 
     if (nrevisions > sfiles) {
-	free (files);
+	free(files);
 	files = 0;
     }
     if (!files)
 	/* coverity[sizecheck] Coverity has a bug here */
-	files = xmalloc ((sfiles = nrevisions) * sizeof (rev_file *), __func__);
+	files = xmalloc((sfiles = nrevisions) * sizeof(rev_file *), __func__);
     
     nfile = 0;
     for (n = 0; n < nrevisions; n++)
@@ -438,10 +438,10 @@ git_commit_build (cvs_commit **revisions, cvs_commit *leader, int nrevisions)
     else
 	first = NULL;
     
-    rds = rev_pack_files (files, nfile, &nds);
+    rds = rev_pack_files(files, nfile, &nds);
         
-    commit = xcalloc (1, sizeof (git_commit) +
-		      nds * sizeof (rev_dir *), "creating commit");
+    commit = xcalloc(1, sizeof(git_commit) +
+		      nds * sizeof(rev_dir *), "creating commit");
     
     commit->date = leader->date;
     commit->commitid = leader->commitid;
@@ -454,25 +454,25 @@ git_commit_build (cvs_commit **revisions, cvs_commit *leader, int nrevisions)
     commit->file = first;
     commit->nfiles = nfile;
 
-    memcpy (commit->dirs, rds, (commit->ndirs = nds) * sizeof (rev_dir *));
+    memcpy(commit->dirs, rds, (commit->ndirs = nds) * sizeof(rev_dir *));
     
     return commit;
 }
 
 #ifdef __UNUSED__
 static git_commit *
-rev_ref_find_commit_file (rev_ref *branch, rev_file *file)
+rev_ref_find_commit_file(rev_ref *branch, rev_file *file)
 {
     git_commit	*c;
 
     for (c = branch->commit; c; c = c->parent)
-	if (git_commit_has_file (c, file))
+	if (git_commit_has_file(c, file))
 	    return c;
     return NULL;
 }
 
 static bool
-git_commit_is_ancestor (git_commit *old, git_commit *young)
+git_commit_is_ancestor(git_commit *old, git_commit *young)
 {
     while (young) {
 	if (young == old)
@@ -484,21 +484,21 @@ git_commit_is_ancestor (git_commit *old, git_commit *young)
 #endif
 
 static git_commit *
-git_commit_locate_date (rev_ref *branch, cvstime_t date)
+git_commit_locate_date(rev_ref *branch, cvstime_t date)
 {
     git_commit	*commit;
 
     /* PUNNING: see the big comment in cvs.h */ 
     for (commit = (git_commit *)branch->commit; commit; commit = commit->parent)
     {
-	if (time_compare (commit->date, date) <= 0)
+	if (time_compare(commit->date, date) <= 0)
 	    return commit;
     }
     return NULL;
 }
 
 static git_commit *
-git_commit_locate_one (rev_ref *branch, cvs_commit *file)
+git_commit_locate_one(rev_ref *branch, cvs_commit *file)
 {
     git_commit	*commit;
 
@@ -511,34 +511,34 @@ git_commit_locate_one (rev_ref *branch, cvs_commit *file)
 	 commit = commit->parent)
     {
 	/* PUNNING: see the big comment in cvs.h */ 
-	if (cvs_commit_match ((cvs_commit *)commit, file))
+	if (cvs_commit_match((cvs_commit *)commit, file))
 	    return commit;
     }
     return NULL;
 }
 
 static git_commit *
-git_commit_locate_any (rev_ref *branch, cvs_commit *file)
+git_commit_locate_any(rev_ref *branch, cvs_commit *file)
 {
     git_commit	*commit;
 
     if (!branch)
 	return NULL;
-    commit = git_commit_locate_any (branch->next, file);
+    commit = git_commit_locate_any(branch->next, file);
     if (commit)
 	return commit;
-    return git_commit_locate_one (branch, file);
+    return git_commit_locate_one(branch, file);
 }
 
 static git_commit *
-git_commit_locate (rev_ref *branch, cvs_commit *file)
+git_commit_locate(rev_ref *branch, cvs_commit *file)
 {
     git_commit	*commit;
 
     /*
      * Check the presumed trunk first
      */
-    commit = git_commit_locate_one (branch, file);
+    commit = git_commit_locate_one(branch, file);
     if (commit)
 	return commit;
     /*
@@ -546,11 +546,11 @@ git_commit_locate (rev_ref *branch, cvs_commit *file)
      */
     while (branch->parent)
 	branch = branch->parent;
-    return git_commit_locate_any (branch, file);
+    return git_commit_locate_any(branch, file);
 }
 
 rev_ref *
-rev_branch_of_commit (rev_list *rl, cvs_commit *commit)
+rev_branch_of_commit(rev_list *rl, cvs_commit *commit)
 {
     rev_ref	*h;
     cvs_commit	*c;
@@ -560,7 +560,7 @@ rev_branch_of_commit (rev_list *rl, cvs_commit *commit)
 	if (h->tail)
 	    continue;
 	for (c = h->commit; c; c = c->parent) {
-	    if (cvs_commit_match (c, commit))
+	    if (cvs_commit_match(c, commit))
 		return h;
 	    if (c->tail)
 		break;
@@ -573,7 +573,7 @@ rev_branch_of_commit (rev_list *rl, cvs_commit *commit)
  * Time of first commit along entire history
  */
 static cvstime_t
-cvs_commit_first_date (cvs_commit *commit)
+cvs_commit_first_date(cvs_commit *commit)
 {
     while (commit->parent)
 	commit = commit->parent;
@@ -584,14 +584,14 @@ cvs_commit_first_date (cvs_commit *commit)
  * Merge a set of per-file branches into a global branch
  */
 static void
-rev_branch_merge (rev_ref **branches, int nbranch,
+rev_branch_merge(rev_ref **branches, int nbranch,
 		  rev_ref *branch, rev_list *rl)
 {
     int nlive;
     int n;
     git_commit *prev = NULL;
     git_commit *head = NULL, **tail = &head;
-    cvs_commit **revisions = xcalloc (nbranch, sizeof (cvs_commit *), "merging per-file branches");
+    cvs_commit **revisions = xcalloc(nbranch, sizeof(cvs_commit *), "merging per-file branches");
     git_commit *commit;
     cvs_commit *latest;
     cvs_commit **p;
@@ -656,7 +656,7 @@ rev_branch_merge (rev_ref **branches, int nbranch,
 	/*
 	 * Construct current commit
 	 */
-	commit = git_commit_build (revisions, latest, nbranch);
+	commit = git_commit_build(revisions, latest, nbranch);
 
 	/*
 	 * Step each branch
@@ -728,7 +728,7 @@ rev_branch_merge (rev_ref **branches, int nbranch,
     /*
      * Connect to parent branch
      */
-    nbranch = cvs_commit_date_sort (revisions, nbranch);
+    nbranch = cvs_commit_date_sort(revisions, nbranch);
     if (nbranch && branch->parent )
     {
 	int	present;
@@ -741,7 +741,7 @@ rev_branch_merge (rev_ref **branches, int nbranch,
 		 * the first commit along the branch
 		 */
 		if (prev && revisions[present]->date > prev->date &&
-		    revisions[present]->date == cvs_commit_first_date (revisions[present]))
+		    revisions[present]->date == cvs_commit_first_date(revisions[present]))
 		{
 		    /* FIXME: what does this mean? */
 		    announce("warning - file %s appears after branch %s date\n",
@@ -752,28 +752,28 @@ rev_branch_merge (rev_ref **branches, int nbranch,
 	    }
 	if (present == nbranch)
 	    *tail = NULL;
-	else if ((*tail = git_commit_locate_one (branch->parent,
+	else if ((*tail = git_commit_locate_one(branch->parent,
 						 revisions[present])))
 	{
-	    if (prev && time_compare ((*tail)->date, prev->date) > 0) {
+	    if (prev && time_compare((*tail)->date, prev->date) > 0) {
 		announce("warning - branch point %s -> %s later than branch\n",
 			 branch->name, branch->parent->name);
-		fprintf (stderr, "\ttrunk(%3d):  %s %s", n,
-			 ctime_nonl (&revisions[present]->date),
+		fprintf(stderr, "\ttrunk(%3d):  %s %s", n,
+			 ctime_nonl(&revisions[present]->date),
 			 revisions[present]->file ? " " : "D" );
 		if (revisions[present]->file)
-		    dump_number_file (stderr,
+		    dump_number_file(stderr,
 				      revisions[present]->file->name,
 				      &revisions[present]->file->number);
-		fprintf (stderr, "\n");
-		fprintf (stderr, "\tbranch(%3d): %s  ", n,
-			 ctime_nonl (&prev->file->u.date));
-		dump_number_file (stderr,
+		fprintf(stderr, "\n");
+		fprintf(stderr, "\tbranch(%3d): %s  ", n,
+			 ctime_nonl(&prev->file->u.date));
+		dump_number_file(stderr,
 				  prev->file->name,
 				  &prev->file->number);
-		fprintf (stderr, "\n");
+		fprintf(stderr, "\n");
 	    }
-	} else if ((*tail = git_commit_locate_date (branch->parent,
+	} else if ((*tail = git_commit_locate_date(branch->parent,
 						    revisions[present]->date)))
 	    announce("warning - branch point %s -> %s matched by date\n",
 		     branch->name, branch->parent->name);
@@ -782,20 +782,20 @@ rev_branch_merge (rev_ref **branches, int nbranch,
 	    fprintf(stderr, "Error: branch point %s -> %s not found.",
 		    branch->name, branch->parent->name);
 
-	    if ((lost = rev_branch_of_commit (rl, revisions[present])))
-		fprintf (stderr, " Possible match on %s.", lost->name);
-	    fprintf (stderr, "\n");
+	    if ((lost = rev_branch_of_commit(rl, revisions[present])))
+		fprintf(stderr, " Possible match on %s.", lost->name);
+	    fprintf(stderr, "\n");
 	}
 	if (*tail) {
 	    if (prev)
 		prev->tail = true;
 	} else 
-	    *tail = git_commit_build (revisions, revisions[0], nbranch);
+	    *tail = git_commit_build(revisions, revisions[0], nbranch);
     }
     for (n = 0; n < nbranch; n++)
 	if (revisions[n])
 	    revisions[n]->tailed = false;
-    free (revisions);
+    free(revisions);
     /* PUNNING: see the big comment in cvs.h */ 
     branch->commit = (cvs_commit *)head;
 }
@@ -810,7 +810,7 @@ rev_tag_search(Tag *tag, cvs_commit **revisions, rev_list *rl)
     /* tag gets parented with branch of most recent matching commit */
     tag->parent = rev_branch_of_commit(rl, revisions[0]);
     if (tag->parent)
-	tag->commit = git_commit_locate (tag->parent, revisions[0]);
+	tag->commit = git_commit_locate(tag->parent, revisions[0]);
     if (!tag->commit) {
 	announce("tag %s could not be assigned to a commit\n", tag->name);
 #if 0
@@ -830,7 +830,7 @@ rev_tag_search(Tag *tag, cvs_commit **revisions, rev_list *rl)
 }
 
 static void
-rev_ref_set_parent (rev_list *rl, rev_ref *dest, rev_list *source)
+rev_ref_set_parent(rev_list *rl, rev_ref *dest, rev_list *source)
 {
     rev_list	*s;
     rev_ref	*p;
@@ -842,14 +842,14 @@ rev_ref_set_parent (rev_list *rl, rev_ref *dest, rev_list *source)
     max = NULL;
     for (s = source; s; s = s->next) {
 	rev_ref	*sh;
-	sh = rev_find_head (s, dest->name);
+	sh = rev_find_head(s, dest->name);
 	if (!sh)
 	    continue;
 	if (!sh->parent)
 	    continue;
-	p = rev_find_head (rl, sh->parent->name);
-	assert (p);
-	rev_ref_set_parent (rl, p, source);
+	p = rev_find_head(rl, sh->parent->name);
+	assert(p);
+	rev_ref_set_parent(rl, p, source);
 	if (!max || p->depth > max->depth)
 	    max = p;
     }
@@ -863,13 +863,13 @@ rev_ref_set_parent (rev_list *rl, rev_ref *dest, rev_list *source)
 
 #ifdef __UNUSED__
 static void
-rev_head_find_parent (rev_list *rl, rev_ref *h, rev_list *lhead)
+rev_head_find_parent(rev_list *rl, rev_ref *h, rev_list *lhead)
 {
     rev_list	*l;
     rev_ref	*lh;
 
     for (l = lhead; l; l = l->next) {
-	lh = rev_find_head (l, h->name);
+	lh = rev_find_head(l, h->name);
 	if (!lh)
 	    continue;
 	
@@ -879,7 +879,7 @@ rev_head_find_parent (rev_list *rl, rev_ref *h, rev_list *lhead)
 
 #ifdef __UNUSED__
 static bool
-rev_branch_name_is_ancestor (rev_ref *old, rev_ref *young)
+rev_branch_name_is_ancestor(rev_ref *old, rev_ref *young)
 {
     while (young) {
 	if (young->name == old->name)
@@ -892,7 +892,7 @@ rev_branch_name_is_ancestor (rev_ref *old, rev_ref *young)
 
 #ifdef __UNUSED__
 static rev_ref *
-rev_ref_parent (rev_ref **refs, int nref, rev_list *rl)
+rev_ref_parent(rev_ref **refs, int nref, rev_list *rl)
 {
     rev_ref	*parent = NULL;
     rev_ref	*branch = NULL;
@@ -906,19 +906,19 @@ rev_ref_parent (rev_ref **refs, int nref, rev_list *rl)
 		parent = refs[n]->parent;
 		branch = refs[n];
 	    } else if (parent->name != refs[n]->parent->name) {
-		if (rev_branch_name_is_ancestor (refs[n]->parent, parent))
+		if (rev_branch_name_is_ancestor(refs[n]->parent, parent))
 		    ;
-		else if (rev_branch_name_is_ancestor (parent, refs[n]->parent)) {
+		else if (rev_branch_name_is_ancestor(parent, refs[n]->parent)) {
 		    parent = refs[n]->parent;
 		    branch = refs[n];
 		} else {
-		    fprintf (stderr, "Branch name collision:\n");
-		    fprintf (stderr, "\tfirst branch: ");
-		    dump_ref_name (stderr, branch);
-		    fprintf (stderr, "\n");
-		    fprintf (stderr, "\tsecond branch: ");
-		    dump_ref_name (stderr, refs[n]);
-		    fprintf (stderr, "\n");
+		    fprintf(stderr, "Branch name collision:\n");
+		    fprintf(stderr, "\tfirst branch: ");
+		    dump_ref_name(stderr, branch);
+		    fprintf(stderr, "\n");
+		    fprintf(stderr, "\tsecond branch: ");
+		    dump_ref_name(stderr, refs[n]);
+		    fprintf(stderr, "\n");
 		}
 	    }
 	}
@@ -934,15 +934,15 @@ rev_ref_parent (rev_ref **refs, int nref, rev_list *rl)
 #endif
 
 rev_list *
-rev_list_merge (rev_list *head)
+rev_list_merge(rev_list *head)
 {
-    int		count = rev_list_count (head);
+    int		count = rev_list_count(head);
     int		n; /* used only in progress messages */
-    rev_list	*rl = xcalloc (1, sizeof (rev_list), "list merge");
+    rev_list	*rl = xcalloc(1, sizeof(rev_list), "list merge");
     rev_list	*l;
     rev_ref	*lh, *h;
     Tag		*t;
-    rev_ref	**refs = xcalloc (count, sizeof (rev_ref *), "list merge");
+    rev_ref	**refs = xcalloc(count, sizeof(rev_ref *), "list merge");
 
     /*
      * Find all of the heads across all of the incoming trees
@@ -952,9 +952,9 @@ rev_list_merge (rev_list *head)
     n = 0;
     for (l = head; l; l = l->next) {
 	for (lh = l->heads; lh; lh = lh->next) {
-	    h = rev_find_head (rl, lh->name);
+	    h = rev_find_head(rl, lh->name);
 	    if (!h)
-		rev_list_add_head (rl, NULL, lh->name, lh->degree);
+		rev_list_add_head(rl, NULL, lh->name, lh->degree);
 	    else if (lh->degree > h->degree)
 		h->degree = lh->degree;
 	}
@@ -967,24 +967,24 @@ rev_list_merge (rev_list *head)
      * Sort by degree so that finding branch points always works
      */
     progress_begin("Sorting...", count);
-//    rl->heads = rev_ref_sel_sort (rl->heads);
-    rl->heads = rev_ref_tsort (rl->heads, head);
+//    rl->heads = rev_ref_sel_sort(rl->heads);
+    rl->heads = rev_ref_tsort(rl->heads, head);
     if (!rl->heads) {
 	free(refs);
 	return NULL;
     }
     progress_end(NULL);
 //    for (h = rl->heads; h; h = h->next)
-//	fprintf (stderr, "head %s (%d)\n",
+//	fprintf(stderr, "head %s(%d)\n",
 //		 h->name, h->degree);
     /*
      * Find branch parent relationships
      */
     progress_begin("Find branch parent relationships...", count);
     for (h = rl->heads; h; h = h->next) {
-	rev_ref_set_parent (rl, h, head);
-//	dump_ref_name (stderr, h);
-//	fprintf (stderr, "\n");
+	rev_ref_set_parent(rl, h, head);
+//	dump_ref_name(stderr, h);
+//	fprintf(stderr, "\n");
     }
     progress_end(NULL);
     /*
@@ -997,12 +997,12 @@ rev_list_merge (rev_list *head)
 	 */
 	int nref = 0;
 	for (l = head; l; l = l->next) {
-	    lh = rev_find_head (l, h->name);
+	    lh = rev_find_head(l, h->name);
 	    if (lh)
 		refs[nref++] = lh;
 	}
 	if (nref)
-	    rev_branch_merge (refs, nref, h, rl);
+	    rev_branch_merge(refs, nref, h, rl);
 	progress_step();
     }
     progress_end(NULL);
@@ -1010,7 +1010,7 @@ rev_list_merge (rev_list *head)
      * Compute 'tail' values
      */
     progress_begin("Compute tail values...", NO_MAX);
-    rev_list_set_tail (rl);
+    rev_list_set_tail(rl);
     progress_end(NULL);
 
     free(refs);
@@ -1028,7 +1028,7 @@ rev_list_merge (rev_list *head)
     }
     progress_end(NULL);
     progress_begin("Validate...", NO_MAX);
-    rev_list_validate (rl);
+    rev_list_validate(rl);
     progress_end(NULL);
     return rl;
 }
@@ -1042,7 +1042,7 @@ rev_list_merge (rev_list *head)
 static rev_file *rev_files;
 
 static void
-rev_file_mark_for_free (rev_file *f)
+rev_file_mark_for_free(rev_file *f)
 {
     if (f->name) {
 	f->name = NULL;
@@ -1052,22 +1052,22 @@ rev_file_mark_for_free (rev_file *f)
 }
 
 static void
-rev_file_free_marked (void)
+rev_file_free_marked(void)
 {
     rev_file	*f, *n;
 
     for (f = rev_files; f; f = n)
     {
 	n = f->link;
-	free (f);
+	free(f);
     }
     rev_files = NULL;
 }
 
 rev_file *
-rev_file_rev (char *name, cvs_number *n, cvstime_t date)
+rev_file_rev(char *name, cvs_number *n, cvstime_t date)
 {
-    rev_file	*f = xcalloc (1, sizeof (rev_file), "allocating file rev");
+    rev_file	*f = xcalloc(1, sizeof(rev_file), "allocating file rev");
 
     f->name = name;
     f->number = *n;
@@ -1076,13 +1076,13 @@ rev_file_rev (char *name, cvs_number *n, cvstime_t date)
 }
 
 void
-rev_file_free (rev_file *f)
+rev_file_free(rev_file *f)
 {
-    free (f);
+    free(f);
 }
 
 static void
-rev_commit_free (cvs_commit *commit, int free_files)
+rev_commit_free(cvs_commit *commit, int free_files)
 {
     cvs_commit	*c;
 
@@ -1091,35 +1091,35 @@ rev_commit_free (cvs_commit *commit, int free_files)
 	if (--c->seen == 0)
 	{
 	    if (free_files && c->file)
-		rev_file_mark_for_free (c->file);
-	    free (c);
+		rev_file_mark_for_free(c->file);
+	    free(c);
 	}
     }
 }
 
 static void
-rev_head_free (rev_ref *head, int free_files)
+rev_head_free(rev_ref *head, int free_files)
 {
     rev_ref	*h;
 
     while ((h = head)) {
 	head = h->next;
-	rev_commit_free (h->commit, free_files);
-	free (h);
+	rev_commit_free(h->commit, free_files);
+	free(h);
     }
 }
 
 void
-rev_list_free (rev_list *rl, int free_files)
+rev_list_free(rev_list *rl, int free_files)
 {
-    rev_head_free (rl->heads, free_files);
+    rev_head_free(rl->heads, free_files);
     if (free_files)
-	rev_file_free_marked ();
-    free (rl);
+	rev_file_free_marked();
+    free(rl);
 }
 
 void
-rev_list_validate (rev_list *rl)
+rev_list_validate(rev_list *rl)
 {
     rev_ref	*h;
     git_commit	*c;
@@ -1130,7 +1130,7 @@ rev_list_validate (rev_list *rl)
 	for (c = (git_commit *)h->commit; c && c->parent; c = c->parent) {
 	    if (c->tail)
 		break;
-//	    assert (time_compare (c->date, c->parent->date) >= 0);
+//	    assert(time_compare(c->date, c->parent->date) >= 0);
 	}
     }
 }
@@ -1140,7 +1140,7 @@ rev_list_validate (rev_list *rl)
  */
 
 static rev_file_list *
-rev_uniq_file (git_commit *uniq, git_commit *common, int *nuniqp)
+rev_uniq_file(git_commit *uniq, git_commit *common, int *nuniqp)
 {
     int	i, j;
     int nuniq = 0;
@@ -1151,8 +1151,8 @@ rev_uniq_file (git_commit *uniq, git_commit *common, int *nuniqp)
     for (i = 0; i < uniq->ndirs; i++) {
 	rev_dir	*dir = uniq->dirs[i];
 	for (j = 0; j < dir->nfiles; j++)
-	    if (!git_commit_has_file (common, dir->files[j])) {
-		fl = xcalloc (1, sizeof (rev_file_list), "rev_uniq_file");
+	    if (!git_commit_has_file(common, dir->files[j])) {
+		fl = xcalloc(1, sizeof(rev_file_list), "rev_uniq_file");
 		fl->file = dir->files[j];
 		*tail = fl;
 		tail = &fl->next;
@@ -1164,7 +1164,7 @@ rev_uniq_file (git_commit *uniq, git_commit *common, int *nuniqp)
 }
 
 bool
-rev_file_list_has_filename (rev_file_list *fl, char *name)
+rev_file_list_has_filename(rev_file_list *fl, char *name)
 {
     for (; fl; fl = fl->next)
 	if (fl->file->name == name)
@@ -1177,33 +1177,33 @@ rev_file_list_has_filename (rev_file_list *fl, char *name)
  */
 
 rev_diff *
-git_commit_diff (git_commit *old, git_commit *new)
+git_commit_diff(git_commit *old, git_commit *new)
 {
-    rev_diff	*diff = xcalloc (1, sizeof (rev_diff), __func__);
+    rev_diff	*diff = xcalloc(1, sizeof(rev_diff), __func__);
 
-    diff->del = rev_uniq_file (old, new, &diff->ndel);
-    diff->add = rev_uniq_file (new, old, &diff->nadd);
+    diff->del = rev_uniq_file(old, new, &diff->ndel);
+    diff->add = rev_uniq_file(new, old, &diff->nadd);
     return diff;
 }
 
 static void
-rev_file_list_free (rev_file_list *fl)
+rev_file_list_free(rev_file_list *fl)
 {
     rev_file_list   *next;
 
     while (fl) {
 	next = fl->next;
-	free (fl);
+	free(fl);
 	fl = next;
     }
 }
 
 void
-rev_diff_free (rev_diff *d)
+rev_diff_free(rev_diff *d)
 {
-    rev_file_list_free (d->del);
-    rev_file_list_free (d->add);
-    free (d);
+    rev_file_list_free(d->del);
+    rev_file_list_free(d->add);
+    free(d);
 }
 
 /* end */

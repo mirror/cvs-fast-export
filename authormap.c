@@ -9,7 +9,7 @@
 static cvs_author	*author_buckets[AUTHOR_HASH];
 
 cvs_author *
-fullname (char *name)
+fullname(char *name)
 /* return the fullname structure corresponding to a specified shortname */
 {
     cvs_author	**bucket = &author_buckets[((unsigned long) name) % AUTHOR_HASH];
@@ -22,7 +22,7 @@ fullname (char *name)
 }
 
 void
-free_author_map (void)
+free_author_map(void)
 /* discard author-map information */
 {
     int	h;
@@ -33,13 +33,13 @@ free_author_map (void)
 
 	while ((a = *bucket)) {
 	    *bucket = a->next;
-	    free (a);
+	    free(a);
 	}
     }
 }
 
 bool
-load_author_map (char *filename)
+load_author_map(char *filename)
 /* load author-map information from a file */
 {
     char    line[10240];
@@ -52,39 +52,39 @@ load_author_map (char *filename)
     int	    lineno = 0;
     cvs_author	*a, **bucket;
     
-    f = fopen (filename, "r");
+    f = fopen(filename, "r");
     if (!f) {
-	announce("%s: authormap open failed, %s\n", filename, strerror (errno));
+	announce("%s: authormap open failed, %s\n", filename, strerror(errno));
 	return false;
     }
-    while (fgets (line, sizeof (line) - 1, f)) {
+    while (fgets(line, sizeof(line) - 1, f)) {
 	lineno++;
 	if (line[0] == '#')
 	    continue;
-	equal = strchr (line, '=');
+	equal = strchr(line, '=');
 	if (!equal) {
 	    announce("\"%s\", line %d: missing '='\n", filename, lineno);
-	    fclose (f);
+	    fclose(f);
 	    return false;
 	}
 	full = equal + 1;
 	while (equal > line && equal[-1] == ' ')
 	    equal--;
 	*equal = '\0';
-	name = atom (line);
-	if (fullname (name)) {
+	name = atom(line);
+	if (fullname(name)) {
 	    announce("\"%s\", line %d: duplicate username '%s' ignored\n",
 		     filename, lineno, name);
-	    fclose (f);
+	    fclose(f);
 	    return 0;
 	}
-	a = xcalloc (1, sizeof (cvs_author), "authormap creation");
+	a = xcalloc(1, sizeof(cvs_author), "authormap creation");
 	a->name = name;
-	angle = strchr (full, '<');
+	angle = strchr(full, '<');
 	if (!angle) {
 	    announce("\"%s\", line %d: missing email address '%s'\n",
 		     filename, lineno, name);
-	    fclose (f);
+	    fclose(f);
 	    free(a);
 	    return false;
 	}
@@ -95,16 +95,16 @@ load_author_map (char *filename)
 	    angle--;
 	*angle = '\0';
 	a->full = atom(full);
-	angle = strchr (email, '>');
+	angle = strchr(email, '>');
 	if (!angle) {
 	    announce("\"%s\", line %d: malformed email address '%s\n",
 		     filename, lineno, name);
-	    fclose (f);
+	    fclose(f);
 	    free(a);
 	    return false;
 	}
 	*angle = '\0';
-	a->email = atom (email);
+	a->email = atom(email);
 	a->timezone = NULL;
 	if (*++angle) {
 	    while (isspace((unsigned char)*angle))
@@ -122,7 +122,7 @@ load_author_map (char *filename)
 	a->next = *bucket;
 	*bucket = a;
     }
-    fclose (f);
+    fclose(f);
     return true;
 }
 

@@ -49,7 +49,7 @@ static int verbose = 0;
 static rev_execution_mode rev_mode = ExecuteExport;
 
 char *
-stringify_revision (char *name, char *sep, cvs_number *number)
+stringify_revision(char *name, char *sep, cvs_number *number)
 /* stringify a revision number */
 {
     static char result[BUFSIZ];
@@ -68,12 +68,12 @@ stringify_revision (char *name, char *sep, cvs_number *number)
 	char digits[32];
 
 	for (i = 0; i < number->c; i++) {
-	    snprintf (digits, sizeof(digits)-1, "%d", number->n[i]);
+	    snprintf(digits, sizeof(digits)-1, "%d", number->n[i]);
 	    if (strlen(result) + 1 + strlen(digits) >= sizeof(result))
 		fatal_error("Revision number too long\n");
 	    strcat(result, digits);
 	    if (i < number->c - 1)
-		strcat (result, ".");
+		strcat(result, ".");
 	}
     }
 
@@ -81,22 +81,22 @@ stringify_revision (char *name, char *sep, cvs_number *number)
 }
 
 void
-dump_number_file (FILE *f, char *name, cvs_number *number)
+dump_number_file(FILE *f, char *name, cvs_number *number)
 /* dump a filename/CVS-version pair to a specified file pointer */
 {
     fputs(stringify_revision(name, " ", number), f);
 }
 
 void
-dump_number (char *name, cvs_number *number)
+dump_number(char *name, cvs_number *number)
 /* dump a filename/CVS-version pair to standard output */
 {
-    dump_number_file (stdout, name, number);
+    dump_number_file(stdout, name, number);
 }
 
 #ifdef __UNUSED__
 void
-dump_git_commit (git_commit *c)
+dump_git_commit(git_commit *c)
 /* dump all delta/revision pairs associated with a gitspace commit */
 {
     rev_file	*f;
@@ -107,27 +107,27 @@ dump_git_commit (git_commit *c)
 	
 	for (j = 0; j < dir->nfiles; j++) {
 	    f = dir->files[j];
-	    dump_number (f->name, &f->number);
-	    printf (" ");
+	    dump_number(f->name, &f->number);
+	    printf(" ");
 	}
     }
-    printf ("\n");
+    printf("\n");
 }
 
 void
-dump_rev_head (rev_ref *h)
+dump_rev_head(rev_ref *h)
 /* dump all gitspace commits associated wit the specified head */
 {
     git_commit	*c;
     for (c = h->commit; c; c = c->parent) {
-	dump_git_commit (c);
+	dump_git_commit(c);
 	if (c->tail)
 	    break;
     }
 }
 
 void
-dump_rev_list (rev_list *rl)
+dump_rev_list(rev_list *rl)
 /* dump an entire revision list */
 {
     rev_ref	*h;
@@ -135,17 +135,17 @@ dump_rev_list (rev_list *rl)
     for (h = rl->heads; h; h = h->next) {
 	if (h->tail)
 	    continue;
-	dump_rev_head (h);
+	dump_rev_head(h);
     }
 }
 #endif /* __UNUSED__ */
 
 char *
-ctime_nonl (cvstime_t *date)
+ctime_nonl(cvstime_t *date)
 /* ctime(3) with trailing \n removed */
 {
     time_t	udate = RCS_EPOCH + *date;
-    char	*d = ctime (&udate);
+    char	*d = ctime(&udate);
     
     d[strlen(d)-1] = '\0';
     return d;
@@ -159,64 +159,64 @@ extern int yylineno;
 cvs_file	*this_file;
 
 static rev_list *
-rev_list_file (char *name, int *nversions)
+rev_list_file(char *name, int *nversions)
 {
     rev_list	*rl;
     struct stat	buf;
 
-    yyin = fopen (name, "r");
+    yyin = fopen(name, "r");
     if (!yyin) {
-	perror (name);
+	perror(name);
 	++err;
 	return NULL;
     }
     yyfilename = name;
     yylineno = 0;
-    this_file = xcalloc (1, sizeof (cvs_file), __func__);
+    this_file = xcalloc(1, sizeof(cvs_file), __func__);
     this_file->name = name;
     if (yyin)
-	assert (fstat (fileno (yyin), &buf) == 0);
+	assert(fstat(fileno(yyin), &buf) == 0);
     this_file->mode = buf.st_mode;
-    yyparse ();
-    fclose (yyin);
+    yyparse();
+    fclose(yyin);
     yyfilename = 0;
-    rl = rev_list_cvs (this_file);
+    rl = rev_list_cvs(this_file);
     if (rev_mode == ExecuteExport)
 	generate_files(this_file, export_blob);
    
     *nversions = this_file->nversions;
-    cvs_file_free (this_file);
+    cvs_file_free(this_file);
     return rl;
 }
 
 #ifdef __UNUSED__
 void
-dump_rev_tree (rev_list *rl)
+dump_rev_tree(rev_list *rl)
 {
     rev_ref	*h;
     rev_ref	*oh;
     git_commit	*c, *p;
     int		tail;
 
-    printf ("rev_list {\n");
+    printf("rev_list {\n");
 
     for (h = rl->heads; h; h = h->next) {
 	if (h->tail)
 	    continue;
 	for (oh = rl->heads; oh; oh = oh->next) {
 	    if (h->commit == oh->commit)
-		printf ("%s:\n", oh->name);
+		printf("%s:\n", oh->name);
 	}
-	printf ("\t{\n");
+	printf("\t{\n");
 	tail = h->tail;
 	for (c = h->commit; c; c = p) {
-	    printf ("\t\t%p ", c);
-	    dump_log (stdout, c->log);
+	    printf("\t\t%p ", c);
+	    dump_log(stdout, c->log);
 	    if (tail) {
-		printf ("\n\t\t...\n");
+		printf("\n\t\t...\n");
 		break;
 	    }
-	    printf (" {\n");
+	    printf(" {\n");
 	    
 	    p = c->parent;
 #if 0
@@ -228,16 +228,16 @@ dump_rev_tree (rev_list *rl)
 		    ef = c->files[ei];
 		    pf = p->files[pi];
 		    if (ef != pf) {
-			if (rev_file_later (ef, pf)) {
-			    fprintf (stdout, "+ ");
-			    dump_number_file (stdout, ef->name, &ef->number);
+			if (rev_file_later(ef, pf)) {
+			    fprintf(stdout, "+ ");
+			    dump_number_file(stdout, ef->name, &ef->number);
 			    ei++;
 			} else {
-			    fprintf (stdout, "- ");
-			    dump_number_file (stdout, pf->name, &pf->number);
+			    fprintf(stdout, "- ");
+			    dump_number_file(stdout, pf->name, &pf->number);
 			    pi++;
 			}
-			fprintf (stdout, "\n");
+			fprintf(stdout, "\n");
 		    } else {
 			ei++;
 			pi++;
@@ -245,36 +245,36 @@ dump_rev_tree (rev_list *rl)
 		}
 		while (ei < c->nfiles) {
 		    ef = c->files[ei];
-		    fprintf (stdout, "+ ");
-		    dump_number_file (stdout, ef->name, &ef->number);
+		    fprintf(stdout, "+ ");
+		    dump_number_file(stdout, ef->name, &ef->number);
 		    ei++;
-		    fprintf (stdout, "\n");
+		    fprintf(stdout, "\n");
 		}
 		while (pi < p->nfiles) {
 		    pf = p->files[pi];
-		    fprintf (stdout, "- ");
-		    dump_number_file (stdout, pf->name, &pf->number);
+		    fprintf(stdout, "- ");
+		    dump_number_file(stdout, pf->name, &pf->number);
 		    pi++;
-		    fprintf (stdout, "\n");
+		    fprintf(stdout, "\n");
 		}
 	    } else {
 		for (i = 0; i < c->nfiles; i++) {
-		    printf ("\t\t\t");
-		    dump_number (c->files[i]->name, &c->files[i]->number);
-		    printf ("\n");
+		    printf("\t\t\t");
+		    dump_number(c->files[i]->name, &c->files[i]->number);
+		    printf("\n");
 		}
 	    }
 #endif
-	    printf ("\t\t}\n");
+	    printf("\t\t}\n");
 	    tail = c->tail;
 	}
-	printf ("\t}\n");
+	printf("\t}\n");
     }
-    printf ("}\n");
+    printf("}\n");
 }
 
 static int
-strcommon (char *a, char *b)
+strcommon(char *a, char *b)
 /* return the length of the common prefix of strings a and b */
 {
     int	c = 0;
@@ -313,9 +313,9 @@ strcommonendingwith(char *a, char *b, char endc)
 static int get_int_substr(const char * str, const regmatch_t * p)
 {
     char buff[256];
-    if(p->rm_so == -1)
+    if (p->rm_so == -1)
 	    return 0;
-    if(p->rm_eo - p->rm_so >= sizeof(buff))
+    if (p->rm_eo - p->rm_so >= sizeof(buff))
 	    return 0;
     memcpy(buff, str + p->rm_so, p->rm_eo - p->rm_so);
     buff[p->rm_eo - p->rm_so] = 0;
@@ -380,7 +380,7 @@ static time_t convert_date(const char *dte)
 	offseth    = -get_int_substr(dte, pm++);
 
 	offsetm = offseth % 100;
-	if(offsetm < 0)
+	if (offsetm < 0)
 	    offsetm *= -1;
 	offseth /= 100;
 	snprintf(tzbuf, sizeof(tzbuf), "UTC%+d:%d", offseth, offsetm);
@@ -432,7 +432,7 @@ typedef struct _rev_filename {
 int load_current_file, load_total_files;
 
 int
-main (int argc, char **argv)
+main(int argc, char **argv)
 {
     rev_filename    *fn_head, **fn_tail = &fn_head, *fn;
     rev_list	    *head, **tail = &head;
@@ -458,7 +458,7 @@ main (int argc, char **argv)
     start_time = time(NULL);
 
     /* force times using mktime to be interpreted in UTC */
-    setenv ("TZ", "UTC", 1);
+    setenv("TZ", "UTC", 1);
 
     while (1) {
 	static struct option options[] = {
@@ -480,7 +480,7 @@ main (int argc, char **argv)
 	int c = getopt_long(argc, argv, "+hVw:grvA:R:Tke:s:pi:BS", options, NULL);
 	if (c < 0)
 	    break;
-	switch (c) {
+	switch(c) {
 	case 'h':
 	    printf("Usage: cvs-fast-export [OPTIONS] [FILE]...\n"
 		   "Parse RCS files and emit a fast-import stream.\n\n"
@@ -489,7 +489,7 @@ main (int argc, char **argv)
 		   " -g --graph                      Dump the commit graph\n"
 		   " -k                              Enable keyword expansion\n"
                    " -V --version                    Print version\n"
-                   " -w --commit-time-window=WINDOW  Time window for commits (seconds)\n"
+                   " -w --commit-time-window=WINDOW  Time window for commits(seconds)\n"
 		   " -A --authormap                  Author map file\n"
 		   " -R --revision-map               Revision map file\n"
 		   " -r --reposurgeon                Issue cvs-revision properties\n"
@@ -519,10 +519,10 @@ main (int argc, char **argv)
 	    printf("%s: version " VERSION "\n", argv[0]);
 	    return 0;
 	case 'w':
-	    commit_time_window = atoi (optarg);
+	    commit_time_window = atoi(optarg);
 	    break;
 	case 'A':
-	    load_author_map (optarg);
+	    load_author_map(optarg);
 	    break;
 	case 'R':
 	    revision_map = fopen(optarg, "w");
@@ -570,9 +570,9 @@ main (int argc, char **argv)
 	if (argc < 2) {
 	    int l;
 	    /* coverity[tainted_data] Safe, never handed to exec */
-	    if (fgets (name, sizeof (name) - 1, stdin) == NULL)
+	    if (fgets(name, sizeof(name) - 1, stdin) == NULL)
 		break;
-	    l = strlen (name);
+	    l = strlen(name);
 	    if (name[l-1] == '\n')
 		name[l-1] = '\0';
 	    file = name;
@@ -589,19 +589,19 @@ main (int argc, char **argv)
 	else
 	    textsize += stb.st_size;
 
-	fn = xcalloc (1, sizeof (rev_filename), "filename gathering");
-	fn->file = atom (file);
+	fn = xcalloc(1, sizeof(rev_filename), "filename gathering");
+	fn->file = atom(file);
 	*fn_tail = fn;
 	fn_tail = &fn->next;
 	if (strip > 0 && last != NULL) {
-	    c = strcommonendingwith (fn->file, last, '/');
+	    c = strcommonendingwith(fn->file, last, '/');
 	    if (c < strip)
 		strip = c;
 	} else if (strip < 0) {
 	    size_t i;
 
 	    strip = 0;
-	    for (i = 0; i < strlen (fn->file); i++)
+	    for (i = 0; i < strlen(fn->file); i++)
 		if (fn->file[i] == '/')
 		    strip = i + 1;
 	}
@@ -625,25 +625,25 @@ main (int argc, char **argv)
 	if (verbose)
 	    announce("processing %s\n", fn->file);
 	if (progress)
-	    load_status (fn->file + strip);
-	rl = rev_list_file (fn->file, &nversions);
+	    load_status(fn->file + strip);
+	rl = rev_list_file(fn->file, &nversions);
 	*tail = rl;
 	tail = &rl->next;
 
 	free(fn);
     }
     if (progress)
-	load_status_next ();
+	load_status_next();
     /* commit set coalescence happens here */
-    rl = rev_list_merge (head);
+    rl = rev_list_merge(head);
     /* report on the DAG */
     if (rl) {
-	switch (rev_mode) {
+	switch(rev_mode) {
 	case ExecuteGraph:
-	    dump_rev_graph (rl, NULL);
+	    dump_rev_graph(rl, NULL);
 	    break;
 	case ExecuteExport:
-	    export_commits (rl, strip, fromtime, progress);
+	    export_commits(rl, strip, fromtime, progress);
 	    break;
 	}
     }
@@ -652,18 +652,18 @@ main (int argc, char **argv)
 	announce("commits before this date lack commitids: %s",	ctime(&udate));
     }
     if (rl)
-	rev_list_free (rl, 0);
+	rev_list_free(rl, 0);
     while (head) {
 	rl = head;
 	head = head->next;
-	rev_list_free (rl, 1);
+	rev_list_free(rl, 1);
     }
-    discard_atoms ();
-    discard_tags ();
-    rev_free_dirs ();
-    git_commit_cleanup ();
+    discard_atoms();
+    discard_tags();
+    rev_free_dirs();
+    git_commit_cleanup();
     export_wrap();
-    free_author_map ();
+    free_author_map();
     if (revision_map)
 	fclose(revision_map);
     return err;

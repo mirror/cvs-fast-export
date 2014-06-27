@@ -45,7 +45,7 @@ crc32 (char *string)
     crc32_t		crc32 = ~0;
     unsigned char	c;
 
-    if (crc32_table[1] == 0) generate_crc32_table ();
+    if (crc32_table[1] == 0) generate_crc32_table();
     while ((c = (unsigned char) *string++))
 	crc32 = (crc32 >> 8) ^ crc32_table[(crc32 ^ c) & 0xff];
     return ~crc32;
@@ -62,29 +62,29 @@ typedef struct _hash_bucket {
 static hash_bucket_t	*buckets[HASH_SIZE];
 
 char *
-atom (char *string)
+atom(char *string)
 /* intern a string, avoiding having separate storage for duplicate copies */
 {
     crc32_t		crc = crc32 (string);
     hash_bucket_t	**head = &buckets[crc % HASH_SIZE];
     hash_bucket_t	*b;
-    int			len = strlen (string);
+    int			len = strlen(string);
 
     while ((b = *head)) {
-	if (b->crc == crc && !strcmp (string, b->string))
+	if (b->crc == crc && !strcmp(string, b->string))
 	    return b->string;
 	head = &(b->next);
     }
-    b = xmalloc (sizeof (hash_bucket_t) + len + 1, __func__);
+    b = xmalloc(sizeof(hash_bucket_t) + len + 1, __func__);
     b->next = 0;
     b->crc = crc;
-    memcpy (b->string, string, len + 1);
+    memcpy(b->string, string, len + 1);
     *head = b;
     return b->string;
 }
 
 void
-discard_atoms (void)
+discard_atoms(void)
 /* empty all string buckets */
 {
     hash_bucket_t	**head, *b;
@@ -93,7 +93,7 @@ discard_atoms (void)
     for (i = 0; i < HASH_SIZE; i++)
 	for (head = &buckets[i]; (b = *head);) {
 	    *head = b->next;
-	    free (b);
+	    free(b);
 	}
 }
 
