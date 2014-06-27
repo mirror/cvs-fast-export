@@ -655,8 +655,8 @@ bool export_commits(rev_list *rl, int strip, time_t fromtime, bool progress)
 	 * have to ship in their current order, otherwise some marks may not 
 	 * be resolved.
 	 *
-	 * Dump them all into a common array necause(a) we're going to
-	 * need to ship them back to front, and(b) we'd prefer to ship
+	 * Dump them all into a common array because (a) we're going to
+	 * need to ship them back to front, and (b) we'd prefer to ship
 	 * them in canonical order by commit date rather than ordered by
 	 * branches.
 	 *
