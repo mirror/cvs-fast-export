@@ -650,7 +650,7 @@ rev_list_sort_heads(rev_list *rl, cvs_file *cvs)
 			p = q;
 		}
 
-		if (passmerges < 1) break;
+		if (passmerges <= 1) break;
 		l = lastl = NULL;
 
 		k = 2*k;
