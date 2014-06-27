@@ -589,7 +589,7 @@ rev_ref_compare(cvs_file *cvs, rev_ref *r1, rev_ref *r2)
 static void
 rev_list_sort_heads(rev_list *rl, cvs_file *cvs)
 {
-	rev_ref *p = rl->heads;
+	rev_ref *p;
 	rev_ref *q;
 	rev_ref *e;
 	rev_ref *l = NULL, *lastl = NULL;
@@ -601,12 +601,13 @@ rev_list_sort_heads(rev_list *rl, cvs_file *cvs)
 
 	while (1) {
 
+		p = rl->heads;
+		l = NULL;
 		passmerges = 0;
 
 		while (1) {
 
 			if (!p) break;
-			l = lastl = NULL;
 			passmerges++;
 
 			q = p;
@@ -649,6 +650,7 @@ rev_list_sort_heads(rev_list *rl, cvs_file *cvs)
 		}
 
 		if (passmerges < 1) break;
+		l = lastl = NULL;
 
 		k = 2*k;
 	}
