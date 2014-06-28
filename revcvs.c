@@ -584,31 +584,75 @@ rev_ref_compare(cvs_file *cvs, rev_ref *r1, rev_ref *r2)
     return cvs_number_compare(&s1->number, &s2->number);
 }
 
+// Implemented from description at
+// http://www.chiark.greenend.org.uk/~sgtatham/algorithms/listsort.html
 static void
 rev_list_sort_heads(rev_list *rl, cvs_file *cvs)
 {
-    rev_ref	*h, **hp;
+	rev_ref *p = rl->heads;
+	rev_ref *q;
+	rev_ref *e;
+	rev_ref *l = NULL, *lastl = NULL;
+	int passmerges = 0;
+	int k = 1;
+	int i, psize, qsize;
 
-    for (hp = &rl->heads; (h = *hp);) {
-	if (!h->next)
-	    break;
-	if (rev_ref_compare(cvs, h, h->next) > 0) {
-	    *hp = h->next;
-	    h->next = h->next->next;
-	    (*hp)->next = h;
-	    hp = &rl->heads;
-	} else {
-	    hp = &h->next;
+	while (1) {
+
+		passmerges = 0;
+
+		while (1) {
+
+			if (!p) break;
+			l = lastl = NULL;
+			passmerges++;
+
+			q = p;
+			for (i = 0; i < k; i++) {
+				if (!q->next) break;
+				q = q->next;
+			}
+			psize = k - i;
+			qsize = k;
+
+			while (psize || (qsize && q)) {
+				if (!psize) e = q;
+				else if (!(qsize && q)) e = p;
+				else if (rev_ref_compare(cvs, p, q) > 0) e = q;
+				else e = p;
+
+				if (e == p) {
+					p = p->next;
+					psize--;
+				} else {
+					q = q->next;
+					qsize--;
+				}
+
+				if (l) {
+					lastl->next = e;
+					lastl = e;
+				} else {
+					l = lastl = e;
+				}
+			}
+			p = q;
+		}
+
+		if (passmerges < 1) break;
+
+		k = 2*k;
 	}
-    }
+
+	rl->heads = l;
 #if DEBUG
     fprintf(stderr, "Sorted heads for %s\n", cvs->name);
-    for (h = rl->heads; h;) {
+    for (e = rl->heads; e;) {
 	fprintf(stderr, "\t");
-	rev_list_dump_ref_parents(stderr, h->parent);
-	dump_number_file(stderr, h->name, &h->number);
+	//rev_list_dump_ref_parents(stderr, e->parent);
+	dump_number_file(stderr, e->name, &e->number);
 	fprintf(stderr, "\n");
-	h = h->next;
+	e = e->next;
     }
 #endif
 }
