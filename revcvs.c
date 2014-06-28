@@ -627,14 +627,19 @@ rev_list_sort_heads(rev_list *rl, cvs_file *cvs)
 					e = p;
 				}
 
-				if (e == p && psize) {
-					e = p;
-					p = p->next;
-					psize--;
-				} else {
+				/*
+				 * If the element ever equals q, it is always safe to assume it
+				 * will come from q. The same is not true for p as p == q when
+				 * psize == 0
+				 */
+				if (e == q) {
 					e = q;
 					q = q->next;
 					qsize--;
+				} else {
+					e = p;
+					p = p->next;
+					psize--;
 				}
 
 				e->next = NULL;
