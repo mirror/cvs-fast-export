@@ -609,7 +609,7 @@ bool export_commits(rev_list *rl, int strip, time_t fromtime, bool progress)
     if (branchorder) {
 	/*
 	 * Dump by branch order, not by commit date.  Slightly faster and
-	 * less memory-intensive, but(a) incremental dump won't work, and
+	 * less memory-intensive, but (a) incremental dump won't work, and
 	 * (b) it's not git-fast-export  canonical form and cannot be 
 	 * directly compared to the output of other tools.
 	 */
@@ -632,8 +632,10 @@ bool export_commits(rev_list *rl, int strip, time_t fromtime, bool progress)
 		    history[n] = c;
 		}
 
-		// Now walk the history array in reverse order and export the
-		// commits, along with any matching tags.
+		/*
+		 * Now walk the history array in reverse order and export the
+		 * commits, along with any matching tags.
+		 */
 		for (i=n-1; i>=0; i--) {
 		    export_commit(history[i], h->name, strip, true);
 		    progress_step();

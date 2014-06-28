@@ -58,11 +58,11 @@
 
 /* 
  * CVS_MAX_BRANCHWIDTH should match the number in the longrev test.
- * If it goes above 128 some bitfields widths in rev_ref must increase.
+ * If it goes above 128 some bitfield widths in rev_ref must increase.
  */
 #define CVS_MAX_BRANCHWIDTH	10
 #define CVS_MAX_DEPTH		(2*CVS_MAX_BRANCHWIDTH + 2)
-#define CVS_MAX_REV_LEN	(CVS_MAX_DEPTH * 11)
+#define CVS_MAX_REV_LEN		(CVS_MAX_DEPTH * 11)
 
 /*
  * Use instead of bool in frequently used structures to reduce
@@ -82,7 +82,7 @@ typedef uint32_t	cvstime_t;
 #define RCS_OMEGA	UINT32_MAX	/* 2118-02-07T06:28:15 */
 
 /*
- * This type must be wide enough to enumerte every CVS revision.
+ * This type must be wide enough to enumerate every CVS revision.
  */
 typedef uint32_t	serial_t;
 
