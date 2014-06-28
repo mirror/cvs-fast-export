@@ -602,9 +602,8 @@ rev_list_sort_heads(rev_list *rl, cvs_file *cvs)
 		p = rl->heads;
 		passmerges = 0;
 
-		while (1) {
+		while (p) {
 
-			if (!p) break;
 			passmerges++;
 
 			q = p;
