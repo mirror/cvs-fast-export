@@ -597,12 +597,9 @@ rev_list_sort_heads(rev_list *rl, cvs_file *cvs)
 	int k = 1;
 	int i, psize, qsize;
 
-	int chosep;
-
 	while (1) {
 
 		p = rl->heads;
-		l = NULL;
 		passmerges = 0;
 
 		while (1) {
@@ -620,16 +617,17 @@ rev_list_sort_heads(rev_list *rl, cvs_file *cvs)
 			}
 
 			while (psize || (qsize && q)) {
-				chosep = 0;
 				if (!psize) {
+					e = q;
 				} else if (!(qsize && q)) {
-					chosep++;
+					e = p;
 				} else if (rev_ref_compare(cvs, p, q) > 0) {
+					e = q;
 				} else {
-					chosep++;
+					e = p;
 				}
 
-				if (chosep) {
+				if (e == p && psize) {
 					e = p;
 					p = p->next;
 					psize--;
