@@ -570,15 +570,18 @@ cvs_find_symbol(cvs_file *cvs, char *name)
 }
 
 static int
-cvs_symbol_compare(cvs_symbol *a, cvs_symbol *b)
+rev_ref_compare(cvs_file *cvs, rev_ref *r1, rev_ref *r2)
 {
-    if (!a) {
-	if (!b) return 0;
+    cvs_symbol *s1, *s2;
+    s1 = cvs_find_symbol(cvs, r1->name);
+    s2 = cvs_find_symbol(cvs, r2->name);
+    if (!s1) {
+	if (!s2) return 0;
 	return -1;
     }
-    if (!b)
+    if (!s2)
 	return 1;
-    return cvs_number_compare(&a->number, &b->number);
+    return cvs_number_compare(&s1->number, &s2->number);
 }
 
 static void
@@ -587,12 +590,9 @@ rev_list_sort_heads(rev_list *rl, cvs_file *cvs)
     rev_ref	*h, **hp;
 
     for (hp = &rl->heads; (h = *hp);) {
-	cvs_symbol	*hs, *hns;
 	if (!h->next)
 	    break;
-	hs = cvs_find_symbol(cvs, h->name);
-	hns = cvs_find_symbol(cvs, h->next->name);
-	if (cvs_symbol_compare(hs, hns) > 0) {
+	if (rev_ref_compare(cvs, h, h->next) > 0) {
 	    *hp = h->next;
 	    h->next = h->next->next;
 	    (*hp)->next = h;
