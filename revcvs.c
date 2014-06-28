@@ -584,13 +584,14 @@ rev_ref_compare(cvs_file *cvs, rev_ref *r1, rev_ref *r2)
     return cvs_number_compare(&s1->number, &s2->number);
 }
 
-// Implemented from description at
-// http://www.chiark.greenend.org.uk/~sgtatham/algorithms/listsort.html
+/*
+ * Implemented from description at
+ * http://www.chiark.greenend.org.uk/~sgtatham/algorithms/listsort.html
+ */
 static void
 rev_list_sort_heads(rev_list *rl, cvs_file *cvs)
 {
-	rev_ref *p;
-	rev_ref *q;
+	rev_ref *p, *q;
 	rev_ref *e;
 	rev_ref *l = NULL, *lastl = NULL;
 	int passmerges = 0;
@@ -641,6 +642,10 @@ rev_list_sort_heads(rev_list *rl, cvs_file *cvs)
 					psize--;
 				}
 
+				/*
+				 * Break the element out of its old list and append it to the
+				 * new sorted list
+				 */
 				e->next = NULL;
 				if (l) {
 					lastl->next = e;
