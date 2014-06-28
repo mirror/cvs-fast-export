@@ -60,7 +60,7 @@
  * CVS_MAX_BRANCHWIDTH should match the number in the longrev test.
  * If it goes above 128 some bitfield widths in rev_ref must increase.
  */
-#define CVS_MAX_BRANCHWIDTH	10
+#define CVS_MAX_BRANCHWIDTH	20
 #define CVS_MAX_DEPTH		(2*CVS_MAX_BRANCHWIDTH + 2)
 #define CVS_MAX_REV_LEN		(CVS_MAX_DEPTH * 11)
 
