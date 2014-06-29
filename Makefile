@@ -23,6 +23,12 @@ CFLAGS=$(GCC_WARNINGS) -DVERSION=\"$(VERSION)\"
 
 # To enable debugging of the Yacc grammar, uncomment the following line
 #CFLAGS += -DYYDEBUG=1
+# To enable debugging of blob export, uncomment the following line
+#CFLAGS += -DFDEBUG=1
+# To enable assertions of red black trees, uncomment the following line
+#CFLAGS += -DRBDEBUG=1
+# To enable debugging of CVS rev list generation, uncomment the following line
+#CFLAGS += -DCVSDEBUG=1
 
 YFLAGS=-d -l
 LFLAGS=-l

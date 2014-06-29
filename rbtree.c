@@ -1,7 +1,5 @@
 #include "cvs.h"
 
-#define DEBUG 0
-
 static rbtree_node *
 rbtree_parent(rbtree_node *node)
 /* This function should be called if existence of the parent is
@@ -76,7 +74,7 @@ rbtree_dump(rbtree_node *root, char* marker)
 }
 #endif
 
-#if DEBUG
+#if RBDEBUG
 static void
 rbtree_assert_links(rbtree_node *node)
 /* not a red-black property, but make sure parent <-> child links are
@@ -153,7 +151,7 @@ rbtree_assert_properties(rbtree_node *root)
     rbtree_assert_property_4 (root);
     rbtree_assert_property_5 (root);
 }
-#endif /* #if DEBUG */
+#endif /* #if RBDEBUG */
 
 static void
 rbtree_rotate_helper(rbtree_node *x, rbtree_node *y)
@@ -282,7 +280,7 @@ rbtree_insert(rbtree_node **root, void *key, void *value,
     *nodep = node;
 
     rbtree_insert_fixup(root, node);
-#if DEBUG
+#if RBDEBUG
     rbtree_assert_properties(*root);
 #endif
 }
