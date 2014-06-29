@@ -18,8 +18,6 @@
 
 #include "cvs.h"
 
-#define DEBUG 0
-
 /*
  * Given a single-file tree, locate the specific version number
  */
@@ -274,7 +272,7 @@ rev_list_patch_vendor_branch(rev_list *rl, cvs_file *cvs)
 	    h_p = &(h->next);
 	}
     }
-#if DEBUG
+#if CVSDEBUG
     fprintf(stderr, "%s spliced:\n", cvs->name);
     for (t = trunk->commit; t; t = t->parent) {
 	dump_number_file(stderr, "\t", &t->file->number);
@@ -601,7 +599,7 @@ rev_list_sort_heads(rev_list *rl, cvs_file *cvs)
 	    hp = &h->next;
 	}
     }
-#if DEBUG
+#if CVSDEBUG
     fprintf(stderr, "Sorted heads for %s\n", cvs->name);
     for (h = rl->heads; h;) {
 	fprintf(stderr, "\t");
@@ -654,7 +652,7 @@ rev_list_cvs(cvs_file *cvs)
     /*
      * Search for other branches
      */
-#if DEBUG
+#if CVSDEBUG
     printf("building branches for %s\n", cvs->name);
 #endif
     
