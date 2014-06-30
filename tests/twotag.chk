@@ -1,12 +1,12 @@
 blob
 mark :1
-data 46
-The quick brown fox jumped over the lazy dog.
+data 43
+Alve bazige froulju wachtsje op dyn komst.
 
 blob
 mark :2
-data 43
-Alve bazige froulju wachtsje op dyn komst.
+data 46
+The quick brown fox jumped over the lazy dog.
 
 commit refs/heads/master
 mark :3
@@ -14,8 +14,8 @@ committer foo <foo> 1800 +0000
 data 25
 An example first checkin
 
-M 100644 :1 tweedledum
-M 100644 :2 tweedledee
+M 100644 :1 tweedledee
+M 100644 :2 tweedledum
 M 100644 inline .cvsignore
 data 198
 # CVS default ignores begin
@@ -48,15 +48,18 @@ core
 # CVS default ignores end
 
 
+reset refs/tags/FUBAR
+from :3
+
 blob
 mark :4
-data 47
-Portez ce vieux whisky au juge blond qui fume.
+data 38
+Lynx c.q. vos prikt bh: dag zwemjuf!.
 
 blob
 mark :5
-data 38
-Lynx c.q. vos prikt bh: dag zwemjuf!.
+data 47
+Portez ce vieux whisky au juge blond qui fume.
 
 commit refs/heads/master
 mark :6
@@ -65,11 +68,8 @@ data 26
 An example second checkin
 
 from :3
-M 100644 :4 tweedledum
-M 100644 :5 tweedledee
-
-reset refs/tags/FUBAR
-from :6
+M 100644 :4 tweedledee
+M 100644 :5 tweedledum
 
 reset refs/heads/master
 from :6
