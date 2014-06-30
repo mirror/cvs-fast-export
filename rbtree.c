@@ -306,8 +306,8 @@ void
 rbtree_free(rbtree_node *node)
 {
     if (node) {
-	free(node->left);
-	free(node->right);
+	rbtree_free(node->left);
+	rbtree_free(node->right);
 	free(node);
     }
 }
