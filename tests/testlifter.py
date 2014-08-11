@@ -280,11 +280,13 @@ class ConvertComparison:
         gitfiles = [fn[len(self.stem+".git")+1:] for fn in gitpaths]
         cvsfiles.sort()
         gitfiles.sort()
-        # Ignore .cvsignores in manifest comparison. since we generate them.
-        if ".cvsignore" in cvsfiles:
-            cvsfiles.remove(".cvsignore")
-        if ".cvsignore" in gitfiles:
-            gitfiles.remove(".cvsignore")
+        # Ignore .gitignores in manifest comparison, since we generate them.
+        for fn in cvsfiles:
+            if fn.endswith(".cvsignore"):
+                cvsfiles.remove(fn)
+        for fn in gitfiles:
+            if fn.endswith(".gitignore"):
+                gitfiles.remove(fn)
         if cvsfiles != gitfiles:
             if success_expected:
                 sys.stderr.write(preamble + "file manifests don't match.\n")
