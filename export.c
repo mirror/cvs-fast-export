@@ -151,7 +151,7 @@ void export_blob(Node *node, void *buf, size_t len)
     gzFile wfp;
 #endif
 
-    if (strcmp(node->file->name, ".cvsignore,v") == 0) {
+    if (strcmp(node->file->name + striplen, ".cvsignore,v") == 0) {
 	need_ignores = false;
 	extralen = sizeof(CVS_IGNORES) - 1;
     }
