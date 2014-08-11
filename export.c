@@ -199,7 +199,7 @@ static void drop_path_component(char *string, const char *drop)
     }
 }
 
-static char *export_filename(rev_file *file)
+static char *export_filename(rev_file *file, const bool ignoreconv)
 {
     static char name[PATH_MAX];
     int	len;
@@ -214,13 +214,14 @@ static char *export_filename(rev_file *file)
     if (len > 2 && !strcmp(name + len - 2, ",v"))
 	name[len-2] = '\0';
 
-    ignore = name + strlen(name) - 10; 
-    if (strcmp(ignore, ".cvsignore") == 0 && (ignore == name || ignore[-1] == '/'))
-    {
-	*(++ignore) = 'g';
-	*(++ignore) = 'i';
-	*(++ignore) = 't';
-    }
+    ignore = name + strlen(name) - 10;
+    if (ignoreconv)
+	if (strcmp(ignore, ".cvsignore") == 0 && (ignore == name || ignore[-1] == '/'))
+	{
+	    *(++ignore) = 'g';
+	    *(++ignore) = 'i';
+	    *(++ignore) = 't';
+	}
 
     return name;
 }
@@ -378,7 +379,7 @@ static void export_commit(git_commit *commit, char *branch, bool report)
 	    char *stripped;
 	    bool present, changed;
 	    f = dir->files[j];
-	    stripped = export_filename(f);
+	    stripped = export_filename(f, true);
 	    present = false;
 	    changed = false;
 	    if (commit->parent) {
@@ -410,7 +411,8 @@ static void export_commit(git_commit *commit, char *branch, bool report)
 		}
 
 		if (revision_map || reposurgeon) {
-		    char *fr = stringify_revision(stripped, " ", &f->number);
+		    char *fr = stringify_revision(export_filename(f, false), 
+						  " ", &f->number);
 		    if (report && revision_map)
 			fprintf(revision_map, "%s :%d\n", fr, markmap[f->serial].external);
 		    if (reposurgeon)
@@ -440,7 +442,7 @@ static void export_commit(git_commit *commit, char *branch, bool report)
 		if (!present) {
 		    op->op = 'D';
 		    (void)strncpy(op->path, 
-				  export_filename(f),
+				  export_filename(f, true),
 				  PATH_MAX-1);
 		    op++;
 		    if (op == operations + noperations)
