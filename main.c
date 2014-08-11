@@ -44,6 +44,7 @@ char *branch_prefix = "refs/heads/";
 bool progress = false;
 bool branchorder = false;
 time_t start_time;
+ssize_t striplen = -1;
 
 static int verbose = 0;
 static rev_execution_mode rev_mode = ExecuteExport;
@@ -439,7 +440,6 @@ main(int argc, char **argv)
     rev_list	    *rl;
     int		    j = 1;
     char	    name[10240], *last = NULL;
-    int		    strip = -1;
     int		    c;
     char	    *file;
     int		    nfile = 0;
@@ -538,7 +538,7 @@ main(int argc, char **argv)
 	    sprintf(branch_prefix, "refs/remotes/%s/", optarg);
 	    break;
 	case 's':
-	    strip = strlen(optarg) + 1;
+	    striplen = strlen(optarg) + 1;
 	    break;
 	case 'p':
 	    progress = true;
@@ -593,17 +593,17 @@ main(int argc, char **argv)
 	fn->file = atom(file);
 	*fn_tail = fn;
 	fn_tail = &fn->next;
-	if (strip > 0 && last != NULL) {
+	if (striplen > 0 && last != NULL) {
 	    c = strcommonendingwith(fn->file, last, '/');
-	    if (c < strip)
-		strip = c;
-	} else if (strip < 0) {
+	    if (c < striplen)
+		striplen = c;
+	} else if (striplen < 0) {
 	    size_t i;
 
-	    strip = 0;
+	    striplen = 0;
 	    for (i = 0; i < strlen(fn->file); i++)
 		if (fn->file[i] == '/')
-		    strip = i + 1;
+		    striplen = i + 1;
 	}
 	last = fn->file;
 	nfile++;
@@ -625,7 +625,7 @@ main(int argc, char **argv)
 	if (verbose)
 	    announce("processing %s\n", fn->file);
 	if (progress)
-	    load_status(fn->file + strip);
+	    load_status(fn->file + striplen);
 	rl = rev_list_file(fn->file, &nversions);
 	*tail = rl;
 	tail = &rl->next;
@@ -643,7 +643,7 @@ main(int argc, char **argv)
 	    dump_rev_graph(rl, NULL);
 	    break;
 	case ExecuteExport:
-	    export_commits(rl, strip, fromtime, progress);
+	    export_commits(rl, fromtime, progress);
 	    break;
 	}
     }

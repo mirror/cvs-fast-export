@@ -228,6 +228,8 @@ extern bool branchorder;
 
 extern time_t start_time;
 
+extern ssize_t striplen;
+
 /*
  * Tricky polymorphism hack to reduce working set size for large repos
  * begins here.
@@ -514,7 +516,7 @@ void
 export_init(void);
 
 bool
-export_commits (rev_list *rl, int strip, time_t fromtime, bool progress);
+export_commits (rev_list *rl, time_t fromtime, bool progress);
 
 void
 export_wrap(void);

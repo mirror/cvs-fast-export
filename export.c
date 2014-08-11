@@ -199,15 +199,15 @@ static void drop_path_component(char *string, const char *drop)
     }
 }
 
-static char *export_filename(rev_file *file, int strip)
+static char *export_filename(rev_file *file)
 {
     static char name[PATH_MAX];
     int	len;
     char *ignore;
     
-    if (strlen(file->name) - strip >= MAXPATHLEN)
+    if (strlen(file->name) - striplen >= MAXPATHLEN)
 	fatal_error("File name %s\n too long\n", file->name);
-    strcpy(name, file->name + strip);
+    strcpy(name, file->name + striplen);
 	drop_path_component(name, "Attic/");
 	drop_path_component(name, "RCS/");
     len = strlen(name);
@@ -341,7 +341,7 @@ static void compute_parent_links(git_commit *commit)
     }
 }
 
-static void export_commit(git_commit *commit, char *branch, int strip, bool report)
+static void export_commit(git_commit *commit, char *branch, bool report)
 /* export a commit(and the blobs it is the first to reference) */
 {
 #define OP_CHUNK	32
@@ -378,7 +378,7 @@ static void export_commit(git_commit *commit, char *branch, int strip, bool repo
 	    char *stripped;
 	    bool present, changed;
 	    f = dir->files[j];
-	    stripped = export_filename(f, strip);
+	    stripped = export_filename(f);
 	    present = false;
 	    changed = false;
 	    if (commit->parent) {
@@ -440,7 +440,7 @@ static void export_commit(git_commit *commit, char *branch, int strip, bool repo
 		if (!present) {
 		    op->op = 'D';
 		    (void)strncpy(op->path, 
-				  export_filename(f, strip),
+				  export_filename(f),
 				  PATH_MAX-1);
 		    op++;
 		    if (op == operations + noperations)
@@ -589,7 +589,7 @@ static int sort_by_date(const void *ap, const void *bp)
     return ac->commit->date - bc->commit->date;
 }
 
-bool export_commits(rev_list *rl, int strip, time_t fromtime, bool progress)
+bool export_commits(rev_list *rl, time_t fromtime, bool progress)
 /* export a revision list as a git fast-import stream in canonical order */
 {
     rev_ref *h;
@@ -637,7 +637,7 @@ bool export_commits(rev_list *rl, int strip, time_t fromtime, bool progress)
 		 * commits, along with any matching tags.
 		 */
 		for (i=n-1; i>=0; i--) {
-		    export_commit(history[i], h->name, strip, true);
+		    export_commit(history[i], h->name, true);
 		    progress_step();
 		    for (t = all_tags; t; t = t->next)
 			if (t->commit == history[i])
@@ -729,7 +729,7 @@ bool export_commits(rev_list *rl, int strip, time_t fromtime, bool progress)
 		}
 	    }
 	    progress_jump(hp - history);
-	    export_commit(hp->commit, hp->head->name, strip, report);
+	    export_commit(hp->commit, hp->head->name, report);
 	    for (t = all_tags; t; t = t->next)
 		if (t->commit == hp->commit)
 		    printf("reset refs/tags/%s\nfrom :%d\n\n", t->name, markmap[hp->commit->serial].external);
