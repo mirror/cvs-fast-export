@@ -4,6 +4,8 @@ Repository head:
     Allow ()<> in symbol names.
     Fix a minor memory leak.
     Make cvssync a bit more liberal about SourceForge hostnames.
+    In cvssync, eading /cvsroot can be omitted on Sourceforge paths.
+    In cvssync, eading /sources can be omitted on Savannah paths.
 
 1.12: 2014-06-26
     Allow []! in symbol names.

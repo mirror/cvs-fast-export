@@ -15,6 +15,9 @@ actual path to the repository from the host, path and module arguments.
 def computesource(sourcehost, sourcepath, sourcemodule):
     "Compute an rsync source given a CVS sourcehost, sourcepath, and sourcemodule"
     if "sourceforge" in sourcehost:
+        # Supply the  /cvsroot path head if not given.
+        if not sourcepath.startswith("/cvsroot"):
+            sourcepath = "/cvsroot" + sourcepath
         # Deal with the Sourceforge convention for naming project
         # pseudohosts.  This does it in a backwards-compatible way.
         project = sourcepath.split("/")[-1]
@@ -29,8 +32,11 @@ def computesource(sourcehost, sourcepath, sourcemodule):
     elif "sourceware" in sourcehost:
         # The pattern is rsync -av sourceware.org::<projectname>-cvs/<module>/
         return "%s::%s-cvs/%s/" % (sourcehost, sourcepath.split('/')[2], sourcemodule)
-    # Savannah retrievals work by pasting the pieces together
-    # in the default way.
+    elif "savannah" in sourcehost:
+        # Supply the  /sources path head if not given.
+        if not sourcepath.startswith("/sources"):
+            sourcepath = "/sources" + sourcepath
+        return "%s:%s/%s/" % (sourcehost, sourcepath, sourcemodule)
     else:
         return "%s:%s/%s/" % (sourcehost, sourcepath, sourcemodule)
 
