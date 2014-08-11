@@ -15,6 +15,11 @@ actual path to the repository from the host, path and module arguments.
 def computesource(sourcehost, sourcepath, sourcemodule):
     "Compute an rsync source given a CVS sourcehost, sourcepath, and sourcemodule"
     if "sourceforge" in sourcehost:
+        # Deal with the Sourceforge convention for naming project
+        # pseudohosts.  This does it in a backwards-compatible way.
+        project = sourcepath.split("/")[-1]
+        if not sourcehost.startswith(project + "."):
+            sourcehost = project + "." + sourcehost
         # On SourceForge you need to double the colon and strip the
         # leading / to invoke the rsync module facility.
         return "%s::%s/%s/" % (sourcehost, sourcepath[1:], sourcemodule)
@@ -86,7 +91,7 @@ if __name__ == '__main__':
         if ":" not in host:
             sys.stderr.write("cvssync: repository path is missing.\n")
             sys.exit(1)
-        (host, path) = host.split(":")
+        (host, path) = host.split(":")        
     else:
         sys.stderr.write("cvssync: requires a host/path and module argument\n")
         sys.exit(1)
