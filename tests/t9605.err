@@ -1,1 +1,4 @@
 cvs-fast-export: commits before this date lack commitids: Wed Dec 12 21:09:50 2012
+t9605 test of branch master: t9605.checkout/b and t9605.git/.gitignore are different.
+t9605 test of branch master: t9605.checkout/a and t9605.git/b are different.
+t9605 test of branch master: t9605.checkout/c and t9605.git/a are different.

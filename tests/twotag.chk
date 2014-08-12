@@ -16,7 +16,7 @@ An example first checkin
 
 M 100644 :1 tweedledee
 M 100644 :2 tweedledum
-M 100644 inline .cvsignore
+M 100644 inline .gitignore
 data 198
 # CVS default ignores begin
 tags

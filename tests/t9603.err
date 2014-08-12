@@ -1,2 +1,4 @@
 cvs-fast-export: warning - tests/t9603.testrepo/module/a,v:  1.1 is newer than 1.2, adjusting 1.2
 cvs-fast-export: commits before this date lack commitids: Wed Mar 11 19:09:10 2009
+t9603 test of branch master: t9603.checkout/b and t9603.git/.gitignore are different.
+t9603 test of branch master: t9603.checkout/a and t9603.git/b are different.
