@@ -539,7 +539,7 @@ static void export_commit(git_commit *commit, char *branch, bool report)
 	}
 	if (need_ignores) {
 	    need_ignores = false;
-	    printf("M 100644 inline .gitignore\ndata %zd\n%s\n",
+	    printf("M 100644 inline .cvsignore\ndata %zd\n%s\n",
 		   sizeof(CVS_IGNORES)-1, CVS_IGNORES);
 	}
     }
