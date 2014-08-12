@@ -1,7 +1,7 @@
 		cvs-fast-export project news
 
-Repository head:
-    Fixed several minor issues near ignore conversions.
+1.14: 2014-08-12
+    Fixed several issues near ignore conversions.
 
 1.13: 2014-08-11
     Allow ()<> in symbol names.
