@@ -190,7 +190,7 @@ rev_list_file(char *name, int *nversions)
     return rl;
 }
 
-#ifdef ORDERDEBUG
+#ifdef ORDERDEBUG2
 void
 dump_rev_tree(rev_list *rl, FILE *fp)
 {
@@ -289,7 +289,7 @@ strcommon(char *a, char *b)
     }
     return c;
 }
-#endif /* ORDERDEBUG */
+#endif /* ORDERDEBUG2 */
 
 static int
 strcommonendingwith(char *a, char *b, char endc)
@@ -636,9 +636,9 @@ main(int argc, char **argv)
 	load_status_next();
     /* commit set coalescence happens here */
     rl = rev_list_merge(head);
-#ifdef ORDERDEBUG
+#ifdef ORDERDEBUG2
     dump_rev_tree(head, stderr);
-#endif /* ORDERDEBUG */
+#endif /* ORDERDEBUG2 */
     /* report on the DAG */
     if (rl) {
 	switch(rev_mode) {

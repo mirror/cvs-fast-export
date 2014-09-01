@@ -449,13 +449,13 @@ void
 dump_log (FILE *f, char *log);
 
 void
-dump_git_commit (git_commit *e);
+dump_git_commit (git_commit *e, FILE *);
 
 void
-dump_rev_head (rev_ref *h);
+dump_rev_head (rev_ref *h, FILE *);
 
 void
-dump_rev_list (rev_list *rl);
+dump_rev_list (rev_list *rl, FILE *);
 
 void
 dump_splits (rev_list *rl);
@@ -464,7 +464,7 @@ void
 dump_rev_graph (rev_list *rl, char *title);
 
 void
-dump_rev_tree (rev_list *rl);
+dump_rev_tree (rev_list *rl, FILE *);
 
 extern int yylex (void);
 
