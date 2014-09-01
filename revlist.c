@@ -990,15 +990,13 @@ rev_list_merge(rev_list *head)
 
 #ifdef ORDERDEBUG
     fputs("rev_list_merge: before common branch merge:\n", stderr);
-    for (h = rl->heads; h; h = h->next) {
-	fprintf(stderr, "head %s(%d)\n",
-		h->name, h->degree);
-	for (lh = h; lh; lh = lh->next) {
+    for (l = head; l; l = l->next) {
+	for (lh = l->heads; lh; lh = lh->next) {
 	    cvs_commit *commit = lh->commit;
 	    fputs("rev_ref: ", stderr);
 	    dump_number_file(stderr, lh->name, &lh->number);
 	    fputc('\n', stderr);
-	    fprintf(stderr, "commit address: %p\n", commit);
+	    fprintf(stderr, "commit first file: %s\n", commit->file->name);
 	}
     }
 #endif /* ORDERDEBUG */
