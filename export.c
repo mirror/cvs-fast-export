@@ -342,6 +342,30 @@ static void compute_parent_links(git_commit *commit)
     }
 }
 
+#ifdef ORDERDEBUG
+static void dump_file(rev_file *rev_file, FILE *fp)
+{
+    fprintf(fp, "   file name: %s\n", rev_file->name);
+}
+
+static void dump_dir(rev_dir *rev_dir, FILE *fp)
+{
+    int i;
+
+    fprintf(fp, "   file count: %d\n", rev_dir->nfiles);
+    for (i = 0; i < rev_dir->nfiles; i++)
+	dump_file(rev_dir->files[i], fp);
+}
+
+static void dump_commit(git_commit *commit, FILE *fp)
+{
+    int i;
+    fprintf(fp, "commit nfiles: %d, ndirs = %d\n", commit->nfiles, commit->ndirs);
+    for (i = 0; i < commit->ndirs; i++)
+	dump_dir(commit->dirs[i], fp);
+}
+#endif /* ORDERDEBUG */
+
 static void export_commit(git_commit *commit, char *branch, bool report)
 /* export a commit(and the blobs it is the first to reference) */
 {
@@ -357,6 +381,11 @@ static void export_commit(git_commit *commit, char *branch, bool report)
     int		i, j;
     struct fileop *operations, *op, *op2;
     int noperations;
+
+#ifdef ORDERDEBUG2
+    fputs("Export phase 3:\n", stderr);
+    dump_commit(commit, stderr);
+#endif /* ORDERDEBUG2 */
 
     if (reposurgeon)
     {
@@ -497,7 +526,8 @@ static void export_commit(git_commit *commit, char *branch, bool report)
 	}
     }
 
-    qsort((void *)operations, op2 - op, sizeof(struct fileop), fileop_sort); 
+    //fprintf(stderr, "FOO!!! \n");
+    qsort((void *)operations, op - operations, sizeof(struct fileop), fileop_sort); 
 
     author = fullname(commit->author);
     if (!author) {
@@ -607,6 +637,7 @@ bool export_commits(rev_list *rl, time_t fromtime, bool progress)
     memset(markmap, '\0', extent);
 
     progress_begin("Save: ", export_total_commits);
+    fprintf(stderr, "branchorder %d\n", branchorder);
 
     if (branchorder) {
 	/*
@@ -677,6 +708,9 @@ bool export_commits(rev_list *rl, time_t fromtime, bool progress)
 	history = (struct commit_seq *)xcalloc(export_total_commits, 
 					       sizeof(struct commit_seq),
 					       "export");
+#ifdef ORDERDEBUG
+	fputs("Export phase 1:\n", stderr);
+#endif /* ORDERDEBUG */
 	branchbase = 0;
 	for (h = rl->heads; h; h = h->next) {
 	    if (!h->tail) {
@@ -691,11 +725,21 @@ bool export_commits(rev_list *rl, time_t fromtime, bool progress)
 		    history[n].commit = c;
 		    history[n].head = h;
 		    i++;
+#ifdef ORDERDEBUG
+		    fprintf(stderr, "At n = %d, i = %d\n", n, i);
+		    dump_commit(c, stderr);
+#endif /* ORDERDEBUG */
 		}
 		branchbase += branchlength;
 	    }
 	}
  
+#ifdef ORDERDEBUG2
+	fputs("Export phase 2:\n", stderr);
+	for (hp = history; hp < history + export_total_commits; hp++)
+	    dump_commit(hp->commit, stderr);
+#endif /* ORDERDEBUG2 */
+
 	/* 
 	 * Check that the topo order is consistent with time order.
 	 * If so, we can sort commits by date without worrying that
