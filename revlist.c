@@ -427,7 +427,7 @@ git_commit_build(cvs_commit **revisions, cvs_commit *leader, int nrevisions)
     if (!files)
 	/* coverity[sizecheck] Coverity has a bug here */
 	files = xmalloc((sfiles = nrevisions) * sizeof(rev_file *), __func__);
-    
+
     nfile = 0;
     for (n = 0; n < nrevisions; n++)
 	if (revisions[n] && revisions[n]->file)
@@ -456,6 +456,13 @@ git_commit_build(cvs_commit **revisions, cvs_commit *leader, int nrevisions)
 
     memcpy(commit->dirs, rds, (commit->ndirs = nds) * sizeof(rev_dir *));
     
+#ifdef ORDERDEBUG
+    fprintf(stderr, "commit_build: %p\n", commit);
+
+    for (n = 0; n < nfile; n++)
+	fprintf(stderr, "%s\n", revisions[n]->file->name);
+#endif /* ORDERDEBUG */
+
     return commit;
 }
 
@@ -1000,6 +1007,7 @@ rev_list_merge(rev_list *head)
 	}
     }
 #endif /* ORDERDEBUG */
+
     /*
      * Merge common branches
      */
