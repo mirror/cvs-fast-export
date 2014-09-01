@@ -16,7 +16,7 @@ We will put the dump theshold before this commit.
 
 from :4
 M 100644 :7 README
-M 100644 inline .gitignore
+M 100644 inline .cvsignore
 data 198
 # CVS default ignores begin
 tags

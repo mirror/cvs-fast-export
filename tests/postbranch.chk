@@ -9,7 +9,7 @@ data 5
 root
 
 M 100644 :1 f
-M 100644 inline .gitignore
+M 100644 inline .cvsignore
 data 198
 # CVS default ignores begin
 tags
