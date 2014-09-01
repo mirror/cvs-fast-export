@@ -97,7 +97,7 @@ dump_number(char *name, cvs_number *number)
 
 #ifdef __UNUSED__
 void
-dump_git_commit(git_commit *c)
+dump_git_commit(git_commit *c, FILE *fp)
 /* dump all delta/revision pairs associated with a gitspace commit */
 {
     rev_file	*f;
@@ -108,27 +108,27 @@ dump_git_commit(git_commit *c)
 	
 	for (j = 0; j < dir->nfiles; j++) {
 	    f = dir->files[j];
-	    dump_number(f->name, &f->number);
+	    dump_number_file(fp, f->name, &f->number);
 	    printf(" ");
 	}
     }
-    printf("\n");
+    fputs("\n", fp);
 }
 
 void
-dump_rev_head(rev_ref *h)
-/* dump all gitspace commits associated wit the specified head */
+dump_rev_head(rev_ref *h, FILE *fp)
+/* dump all gitspace commits associated with the specified head */
 {
     git_commit	*c;
-    for (c = h->commit; c; c = c->parent) {
-	dump_git_commit(c);
+    for (c = (git_commit *)h->commit; c; c = c->parent) {
+	dump_git_commit(c, fp);
 	if (c->tail)
 	    break;
     }
 }
 
 void
-dump_rev_list(rev_list *rl)
+dump_rev_list(rev_list *rl, FILE *fp)
 /* dump an entire revision list */
 {
     rev_ref	*h;
@@ -136,7 +136,7 @@ dump_rev_list(rev_list *rl)
     for (h = rl->heads; h; h = h->next) {
 	if (h->tail)
 	    continue;
-	dump_rev_head(h);
+	dump_rev_head(h, fp);
     }
 }
 #endif /* __UNUSED__ */
@@ -190,13 +190,13 @@ rev_list_file(char *name, int *nversions)
     return rl;
 }
 
-#ifdef __UNUSED__
+#ifdef ORDERDEBUG
 void
-dump_rev_tree(rev_list *rl)
+dump_rev_tree(rev_list *rl, FILE *fp)
 {
     rev_ref	*h;
     rev_ref	*oh;
-    git_commit	*c, *p;
+    cvs_commit	*c, *p;
     int		tail;
 
     printf("rev_list {\n");
@@ -206,18 +206,18 @@ dump_rev_tree(rev_list *rl)
 	    continue;
 	for (oh = rl->heads; oh; oh = oh->next) {
 	    if (h->commit == oh->commit)
-		printf("%s:\n", oh->name);
+		fprintf(fp, "%s:\n", oh->name);
 	}
-	printf("\t{\n");
+	fprintf(fp, "\t{\n");
 	tail = h->tail;
 	for (c = h->commit; c; c = p) {
-	    printf("\t\t%p ", c);
+	    fprintf(fp, "\t\t%p ", c);
 	    dump_log(stdout, c->log);
 	    if (tail) {
-		printf("\n\t\t...\n");
+		fprintf(fp, "\n\t\t...\n");
 		break;
 	    }
-	    printf(" {\n");
+	    fprintf(fp, " {\n");
 	    
 	    p = c->parent;
 #if 0
@@ -230,15 +230,15 @@ dump_rev_tree(rev_list *rl)
 		    pf = p->files[pi];
 		    if (ef != pf) {
 			if (rev_file_later(ef, pf)) {
-			    fprintf(stdout, "+ ");
+			    fprintf(fp, "+ ");
 			    dump_number_file(stdout, ef->name, &ef->number);
 			    ei++;
 			} else {
-			    fprintf(stdout, "- ");
+			    fprintf(fp, "- ");
 			    dump_number_file(stdout, pf->name, &pf->number);
 			    pi++;
 			}
-			fprintf(stdout, "\n");
+			fprintf(fp, "\n");
 		    } else {
 			ei++;
 			pi++;
@@ -246,32 +246,32 @@ dump_rev_tree(rev_list *rl)
 		}
 		while (ei < c->nfiles) {
 		    ef = c->files[ei];
-		    fprintf(stdout, "+ ");
+		    fprintf(fp, "+ ");
 		    dump_number_file(stdout, ef->name, &ef->number);
 		    ei++;
-		    fprintf(stdout, "\n");
+		    fprintf(fp, "\n");
 		}
 		while (pi < p->nfiles) {
 		    pf = p->files[pi];
-		    fprintf(stdout, "- ");
+		    fprintf(fp, "- ");
 		    dump_number_file(stdout, pf->name, &pf->number);
 		    pi++;
-		    fprintf(stdout, "\n");
+		    fprintf(fp, "\n");
 		}
 	    } else {
 		for (i = 0; i < c->nfiles; i++) {
-		    printf("\t\t\t");
+		    fprintf(fp, "\t\t\t");
 		    dump_number(c->files[i]->name, &c->files[i]->number);
-		    printf("\n");
+		    fprintf(fp, "\n");
 		}
 	    }
 #endif
-	    printf("\t\t}\n");
+	    fprintf(fp, "\t\t}\n");
 	    tail = c->tail;
 	}
-	printf("\t}\n");
+	fprintf(fp, "\t}\n");
     }
-    printf("}\n");
+    fprintf(fp, "}\n");
 }
 
 static int
@@ -289,7 +289,7 @@ strcommon(char *a, char *b)
     }
     return c;
 }
-#endif /* __UNUSED__ */
+#endif /* ORDERDEBUG */
 
 static int
 strcommonendingwith(char *a, char *b, char endc)
@@ -636,6 +636,9 @@ main(int argc, char **argv)
 	load_status_next();
     /* commit set coalescence happens here */
     rl = rev_list_merge(head);
+#ifdef ORDERDEBUG
+    dump_rev_tree(head, stderr);
+#endif /* ORDERDEBUG */
     /* report on the DAG */
     if (rl) {
 	switch(rev_mode) {
