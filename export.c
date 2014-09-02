@@ -51,7 +51,6 @@ static struct mark *markmap;
 static serial_t seqno, mark;
 static char blobdir[PATH_MAX];
 static serial_t export_total_commits;
-static bool need_ignores = true;
 
 /*
  * GNU CVS default ignores.  We omit from this things that CVS ignores
@@ -152,7 +151,6 @@ void export_blob(Node *node, void *buf, size_t len)
 #endif
 
     if (strcmp(node->file->name + striplen, ".cvsignore,v") == 0) {
-	need_ignores = false;
 	extralen = sizeof(CVS_IGNORES) - 1;
     }
     
@@ -381,6 +379,7 @@ static void export_commit(git_commit *commit, char *branch, bool report)
     int		i, j;
     struct fileop *operations, *op, *op2;
     int noperations;
+    static bool need_ignores = true;
 
 #ifdef ORDERDEBUG2
     fputs("Export phase 3:\n", stderr);
@@ -566,10 +565,16 @@ static void export_commit(git_commit *commit, char *branch, bool report)
 		       op2->path);
 	    if (op2->op == 'D')
 		printf("D %s\n", op2->path);
+	    /*
+	     * If there's a .gitignore in the first commit, don't generate one.
+	     * export_blob() will already have prepended them.
+	     */
+	    if (need_ignores && strcmp(op2->path, ".gitignore") == 0)
+		need_ignores = false;
 	}
 	if (need_ignores) {
 	    need_ignores = false;
-	    printf("M 100644 inline .cvsignore\ndata %zd\n%s\n",
+	    printf("M 100644 inline .gitignore\ndata %zd\n%s\n",
 		   sizeof(CVS_IGNORES)-1, CVS_IGNORES);
 	}
     }
