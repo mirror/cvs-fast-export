@@ -589,79 +589,79 @@ rev_ref_compare(cvs_file *cvs, rev_ref *r1, rev_ref *r2)
 static void
 rev_list_sort_heads(rev_list *rl, cvs_file *cvs)
 {
-	rev_ref *p = rl->heads, *q;
-	rev_ref *e;
-	rev_ref *l = NULL, *lastl = NULL;
-	int k = 1;
-	int i, psize, qsize;
+    rev_ref *p = rl->heads, *q;
+    rev_ref *e;
+    rev_ref *l = NULL, *lastl = NULL;
+    int k = 1;
+    int i, psize, qsize;
 
-	while (1) {
-		int passmerges = 0;
+    while (1) {
+	int passmerges = 0;
 
-		passmerges = 0;
+	passmerges = 0;
 
-		while (p) {
+	while (p) {
 
-			passmerges++;
+	    passmerges++;
 
-			q = p;
-			qsize = k;
-			psize = 0;
-			for (i = 0; i < k; i++) {
-				if (!q->next) break;
-				psize++;
-				q = q->next;
-			}
+	    q = p;
+	    qsize = k;
+	    psize = 0;
+	    for (i = 0; i < k; i++) {
+		if (!q->next) break;
+		psize++;
+		q = q->next;
+	    }
 
-			while (psize || (qsize && q)) {
-				if (!psize) {
-					e = q;
-				} else if (!(qsize && q)) {
-					e = p;
-				} else if (rev_ref_compare(cvs, p, q) > 0) {
-					e = q;
-				} else {
-					e = p;
-				}
-
-				/*
-				 * If the element ever equals q, it is always safe to assume it
-				 * will come from q. The same is not true for p as p == q when
-				 * psize == 0
-				 */
-				if (e == q) {
-					e = q;
-					q = q->next;
-					qsize--;
-				} else {
-					e = p;
-					p = p->next;
-					psize--;
-				}
-
-				/*
-				 * Break the element out of its old list and append it to the
-				 * new sorted list
-				 */
-				e->next = NULL;
-				if (l) {
-					lastl->next = e;
-					lastl = e;
-				} else {
-					l = lastl = e;
-				}
-			}
-			p = q;
+	    while (psize || (qsize && q)) {
+		if (!psize) {
+		    e = q;
+		} else if (!(qsize && q)) {
+		    e = p;
+		} else if (rev_ref_compare(cvs, p, q) > 0) {
+		    e = q;
+		} else {
+		    e = p;
 		}
 
-		if (passmerges <= 1) break;
+		/*
+		 * If the element ever equals q, it is always safe to assume it
+		 * will come from q. The same is not true for p as p == q when
+		 * psize == 0
+		 */
+		if (e == q) {
+		    e = q;
+		    q = q->next;
+		    qsize--;
+		} else {
+		    e = p;
+		    p = p->next;
+		    psize--;
+		}
 
-		p = l;
-		l = lastl = NULL;
-		k = 2*k;
+		/*
+		 * Break the element out of its old list and append it to the
+		 * new sorted list
+		 */
+		e->next = NULL;
+		if (l) {
+		    lastl->next = e;
+		    lastl = e;
+		} else {
+		    l = lastl = e;
+		}
+	    }
+	    p = q;
 	}
 
-	rl->heads = l;
+	if (passmerges <= 1) break;
+
+	p = l;
+	l = lastl = NULL;
+	k = 2*k;
+    }
+
+    rl->heads = l;
 #if DEBUG
     fprintf(stderr, "Sorted heads for %s\n", cvs->name);
     for (e = rl->heads; e;) {
