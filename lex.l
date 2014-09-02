@@ -108,9 +108,9 @@ static void fast_export_sanitize(void);
 \n				;
 1				return BRAINDAMAGED_NUMBER;
 .				{ 
-				    fprintf (stderr, "%s: (%d) ignoring %c\n", 
-					     yyfilename, yylineno,
-					     yytext[0]);
+				    fprintf(stderr, "%s: (%d) ignoring %c\n", 
+					yyfilename, yylineno,
+					yytext[0]);
 				}
 %%
 int yywrap (void) { return 1; }
@@ -229,11 +229,10 @@ lex_date (cvs_number *n)
 	d = mktime (&tm);
 	if (d == 0) {
 	    int i;
-	    fprintf (stderr, "%s: (%d) unparsable date: ", yyfilename,
-		     yylineno);
+	    fprintf(stderr, "%s: (%d) unparsable date: ", yyfilename, yylineno);
 	    for (i = 0; i < n->c; i++) {
 		if (i) fprintf (stderr, ".");
-		fprintf (stderr, "%d", n->n[i]);
+		fprintf(stderr, "%d", n->n[i]);
 	    }
 	    fprintf (stderr, "\n");
 	}
@@ -256,19 +255,15 @@ static void fast_export_sanitize(void)
 	if (isgraph((unsigned char)*sp) && strchr(BADCHARS, *sp) == NULL) {
 	    *tp++ = *sp;
 	    if (SUFFIX(yytext, "@{") || SUFFIX(yytext, "..")) {
-		fprintf(stderr,
-			"%s: (%d) tag or branch name %s is ill-formed.\n", 
-			yyfilename, yylineno, yytext);
-		exit(1);
+		fatal_error("%s: (%d) tag or branch name %s is ill-formed.\n", 
+			    yyfilename, yylineno, yytext);
 	    }
 	}
     }
     *tp = '\0';
     if (strlen(yytext) == 0) {
-	fprintf(stderr,
-		"%s: (%d) tag or branch name was empty after sanitization.\n", 
-		yyfilename, yylineno);
-	exit(1);
+	fatal_error("%s: (%d) tag or branch name was empty after sanitization.\n", 
+		    yyfilename, yylineno);
     }
 }
 

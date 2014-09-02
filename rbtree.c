@@ -268,7 +268,7 @@ rbtree_insert(rbtree_node **root, void *key, void *value,
 	else if (compare(node->key, key) > 0)
 	    nodep = &node->right;
 	else
-	    fatal_error("duplicate key in red black tree");
+	    fatal_error("internal error - duplicate key in red black tree");
     }
     node = xcalloc(1, sizeof(rbtree_node), "red black tree insertion");
     node->key = key;
