@@ -29,6 +29,8 @@ CFLAGS=$(GCC_WARNINGS) -DVERSION=\"$(VERSION)\"
 #CFLAGS += -DRBDEBUG=1
 # To enable debugging of CVS rev list generation, uncomment the following line
 #CFLAGS += -DCVSDEBUG=1
+# To enable debugging of order instability issues
+#CFLAGS += -DORDERDEBUG=1
 
 YFLAGS=-d -l
 LFLAGS=-l
