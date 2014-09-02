@@ -26,7 +26,7 @@
  */
 
 /*
- * The entire aim of this module is rthe last function, which turns
+ * The entire aim of this module is the last function, which turns
  * the in-core revision history of a CVS/RCS master file and materializes
  * all of its revision levels through a specified export hook.
  */
