@@ -1,6 +1,6 @@
 #include "cvs.h"
 
-#define DEBUG 1
+#define DEBUG 0
 
 static rbtree_node *
 rbtree_parent(rbtree_node *node)
