@@ -264,7 +264,7 @@ class ConvertComparison:
             for root, dirs, files in os.walk(mydir):
                 for file in files:
                     path = os.path.join(root, file)
-                    if ignore not in path.split(os.sep) and not path.endswith(".cvsignore"):
+                    if ignore not in path.split(os.sep) and not path.endswith(".cvsignore") and not path.endswith(".gitignore"):
                         yield path
         preamble = "%s %s %s: " % (self.stem, legend, tag)
         if tag not in self.tags and tag not in self.branches:
