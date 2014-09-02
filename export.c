@@ -379,7 +379,6 @@ static void export_commit(git_commit *commit, char *branch, bool report)
     int		i, j;
     struct fileop *operations, *op, *op2;
     int noperations;
-    static bool need_ignores = true;
 
 #ifdef ORDERDEBUG2
     fputs("Export phase 3:\n", stderr);
@@ -546,6 +545,7 @@ static void export_commit(git_commit *commit, char *branch, bool report)
 	printf("mark :%d\n", mark);
     commit->serial = seqno;
     if (report) {
+	static bool need_ignores = true;
 	const char *ts;
 	ct = display_date(commit, mark);
 	ts = utc_offset_timestamp(&ct, timezone);

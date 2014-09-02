@@ -592,11 +592,11 @@ rev_list_sort_heads(rev_list *rl, cvs_file *cvs)
 	rev_ref *p = rl->heads, *q;
 	rev_ref *e;
 	rev_ref *l = NULL, *lastl = NULL;
-	int passmerges = 0;
 	int k = 1;
 	int i, psize, qsize;
 
 	while (1) {
+		int passmerges = 0;
 
 		passmerges = 0;
 
