@@ -201,6 +201,8 @@ lex_number (char *s)
 	if (*next == '.')
 	    next++;
 	s = next;
+	if (n.c > CVS_MAX_DEPTH)
+	    fatal_error("revision too long, increase CVS_MAX_DEPTH");
 	n.c++;
     }
     return n;

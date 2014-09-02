@@ -1,5 +1,9 @@
 		cvs-fast-export project news
 
+Repository head:
+    Fixed a nasty order-instability bug that was confounding testing.
+    Add a fatal error check for when revision numbers iin input get too long.
+
 1.14: 2014-08-12
     Fixed several issues near ignore conversions.
 

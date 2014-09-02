@@ -71,7 +71,7 @@ stringify_revision(char *name, char *sep, cvs_number *number)
 	for (i = 0; i < number->c; i++) {
 	    snprintf(digits, sizeof(digits)-1, "%d", number->n[i]);
 	    if (strlen(result) + 1 + strlen(digits) >= sizeof(result))
-		fatal_error("Revision number too long\n");
+		fatal_error("revision number too long\n");
 	    strcat(result, digits);
 	    if (i < number->c - 1)
 		strcat(result, ".");
