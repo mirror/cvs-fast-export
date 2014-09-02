@@ -116,7 +116,3 @@ dist: cvs-fast-export-$(VERSION).tar.gz
 
 release: cvs-fast-export-$(VERSION).tar.gz cvs-fast-export.html cvssync.html
 	shipper version=$(VERSION) | sh -e -x
-
-# Order instability: differs dependin on whether run from shell or Emacs 
-breakit: cvs-fast-export
-	find tests/twotag.repo/twotag -name '*,v' | sort | cvs-fast-export -T >/dev/null
