@@ -17,17 +17,6 @@
 
 #include "cvs.h"
 
-static int
-compare_names(const void *a, const void *b)
-{
-    const rev_file	*af = a, *bf = b;
-
-#ifdef ORDERDEBUG
-    fprintf(stderr, "compare_names(%s, %s) = %d\n", af->name, bf->name, strcmp(af->name, bf->name));
-#endif /* ORDERDEBUG */
-    return strcmp(af->name, bf->name);
-}
-
 #define REV_DIR_HASH	288361
 
 typedef struct _rev_dir_hash {
@@ -127,9 +116,6 @@ rev_pack_files(rev_file **files, int nfiles, int *ndr)
     }
 #endif /* ORDERDEBUG */
 
-
-    /* order by name */
-    qsort(files, nfiles, sizeof(rev_file *), compare_names);
 
     /* pull out directories */
     for (i = 0; i < nfiles; i++) {
