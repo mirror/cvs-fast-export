@@ -23,7 +23,7 @@ compare_names(const void *a, const void *b)
     const rev_file	*af = a, *bf = b;
 
 #ifdef ORDERDEBUG
-    fprintf(stderr, "compare_names(%s, %s) = %d\n", af, bf, strcmp(af->name, bf->name));
+    fprintf(stderr, "compare_names(%s, %s) = %d\n", af->name, bf->name, strcmp(af->name, bf->name));
 #endif /* ORDERDEBUG */
     return strcmp(af->name, bf->name);
 }
@@ -116,7 +116,18 @@ rev_pack_files(rev_file **files, int nfiles, int *ndr)
     
     if (!rds)
 	rds = xmalloc((sds = 16) * sizeof(rev_dir *), __func__);
-	
+ 
+#ifdef ORDERDEBUG
+    fputs("Packing:\n", stderr);
+    {
+	rev_file **s;
+
+	for (s = files; s < files + nfiles; s++)
+	    fprintf(stderr, "rev_file: %s\n", (*s)->name);
+    }
+#endif /* ORDERDEBUG */
+
+
     /* order by name */
     qsort(files, nfiles, sizeof(rev_file *), compare_names);
 
