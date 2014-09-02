@@ -568,45 +568,108 @@ cvs_find_symbol(cvs_file *cvs, char *name)
 }
 
 static int
-cvs_symbol_compare(cvs_symbol *a, cvs_symbol *b)
+rev_ref_compare(cvs_file *cvs, rev_ref *r1, rev_ref *r2)
 {
-    if (!a) {
-	if (!b) return 0;
+    cvs_symbol *s1, *s2;
+    s1 = cvs_find_symbol(cvs, r1->name);
+    s2 = cvs_find_symbol(cvs, r2->name);
+    if (!s1) {
+	if (!s2) return 0;
 	return -1;
     }
-    if (!b)
+    if (!s2)
 	return 1;
-    return cvs_number_compare(&a->number, &b->number);
+    return cvs_number_compare(&s1->number, &s2->number);
 }
 
+/*
+ * Implemented from description at
+ * http://www.chiark.greenend.org.uk/~sgtatham/algorithms/listsort.html
+ */
 static void
 rev_list_sort_heads(rev_list *rl, cvs_file *cvs)
 {
-    rev_ref	*h, **hp;
+	rev_ref *p = rl->heads, *q;
+	rev_ref *e;
+	rev_ref *l = NULL, *lastl = NULL;
+	int passmerges = 0;
+	int k = 1;
+	int i, psize, qsize;
 
-    for (hp = &rl->heads; (h = *hp);) {
-	cvs_symbol	*hs, *hns;
-	if (!h->next)
-	    break;
-	hs = cvs_find_symbol(cvs, h->name);
-	hns = cvs_find_symbol(cvs, h->next->name);
-	if (cvs_symbol_compare(hs, hns) > 0) {
-	    *hp = h->next;
-	    h->next = h->next->next;
-	    (*hp)->next = h;
-	    hp = &rl->heads;
-	} else {
-	    hp = &h->next;
+	while (1) {
+
+		passmerges = 0;
+
+		while (p) {
+
+			passmerges++;
+
+			q = p;
+			qsize = k;
+			psize = 0;
+			for (i = 0; i < k; i++) {
+				if (!q->next) break;
+				psize++;
+				q = q->next;
+			}
+
+			while (psize || (qsize && q)) {
+				if (!psize) {
+					e = q;
+				} else if (!(qsize && q)) {
+					e = p;
+				} else if (rev_ref_compare(cvs, p, q) > 0) {
+					e = q;
+				} else {
+					e = p;
+				}
+
+				/*
+				 * If the element ever equals q, it is always safe to assume it
+				 * will come from q. The same is not true for p as p == q when
+				 * psize == 0
+				 */
+				if (e == q) {
+					e = q;
+					q = q->next;
+					qsize--;
+				} else {
+					e = p;
+					p = p->next;
+					psize--;
+				}
+
+				/*
+				 * Break the element out of its old list and append it to the
+				 * new sorted list
+				 */
+				e->next = NULL;
+				if (l) {
+					lastl->next = e;
+					lastl = e;
+				} else {
+					l = lastl = e;
+				}
+			}
+			p = q;
+		}
+
+		if (passmerges <= 1) break;
+
+		p = l;
+		l = lastl = NULL;
+		k = 2*k;
 	}
-    }
-#if CVSDEBUG
+
+	rl->heads = l;
+#if DEBUG
     fprintf(stderr, "Sorted heads for %s\n", cvs->name);
-    for (h = rl->heads; h;) {
+    for (e = rl->heads; e;) {
 	fprintf(stderr, "\t");
-	rev_list_dump_ref_parents(stderr, h->parent);
-	dump_number_file(stderr, h->name, &h->number);
+	//rev_list_dump_ref_parents(stderr, e->parent);
+	dump_number_file(stderr, e->name, &e->number);
 	fprintf(stderr, "\n");
-	h = h->next;
+	e = e->next;
     }
 #endif
 }
