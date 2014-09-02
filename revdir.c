@@ -22,6 +22,9 @@ compare_names(const void *a, const void *b)
 {
     const rev_file	*af = a, *bf = b;
 
+#ifdef ORDERDEBUG
+    fprintf(stderr, "compare_names(%s, %s) = %d\n", af, bf, strcmp(af->name, bf->name));
+#endif /* ORDERDEBUG */
     return strcmp(af->name, bf->name);
 }
 
