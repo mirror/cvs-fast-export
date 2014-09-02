@@ -71,6 +71,7 @@ y.tab.h: gram.c
 	a2x --doctype manpage --format manpage $*.asc
 .asc.html:
 	a2x --doctype manpage --format xhtml $*.asc
+	rm -f docbook-xsl.css
 
 man: cvssync.1 cvs-fast-export.1
 
