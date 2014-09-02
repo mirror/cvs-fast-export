@@ -19,7 +19,7 @@ GCC_WARNINGS1=-Wall -Wpointer-arith -Wstrict-prototypes
 GCC_WARNINGS2=-Wmissing-prototypes -Wmissing-declarations
 GCC_WARNINGS3=-Wno-unused-function -Wno-unused-label -Wno-format-zero-length
 GCC_WARNINGS=$(GCC_WARNINGS1) $(GCC_WARNINGS2) $(GCC_WARNINGS3)
-CFLAGS=$(GCC_WARNINGS) -DVERSION=\"$(VERSION)\" -DORDERDEBUG
+CFLAGS=$(GCC_WARNINGS) -DVERSION=\"$(VERSION)\"
 
 # To enable debugging of the Yacc grammar, uncomment the following line
 #CFLAGS += -DYYDEBUG=1

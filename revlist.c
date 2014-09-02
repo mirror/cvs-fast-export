@@ -461,6 +461,15 @@ git_commit_build(cvs_commit **revisions, cvs_commit *leader, int nrevisions)
 
     for (n = 0; n < nfile; n++)
 	fprintf(stderr, "%s\n", revisions[n]->file->name);
+    fputs("After packing:\n", stderr);
+    for (n = 0; n < commit->ndirs; n++)
+    {
+	rev_dir *rev_dir = commit->dirs[n];
+	int i;
+
+	for (i = 0; i < rev_dir->nfiles; i++)
+	    fprintf(stderr, "   file name: %s\n", rev_dir->files[i]->name);
+    }
 #endif /* ORDERDEBUG */
 
     return commit;

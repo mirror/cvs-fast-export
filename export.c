@@ -637,7 +637,6 @@ bool export_commits(rev_list *rl, time_t fromtime, bool progress)
     memset(markmap, '\0', extent);
 
     progress_begin("Save: ", export_total_commits);
-    fprintf(stderr, "branchorder %d\n", branchorder);
 
     if (branchorder) {
 	/*
