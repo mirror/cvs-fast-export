@@ -35,23 +35,6 @@
 #include <stdbool.h>
 #include <limits.h>
 
-/*
- * Use _printflike(M, N) to mark functions that take printf-like formats
- * and parameter lists.  M refers to the format arg, and N refers to
- * the first variable arg (typically M+1), or N = 0 if the function takes
- * a va_list.
- *
- * If the compiler is GCC version 2.7 or later, this is implemented
- * using __attribute__((__format__(...))).
- */
-#if defined(__GNUC__) \
-    && (__GNUC__ > 2) || (__GNUC__ == 2 && __GNUC_MINOR__ >= 7)
-#define _printflike(fmtarg, firstvararg)       \
-            __attribute__((__format__(__printf__, fmtarg, firstvararg)))
-#else
-#define _printflike(fmtarg, firstvararg)       /* nothing */
-#endif
-
 #ifndef MAXPATHLEN
 #define MAXPATHLEN  10240
 #endif
@@ -60,9 +43,10 @@
  * CVS_MAX_BRANCHWIDTH should match the number in the longrev test.
  * If it goes above 128 some bitfield widths in rev_ref must increase.
  */
+#define CVS_MAX_DIGITS		10	/* max digits in decimal numbers */
 #define CVS_MAX_BRANCHWIDTH	10
 #define CVS_MAX_DEPTH		(2*CVS_MAX_BRANCHWIDTH + 2)
-#define CVS_MAX_REV_LEN		(CVS_MAX_DEPTH * 11)
+#define CVS_MAX_REV_LEN		(CVS_MAX_DEPTH * (CVS_MAX_DIGITS + 1))
 
 /*
  * Use instead of bool in frequently used structures to reduce
@@ -76,6 +60,7 @@ typedef char flag;
  * 1982 (the year RCS was released) we can cover dates all the way to
  * 2118-02-07T06:28:15 in half that size.  If you're still doing
  * conversions after that you'll just have to change this to a uint64_t. 
+ * Yes, the code *does* sanity-check for input dates older than this epoch.
  */
 typedef uint32_t	cvstime_t;
 #define RCS_EPOCH	378691200	/* 1982-01-01T00:00:00 */
@@ -330,36 +315,53 @@ typedef struct _cvs_author {
     char		*timezone;
 } cvs_author;
 
-cvs_author * fullname (char *);
+/*
+ * Use _printflike(M, N) to mark functions that take printf-like formats
+ * and parameter lists.  M refers to the format arg, and N refers to
+ * the first variable arg (typically M+1), or N = 0 if the function takes
+ * a va_list.
+ *
+ * If the compiler is GCC version 2.7 or later, this is implemented
+ * using __attribute__((__format__(...))).
+ */
+#if defined(__GNUC__) \
+    && (__GNUC__ > 2) || (__GNUC__ == 2 && __GNUC_MINOR__ >= 7)
+#define _printflike(fmtarg, firstvararg)       \
+            __attribute__((__format__(__printf__, fmtarg, firstvararg)))
+#else
+#define _printflike(fmtarg, firstvararg)       /* nothing */
+#endif
 
-bool load_author_map (char *);
+cvs_author *fullname(char *);
+
+bool load_author_map(char *);
 
 extern cvs_file     *this_file;
 
-int yyparse (void);
+int yyparse(void);
 
 extern char *yyfilename;
 
 char *
-ctime_nonl (cvstime_t *date);
+ctime_nonl(cvstime_t *date);
 
 cvs_number
-lex_number (char *);
+lex_number(char *);
 
 cvstime_t
-lex_date (cvs_number *n);
+lex_date(cvs_number *n);
 
 char *
-lex_text (void);
+lex_text(void);
 
 rev_list *
-rev_list_cvs (cvs_file *cvs);
+rev_list_cvs(cvs_file *cvs);
 
 rev_list *
-rev_list_merge (rev_list *lists);
+rev_list_merge(rev_list *lists);
 
 void
-rev_list_free (rev_list *rl, int free_files);
+rev_list_free(rev_list *rl, int free_files);
 
 enum { Ncommits = 256 };
 
@@ -386,128 +388,128 @@ cvs_commit **tagged(Tag *tag);
 void discard_tags(void);
 
 bool
-cvs_is_head (cvs_number *n);
+cvs_is_head(cvs_number *n);
 
 bool
-cvs_same_branch (cvs_number *a, cvs_number *b);
+cvs_same_branch(cvs_number *a, cvs_number *b);
 
 int
-cvs_number_compare (cvs_number *a, cvs_number *b);
+cvs_number_compare(cvs_number *a, cvs_number *b);
 
 int
-cvs_number_compare_n (cvs_number *a, cvs_number *b, int l);
+cvs_number_compare_n(cvs_number *a, cvs_number *b, int l);
 
 bool
-cvs_is_branch_of (cvs_number *trunk, cvs_number *branch);
+cvs_is_branch_of(cvs_number *trunk, cvs_number *branch);
 
 int
-cvs_number_degree (cvs_number *a);
+cvs_number_degree(cvs_number *a);
 
 cvs_number
-cvs_previous_rev (cvs_number *n);
+cvs_previous_rev(cvs_number *n);
 
 cvs_number
-cvs_master_rev (cvs_number *n);
+cvs_master_rev(cvs_number *n);
 
 cvs_number
-cvs_branch_head (cvs_file *f, cvs_number *branch);
+cvs_branch_head(cvs_file *f, cvs_number *branch);
 
 cvs_number
-cvs_branch_parent (cvs_file *f, cvs_number *branch);
+cvs_branch_parent(cvs_file *f, cvs_number *branch);
 
 Node *
-cvs_find_version (cvs_file *cvs, cvs_number *number);
+cvs_find_version(cvs_file *cvs, cvs_number *number);
 
 bool
-cvs_is_trunk (cvs_number *number);
+cvs_is_trunk(cvs_number *number);
 
 bool
-cvs_is_vendor (cvs_number *number);
+cvs_is_vendor(cvs_number *number);
 
 void
-cvs_file_free (cvs_file *cvs);
+cvs_file_free(cvs_file *cvs);
 
 char *
-cvs_number_string (cvs_number *n, char *str, size_t maxlen);
+cvs_number_string(cvs_number *n, char *str, size_t maxlen);
 
 long
-time_compare (cvstime_t a, cvstime_t b);
+time_compare(cvstime_t a, cvstime_t b);
 
 void
-dump_ref_name (FILE *f, rev_ref *ref);
+dump_ref_name(FILE *f, rev_ref *ref);
 
 char *
-stringify_revision (char *name, char *sep, cvs_number *number);
+stringify_revision(char *name, char *sep, cvs_number *number);
 
 void
-dump_number_file (FILE *f, char *name, cvs_number *number);
+dump_number_file(FILE *f, char *name, cvs_number *number);
 
 void
-dump_number (char *name, cvs_number *number);
+dump_number(char *name, cvs_number *number);
 
 void
-dump_log (FILE *f, char *log);
+dump_log(FILE *f, char *log);
 
 void
-dump_git_commit (git_commit *e, FILE *);
+dump_git_commit(git_commit *e, FILE *);
 
 void
-dump_rev_head (rev_ref *h, FILE *);
+dump_rev_head(rev_ref *h, FILE *);
 
 void
-dump_rev_list (rev_list *rl, FILE *);
+dump_rev_list(rev_list *rl, FILE *);
 
 void
-dump_splits (rev_list *rl);
+dump_splits(rev_list *rl);
 
 void
-dump_rev_graph (rev_list *rl, char *title);
+dump_rev_graph(rev_list *rl, char *title);
 
 void
-dump_rev_tree (rev_list *rl, FILE *);
+dump_rev_tree(rev_list *rl, FILE *);
 
-extern int yylex (void);
+extern int yylex(void);
 
 char *
-atom (char *string);
+atom(char *string);
 
 void
-discard_atoms (void);
+discard_atoms(void);
 
 rev_ref *
-rev_list_add_head (rev_list *rl, cvs_commit *commit, char *name, int degree);
+rev_list_add_head(rev_list *rl, cvs_commit *commit, char *name, int degree);
 
 bool
-git_commit_has_file (git_commit *c, rev_file *f);
+git_commit_has_file(git_commit *c, rev_file *f);
 
 rev_diff *
-git_commit_diff (git_commit *old, git_commit *new);
+git_commit_diff(git_commit *old, git_commit *new);
 
 bool
-rev_file_list_has_filename (rev_file_list *fl, char *name);
+rev_file_list_has_filename(rev_file_list *fl, char *name);
 
 void
-rev_diff_free (rev_diff *d);
+rev_diff_free(rev_diff *d);
 
 rev_ref *
-rev_branch_of_commit (rev_list *rl, cvs_commit *commit);
+rev_branch_of_commit(rev_list *rl, cvs_commit *commit);
 
 rev_file *
-rev_file_rev (char *name, cvs_number *n, cvstime_t date);
+rev_file_rev(char *name, cvs_number *n, cvstime_t date);
 
 void
-rev_file_free (rev_file *f);
+rev_file_free(rev_file *f);
 
 void
-rev_list_set_tail (rev_list *rl);
+rev_list_set_tail(rev_list *rl);
 
 bool
-rev_file_later (rev_file *a, rev_file *b);
+rev_file_later(rev_file *a, rev_file *b);
 
 void
-rev_list_validate (rev_list *rl);
+rev_list_validate(rev_list *rl);
 
-#define time_compare(a,b) ((long) (a) - (long) (b))
+#define time_compare(a,b) ((long)(a) - (long)(b))
 
 void 
 export_blob(Node *node, void *buf, size_t len);
@@ -516,30 +518,30 @@ void
 export_init(void);
 
 bool
-export_commits (rev_list *rl, time_t fromtime, bool progress);
+export_commits(rev_list *rl, time_t fromtime, bool progress);
 
 void
 export_wrap(void);
 
 void
-free_author_map (void);
+free_author_map(void);
 
 void generate_files(cvs_file *cvs, void (*hook)(Node *node, void *buf, size_t len));
 
 rev_dir **
-rev_pack_files (rev_file **files, int nfiles, int *ndr);
+rev_pack_files(rev_file **files, int nfiles, int *ndr);
 
 void
-rev_free_dirs (void);
+rev_free_dirs(void);
     
 void
-git_commit_cleanup (void);
+git_commit_cleanup(void);
 
 void 
-load_status (char *name);
+load_status(char *name);
 
 void 
-load_status_next (void);
+load_status_next(void);
 
 void
 rbtree_insert(rbtree_node **root, void *key, void *value,

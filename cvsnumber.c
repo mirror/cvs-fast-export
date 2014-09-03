@@ -206,7 +206,7 @@ char *
 cvs_number_string(cvs_number *n, char *str, size_t maxlen)
 /* return the human-readable representation of a CVS release number */
 {
-    char    r[11];
+    char    r[CVS_MAX_DIGITS + 1];
     int	    i;
 
     str[0] = '\0';
