@@ -626,7 +626,8 @@ static int sort_by_date(const void *ap, const void *bp)
     return ac->commit->date - bc->commit->date;
 }
 
-bool export_commits(rev_list *rl, time_t fromtime, bool progress)
+bool export_commits(rev_list *rl, 
+		    time_t fromtime, bool branchorder, bool progress)
 /* export a revision list as a git fast-import stream in canonical order */
 {
     rev_ref *h;

@@ -31,7 +31,6 @@ bool reposurgeon;
 FILE *revision_map;
 char *branch_prefix = "refs/heads/";
 bool progress = false;
-bool branchorder = false;
 time_t start_time;
 ssize_t striplen = -1;
 
@@ -207,7 +206,8 @@ main(int argc, char **argv)
 
     rev_list	    *rl, *head;
     time_t          fromtime = 0;
-    int verbose = 0;
+    int             verbose = 0;
+    bool            branchorder = false;
     rev_execution_mode rev_mode = ExecuteExport;
     int load_total_files, err;
 
@@ -349,7 +349,7 @@ main(int argc, char **argv)
 	    dump_rev_graph(rl, NULL);
 	    break;
 	case ExecuteExport:
-	    export_commits(rl, fromtime, progress);
+	    export_commits(rl, fromtime, branchorder, progress);
 	    break;
 	}
     }

@@ -207,8 +207,6 @@ extern bool progress;
 #define STATUS stderr
 #define NO_MAX	-1
 
-extern bool branchorder;
-
 extern time_t start_time;
 
 extern ssize_t striplen;
@@ -521,7 +519,7 @@ void
 export_init(void);
 
 bool
-export_commits(rev_list *rl, time_t fromtime, bool progress);
+export_commits(rev_list *rl, time_t fromtime, bool branchorder, bool progress);
 
 void
 export_wrap(void);
