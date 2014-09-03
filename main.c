@@ -375,7 +375,7 @@ main(int argc, char **argv)
     free_author_map();
     if (revision_map)
 	fclose(revision_map);
-    return err;
+    return err > 0;
 }
 
 /* end */
