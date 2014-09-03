@@ -44,8 +44,8 @@ CFLAGS += -O3
 #CFLAGS += -DZLIB
 #LDFLAGS += -lz
 
-OBJS=gram.o lex.o rbtree.o main.o cvsfile.o dump.o cvsnumber.o cvsutil.o revdir.o \
-	revlist.o atom.o revcvs.o generate.o export.o \
+OBJS=gram.o lex.o rbtree.o main.o import.o dump.o cvsnumber.o \
+	cvsutil.o revdir.o revlist.o atom.o revcvs.o generate.o export.o \
 	nodehash.o tags.o authormap.o graph.o utils.o
 
 cvs-fast-export: $(OBJS)
