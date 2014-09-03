@@ -257,19 +257,98 @@ typedef struct _rev_filename {
 
 int load_current_file, load_total_files;
 
+
+static rev_list *analyze_masters(int argc, char *argv[0], time_t fromtime, int *err)
+{
+    rev_filename    *fn_head, **fn_tail = &fn_head, *fn;
+    rev_list	    *head, **tail = &head, *rl;
+    char	    name[10240], *last = NULL;
+    char	    *file;
+    int		    nfile = 0;
+    off_t	    textsize = 0;
+    int		    j = 1;
+    int		    c;
+
+    progress_begin("Reading list of files...", NO_MAX);
+    for (;;)
+    {
+	struct stat stb;
+
+	if (argc < 2) {
+	    int l;
+	    /* coverity[tainted_data] Safe, never handed to exec */
+	    if (fgets(name, sizeof(name) - 1, stdin) == NULL)
+		break;
+	    l = strlen(name);
+	    if (name[l-1] == '\n')
+		name[l-1] = '\0';
+	    file = name;
+	} else {
+	    file = argv[j++];
+	    if (!file)
+		break;
+	}
+
+	if (stat(file, &stb) != 0)
+	    continue;
+	else if (S_ISDIR(stb.st_mode) != 0)
+	    continue;
+	else
+	    textsize += stb.st_size;
+
+	fn = xcalloc(1, sizeof(rev_filename), "filename gathering");
+	fn->file = atom(file);
+	*fn_tail = fn;
+	fn_tail = &fn->next;
+	if (striplen > 0 && last != NULL) {
+	    c = strcommonendingwith(fn->file, last, '/');
+	    if (c < striplen)
+		striplen = c;
+	} else if (striplen < 0) {
+	    size_t i;
+
+	    striplen = 0;
+	    for (i = 0; i < strlen(fn->file); i++)
+		if (fn->file[i] == '/')
+		    striplen = i + 1;
+	}
+	last = fn->file;
+	nfile++;
+	if (progress && nfile % 100 == 0)
+	    progress_jump(nfile);
+    }
+    progress_end("done, %ldKB in %d files", (long)(textsize/1024), nfile);
+    if (rev_mode == ExecuteExport)
+	export_init();
+    load_total_files = nfile;
+    load_current_file = 0;
+    /* analyze the files for CVS revision structure */
+    while (fn_head) {
+	int nversions;
+	
+	fn = fn_head;
+	fn_head = fn_head->next;
+	++load_current_file;
+	if (verbose)
+	    announce("processing %s\n", fn->file);
+	if (progress)
+	    load_status(fn->file + striplen);
+	rl = rev_list_file(fn->file, &nversions);
+	*tail = rl;
+	tail = &rl->next;
+
+	free(fn);
+    }
+    if (progress)
+	load_status_next();
+    return head;
+}
+
 int
 main(int argc, char **argv)
 {
-    rev_filename    *fn_head, **fn_tail = &fn_head, *fn;
-    rev_list	    *head, **tail = &head;
-    rev_list	    *rl;
-    int		    j = 1;
-    char	    name[10240], *last = NULL;
-    int		    c;
-    char	    *file;
-    int		    nfile = 0;
+    rev_list	    *rl, *head;
     time_t          fromtime = 0;
-    off_t	    textsize = 0;
 
 #if defined(__GLIBC__)
     /* 
@@ -387,83 +466,15 @@ main(int argc, char **argv)
     argv += optind-1;
     argc -= optind-1;
 
-    progress_begin("Reading list of files...", NO_MAX);
-    for (;;)
-    {
-	struct stat stb;
+    /* build CVS structures by parsing masters; may read stdin */
+    head = analyze_masters(argc, argv, fromtime, &err);
 
-	if (argc < 2) {
-	    int l;
-	    /* coverity[tainted_data] Safe, never handed to exec */
-	    if (fgets(name, sizeof(name) - 1, stdin) == NULL)
-		break;
-	    l = strlen(name);
-	    if (name[l-1] == '\n')
-		name[l-1] = '\0';
-	    file = name;
-	} else {
-	    file = argv[j++];
-	    if (!file)
-		break;
-	}
-
-	if (stat(file, &stb) != 0)
-	    continue;
-	else if (S_ISDIR(stb.st_mode) != 0)
-	    continue;
-	else
-	    textsize += stb.st_size;
-
-	fn = xcalloc(1, sizeof(rev_filename), "filename gathering");
-	fn->file = atom(file);
-	*fn_tail = fn;
-	fn_tail = &fn->next;
-	if (striplen > 0 && last != NULL) {
-	    c = strcommonendingwith(fn->file, last, '/');
-	    if (c < striplen)
-		striplen = c;
-	} else if (striplen < 0) {
-	    size_t i;
-
-	    striplen = 0;
-	    for (i = 0; i < strlen(fn->file); i++)
-		if (fn->file[i] == '/')
-		    striplen = i + 1;
-	}
-	last = fn->file;
-	nfile++;
-	if (progress && nfile % 100 == 0)
-	    progress_jump(nfile);
-    }
-    progress_end("done, %ldKB in %d files", (long)(textsize/1024), nfile);
-    if (rev_mode == ExecuteExport)
-	export_init();
-    load_total_files = nfile;
-    load_current_file = 0;
-    /* analyze the files for CVS revision structure */
-    while (fn_head) {
-	int nversions;
-	
-	fn = fn_head;
-	fn_head = fn_head->next;
-	++load_current_file;
-	if (verbose)
-	    announce("processing %s\n", fn->file);
-	if (progress)
-	    load_status(fn->file + striplen);
-	rl = rev_list_file(fn->file, &nversions);
-	*tail = rl;
-	tail = &rl->next;
-
-	free(fn);
-    }
-    if (progress)
-	load_status_next();
     /* commit set coalescence happens here */
     rl = rev_list_merge(head);
 #ifdef ORDERDEBUG2
     dump_rev_tree(head, stderr);
 #endif /* ORDERDEBUG2 */
+
     /* report on the DAG */
     if (rl) {
 	switch(rev_mode) {
