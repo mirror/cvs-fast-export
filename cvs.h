@@ -195,7 +195,7 @@ extern int commit_time_window;
 
 extern bool force_dates;
 
-extern int load_current_file, load_total_files;
+extern int load_total_files;
 
 extern FILE *revision_map;
 

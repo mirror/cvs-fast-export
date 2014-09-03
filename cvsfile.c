@@ -20,13 +20,21 @@
 #include <sys/stat.h>
 #include <sys/types.h>
 
+/*
+ * CVS master analysis.  Grinds out a revlist structure represnting
+ * the entire CVS history of a collection.
+ */
+
 cvs_file	*this_file;
-int load_current_file, load_total_files;
 
 extern FILE *yyin;
-static int err = 0;
-char *yyfilename;
 extern int yylineno;
+
+char *yyfilename;
+int load_total_files;
+
+static int load_current_file;
+static int err;
 
 static rev_list *
 rev_list_file(char *name, int *nversions, bool generate)
@@ -102,9 +110,34 @@ typedef struct _rev_filename {
     char		*file;
 } rev_filename;
 
-rev_list *analyze_masters(int argc, char *argv[0], 
+#define PROGRESS_LEN	20
+
+void load_status(char *name)
+{
+    int	spot = load_current_file * PROGRESS_LEN / load_total_files;
+    int	    s;
+    int	    l;
+
+    l = strlen(name);
+    if (l > 35) name += l - 35;
+
+    fprintf(STATUS, "\rLoad: %35.35s ", name);
+    for (s = 0; s < PROGRESS_LEN + 1; s++)
+	putc(s == spot ? '*' : '.', STATUS);
+    fprintf(STATUS, " %5d of %5d ", load_current_file, load_total_files);
+    fflush(STATUS);
+}
+
+void load_status_next(void)
+{
+    fprintf(STATUS, "\n");
+    fflush(STATUS);
+}
+
+rev_list *analyze_masters(int argc, char *argv[], 
 			  bool generate, time_t fromtime, 
 			  bool verbose, int *err)
+/* main entry point; collect and parse CVS masters */
 {
     rev_filename    *fn_head, **fn_tail = &fn_head, *fn;
     rev_list	    *head, **tail = &head, *rl;

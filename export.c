@@ -801,28 +801,4 @@ bool export_commits(rev_list *rl, time_t fromtime, bool progress)
     return true;
 }
 
-#define PROGRESS_LEN	20
-
-void load_status(char *name)
-{
-    int	spot = load_current_file * PROGRESS_LEN / load_total_files;
-    int	    s;
-    int	    l;
-
-    l = strlen(name);
-    if (l > 35) name += l - 35;
-
-    fprintf(STATUS, "\rLoad: %35.35s ", name);
-    for (s = 0; s < PROGRESS_LEN + 1; s++)
-	putc(s == spot ? '*' : '.', STATUS);
-    fprintf(STATUS, " %5d of %5d ", load_current_file, load_total_files);
-    fflush(STATUS);
-}
-
-void load_status_next(void)
-{
-    fprintf(STATUS, "\n");
-    fflush(STATUS);
-}
-
 /* end */
