@@ -17,9 +17,6 @@
  */
 #include "cvs.h"
 #include <unistd.h>
-#include <sys/stat.h>
-#include <sys/types.h>
-#include <errno.h>
 #include <getopt.h>
 #include <regex.h>
 #if defined(__GLIBC__)

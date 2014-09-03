@@ -25,7 +25,7 @@
  * the entire CVS history of a collection.
  */
 
-cvs_file	*this_file;
+cvs_file	*this_file;	/* gram.y sets this, no other module uses it */
 
 extern FILE *yyin;
 extern int yylineno;

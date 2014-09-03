@@ -46,10 +46,10 @@ void tag_commit(cvs_commit *c, char *name, cvs_file *cvsfile)
     Tag *tag = find_tag(name);
     if (tag->last == cvsfile->name) {
 	announce("duplicate tag %s in CVS master %s, ignoring\n",
-		 name, cvs_file->name);
+		 name, cvsfile->name);
 	return;
     }
-    tag->last = cvs_file->name;
+    tag->last = cvsfile->name;
     if (!tag->left) {
 	Chunk *v = xmalloc(sizeof(Chunk), __func__);
 	v->next = tag->commits;
