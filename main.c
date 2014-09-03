@@ -25,7 +25,6 @@
 
 /* options */
 int commit_time_window = 300;
-bool force_dates = false;
 bool enable_keyword_expansion = false;
 bool reposurgeon;
 FILE *revision_map;
@@ -210,7 +209,7 @@ main(int argc, char **argv)
     bool            branchorder = false;
     rev_execution_mode rev_mode = ExecuteExport;
     int load_total_files, err;
-
+    bool force_dates = false;
 
 #if defined(__GLIBC__)
     /* 
@@ -349,7 +348,7 @@ main(int argc, char **argv)
 	    dump_rev_graph(rl, NULL);
 	    break;
 	case ExecuteExport:
-	    export_commits(rl, fromtime, branchorder, progress);
+	    export_commits(rl, fromtime, force_dates, branchorder, progress);
 	    break;
 	}
     }

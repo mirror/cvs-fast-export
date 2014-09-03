@@ -193,8 +193,6 @@ typedef struct _rev_dir {
 
 extern int commit_time_window;
 
-extern bool force_dates;
-
 extern FILE *revision_map;
 
 extern bool reposurgeon;
@@ -519,7 +517,8 @@ void
 export_init(void);
 
 bool
-export_commits(rev_list *rl, time_t fromtime, bool branchorder, bool progress);
+export_commits(rev_list *rl, time_t fromtime, 
+	       bool force_dates, bool branchorder, bool progress);
 
 void
 export_wrap(void);
