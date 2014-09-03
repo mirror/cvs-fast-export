@@ -195,8 +195,6 @@ rev_list *analyze_masters(int argc, char *argv[],
 	    progress_jump(nfile);
     }
     progress_end("done, %ldKB in %d files", (long)(textsize/1024), nfile);
-    if (generate)
-	export_init();
     *filecount = nfile;
     load_current_file = 0;
     /* analyze the files for CVS revision structure */

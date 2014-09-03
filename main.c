@@ -328,6 +328,9 @@ main(int argc, char **argv)
     argv += optind-1;
     argc -= optind-1;
 
+    if (rev_mode == ExecuteExport)
+	export_init();
+
     /* build CVS structures by parsing masters; may read stdin */
     head = analyze_masters(argc, argv, 
 			   rev_mode == ExecuteExport, fromtime, verbose,
