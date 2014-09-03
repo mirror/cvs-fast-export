@@ -387,6 +387,11 @@ void tag_commit(cvs_commit *c, char *name);
 cvs_commit **tagged(Tag *tag);
 void discard_tags(void);
 
+rev_list *
+analyze_masters(int argc, char *argv[0], 
+			  bool generate, time_t fromtime, 
+			bool verbose, int *err);
+
 bool
 cvs_is_head(cvs_number *n);
 

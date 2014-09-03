@@ -48,6 +48,7 @@ ssize_t striplen = -1;
 
 static int verbose = 0;
 static rev_execution_mode rev_mode = ExecuteExport;
+static int err;
 
 char *
 ctime_nonl(cvstime_t *date)
@@ -58,44 +59,6 @@ ctime_nonl(cvstime_t *date)
     
     d[strlen(d)-1] = '\0';
     return d;
-}
-
-extern FILE *yyin;
-static int err = 0;
-char *yyfilename;
-extern int yylineno;
-
-cvs_file	*this_file;
-
-static rev_list *
-rev_list_file(char *name, int *nversions)
-{
-    rev_list	*rl;
-    struct stat	buf;
-
-    yyin = fopen(name, "r");
-    if (!yyin) {
-	perror(name);
-	++err;
-	return NULL;
-    }
-    yyfilename = name;
-    yylineno = 0;
-    this_file = xcalloc(1, sizeof(cvs_file), __func__);
-    this_file->name = name;
-    if (yyin)
-	assert(fstat(fileno(yyin), &buf) == 0);
-    this_file->mode = buf.st_mode;
-    yyparse();
-    fclose(yyin);
-    yyfilename = 0;
-    rl = rev_list_cvs(this_file);
-    if (rev_mode == ExecuteExport)
-	generate_files(this_file, export_blob);
-   
-    *nversions = this_file->nversions;
-    cvs_file_free(this_file);
-    return rl;
 }
 
 #ifdef __UNUSED__
@@ -250,100 +213,6 @@ static void print_sizes(void)
     printf("sizeof(Tag)           = %zu\n", sizeof(Tag));
 }
 
-typedef struct _rev_filename {
-    struct _rev_filename	*next;
-    char		*file;
-} rev_filename;
-
-int load_current_file, load_total_files;
-
-
-static rev_list *analyze_masters(int argc, char *argv[0], time_t fromtime, int *err)
-{
-    rev_filename    *fn_head, **fn_tail = &fn_head, *fn;
-    rev_list	    *head, **tail = &head, *rl;
-    char	    name[10240], *last = NULL;
-    char	    *file;
-    int		    nfile = 0;
-    off_t	    textsize = 0;
-    int		    j = 1;
-    int		    c;
-
-    progress_begin("Reading list of files...", NO_MAX);
-    for (;;)
-    {
-	struct stat stb;
-
-	if (argc < 2) {
-	    int l;
-	    /* coverity[tainted_data] Safe, never handed to exec */
-	    if (fgets(name, sizeof(name) - 1, stdin) == NULL)
-		break;
-	    l = strlen(name);
-	    if (name[l-1] == '\n')
-		name[l-1] = '\0';
-	    file = name;
-	} else {
-	    file = argv[j++];
-	    if (!file)
-		break;
-	}
-
-	if (stat(file, &stb) != 0)
-	    continue;
-	else if (S_ISDIR(stb.st_mode) != 0)
-	    continue;
-	else
-	    textsize += stb.st_size;
-
-	fn = xcalloc(1, sizeof(rev_filename), "filename gathering");
-	fn->file = atom(file);
-	*fn_tail = fn;
-	fn_tail = &fn->next;
-	if (striplen > 0 && last != NULL) {
-	    c = strcommonendingwith(fn->file, last, '/');
-	    if (c < striplen)
-		striplen = c;
-	} else if (striplen < 0) {
-	    size_t i;
-
-	    striplen = 0;
-	    for (i = 0; i < strlen(fn->file); i++)
-		if (fn->file[i] == '/')
-		    striplen = i + 1;
-	}
-	last = fn->file;
-	nfile++;
-	if (progress && nfile % 100 == 0)
-	    progress_jump(nfile);
-    }
-    progress_end("done, %ldKB in %d files", (long)(textsize/1024), nfile);
-    if (rev_mode == ExecuteExport)
-	export_init();
-    load_total_files = nfile;
-    load_current_file = 0;
-    /* analyze the files for CVS revision structure */
-    while (fn_head) {
-	int nversions;
-	
-	fn = fn_head;
-	fn_head = fn_head->next;
-	++load_current_file;
-	if (verbose)
-	    announce("processing %s\n", fn->file);
-	if (progress)
-	    load_status(fn->file + striplen);
-	rl = rev_list_file(fn->file, &nversions);
-	*tail = rl;
-	tail = &rl->next;
-
-	free(fn);
-    }
-    if (progress)
-	load_status_next();
-    return head;
-}
-
 int
 main(int argc, char **argv)
 {
@@ -467,7 +336,8 @@ main(int argc, char **argv)
     argc -= optind-1;
 
     /* build CVS structures by parsing masters; may read stdin */
-    head = analyze_masters(argc, argv, fromtime, &err);
+    head = analyze_masters(argc, argv, 
+			   rev_mode == ExecuteExport, fromtime, verbose, &err);
 
     /* commit set coalescence happens here */
     rl = rev_list_merge(head);
