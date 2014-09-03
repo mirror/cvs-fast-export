@@ -1,7 +1,8 @@
 		cvs-fast-export project news
 
 Repository head:
-    Added an internals tour to the documentation. Polished some comments,
+    Added an internals tour to the documentation. Polished some comments.
+    Prevented a possible buffer overrun.
 
 1.15 2014-09-02
     Fixed a nasty order-instability bug that was confounding testing.

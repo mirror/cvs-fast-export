@@ -19,165 +19,7 @@
 #include "cvs.h"
 #include <assert.h>
 
-#define min(a,b) ((a) < (b) ? (a) : (b))
-#define max(a,b) ((a) > (b) ? (a) : (b))
-
-bool
-cvs_is_head(cvs_number *n)
-/* is a specified CVS revision a branch head? */
-{
-    assert(n->c <= CVS_MAX_DEPTH); 
-    return(n->c > 2 && (n->c & 1) == 0 && n->n[n->c-2] == 0);
-}
-
-bool
-cvs_same_branch(cvs_number *a, cvs_number *b)
-/* are two specified CVS revisions on the same branch? */
-{
-    cvs_number	t;
-    int		i;
-    int		n;
-
-    if (a->c & 1) {
-	t = *a;
-	t.n[t.c++] = 0;
-	return cvs_same_branch(&t, b);
-    }
-    if (b->c & 1) {
-	t = *b;
-	t.n[t.c++] = 0;
-	return cvs_same_branch(a, &t);
-    }
-    if (a->c != b->c)
-	return false;
-    /*
-     * Everything on x.y is trunk
-     */
-    if (a->c == 2)
-	return true;
-    n = a->c;
-    for (i = 0; i < n - 1; i++) {
-	int		an, bn;
-	an = a->n[i];
-	bn = b->n[i];
-	/*
-	 * deal with n.m.0.p branch numbering
-	 */
-	if (i == n - 2) {
-	    if (an == 0) an = a->n[i+1];
-	    if (bn == 0) bn = b->n[i+1];
-	}
-	if (an != bn)
-	    return false;
-    }
-    return true;
-}
-
-int
-cvs_number_compare(cvs_number *a, cvs_number *b)
-/* total ordering for CVS revision numbers */
-{
-    int n = min(a->c, b->c);
-    int i;
-
-    for (i = 0; i < n; i++) {
-	if (a->n[i] < b->n[i])
-	    return -1;
-	if (a->n[i] > b->n[i])
-	    return 1;
-    }
-    if (a->c < b->c)
-	return -1;
-    if (a->c > b->c)
-	return 1;
-    return 0;
-}
-
 #ifdef __UNUSED__
-int
-cvs_number_compare_n(cvs_number *a, cvs_number *b, int l)
-/* total ordering for CVS revision number prefixes */
-{
-    int n = min(l, min(a->c, b->c));
-    int i;
-
-    for (i = 0; i < n; i++) {
-	if (a->n[i] < b->n[i])
-	    return -1;
-	if (a->n[i] > b->n[i])
-	    return 1;
-    }
-    if (l > a->c)
-	return -1;
-    if (l > b->c)
-	return 1;
-    return 0;
-}
-
-bool
-cvs_is_branch_of(cvs_number *trunk, cvs_number *branch)
-/* is the specified branch rooted at the specified trunk revision */
-{
-    cvs_number	n;
-
-    if (branch->c > 2) {
-	n = *branch;
-	n.c -= 2;
-	return cvs_same_branch(trunk, &n);
-    }
-    return false;
-}
-#endif /* __UNUSED__ */
-
-int
-cvs_number_degree(cvs_number *n)
-/* what is the degree of branchiness of the specified revision? */
-{
-    cvs_number	four;
-
-    if (n->c < 4)
-	return n->c;
-    four = *n;
-    four.c = 4;
-    /*
-     * Place vendor branch between trunk and other branches
-     */
-    if (cvs_is_vendor(&four))
-	return n->c - 1;
-    return n->c;
-}
-
-#ifdef __UNUSED__
-cvs_number
-cvs_previous_rev(cvs_number *n)
-/* return the revision previous to a specified one */
-{
-    cvs_number	p;
-    int		i;
-    
-    p.c = n->c;
-    for (i = 0; i < n->c - 1; i++)
-	p.n[i] = n->n[i];
-    if (n->n[i] == 1) {
-	p.c = 0;
-	return p;
-    }
-    p.n[i] = n->n[i] - 1;
-    return p;
-}
-
-cvs_number
-cvs_master_rev(cvs_number *n)
-/* what is the master branch revision from which the specified one derives? */
-{
-    cvs_number p;
-
-    p = *n;
-    p.c -= 2;
-    return p;
-}
-
-
 cvs_number
 cvs_branch_head(cvs_file *f, cvs_number *branch)
 /* find the newest revision along a specified branch */
@@ -201,7 +43,7 @@ cvs_branch_head(cvs_file *f, cvs_number *branch)
 
 cvs_number
 cvs_branch_parent(cvs_file *f, cvs_number *branch)
-/* return the parent branch of a specified branch */
+/* return the parent branch of a specified CVS branch */
 {
     cvs_number	n;
     cvs_version	*v;
@@ -232,30 +74,6 @@ cvs_find_version(cvs_file *cvs, cvs_number *number)
 	    nv = cv;
     }
     return nv ? nv->node : NULL;
-}
-
-bool
-cvs_is_trunk(cvs_number *number)
-/* does the specified CVS release number describe a trunk revision? */
-{
-    return number->c == 2;
-}
-
-/*
- * Import branches are of the form 1.1.x where x is odd
- */
-bool
-cvs_is_vendor(cvs_number *number)
-/* is the specified CVS release number on a vendor branch? */
-{
-    if (number->c != 4) return 0;
-    if (number->n[0] != 1)
-	return false;
-    if (number->n[1] != 1)
-	return false;
-    if ((number->n[2] & 1) != 1)
-	return false;
-    return true;
 }
 
 static void
@@ -318,27 +136,6 @@ cvs_file_free(cvs_file *cvs)
     cvs_patch_free(cvs->patches);
     free(cvs);
     clean_hash();
-}
-
-char *
-cvs_number_string(cvs_number *n, char *str, size_t maxlen)
-/* return the human-readable representation of a CVS release number */
-{
-    char    r[11];
-    int	    i;
-
-    str[0] = '\0';
-    for (i = 0; i < n->c; i++) {
-	snprintf(r, 10, "%d", n->n[i]);
-	if (i > 0)
-	    strcat(str, ".");
-	if (strlen(str) + strlen(r) < maxlen -1)
-	    strcat(str, r);
-	else
-	    fatal_error("revision string too long");
-	
-    }
-    return str;
 }
 
 /* end */
