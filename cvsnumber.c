@@ -223,4 +223,26 @@ cvs_number_string(cvs_number *n, char *str, size_t maxlen)
     return str;
 }
 
+char *
+stringify_revision(char *name, char *sep, cvs_number *number)
+/* stringify a revision number */
+{
+    static char result[BUFSIZ];
+
+    if (name != NULL)
+    {
+	if (strlen(name) >= sizeof(result) - strlen(sep) - 1)
+	    fatal_error("filename too long");
+	strncpy(result, name, sizeof(result) - strlen(sep) - 1);
+	strcat(result, sep);
+    }
+
+    if (number)
+	cvs_number_string(number,
+			  result + strlen(result),
+			  sizeof(result) - strlen(result));
+
+    return result;
+}
+
 /* end */
