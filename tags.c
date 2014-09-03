@@ -40,16 +40,16 @@ static Tag *find_tag(char *name)
     return tag;
 }
 
-void tag_commit(cvs_commit *c, char *name)
-/* add a CVS commit to the list associated with a named tag (this_file is an implicit argument) */
+void tag_commit(cvs_commit *c, char *name, cvs_file *cvsfile)
+/* add a CVS commit to the list associated with a named tag */
 {
     Tag *tag = find_tag(name);
-    if (tag->last == this_file->name) {
+    if (tag->last == cvsfile->name) {
 	announce("duplicate tag %s in CVS master %s, ignoring\n",
-		 name, this_file->name);
+		 name, cvs_file->name);
 	return;
     }
-    tag->last = this_file->name;
+    tag->last = cvs_file->name;
     if (!tag->left) {
 	Chunk *v = xmalloc(sizeof(Chunk), __func__);
 	v->next = tag->commits;

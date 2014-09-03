@@ -383,7 +383,7 @@ typedef struct _tag {
 } Tag;
 
 extern Tag *all_tags;
-void tag_commit(cvs_commit *c, char *name);
+void tag_commit(cvs_commit *c, char *name, cvs_file *cvsfile);
 cvs_commit **tagged(Tag *tag);
 void discard_tags(void);
 

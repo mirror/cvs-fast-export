@@ -408,7 +408,7 @@ rev_list_find_branch(rev_list *rl, cvs_number *number)
 }
 
 static void
-rev_list_set_refs(rev_list *rl, cvs_file *cvs)
+rev_list_set_refs(rev_list *rl, cvs_file *cvsfile)
 {
     rev_ref	*h;
     cvs_symbol	*s;
@@ -416,7 +416,7 @@ rev_list_set_refs(rev_list *rl, cvs_file *cvs)
     /*
      * Locate a symbolic name for this head
      */
-    for (s = cvs->symbols; s; s = s->next) {
+    for (s = cvsfile->symbols; s; s = s->next) {
 	cvs_commit	*c = NULL;
 	if (cvs_is_head(&s->number)) {
 	    for (h = rl->heads; h; h = h->next) {
@@ -449,7 +449,7 @@ rev_list_set_refs(rev_list *rl, cvs_file *cvs)
 	} else {
 	    c = rev_find_cvs_revision(rl, &s->number);
 	    if (c)
-		tag_commit(c, s->name);
+		tag_commit(c, s->name, cvsfile);
 	}
     }
     /*
@@ -487,7 +487,7 @@ rev_list_set_refs(rev_list *rl, cvs_file *cvs)
 	    h->parent = rev_list_find_branch(rl, &n);
 	    if (!h->parent && ! cvs_is_vendor(&h->number))
 		announce("warning - %s branch %s has no parent\n",
-			 cvs->name, h->name);
+			 cvsfile->name, h->name);
 	}
 	if (h->parent && !h->name) {
 	    char	name[1024];
@@ -496,7 +496,7 @@ rev_list_set_refs(rev_list *rl, cvs_file *cvs)
 	    cvs_number_string(&h->number, rev, sizeof(rev));
 	    sprintf(name, "%s-UNNAMED-BRANCH-%s", h->parent->name, h->commit->commitid);
 	    announce("warning - putting %s rev %s on unnamed branch %s off %s\n",
-		     cvs->name, rev, name, h->parent->name);
+		     cvsfile->name, rev, name, h->parent->name);
 	    h->name = atom(name);
 	}
     }
