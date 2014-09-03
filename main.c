@@ -30,10 +30,6 @@
 #define MAXPATHLEN  10240
 #endif
 
-typedef enum _rev_execution_mode {
-    ExecuteExport, ExecuteGraph,
-} rev_execution_mode;
-
 /* options */
 int commit_time_window = 300;
 bool force_dates = false;
@@ -45,10 +41,6 @@ bool progress = false;
 bool branchorder = false;
 time_t start_time;
 ssize_t striplen = -1;
-
-static int verbose = 0;
-static rev_execution_mode rev_mode = ExecuteExport;
-static int err;
 
 char *
 ctime_nonl(cvstime_t *date)
@@ -216,8 +208,16 @@ static void print_sizes(void)
 int
 main(int argc, char **argv)
 {
+    typedef enum _rev_execution_mode {
+	ExecuteExport, ExecuteGraph,
+    } rev_execution_mode;
+
     rev_list	    *rl, *head;
     time_t          fromtime = 0;
+    int verbose = 0;
+    rev_execution_mode rev_mode = ExecuteExport;
+    int err;
+
 
 #if defined(__GLIBC__)
     /* 
