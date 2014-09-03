@@ -27,17 +27,16 @@
 
 cvs_file	*this_file;	/* gram.y sets this, no other module uses it */
 
+/* these are only shared with gram.y and lex.l */
 extern FILE *yyin;
 extern int yylineno;
-
 char *yyfilename;
-int load_total_files;
 
 static int load_current_file;
 static int err;
 
 static rev_list *
-rev_list_file(char *name, int *nversions, bool generate)
+rev_list_file(char *name, const bool generate)
 {
     rev_list	*rl;
     struct stat	buf;
@@ -62,7 +61,6 @@ rev_list_file(char *name, int *nversions, bool generate)
     if (generate)
 	generate_files(this_file, export_blob);
    
-    *nversions = this_file->nversions;
     cvs_file_free(this_file);
     return rl;
 }
@@ -112,7 +110,7 @@ typedef struct _rev_filename {
 
 #define PROGRESS_LEN	20
 
-void load_status(char *name)
+static void load_status(char *name, int load_total_files)
 {
     int	spot = load_current_file * PROGRESS_LEN / load_total_files;
     int	    s;
@@ -128,7 +126,7 @@ void load_status(char *name)
     fflush(STATUS);
 }
 
-void load_status_next(void)
+static void load_status_next(void)
 {
     fprintf(STATUS, "\n");
     fflush(STATUS);
@@ -136,7 +134,7 @@ void load_status_next(void)
 
 rev_list *analyze_masters(int argc, char *argv[], 
 			  bool generate, time_t fromtime, 
-			  bool verbose, int *err)
+			  bool verbose, int *filecount, int *err)
 /* main entry point; collect and parse CVS masters */
 {
     rev_filename    *fn_head, **fn_tail = &fn_head, *fn;
@@ -199,11 +197,10 @@ rev_list *analyze_masters(int argc, char *argv[],
     progress_end("done, %ldKB in %d files", (long)(textsize/1024), nfile);
     if (generate)
 	export_init();
-    load_total_files = nfile;
+    *filecount = nfile;
     load_current_file = 0;
     /* analyze the files for CVS revision structure */
     while (fn_head) {
-	int nversions;
 	
 	fn = fn_head;
 	fn_head = fn_head->next;
@@ -211,8 +208,8 @@ rev_list *analyze_masters(int argc, char *argv[],
 	if (verbose)
 	    announce("processing %s\n", fn->file);
 	if (progress)
-	    load_status(fn->file + striplen);
-	rl = rev_list_file(fn->file, &nversions, generate);
+	    load_status(fn->file + striplen, *filecount);
+	rl = rev_list_file(fn->file, generate);
 	*tail = rl;
 	tail = &rl->next;
 

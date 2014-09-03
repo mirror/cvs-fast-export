@@ -23,10 +23,6 @@
 #include <malloc.h>
 #endif /* __GLIBC__ */
 
-#ifndef MAXPATHLEN
-#define MAXPATHLEN  10240
-#endif
-
 /* options */
 int commit_time_window = 300;
 bool force_dates = false;
@@ -213,7 +209,7 @@ main(int argc, char **argv)
     time_t          fromtime = 0;
     int verbose = 0;
     rev_execution_mode rev_mode = ExecuteExport;
-    int err;
+    int load_total_files, err;
 
 
 #if defined(__GLIBC__)
@@ -334,7 +330,8 @@ main(int argc, char **argv)
 
     /* build CVS structures by parsing masters; may read stdin */
     head = analyze_masters(argc, argv, 
-			   rev_mode == ExecuteExport, fromtime, verbose, &err);
+			   rev_mode == ExecuteExport, fromtime, verbose,
+			   &load_total_files, &err);
 
     /* commit set coalescence happens here */
     rl = rev_list_merge(head);

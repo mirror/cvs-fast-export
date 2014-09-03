@@ -195,8 +195,6 @@ extern int commit_time_window;
 
 extern bool force_dates;
 
-extern int load_total_files;
-
 extern FILE *revision_map;
 
 extern bool reposurgeon;
@@ -390,7 +388,7 @@ void discard_tags(void);
 rev_list *
 analyze_masters(int argc, char *argv[0], 
 			  bool generate, time_t fromtime, 
-			bool verbose, int *err);
+		bool verbose, int *total_files, int *err);
 
 bool
 cvs_is_head(cvs_number *n);
@@ -541,12 +539,6 @@ rev_free_dirs(void);
     
 void
 git_commit_cleanup(void);
-
-void 
-load_status(char *name);
-
-void 
-load_status_next(void);
 
 void
 rbtree_insert(rbtree_node **root, void *key, void *value,
