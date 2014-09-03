@@ -332,7 +332,7 @@ cvs_number_string(cvs_number *n, char *str, size_t maxlen)
 	snprintf(r, 10, "%d", n->n[i]);
 	if (i > 0)
 	    strcat(str, ".");
-	if (strlen(str) + strlen(r) < maxlen)
+	if (strlen(str) + strlen(r) < maxlen -1)
 	    strcat(str, r);
 	else
 	    fatal_error("revision string too long");
