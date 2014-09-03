@@ -116,7 +116,7 @@ pylint:
 	@pylint $(PYLINTOPTS) $(PYSUPPRESSIONS) cvssync
 
 SOURCES = Makefile *.[ch] *.[yl] cvssync
-DOCS = README COPYING NEWS AUTHORS TODO control cvs-fast-export.asc cvssync.asc
+DOCS = README COPYING NEWS AUTHORS TODO control cvs-fast-export.asc cvssync.asc hacking.asc
 ALL =  $(SOURCES) $(DOCS)
 cvs-fast-export-$(VERSION).tar.gz: $(ALL)
 	tar --transform='s:^:cvs-fast-export-$(VERSION)/:' --show-transformed-names -cvzf cvs-fast-export-$(VERSION).tar.gz $(ALL)

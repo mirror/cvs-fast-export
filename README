@@ -27,5 +27,5 @@ This code has a regression-test suite; invoke it with "make check".
 You will need RCS and SCCS installed to run the tests, but they're 
 not required for production use of cvs-fast-export.
 
-See also the NEWS and TODO files.
-
+See also the NEWS and TODO files.  There is an (incomplete) tour of
+the internals in hacking.asc.

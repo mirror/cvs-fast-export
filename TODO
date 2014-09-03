@@ -1,5 +1,7 @@
 			TO DO
 
+Before you try to modify this code, read hacking.asc.
+
 * Add more weird cases to the test suite.
 
 * Optimize out O(n**2) operations where possible.

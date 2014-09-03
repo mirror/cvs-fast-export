@@ -301,7 +301,7 @@ typedef struct _rev_ref {
     cvs_number		number;
     unsigned		depth:7;	/* depth in branching tree (1 is trunk) */
     unsigned		degree:7;	/* number of digits in original CVS version */
-    flag		shown:1;
+    flag		shown:1;	/* only used in graph emission */
     flag		tail:1;
 } rev_ref;
 
