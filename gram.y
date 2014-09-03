@@ -128,7 +128,7 @@ name		: NAME
 		| NUMBER
 		  {
 		    char    name[CVS_MAX_REV_LEN];
-		    cvs_number_string (&$1, name);
+		    cvs_number_string (&$1, name, sizeof(name));
 		    $$ = atom (name);
 		  }
 		;

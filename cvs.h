@@ -428,7 +428,7 @@ void
 cvs_file_free (cvs_file *cvs);
 
 char *
-cvs_number_string (cvs_number *n, char *str);
+cvs_number_string (cvs_number *n, char *str, size_t maxlen);
 
 long
 time_compare (cvstime_t a, cvstime_t b);

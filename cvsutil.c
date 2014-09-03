@@ -321,7 +321,7 @@ cvs_file_free(cvs_file *cvs)
 }
 
 char *
-cvs_number_string(cvs_number *n, char *str)
+cvs_number_string(cvs_number *n, char *str, size_t maxlen)
 /* return the human-readable representation of a CVS release number */
 {
     char    r[11];
@@ -332,7 +332,11 @@ cvs_number_string(cvs_number *n, char *str)
 	snprintf(r, 10, "%d", n->n[i]);
 	if (i > 0)
 	    strcat(str, ".");
-	strcat(str, r);
+	if (strlen(str) + strlen(r) < maxlen)
+	    strcat(str, r);
+	else
+	    fatal_error("revision string too long");
+	
     }
     return str;
 }

@@ -224,7 +224,7 @@ rev_list_patch_vendor_branch(rev_list *rl, cvs_file *cvs)
 
 		    branch = vlast->file->number;
 		    branch.c--;
-		    cvs_number_string(&branch, rev);
+		    cvs_number_string(&branch, rev, sizeof(rev));
 		    snprintf(name, sizeof(name),
 			      "import-%s", rev);
 		    vendor->name = atom(name);
@@ -493,7 +493,7 @@ rev_list_set_refs(rev_list *rl, cvs_file *cvs)
 	    char	name[1024];
 	    char	rev[CVS_MAX_REV_LEN];
 
-	    cvs_number_string(&h->number, rev);
+	    cvs_number_string(&h->number, rev, sizeof(rev));
 	    sprintf(name, "%s-UNNAMED-BRANCH-%s", h->parent->name, h->commit->commitid);
 	    announce("warning - putting %s rev %s on unnamed branch %s off %s\n",
 		     cvs->name, rev, name, h->parent->name);

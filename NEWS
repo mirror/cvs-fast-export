@@ -6,7 +6,7 @@ Repository head:
 1.15 2014-09-02
     Fixed a nasty order-instability bug that was confounding testing.
     Add a fatal error check for when revision numbers in input get too long.
-    A significant speed improvement by tuning one of the central sort algorithms.
+    A significant speed improvement by tuning one of the sort algorithms.
 
 1.14: 2014-08-12
     Fixed several issues near ignore conversions.

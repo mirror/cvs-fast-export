@@ -748,7 +748,7 @@ static void process_delta(Node *node, enum stringwork func)
     Glog = node->patch->log;
     in_buffer_init((uchar *)node->patch->text, 1);
     Gversion = node->version;
-    cvs_number_string(&Gversion->number, Gversion_number);
+    cvs_number_string(&Gversion->number, Gversion_number, sizeof(Gversion_number));
 
     switch(func) {
     case ENTER:

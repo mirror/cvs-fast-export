@@ -68,14 +68,14 @@ void hash_version(cvs_version *v)
     if (v->node->version) {
 	char name[CVS_MAX_REV_LEN];
 	announce("more than one delta with number %s\n",
-		 cvs_number_string(&v->node->number, name));
+		 cvs_number_string(&v->node->number, name, sizeof(name)));
     } else {
 	v->node->version = v;
     }
     if (v->node->number.c & 1) {
 	char name[CVS_MAX_REV_LEN];
 	announce("revision with odd depth(%s)\n",
-		 cvs_number_string(&v->node->number, name));
+		 cvs_number_string(&v->node->number, name, sizeof(name)));
     }
 }
 
@@ -86,14 +86,14 @@ void hash_patch(cvs_patch *p)
     if (p->node->patch) {
 	char name[CVS_MAX_REV_LEN];
 	announce("more than one delta with number %s\n",
-		 cvs_number_string(&p->node->number, name));
+		 cvs_number_string(&p->node->number, name, sizeof(name)));
     } else {
 	p->node->patch = p;
     }
     if (p->node->number.c & 1) {
 	char name[CVS_MAX_REV_LEN];
 	announce("patch with odd depth(%s)\n",
-		 cvs_number_string(&p->node->number, name));
+		 cvs_number_string(&p->node->number, name, sizeof(name)));
     }
 }
 
@@ -197,7 +197,7 @@ void build_branches(void)
 	b = find_parent(&a->number, 2);
 	if (!b) {
 	    char name[CVS_MAX_REV_LEN];
-	    announce("no parent for %s\n", cvs_number_string(&a->number, name));
+	    announce("no parent for %s\n", cvs_number_string(&a->number, name, sizeof(name)));
 	    continue;
 	}
 	a->sib = b->down;
