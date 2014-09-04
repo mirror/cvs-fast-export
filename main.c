@@ -197,15 +197,15 @@ static void print_sizes(void)
 int
 main(int argc, char **argv)
 {
-    typedef enum _rev_execution_mode {
+    typedef enum _execution_mode {
 	ExecuteExport, ExecuteGraph,
-    } rev_execution_mode;
+    } execution_mode;
 
     rev_list	    *rl, *head;
     time_t          fromtime = 0;
     int             verbose = 0;
     bool            branchorder = false;
-    rev_execution_mode rev_mode = ExecuteExport;
+    execution_mode  exec_mode = ExecuteExport;
     int		    load_total_files, err;
     char	    *revision_map = NULL;
     bool	    reposurgeon = false;
@@ -268,7 +268,7 @@ main(int argc, char **argv)
 		   "Example: find -name '*,v' | cvs-fast-export\n");
 	    return 0;
 	case 'g':
-	    rev_mode = ExecuteGraph;
+	    exec_mode = ExecuteGraph;
 	    break;
         case 'k':
 	    enable_keyword_expansion = true;
@@ -327,12 +327,12 @@ main(int argc, char **argv)
     argv += optind-1;
     argc -= optind-1;
 
-    if (rev_mode == ExecuteExport)
+    if (exec_mode == ExecuteExport)
 	export_init();
 
     /* build CVS structures by parsing masters; may read stdin */
     head = analyze_masters(argc, argv, 
-			   rev_mode == ExecuteExport, fromtime, verbose,
+			   exec_mode == ExecuteExport, fromtime, verbose,
 			   &load_total_files, &err);
 
     /* commit set coalescence happens here */
@@ -343,7 +343,7 @@ main(int argc, char **argv)
 
     /* report on the DAG */
     if (rl) {
-	switch(rev_mode) {
+	switch(exec_mode) {
 	case ExecuteGraph:
 	    dump_rev_graph(rl, NULL);
 	    break;
