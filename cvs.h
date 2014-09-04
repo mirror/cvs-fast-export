@@ -195,8 +195,6 @@ extern int commit_time_window;
 
 extern bool enable_keyword_expansion;
 
-extern char *branch_prefix;
-
 extern bool progress;
 #define STATUS stderr
 #define NO_MAX	-1
@@ -511,7 +509,8 @@ void
 export_init(void);
 
 bool
-export_commits(rev_list *rl, time_t fromtime, const char *revision_map,
+export_commits(rev_list *rl, char *branch_prefix, 
+	       time_t fromtime, const char *revision_map,
 	       bool reposurgeon, bool force_dates, bool branchorder,
 	       bool progress);
 

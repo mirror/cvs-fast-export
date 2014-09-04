@@ -26,7 +26,6 @@
 /* options */
 int commit_time_window = 300;
 bool enable_keyword_expansion = false;
-char *branch_prefix = "refs/heads/";
 bool progress = false;
 ssize_t striplen = -1;
 
@@ -210,6 +209,7 @@ main(int argc, char **argv)
     bool	    reposurgeon = false;
     bool	    force_dates = false;
     time_t	    start_time;
+    char	    *branch_prefix = "refs/heads/";
 
 #if defined(__GLIBC__)
     /* 
@@ -348,7 +348,8 @@ main(int argc, char **argv)
 	    dump_rev_graph(rl, NULL);
 	    break;
 	case ExecuteExport:
-	    export_commits(rl, fromtime, revision_map, reposurgeon,
+	    export_commits(rl, branch_prefix,
+			   fromtime, revision_map, reposurgeon,
 			   force_dates, branchorder, progress);
 	    save_status_end(start_time); /* calls progress_end() */
 	    break;
