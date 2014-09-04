@@ -382,8 +382,9 @@ static void export_commit(git_commit *commit, char *branch, bool report, bool fo
     int		i, j;
     struct fileop *operations, *op, *op2;
     int noperations;
+    serial_t here;
 
-    if (reposurgeon)
+    if (reposurgeon || revision_map != NULL)
     {
 	revpairs = xmalloc((revpairsize = 1024), "revpair allocation");
 	revpairs[0] = '\0';
@@ -435,11 +436,9 @@ static void export_commit(git_commit *commit, char *branch, bool report, bool fo
 		    op = operations + noperations - OP_CHUNK;
 		}
 
-		if (revision_map || reposurgeon) {
+		if (revision_map != NULL || reposurgeon) {
 		    char *fr = stringify_revision(export_filename(f, false), 
 						  " ", &f->number);
-		    if (report && revision_map)
-			fprintf(revision_map, "%s :%d\n", fr, markmap[f->serial].external);
 		    if (reposurgeon)
 		    {
 			if (strlen(revpairs) + strlen(fr) + 2 > revpairsize)
@@ -538,7 +537,7 @@ static void export_commit(git_commit *commit, char *branch, bool report, bool fo
 
     if (report)
 	printf("commit %s%s\n", branch_prefix, branch);
-    /* commit->mark = */ markmap[++seqno].external = ++mark;
+    here = markmap[++seqno].external = ++mark;
 #ifdef ORDERDEBUG2
     /* can't move before mark is updated */
     dump_commit(commit, stderr);
@@ -582,12 +581,21 @@ static void export_commit(git_commit *commit, char *branch, bool report, bool fo
     }
     free(operations);
 
+    if (revision_map) {
+	char *cp;
+	for (cp = revpairs; *cp; cp++) {
+	    if (*cp == '\n')
+		fprintf(revision_map, " :%d", here);
+	    fputc(*cp, revision_map);
+	}
+    }
     if (reposurgeon) 
     {
 	if (report)
 	    printf("property cvs-revision %zd %s", strlen(revpairs), revpairs);
-	free(revpairs);
     }
+    if (reposurgeon || revision_map != NULL)
+	free(revpairs);
 
     if (report)
 	printf("\n");
