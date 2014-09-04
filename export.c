@@ -368,7 +368,8 @@ static void dump_commit(git_commit *commit, FILE *fp)
 #endif /* ORDERDEBUG */
 
 static void export_commit(git_commit *commit, char *branch, 
-			  bool report, FILE *revmap, bool force_dates)
+			  bool report, FILE *revmap,
+			  bool reposurgeon, bool force_dates)
 /* export a commit(and the blobs it is the first to reference) */
 {
 #define OP_CHUNK	32
@@ -640,6 +641,7 @@ static int sort_by_date(const void *ap, const void *bp)
 bool export_commits(rev_list *rl, 
 		    time_t fromtime,
 		    const char *revision_map,
+		    bool reposurgeon,
 		    bool force_dates,
 		    bool branchorder, 
 		    bool progress)
@@ -693,8 +695,8 @@ bool export_commits(rev_list *rl,
 		 * commits, along with any matching tags.
 		 */
 		for (i=n-1; i>=0; i--) {
-		    export_commit(history[i], 
-				  h->name, true, revmap, force_dates);
+		    export_commit(history[i], h->name, 
+				  true, revmap, reposurgeon, force_dates);
 		    progress_step();
 		    for (t = all_tags; t; t = t->next)
 			if (t->commit == history[i])
@@ -802,8 +804,8 @@ bool export_commits(rev_list *rl,
 		}
 	    }
 	    progress_jump(hp - history);
-	    export_commit(hp->commit, 
-			  hp->head->name, report, revmap, force_dates);
+	    export_commit(hp->commit, hp->head->name,
+			  report, revmap, reposurgeon, force_dates);
 	    for (t = all_tags; t; t = t->next)
 		if (t->commit == hp->commit)
 		    printf("reset refs/tags/%s\nfrom :%d\n\n", t->name, markmap[hp->commit->serial].external);

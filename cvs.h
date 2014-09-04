@@ -193,8 +193,6 @@ typedef struct _rev_dir {
 
 extern int commit_time_window;
 
-extern bool reposurgeon;
-
 extern bool enable_keyword_expansion;
 
 extern char *branch_prefix;
@@ -516,7 +514,8 @@ export_init(void);
 
 bool
 export_commits(rev_list *rl, time_t fromtime, const char *revision_map,
-	       bool force_dates, bool branchorder, bool progress);
+	       bool reposurgeon, bool force_dates, bool branchorder,
+	       bool progress);
 
 void
 export_wrap(void);
