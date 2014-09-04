@@ -367,7 +367,8 @@ static void dump_commit(git_commit *commit, FILE *fp)
 }
 #endif /* ORDERDEBUG */
 
-static void export_commit(git_commit *commit, char *branch, bool report, bool force_dates)
+static void export_commit(git_commit *commit, char *branch, 
+			  bool report, FILE *revmap, bool force_dates)
 /* export a commit(and the blobs it is the first to reference) */
 {
 #define OP_CHUNK	32
@@ -384,7 +385,7 @@ static void export_commit(git_commit *commit, char *branch, bool report, bool fo
     int noperations;
     serial_t here;
 
-    if (reposurgeon || revision_map != NULL)
+    if (reposurgeon || revmap != NULL)
     {
 	revpairs = xmalloc((revpairsize = 1024), "revpair allocation");
 	revpairs[0] = '\0';
@@ -436,7 +437,7 @@ static void export_commit(git_commit *commit, char *branch, bool report, bool fo
 		    op = operations + noperations - OP_CHUNK;
 		}
 
-		if (revision_map != NULL || reposurgeon) {
+		if (revmap != NULL || reposurgeon) {
 		    char *fr = stringify_revision(export_filename(f, false), 
 						  " ", &f->number);
 		    if (reposurgeon)
@@ -581,12 +582,12 @@ static void export_commit(git_commit *commit, char *branch, bool report, bool fo
     }
     free(operations);
 
-    if (revision_map) {
+    if (revmap) {
 	char *cp;
 	for (cp = revpairs; *cp; cp++) {
 	    if (*cp == '\n')
-		fprintf(revision_map, " :%d", here);
-	    fputc(*cp, revision_map);
+		fprintf(revmap, " :%d", here);
+	    fputc(*cp, revmap);
 	}
     }
     if (reposurgeon) 
@@ -594,7 +595,7 @@ static void export_commit(git_commit *commit, char *branch, bool report, bool fo
 	if (report)
 	    printf("property cvs-revision %zd %s", strlen(revpairs), revpairs);
     }
-    if (reposurgeon || revision_map != NULL)
+    if (reposurgeon || revmap != NULL)
 	free(revpairs);
 
     if (report)
@@ -637,7 +638,8 @@ static int sort_by_date(const void *ap, const void *bp)
 }
 
 bool export_commits(rev_list *rl, 
-		    time_t fromtime, 
+		    time_t fromtime,
+		    const char *revision_map,
 		    bool force_dates,
 		    bool branchorder, 
 		    bool progress)
@@ -648,12 +650,15 @@ bool export_commits(rev_list *rl,
     git_commit *c;
     int n;
     size_t extent;
+    FILE *revmap = NULL;
 
     export_total_commits = export_ncommit(rl);
     /* the +1 is because mark indices are 1-origin, slot 0 always empty */
     extent = sizeof(struct mark) * (seqno + export_total_commits + 1);
     markmap = (struct mark *)xmalloc(extent, "markmap allocation");
     memset(markmap, '\0', extent);
+    if (revision_map != 0)
+	revmap = fopen(revision_map, "w");
 
     progress_begin("Save: ", export_total_commits);
 
@@ -688,7 +693,8 @@ bool export_commits(rev_list *rl,
 		 * commits, along with any matching tags.
 		 */
 		for (i=n-1; i>=0; i--) {
-		    export_commit(history[i], h->name, true, force_dates);
+		    export_commit(history[i], 
+				  h->name, true, revmap, force_dates);
 		    progress_step();
 		    for (t = all_tags; t; t = t->next)
 			if (t->commit == history[i])
@@ -796,7 +802,8 @@ bool export_commits(rev_list *rl,
 		}
 	    }
 	    progress_jump(hp - history);
-	    export_commit(hp->commit, hp->head->name, report, force_dates);
+	    export_commit(hp->commit, 
+			  hp->head->name, report, revmap, force_dates);
 	    for (t = all_tags; t; t = t->next)
 		if (t->commit == hp->commit)
 		    printf("reset refs/tags/%s\nfrom :%d\n\n", t->name, markmap[hp->commit->serial].external);
@@ -812,6 +819,9 @@ bool export_commits(rev_list *rl,
 	       markmap[h->commit->serial].external);
     }
     free(markmap);
+
+    if (revmap != NULL)
+	fclose(revmap);
 
     save_status_end(); /* calls progress_end() */
 
