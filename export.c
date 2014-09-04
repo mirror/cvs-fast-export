@@ -384,7 +384,6 @@ static void export_commit(git_commit *commit, char *branch, bool report, bool fo
     int noperations;
 
 #ifdef ORDERDEBUG2
-    fputs("Export phase 3:\n", stderr);
     dump_commit(commit, stderr);
 #endif /* ORDERDEBUG2 */
 
@@ -769,6 +768,9 @@ bool export_commits(rev_list *rl,
 		  export_total_commits, sizeof(struct commit_seq),
 		  sort_by_date);
 
+#ifdef ORDERDEBUG2
+	fputs("Export phase 3:\n", stderr);
+#endif /* ORDERDEBUG2 */
 	for (hp = history; hp < history + export_total_commits; hp++) {
 	    bool report = true;
 	    if (fromtime > 0) {
