@@ -201,8 +201,6 @@ extern bool progress;
 #define STATUS stderr
 #define NO_MAX	-1
 
-extern time_t start_time;
-
 extern ssize_t striplen;
 
 /*
@@ -519,6 +517,9 @@ export_commits(rev_list *rl, time_t fromtime, const char *revision_map,
 
 void
 export_wrap(void);
+
+void
+save_status_end(time_t start_time);
 
 void
 free_author_map(void);

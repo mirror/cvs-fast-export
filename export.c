@@ -60,7 +60,7 @@ static serial_t export_total_commits;
  */
 #define CVS_IGNORES "# CVS default ignores begin\ntags\nTAGS\n.make.state\n.nse_depinfo\n*~\n#*\n.#*\n,*\n_$*\n*$\n*.old\n*.bak\n*.BAK\n*.orig\n*.rej\n.del-*\n*.a\n*.olb\n*.o\n*.obj\n*.so\n*.exe\n*.Z\n*.elc\n*.ln\ncore\n# CVS default ignores end\n"
 
-static void save_status_end(void)
+void save_status_end(time_t start_time)
 {
     if (!progress)
 	return;
@@ -824,8 +824,6 @@ bool export_commits(rev_list *rl,
 
     if (revmap != NULL)
 	fclose(revmap);
-
-    save_status_end(); /* calls progress_end() */
 
     return true;
 }
