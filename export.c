@@ -343,8 +343,10 @@ static void compute_parent_links(git_commit *commit)
 #ifdef ORDERDEBUG
 static void dump_file(rev_file *rev_file, FILE *fp)
 {
-    fprintf(fp, "   file name: %s\n", rev_file->name);
-}
+    char buf[CVS_MAX_REV_LEN + 1];
+    fprintf(fp, "   file name: %s %s\n", rev_file->name, 
+	    cvs_number_string(&rev_file->number, buf, sizeof(buf)));
+ }
 
 static void dump_dir(rev_dir *rev_dir, FILE *fp)
 {
@@ -358,7 +360,8 @@ static void dump_dir(rev_dir *rev_dir, FILE *fp)
 static void dump_commit(git_commit *commit, FILE *fp)
 {
     int i;
-    fprintf(fp, "commit %p nfiles: %d, ndirs = %d\n", commit, commit->nfiles, commit->ndirs);
+    fprintf(fp, "commit %p seq %d mark %d nfiles: %d, ndirs = %d\n", 
+	    commit, seqno, markmap[seqno].external, commit->nfiles, commit->ndirs);
     for (i = 0; i < commit->ndirs; i++)
 	dump_dir(commit->dirs[i], fp);
 }
