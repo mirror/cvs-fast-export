@@ -526,7 +526,7 @@ static void export_commit(git_commit *commit, char *branch, bool report, bool fo
 	}
     }
 
-    //fprintf(stderr, "FOO!!! \n");
+    /* sort operations into canonical order */
     qsort((void *)operations, op - operations, sizeof(struct fileop), fileop_sort); 
 
     author = fullname(commit->author);
