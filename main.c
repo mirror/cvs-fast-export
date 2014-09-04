@@ -25,7 +25,6 @@
 
 /* options */
 int commit_time_window = 300;
-bool enable_keyword_expansion = false;
 bool progress = false;
 ssize_t striplen = -1;
 
@@ -210,6 +209,7 @@ main(int argc, char **argv)
     bool	    force_dates = false;
     time_t	    start_time;
     char	    *branch_prefix = "refs/heads/";
+    bool	    enable_keyword_expansion;
 
 #if defined(__GLIBC__)
     /* 
@@ -331,7 +331,8 @@ main(int argc, char **argv)
 	export_init();
 
     /* build CVS structures by parsing masters; may read stdin */
-    head = analyze_masters(argc, argv, 
+    head = analyze_masters(argc, argv,
+			   enable_keyword_expansion,
 			   exec_mode == ExecuteExport, fromtime, verbose,
 			   &load_total_files, &err);
 

@@ -630,7 +630,7 @@ static void keyreplace(enum markers marker)
     }
 }
 
-static int expandline(void)
+static int expandline(bool enable_keyword_expansion)
 {
     register int c = 0;
     char * tp;
@@ -772,16 +772,16 @@ static void process_delta(Node *node, enum stringwork func)
     }
 }
 
-static void finishedit(void)
+static void finishedit(bool enable_keyword_expansion)
 {
     uchar **p, **lim, **l = Gline;
     for (p=l, lim=l+Ggap;  p<lim;  ) {
 	in_buffer_init(*p++, 0);
-	expandline();
+	expandline(enable_keyword_expansion);
     }
     for (p+=Ggapsize, lim=l+Glinemax;  p<lim;  ) {
 	in_buffer_init(*p++, 0);
-	expandline();
+	expandline(enable_keyword_expansion);
     }
 }
 
@@ -816,6 +816,7 @@ static void enter_branch(Node *node)
 }
 
 void generate_files(cvs_file *cvs,
+		    bool enable_keyword_expansion,
 		    void(*hook)(Node *node, void *buf, size_t len))
 /* export all the revision states of a CVS/RS master through a hook */
 {
@@ -838,7 +839,7 @@ void generate_files(cvs_file *cvs,
 	if (node->file) {
 	    out_buffer_init();
 	    if (expandflag)
-		finishedit();
+		finishedit(enable_keyword_expansion);
 	    else
 		snapshotedit();
 	    hook(node, out_buffer_text(), out_buffer_count());

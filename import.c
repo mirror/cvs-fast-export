@@ -36,7 +36,7 @@ static int load_current_file;
 static int err;
 
 static rev_list *
-rev_list_file(char *name, const bool generate)
+rev_list_file(char *name, const bool generate, bool enable_keyword_expansion)
 {
     rev_list	*rl;
     struct stat	buf;
@@ -59,7 +59,7 @@ rev_list_file(char *name, const bool generate)
     yyfilename = 0;
     rl = rev_list_cvs(this_file);
     if (generate)
-	generate_files(this_file, export_blob);
+	generate_files(this_file, enable_keyword_expansion, export_blob);
    
     cvs_file_free(this_file);
     return rl;
@@ -133,6 +133,7 @@ static void load_status_next(void)
 }
 
 rev_list *analyze_masters(int argc, char *argv[], 
+			  bool enable_keyword_expansion,
 			  bool generate, time_t fromtime, 
 			  bool verbose, int *filecount, int *err)
 /* main entry point; collect and parse CVS masters */
@@ -207,7 +208,7 @@ rev_list *analyze_masters(int argc, char *argv[],
 	    announce("processing %s\n", fn->file);
 	if (progress)
 	    load_status(fn->file + striplen, *filecount);
-	rl = rev_list_file(fn->file, generate);
+	rl = rev_list_file(fn->file, generate, enable_keyword_expansion);
 	*tail = rl;
 	tail = &rl->next;
 

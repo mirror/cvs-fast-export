@@ -193,8 +193,6 @@ typedef struct _rev_dir {
 
 extern int commit_time_window;
 
-extern bool enable_keyword_expansion;
-
 extern bool progress;
 #define STATUS stderr
 #define NO_MAX	-1
@@ -375,7 +373,8 @@ void discard_tags(void);
 
 rev_list *
 analyze_masters(int argc, char *argv[0], 
-			  bool generate, time_t fromtime, 
+		bool enable_keyword_expansion,
+		bool generate, time_t fromtime, 
 		bool verbose, int *total_files, int *err);
 
 bool
@@ -523,7 +522,9 @@ save_status_end(time_t start_time);
 void
 free_author_map(void);
 
-void generate_files(cvs_file *cvs, void (*hook)(Node *node, void *buf, size_t len));
+void generate_files(cvs_file *cvs, 
+		    bool enable_keyword_expansion,
+		    void (*hook)(Node *node, void *buf, size_t len));
 
 rev_dir **
 rev_pack_files(rev_file **files, int nfiles, int *ndr);
