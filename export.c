@@ -383,10 +383,6 @@ static void export_commit(git_commit *commit, char *branch, bool report, bool fo
     struct fileop *operations, *op, *op2;
     int noperations;
 
-#ifdef ORDERDEBUG2
-    dump_commit(commit, stderr);
-#endif /* ORDERDEBUG2 */
-
     if (reposurgeon)
     {
 	revpairs = xmalloc((revpairsize = 1024), "revpair allocation");
@@ -543,6 +539,10 @@ static void export_commit(git_commit *commit, char *branch, bool report, bool fo
     if (report)
 	printf("commit %s%s\n", branch_prefix, branch);
     /* commit->mark = */ markmap[++seqno].external = ++mark;
+#ifdef ORDERDEBUG2
+    /* can't move before mark is updated */
+    dump_commit(commit, stderr);
+#endif /* ORDERDEBUG2 */
     if (report)
 	printf("mark :%d\n", mark);
     commit->serial = seqno;
