@@ -1,6 +1,6 @@
 		cvs-fast-export project news
 
-Repository head:
+1.15 2014-09-04
     Added an internals tour to the documentation. Polished some comments.
     Prevented a possible buffer overrun.  Fixed broken -R option.
 
