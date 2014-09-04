@@ -39,24 +39,6 @@ ctime_nonl(cvstime_t *date)
     return d;
 }
 
-#ifdef __UNUSED__
-static int
-strcommon(char *a, char *b)
-/* return the length of the common prefix of strings a and b */
-{
-    int	c = 0;
-    
-    while (*a == *b) {
-	if (!*a)
-	    break;
-	a++;
-	b++;
-	c++;
-    }
-    return c;
-}
-#endif /* __UNUSED__ */
-
 static int
 strcommonendingwith(char *a, char *b, char endc)
 /* return the length of the common prefix of strings a and b ending with endc */
