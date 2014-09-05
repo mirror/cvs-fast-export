@@ -141,7 +141,7 @@ rev_list_patch_vendor_branch(rev_list *rl, cvs_file *cvs)
 
     trunk = rl->heads;
     for (h_p = &rl->heads; (h = *h_p);) {
-	int delete_head = 0;
+	bool delete_head = false;
 	if (h->commit && cvs_is_vendor(&h->commit->file->number))
 	{
 	    /*
@@ -182,7 +182,7 @@ rev_list_patch_vendor_branch(rev_list *rl, cvs_file *cvs)
 		if (time_compare(vlast->file->u.date,
 				  t->file->u.date) >= 0)
 		{
-		    delete_head = 1;
+		    delete_head = true;
 		}
 		else
 		{
@@ -199,7 +199,7 @@ rev_list_patch_vendor_branch(rev_list *rl, cvs_file *cvs)
 			/*
 			 * Nothing newer, nuke vendor branch
 			 */
-			delete_head = 1;
+			delete_head = true;
 		    }
 		    else
 		    {
@@ -211,7 +211,7 @@ rev_list_patch_vendor_branch(rev_list *rl, cvs_file *cvs)
 		}
 	    }
 	    else
-		delete_head = 1;
+		delete_head = true;
 	    /*
 	     * Patch up the remaining vendor branch pieces
 	     */
