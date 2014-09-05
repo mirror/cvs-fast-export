@@ -52,7 +52,8 @@ rev_find_cvs_revision(rev_list *rl, cvs_number *number)
 }
 
 /*
- * Construct a branch using CVS revision numbers
+ * Construct a branch using CVS revision numbers.
+ * Note that this produces a list of commit objects, not a revlist.
  */
 static cvs_commit *
 rev_branch_cvs(cvs_file *cvs, cvs_number *branch)
@@ -89,8 +90,8 @@ rev_branch_cvs(cvs_file *cvs, cvs_number *branch)
 	head = c;
     }
 
-	if (head == NULL)
-		return NULL;
+    if (head == NULL)
+	return NULL;
 
     /*
      * Make sure the dates along the branch are well ordered. As we
@@ -742,3 +743,5 @@ rev_list_cvs(cvs_file *cvs)
     rev_list_validate(rl);
     return rl;
 }
+
+// end
