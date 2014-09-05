@@ -20,7 +20,7 @@
 
 /*
  * A revision list is the history for an entire RCS/CVS repository.
- * These functions analyze a revlist into a DAG.
+ * These functions analyze a revlist into a changeset DAG.
  */
 
 rev_ref *

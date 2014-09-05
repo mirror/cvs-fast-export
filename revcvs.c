@@ -16,6 +16,13 @@
  *  59 Temple Place, Suite 330, Boston, MA 02111-1307 USA.
  */
 
+/*
+ * Build the in-core revision lists corresponding to a single CVS
+ * master.  Just one entry point, rev_list_cvs(), which takes the
+ * structure built by the grammar parse of the master as its single
+ * argument.
+ */
+
 #include "cvs.h"
 
 /*
