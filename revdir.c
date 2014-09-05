@@ -15,6 +15,11 @@
  *  59 Temple Place, Suite 330, Boston, MA 02111-1307 USA.
  */
 
+/*
+ * Pack a collection of files into a space-efficient representation in
+ * which directories are coalesced.
+ */
+
 #include "cvs.h"
 
 #define REV_DIR_HASH	288361
@@ -68,6 +73,8 @@ rev_pack_dir(rev_file **files, int nfiles)
     return &h->dir;
 }
 
+/* entry points begin here */
+
 static int	    sds = 0;
 static rev_dir **rds = NULL;
 
@@ -116,7 +123,6 @@ rev_pack_files(rev_file **files, int nfiles, int *ndr)
     }
 #endif /* ORDERDEBUG */
 
-
     /* pull out directories */
     for (i = 0; i < nfiles; i++) {
 	if (!dir || strncmp(files[i]->name, dir, dirlen) != 0)
@@ -152,3 +158,5 @@ rev_pack_files(rev_file **files, int nfiles, int *ndr)
     *ndr = nds;
     return rds;
 }
+
+// end
