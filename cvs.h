@@ -133,14 +133,14 @@ typedef struct _cvs_branch {
 typedef struct _cvs_version {
     /* metadata of a delta within a CVS file */
     struct _cvs_version	*next;
-    cvs_number		number;
     char		*author;
     char		*state;
     cvs_branch		*branches;
     char		*commitid;
     Node		*node;
-    cvs_number		parent;	/* next in ,v file */
+    cvs_number		number;
     cvstime_t		date;
+    cvs_number		parent;	/* next in ,v file */
     flag		dead;
 } cvs_version;
 
@@ -170,6 +170,7 @@ typedef struct {
 
 typedef struct _rev_file {
     /* a CVS file revision state (composed from delta in a master) */
+    struct _rev_file	*link;
     char		*name;
     cvs_number		number;
     union {
@@ -178,7 +179,6 @@ typedef struct _rev_file {
     } u;
     serial_t            serial;
     mode_t		mode;
-    struct _rev_file	*link;
 } rev_file;
 
 typedef struct _rev_dir {
