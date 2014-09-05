@@ -20,14 +20,14 @@
 #include "y.tab.h"
     
 static char *
-parse_data (int strip);
+parse_data(int strip);
 static char *
-parse_data_until_newline (void);
+parse_data_until_newline(void);
 
 static void fast_export_sanitize(void);
 
 #define YY_INPUT(buf,result,max_size) { \
-    int c = getc (yyin); \
+    int c = getc(yyin); \
     result = (c == EOF) ? YY_NULL : (buf[0] = c, 1); \
 }
     
@@ -60,30 +60,30 @@ static void fast_export_sanitize(void);
 <INITIAL>log			return LOG;
 <INITIAL>text			BEGIN(SKIP); return TEXT;
 <SKIP>@				{
-					yylval.s = parse_data (0);
+					yylval.s = parse_data(0);
 					BEGIN(INITIAL);
 					return TEXT_DATA;
 				}
 <CONTENT>[-a-zA-Z_+%][-a-zA-Z_0-9+/%=.~^\\*?#!\[\]()<>]* {
 					fast_export_sanitize();
-					yylval.s = atom (yytext);
+					yylval.s = atom(yytext);
 					return NAME;
 				}
 <AUTHORSS>[-a-zA-Z_0-9+%][-a-zA-Z_0-9+/%=.~^\\*?]* {
 					fast_export_sanitize();
-					yylval.s = atom (yytext);
+					yylval.s = atom(yytext);
 					return NAME;
 				}
 <PERM>[0-9]+ {
-					yylval.s = atom (yytext);
+					yylval.s = atom(yytext);
 					return NAME;
 				}
 <COMMIT>[0-9a-zA-Z]+		{
-					yylval.s = atom (yytext);
+					yylval.s = atom(yytext);
 					return NAME;
 				}
 <REVISION>[0-9]+\.[0-9.]*			{
-					yylval.number = lex_number (yytext);
+					yylval.number = lex_number(yytext);
 					return NUMBER;
 				}
 <FNAME>[^;]* {
@@ -91,7 +91,7 @@ static void fast_export_sanitize(void);
 	return NAME;
 }
 [0-9]+\.[0-9.]*			{
-					yylval.number = lex_number (yytext);
+					yylval.number = lex_number(yytext);
 					return NUMBER;
 				}
 ;				BEGIN(INITIAL); return SEMI;
@@ -100,7 +100,7 @@ static void fast_export_sanitize(void);
 				yylval.s = parse_data_until_newline();
 				}
 <INITIAL,CONTENT>@		{
-					yylval.s = parse_data (1);
+					yylval.s = parse_data(1);
 					return DATA;
 				}
 " " 				;
@@ -113,7 +113,7 @@ static void fast_export_sanitize(void);
 					yytext[0]);
 				}
 %%
-int yywrap (void) { return 1; }
+int yywrap(void) { return 1; }
 
 struct varbuf {
 	int len, cur;
@@ -122,13 +122,13 @@ struct varbuf {
 
 static inline void addbuf(struct varbuf *buf, char c)
 {
-	if (buf->cur == buf->len) 
+	if(buf->cur == buf->len) 
 		buf->string = xrealloc(buf->string, buf->len *= 2, __func__);
 	buf->string[buf->cur++] = c;
 }
 
 static char *
-parse_data (int strip)
+parse_data(int strip)
 {
     int c;
     char *ret;
@@ -138,10 +138,10 @@ parse_data (int strip)
     buf.len = 256;
     buf.string = xmalloc(buf.len, __func__);
 
-    if (!strip)
+    if(!strip)
     	addbuf(&buf, '@');
     for(;;) {
-	c = getc (yyin);
+	c = getc(yyin);
 	if (c == '@') {
 	    if (!strip)
 	    	addbuf(&buf, c);
@@ -151,11 +151,11 @@ parse_data (int strip)
 	}
 	addbuf(&buf, c);
     }
-    ungetc (c, yyin);
+    ungetc(c, yyin);
     addbuf(&buf, 0);
     if (strip) {
-       ret = atom (buf.string);
-       free (buf.string);
+       ret = atom(buf.string);
+       free(buf.string);
     } else {
        ret = buf.string;
     }
@@ -163,7 +163,7 @@ parse_data (int strip)
 }
 
 static char *
-parse_data_until_newline ()
+parse_data_until_newline(void)
 {
     int c;
     char *ret;
@@ -174,28 +174,28 @@ parse_data_until_newline ()
     buf.string = xmalloc(buf.len, __func__);
 
     for(;;) {
-	c = getc (yyin);
+	c = getc(yyin);
 	if (c == '\n') {
 		break;
 	}
 	addbuf(&buf, c);
     }
-    ungetc (c, yyin);
+    ungetc(c, yyin);
     addbuf(&buf, 0);
-    ret = atom (buf.string);
-    free (buf.string);
+    ret = atom(buf.string);
+    free(buf.string);
     return ret;
 }
 
 cvs_number
-lex_number (char *s)
+lex_number(char *s)
 {
     cvs_number	n;
     char	*next;
 
     n.c = 0;
     while (*s) {
-	n.n[n.c] = (int) strtol(s, &next, 10);
+	n.n[n.c] = (int)strtol(s, &next, 10);
 	if (next == s)
 	    break;
 	if (*next == '.')
@@ -209,7 +209,7 @@ lex_number (char *s)
 }
 
 cvstime_t
-lex_date (cvs_number *n)
+lex_date(cvs_number *n)
 {
 	struct tm	tm;
 	time_t		d;
@@ -226,15 +226,15 @@ lex_date (cvs_number *n)
 	#ifndef __CYGWIN__
 	tm.tm_zone = 0;
 	#endif
-	d = mktime (&tm);
+	d = mktime(&tm);
 	if (d == 0) {
 	    int i;
 	    fprintf(stderr, "%s: (%d) unparsable date: ", yyfilename, yylineno);
 	    for (i = 0; i < n->c; i++) {
-		if (i) fprintf (stderr, ".");
+		if (i) fprintf(stderr, ".");
 		fprintf(stderr, "%d", n->n[i]);
 	    }
-	    fprintf (stderr, "\n");
+	    fprintf(stderr, "\n");
 	}
 	if (d < RCS_EPOCH)
 	    fatal_error("%s: (%d) date before RCS epoch: ", yyfilename,
@@ -268,7 +268,7 @@ static void fast_export_sanitize(void)
 }
 
 char *
-lex_text (void)
+lex_text(void)
 {
     return yytext;
 }
