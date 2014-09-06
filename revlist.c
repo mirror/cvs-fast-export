@@ -34,7 +34,7 @@ rev_list_add_head(rev_list *rl, cvs_commit *commit, char *name, int degree)
 	list = &(*list)->next;
     r = xcalloc(1, sizeof(rev_ref), "adding head reference");
     r->commit = commit;
-    r->name = name;
+    r->ref_name = name;
     r->next = *list;
     r->degree = degree;
     *list = r;
@@ -47,7 +47,7 @@ rev_find_head(rev_list *rl, char *name)
     rev_ref	*h;
 
     for (h = rl->heads; h; h = h->next)
-	if (h->name == name)
+	if (h->ref_name == name)
 	    return h;
     return NULL;
 }
@@ -255,7 +255,7 @@ static rev_ref *
 rev_ref_find_name(rev_ref *h, char *name)
 {
     for (; h; h = h->next)
-	if (h->name == name)
+	if (h->ref_name == name)
 	    return h;
     return NULL;
 }
@@ -266,7 +266,7 @@ rev_ref_is_ready(char *name, rev_list *source, rev_ref *ready)
     for (; source; source = source->next) {
 	rev_ref *head = rev_find_head(source, name);
 	if (head) {
-	    if (head->parent && !rev_ref_find_name(ready, head->parent->name))
+	    if (head->parent && !rev_ref_find_name(ready, head->parent->ref_name))
 		    return false;
 	}
     }
@@ -283,7 +283,7 @@ rev_ref_tsort(rev_ref *refs, rev_list *head)
 //    fprintf(stderr, "Tsort refs:\n");
     while (refs) {
 	for (prev = &refs; (r = *prev); prev = &(*prev)->next) {
-	    if (rev_ref_is_ready(r->name, head, done)) {
+	    if (rev_ref_is_ready(r->ref_name, head, done)) {
 		break;
 	    }
 	}
@@ -649,7 +649,7 @@ rev_branch_merge(rev_ref **branches, int nbranch,
 	    continue;
 	if (c->file)
 	    announce("warning - %s too late date through branch %s\n",
-		     c->file->file_name, branch->name);
+		     c->file->file_name, branch->ref_name);
 	revisions[n] = NULL;
     }
     /*
@@ -761,7 +761,7 @@ rev_branch_merge(rev_ref **branches, int nbranch,
 		{
 		    /* FIXME: what does this mean? */
 		    announce("warning - file %s appears after branch %s date\n",
-			     revisions[present]->file->file_name, branch->name);
+			     revisions[present]->file->file_name, branch->ref_name);
 		    continue;
 		}
 		break;
@@ -773,7 +773,7 @@ rev_branch_merge(rev_ref **branches, int nbranch,
 	{
 	    if (prev && time_compare((*tail)->date, prev->date) > 0) {
 		announce("warning - branch point %s -> %s later than branch\n",
-			 branch->name, branch->parent->name);
+			 branch->ref_name, branch->parent->ref_name);
 		fprintf(stderr, "\ttrunk(%3d):  %s %s", n,
 			 ctime_nonl(&revisions[present]->date),
 			 revisions[present]->file ? " " : "D" );
@@ -792,14 +792,14 @@ rev_branch_merge(rev_ref **branches, int nbranch,
 	} else if ((*tail = git_commit_locate_date(branch->parent,
 						    revisions[present]->date)))
 	    announce("warning - branch point %s -> %s matched by date\n",
-		     branch->name, branch->parent->name);
+		     branch->ref_name, branch->parent->ref_name);
 	else {
 	    rev_ref	*lost;
 	    fprintf(stderr, "Error: branch point %s -> %s not found.",
-		    branch->name, branch->parent->name);
+		    branch->ref_name, branch->parent->ref_name);
 
 	    if ((lost = rev_branch_of_commit(rl, revisions[present])))
-		fprintf(stderr, " Possible match on %s.", lost->name);
+		fprintf(stderr, " Possible match on %s.", lost->ref_name);
 	    fprintf(stderr, "\n");
 	}
 	if (*tail) {
@@ -858,12 +858,12 @@ rev_ref_set_parent(rev_list *rl, rev_ref *dest, rev_list *source)
     max = NULL;
     for (s = source; s; s = s->next) {
 	rev_ref	*sh;
-	sh = rev_find_head(s, dest->name);
+	sh = rev_find_head(s, dest->ref_name);
 	if (!sh)
 	    continue;
 	if (!sh->parent)
 	    continue;
-	p = rev_find_head(rl, sh->parent->name);
+	p = rev_find_head(rl, sh->parent->ref_name);
 	assert(p);
 	rev_ref_set_parent(rl, p, source);
 	if (!max || p->depth > max->depth)
@@ -968,9 +968,9 @@ rev_list_merge(rev_list *head)
     n = 0;
     for (l = head; l; l = l->next) {
 	for (lh = l->heads; lh; lh = lh->next) {
-	    h = rev_find_head(rl, lh->name);
+	    h = rev_find_head(rl, lh->ref_name);
 	    if (!h)
-		rev_list_add_head(rl, NULL, lh->name, lh->degree);
+		rev_list_add_head(rl, NULL, lh->ref_name, lh->degree);
 	    else if (lh->degree > h->degree)
 		h->degree = lh->degree;
 	}
@@ -1027,7 +1027,7 @@ rev_list_merge(rev_list *head)
 	 */
 	int nref = 0;
 	for (l = head; l; l = l->next) {
-	    lh = rev_find_head(l, h->name);
+	    lh = rev_find_head(l, h->ref_name);
 	    if (lh)
 		refs[nref++] = lh;
 	}

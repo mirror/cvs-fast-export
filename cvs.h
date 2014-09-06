@@ -262,11 +262,11 @@ typedef struct _git_commit {
 } git_commit;
 
 typedef struct _rev_ref {
-    /* CVS context for changesets before coalescence */
+    /* a reference to a branch head */
     struct _rev_ref	*next;
     cvs_commit		*commit;
     struct _rev_ref	*parent;	/* link into tree */
-    char		*name;
+    char		*ref_name;
     cvs_number		number;
     unsigned		depth:7;	/* depth in branching tree (1 is trunk) */
     unsigned		degree:7;	/* number of digits in original CVS version */

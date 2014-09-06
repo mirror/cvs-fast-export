@@ -225,7 +225,7 @@ rev_list_patch_vendor_branch(rev_list *rl, cvs_file *cvs)
 	     */
 	    if (!delete_head) {
 		cvs_commit  *vr;
-		if (!vendor->name) {
+		if (!vendor->ref_name) {
 		    char	rev[CVS_MAX_REV_LEN];
 		    char	name[MAXPATHLEN];
 		    cvs_number	branch;
@@ -235,7 +235,7 @@ rev_list_patch_vendor_branch(rev_list *rl, cvs_file *cvs)
 		    cvs_number_string(&branch, rev, sizeof(rev));
 		    snprintf(name, sizeof(name),
 			      "import-%s", rev);
-		    vendor->name = atom(name);
+		    vendor->ref_name = atom(name);
 		    vendor->parent = trunk;
 		    vendor->degree = vlast->file->number.c;
 		}
@@ -432,8 +432,8 @@ rev_list_set_refs(rev_list *rl, cvs_file *cvsfile)
 		    break;
 	    }
 	    if (h) {
-		if (!h->name) {
-		    h->name = s->symbol_name;
+		if (!h->ref_name) {
+		    h->ref_name = s->symbol_name;
 		    h->degree = cvs_number_degree(&s->number);
 		} else
 		    h = rev_list_add_head(rl, h->commit, s->symbol_name,
@@ -467,7 +467,7 @@ rev_list_set_refs(rev_list *rl, cvs_file *cvsfile)
 	cvs_number	n;
 	cvs_commit	*c;
 
-	if (h->name)
+	if (h->ref_name)
 	    continue;
 	for (c = h->commit; c; c = c->parent) {
 	    if (!c->dead)
@@ -495,17 +495,17 @@ rev_list_set_refs(rev_list *rl, cvs_file *cvsfile)
 	    h->parent = rev_list_find_branch(rl, &n);
 	    if (!h->parent && ! cvs_is_vendor(&h->number))
 		announce("warning - %s branch %s has no parent\n",
-			 cvsfile->master_name, h->name);
+			 cvsfile->master_name, h->ref_name);
 	}
-	if (h->parent && !h->name) {
+	if (h->parent && !h->ref_name) {
 	    char	name[1024];
 	    char	rev[CVS_MAX_REV_LEN];
 
 	    cvs_number_string(&h->number, rev, sizeof(rev));
-	    sprintf(name, "%s-UNNAMED-BRANCH-%s", h->parent->name, h->commit->commitid);
+	    sprintf(name, "%s-UNNAMED-BRANCH-%s", h->parent->ref_name, h->commit->commitid);
 	    announce("warning - putting %s rev %s on unnamed branch %s off %s\n",
-		     cvsfile->master_name, rev, name, h->parent->name);
-	    h->name = atom(name);
+		     cvsfile->master_name, rev, name, h->parent->ref_name);
+	    h->ref_name = atom(name);
 	}
     }
 }
@@ -579,8 +579,8 @@ static int
 rev_ref_compare(cvs_file *cvs, rev_ref *r1, rev_ref *r2)
 {
     cvs_symbol *s1, *s2;
-    s1 = cvs_find_symbol(cvs, r1->name);
-    s2 = cvs_find_symbol(cvs, r2->name);
+    s1 = cvs_find_symbol(cvs, r1->ref_name);
+    s2 = cvs_find_symbol(cvs, r2->ref_name);
     if (!s1) {
 	if (!s2) return 0;
 	return -1;

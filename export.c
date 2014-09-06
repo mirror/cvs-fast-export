@@ -697,7 +697,7 @@ bool export_commits(rev_list *rl,
 		 * commits, along with any matching tags.
 		 */
 		for (i=n-1; i>=0; i--) {
-		    export_commit(history[i], branch_prefix, h->name, 
+		    export_commit(history[i], branch_prefix, h->ref_name, 
 				  true, revmap, reposurgeon, force_dates);
 		    progress_step();
 		    for (t = all_tags; t; t = t->next)
@@ -797,7 +797,7 @@ bool export_commits(rev_list *rl,
 		} else if (!hp->realized) {
 		    struct commit_seq *lp;
 		    if (hp->commit->parent != NULL && display_date(hp->commit->parent, markmap[hp->commit->parent->serial].external) < fromtime)
-			(void)printf("from %s%s^0\n\n", branch_prefix, hp->head->name);
+			(void)printf("from %s%s^0\n\n", branch_prefix, hp->head->ref_name);
 		    for (lp = hp; lp < history + export_total_commits; lp++) {
 			if (lp->head == hp->head) {
 			    lp->realized = true;
@@ -806,7 +806,7 @@ bool export_commits(rev_list *rl,
 		}
 	    }
 	    progress_jump(hp - history);
-	    export_commit(hp->commit, branch_prefix, hp->head->name,
+	    export_commit(hp->commit, branch_prefix, hp->head->ref_name,
 			  report, revmap, reposurgeon, force_dates);
 	    for (t = all_tags; t; t = t->next)
 		if (t->commit == hp->commit)
@@ -819,7 +819,7 @@ bool export_commits(rev_list *rl,
     for (h = rl->heads; h; h = h->next) {
 	printf("reset %s%s\nfrom :%d\n\n", 
 	       branch_prefix, 
-	       h->name, 
+	       h->ref_name, 
 	       markmap[h->commit->serial].external);
     }
     free(markmap);

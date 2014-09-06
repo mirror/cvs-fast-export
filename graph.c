@@ -124,7 +124,7 @@ dot_ref_name(FILE *f, rev_ref *ref)
 	dot_ref_name(f, ref->parent);
 	fprintf(f, " > ");
     }
-    fprintf(f, "%s", ref->name);
+    fprintf(f, "%s", ref->ref_name);
 }
 
 static void dot_commit_graph(git_commit *c, rev_ref *branch)
