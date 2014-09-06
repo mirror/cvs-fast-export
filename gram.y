@@ -115,7 +115,7 @@ symbols		: symbols symbol
 symbol		: name COLON NUMBER
 		  {
 		  	$$ = xcalloc (1, sizeof (cvs_symbol), "making symbol");
-			$$->name = $1;
+			$$->symbol_name = $1;
 			$$->number = $3;
 		  }
 		;

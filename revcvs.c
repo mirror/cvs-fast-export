@@ -433,10 +433,10 @@ rev_list_set_refs(rev_list *rl, cvs_file *cvsfile)
 	    }
 	    if (h) {
 		if (!h->name) {
-		    h->name = s->name;
+		    h->name = s->symbol_name;
 		    h->degree = cvs_number_degree(&s->number);
 		} else
-		    h = rev_list_add_head(rl, h->commit, s->name,
+		    h = rev_list_add_head(rl, h->commit, s->symbol_name,
 					   cvs_number_degree(&s->number));
 	    } else {
 		cvs_number	n;
@@ -449,7 +449,7 @@ rev_list_set_refs(rev_list *rl, cvs_file *cvsfile)
 			break;
 		}
 		if (c)
-		    h = rev_list_add_head(rl, c, s->name,
+		    h = rev_list_add_head(rl, c, s->symbol_name,
 					   cvs_number_degree(&s->number));
 	    }
 	    if (h)
@@ -457,7 +457,7 @@ rev_list_set_refs(rev_list *rl, cvs_file *cvsfile)
 	} else {
 	    c = rev_find_cvs_revision(rl, &s->number);
 	    if (c)
-		tag_commit(c, s->name, cvsfile);
+		tag_commit(c, s->symbol_name, cvsfile);
 	}
     }
     /*
@@ -566,7 +566,7 @@ cvs_find_symbol(cvs_file *cvs, char *name)
     if (!(*tree)) {
 	cvs_symbol *s;
 	for (s = cvs->symbols; s ; s = s->next)
-	    rbtree_insert(tree, s->name, s, cvs_symbol_name_compare);
+	    rbtree_insert(tree, s->symbol_name, s, cvs_symbol_name_compare);
     }
 
     n = rbtree_lookup(*tree, name, cvs_symbol_name_compare);

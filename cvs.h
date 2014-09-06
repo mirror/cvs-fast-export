@@ -119,7 +119,7 @@ typedef struct node {
 typedef struct _cvs_symbol {
     /* a CVS symbol-to-revision association */
     struct _cvs_symbol	*next;
-    char		*name;
+    char		*symbol_name;
     cvs_number		number;
 } cvs_symbol;
 
