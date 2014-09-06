@@ -203,7 +203,7 @@ static char *export_filename(rev_file *file, const bool ignoreconv)
     int	len;
     char *ignore;
     
-    if (strlen(file->file_name) - striplen >= MAXPATHLEN)
+    if (strlen(file->file_name) - striplen >= PATH_MAX)
 	fatal_error("File name %s\n too long\n", file->file_name);
     strcpy(name, file->file_name + striplen);
 	drop_path_component(name, "Attic/");

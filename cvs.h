@@ -35,10 +35,6 @@
 #include <stdbool.h>
 #include <limits.h>
 
-#ifndef MAXPATHLEN
-#define MAXPATHLEN  10240
-#endif
-
 /* 
  * CVS_MAX_BRANCHWIDTH should match the number in the longrev test.
  * If it goes above 128 some bitfield widths in rev_ref must increase.

@@ -227,7 +227,7 @@ rev_list_patch_vendor_branch(rev_list *rl, cvs_file *cvs)
 		cvs_commit  *vr;
 		if (!vendor->ref_name) {
 		    char	rev[CVS_MAX_REV_LEN];
-		    char	name[MAXPATHLEN];
+		    char	name[PATH_MAX];
 		    cvs_number	branch;
 
 		    branch = vlast->file->number;
