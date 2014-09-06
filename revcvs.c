@@ -17,7 +17,7 @@
  */
 
 /*
- * Build the in-core revision lists corresponding to a single CVS
+ * Build one in-core rev_list corresponding to a single CVS
  * master.  Just one entry point, rev_list_cvs(), which takes the
  * structure built by the grammar parse of the master as its single
  * argument.

@@ -198,7 +198,14 @@ rev_list *analyze_masters(int argc, char *argv[],
     progress_end("done, %ldKB in %d files", (long)(textsize/1024), nfile);
     *filecount = nfile;
     load_current_file = 0;
-    /* analyze the files for CVS revision structure */
+    /*
+     * Analyze the files for CVS revision structure.
+     *
+     * The result of this analysis is a rev_list, each element of
+     * which corresponds to a CVS master and points at a list of named
+     * CVS branch heads (rev_refs), each one of which points at a list
+     * of CVS commit structures (cvs_commit).
+     */
     while (fn_head) {
 	
 	fn = fn_head;
