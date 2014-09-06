@@ -649,7 +649,7 @@ rev_branch_merge(rev_ref **branches, int nbranch,
 	    continue;
 	if (c->file)
 	    announce("warning - %s too late date through branch %s\n",
-		     c->file->name, branch->name);
+		     c->file->file_name, branch->name);
 	revisions[n] = NULL;
     }
     /*
@@ -761,7 +761,7 @@ rev_branch_merge(rev_ref **branches, int nbranch,
 		{
 		    /* FIXME: what does this mean? */
 		    announce("warning - file %s appears after branch %s date\n",
-			     revisions[present]->file->name, branch->name);
+			     revisions[present]->file->file_name, branch->name);
 		    continue;
 		}
 		break;
@@ -779,13 +779,13 @@ rev_branch_merge(rev_ref **branches, int nbranch,
 			 revisions[present]->file ? " " : "D" );
 		if (revisions[present]->file)
 		    dump_number_file(stderr,
-				      revisions[present]->file->name,
+				      revisions[present]->file->file_name,
 				      &revisions[present]->file->number);
 		fprintf(stderr, "\n");
 		fprintf(stderr, "\tbranch(%3d): %s  ", n,
 			 ctime_nonl(&prev->file->u.date));
 		dump_number_file(stderr,
-				  prev->file->name,
+				  prev->file->file_name,
 				  &prev->file->number);
 		fprintf(stderr, "\n");
 	    }
@@ -1012,7 +1012,7 @@ rev_list_merge(rev_list *head)
 	    fputs("rev_ref: ", stderr);
 	    dump_number_file(stderr, lh->name, &lh->number);
 	    fputc('\n', stderr);
-	    fprintf(stderr, "commit first file: %s\n", commit->file->name);
+	    fprintf(stderr, "commit first file: %s\n", commit->file->file_name);
 	}
     }
 #endif /* ORDERDEBUG */
@@ -1074,8 +1074,8 @@ static rev_file *rev_files;
 static void
 rev_file_mark_for_free(rev_file *f)
 {
-    if (f->name) {
-	f->name = NULL;
+    if (f->file_name) {
+	f->file_name = NULL;
 	f->link = rev_files;
 	rev_files = f;
     }
@@ -1099,7 +1099,7 @@ rev_file_rev(char *name, cvs_number *n, cvstime_t date)
 {
     rev_file	*f = xcalloc(1, sizeof(rev_file), "allocating file rev");
 
-    f->name = name;
+    f->file_name = name;
     f->number = *n;
     f->u.date = date;
     return f;
@@ -1197,7 +1197,7 @@ bool
 rev_file_list_has_filename(rev_file_list *fl, char *name)
 {
     for (; fl; fl = fl->next)
-	if (fl->file->name == name)
+	if (fl->file->file_name == name)
 	    return true;
     return false;
 }

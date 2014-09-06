@@ -171,7 +171,7 @@ typedef struct {
 typedef struct _rev_file {
     /* a CVS file revision state (composed from delta in a master) */
     struct _rev_file	*link;
-    char		*name;
+    char		*file_name;
     cvs_number		number;
     union {
 	cvstime_t	date;

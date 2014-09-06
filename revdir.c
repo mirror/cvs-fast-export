@@ -125,7 +125,7 @@ rev_pack_files(rev_file **files, int nfiles, int *ndr)
 
     /* pull out directories */
     for (i = 0; i < nfiles; i++) {
-	if (!dir || strncmp(files[i]->name, dir, dirlen) != 0)
+	if (!dir || strncmp(files[i]->file_name, dir, dirlen) != 0)
 	{
 	    if (i > start) {
 		rd = rev_pack_dir(files + start, i - start);
@@ -140,7 +140,7 @@ rev_pack_files(rev_file **files, int nfiles, int *ndr)
 		rds[nds++] = rd;
 	    }
 	    start = i;
-	    dir = files[i]->name;
+	    dir = files[i]->file_name;
 	    slash = strrchr(dir, '/');
 	    if (slash)
 		dirlen = slash - dir;

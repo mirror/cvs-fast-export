@@ -150,7 +150,7 @@ void export_blob(Node *node, void *buf, size_t len)
     gzFile wfp;
 #endif
 
-    if (strcmp(node->file->name + striplen, ".cvsignore,v") == 0) {
+    if (strcmp(node->file->file_name + striplen, ".cvsignore,v") == 0) {
 	extralen = sizeof(CVS_IGNORES) - 1;
     }
     
@@ -203,9 +203,9 @@ static char *export_filename(rev_file *file, const bool ignoreconv)
     int	len;
     char *ignore;
     
-    if (strlen(file->name) - striplen >= MAXPATHLEN)
-	fatal_error("File name %s\n too long\n", file->name);
-    strcpy(name, file->name + striplen);
+    if (strlen(file->file_name) - striplen >= MAXPATHLEN)
+	fatal_error("File name %s\n too long\n", file->file_name);
+    strcpy(name, file->file_name + striplen);
 	drop_path_component(name, "Attic/");
 	drop_path_component(name, "RCS/");
     len = strlen(name);
@@ -327,7 +327,7 @@ static void compute_parent_links(git_commit *commit)
 	for (df = (*ddir)->files; df < (*ddir)->files + (*ddir)->nfiles; df++) {
 	    for (ddir2 = parent->dirs; ddir2 < parent->dirs + parent->ndirs; ddir2++) {
 		for (df2 = (*ddir2)->files; df2 < (*ddir2)->files + (*ddir2)->nfiles; df2++) {
-		    if ((*df)->name == (*df2)->name) {
+		    if ((*df)->file_name == (*df2)->file_name) {
 			(*df)->u.other = *df2;
 			(*df2)->u.other = *df;
 			if (--maxmatch == 0)
@@ -344,7 +344,7 @@ static void compute_parent_links(git_commit *commit)
 static void dump_file(rev_file *rev_file, FILE *fp)
 {
     char buf[CVS_MAX_REV_LEN + 1];
-    fprintf(fp, "   file name: %s %s\n", rev_file->name, 
+    fprintf(fp, "   file name: %s %s\n", rev_file->file_name, 
 	    cvs_number_string(&rev_file->number, buf, sizeof(buf)));
  }
 
