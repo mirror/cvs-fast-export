@@ -81,7 +81,7 @@ rev_branch_cvs(cvs_file *cvs, cvs_number *branch)
 	    c->log = p->log;
 	 c->dead = v->dead;
 	/* leave this around so the branch merging stuff can find numbers */
-	c->file = rev_file_rev(cvs->name, &v->number, v->date);
+	c->file = rev_file_rev(cvs->master_name, &v->number, v->date);
 	if (!v->dead) {
 	    node->file = c->file;
 	    c->file->mode = cvs->mode;
@@ -101,7 +101,7 @@ rev_branch_cvs(cvs_file *cvs, cvs_number *branch)
     for (c = head, gc = NULL; (p = c->parent); gc = c, c = p) {
 	if (time_compare(p->file->u.date, c->file->u.date) > 0)
 	{
-	    fprintf(stderr, "cvs-fast-export: warning - %s:", cvs->name);
+	    fprintf(stderr, "cvs-fast-export: warning - %s:", cvs->master_name);
 	    dump_number_file(stderr, " ", &p->file->number);
 	    dump_number_file(stderr, " is newer than", &c->file->number);
 
@@ -495,7 +495,7 @@ rev_list_set_refs(rev_list *rl, cvs_file *cvsfile)
 	    h->parent = rev_list_find_branch(rl, &n);
 	    if (!h->parent && ! cvs_is_vendor(&h->number))
 		announce("warning - %s branch %s has no parent\n",
-			 cvsfile->name, h->name);
+			 cvsfile->master_name, h->name);
 	}
 	if (h->parent && !h->name) {
 	    char	name[1024];
@@ -504,7 +504,7 @@ rev_list_set_refs(rev_list *rl, cvs_file *cvsfile)
 	    cvs_number_string(&h->number, rev, sizeof(rev));
 	    sprintf(name, "%s-UNNAMED-BRANCH-%s", h->parent->name, h->commit->commitid);
 	    announce("warning - putting %s rev %s on unnamed branch %s off %s\n",
-		     cvsfile->name, rev, name, h->parent->name);
+		     cvsfile->master_name, rev, name, h->parent->name);
 	    h->name = atom(name);
 	}
     }

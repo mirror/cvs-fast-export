@@ -50,7 +50,7 @@ rev_list_file(char *name, const bool generate, bool enable_keyword_expansion)
     yyfilename = name;
     yylineno = 0;
     this_file = xcalloc(1, sizeof(cvs_file), __func__);
-    this_file->name = name;
+    this_file->master_name = name;
     if (yyin)
 	assert(fstat(fileno(yyin), &buf) == 0);
     this_file->mode = buf.st_mode;

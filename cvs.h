@@ -155,7 +155,7 @@ typedef struct _cvs_patch {
 
 typedef struct {
     /* this represents the entire metadata content of a CVS master file */
-    char		*name;
+    char		*master_name;
     cvs_symbol		*symbols;
     rbtree_node		*symbols_by_name;
     cvs_version		*versions;

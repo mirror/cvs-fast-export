@@ -826,7 +826,7 @@ void generate_files(cvs_file *cvs,
     int expandflag = Gexpand < EXPANDKO;
     Node *node = head_node;
     depth = 0;
-    Gfilename = cvs->name;
+    Gfilename = cvs->master_name;
     if (enable_keyword_expansion)
 	Gexpand = expand_override(cvs->expand);
     else

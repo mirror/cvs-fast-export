@@ -44,12 +44,12 @@ void tag_commit(cvs_commit *c, char *name, cvs_file *cvsfile)
 /* add a CVS commit to the list associated with a named tag */
 {
     Tag *tag = find_tag(name);
-    if (tag->last == cvsfile->name) {
+    if (tag->last == cvsfile->master_name) {
 	announce("duplicate tag %s in CVS master %s, ignoring\n",
-		 name, cvsfile->name);
+		 name, cvsfile->master_name);
 	return;
     }
-    tag->last = cvsfile->name;
+    tag->last = cvsfile->master_name;
     if (!tag->left) {
 	Chunk *v = xmalloc(sizeof(Chunk), __func__);
 	v->next = tag->commits;
