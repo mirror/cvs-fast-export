@@ -1,7 +1,9 @@
 #include "cvs.h"
 
-static Node *table[4096];
-static int entries;
+#define NODE_HASH_SIZE	4096
+
+static Node *table[NODE_HASH_SIZE];
+static int nentries;
 
 Node *head_node;
 
@@ -21,7 +23,7 @@ static Node *hash_number(cvs_number *n)
 	key.n[key.c] = 0;
     for (i = 0, hash = 0; i < key.c - 1; i++)
 	hash += key.n[i];
-    hash = (hash * 256 + key.n[key.c - 1]) % 4096;
+    hash = (hash * 256 + key.n[key.c - 1]) % NODE_HASH_SIZE;
     for (p = table[hash]; p; p = p->hash_next) {
 	if (p->number.c != key.c)
 	    continue;
@@ -34,7 +36,7 @@ static Node *hash_number(cvs_number *n)
     p->number = key;
     p->hash_next = table[hash];
     table[hash] = p;
-    entries++;
+    nentries++;
     return p;
 }
 
@@ -49,7 +51,7 @@ static Node *find_parent(cvs_number *n, int depth)
     key.c -= depth;
     for (i = 0, hash = 0; i < key.c - 1; i++)
 	hash += key.n[i];
-    hash = (hash * 256 + key.n[key.c - 1]) % 4096;
+    hash = (hash * 256 + key.n[key.c - 1]) % NODE_HASH_SIZE;
     for (p = table[hash]; p; p = p->hash_next) {
 	if (p->number.c != key.c)
 	    continue;
@@ -107,7 +109,7 @@ void clean_hash(void)
 /* discard the node list */
 {
     int i;
-    for (i = 0; i < 4096; i++) {
+    for (i = 0; i < NODE_HASH_SIZE; i++) {
 	Node *p = table[i];
 	table[i] = NULL;
 	while (p) {
@@ -116,7 +118,7 @@ void clean_hash(void)
 	    p = q;
 	}
     }
-    entries = 0;
+    nentries = 0;
     head_node = NULL;
 }
 
@@ -173,24 +175,24 @@ static void try_pair(Node *a, Node *b)
 void build_branches(void)
 /* set head_node global and build branch links in the node list */ 
 {
-    if (entries == 0)
+    if (nentries == 0)
 	return;
 
-    Node **v = xmalloc(sizeof(Node *) * entries, __func__), **p = v;
+    Node **v = xmalloc(sizeof(Node *) * nentries, __func__), **p = v;
     int i;
 
-    for (i = 0; i < 4096; i++) {
+    for (i = 0; i < NODE_HASH_SIZE; i++) {
 	Node *q;
 	for (q = table[i]; q; q = q->hash_next)
 	    *p++ = q;
     }
-    qsort(v, entries, sizeof(Node *), compare);
+    qsort(v, nentries, sizeof(Node *), compare);
     /* only trunk? */
-    if (v[entries-1]->number.c == 2)
-	head_node = v[entries-1];
-    for (p = v + entries - 2 ; p >= v; p--)
+    if (v[nentries-1]->number.c == 2)
+	head_node = v[nentries-1];
+    for (p = v + nentries - 2 ; p >= v; p--)
 	try_pair(p[0], p[1]);
-    for (p = v + entries - 1 ; p >= v; p--) {
+    for (p = v + nentries - 1 ; p >= v; p--) {
 	Node *a = *p, *b = NULL;
 	if (!a->starts)
 	    continue;
