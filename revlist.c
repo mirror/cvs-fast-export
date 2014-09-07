@@ -25,7 +25,7 @@
 
 rev_ref *
 rev_list_add_head(rev_list *rl, cvs_commit *commit, char *name, int degree)
-/* Add head refs */
+/* decorate a commit list with a named head reference */
 {
     rev_ref	*r;
     rev_ref	**list = &rl->heads;
@@ -43,6 +43,7 @@ rev_list_add_head(rev_list *rl, cvs_commit *commit, char *name, int degree)
 
 static rev_ref *
 rev_find_head(rev_list *rl, char *name)
+/* find a named hesd in a revlist */
 {
     rev_ref	*h;
 
@@ -52,13 +53,13 @@ rev_find_head(rev_list *rl, char *name)
     return NULL;
 }
 
+#ifdef __UNUSED__
 /*
  * We keep all file lists in a canonical sorted order,
  * first by latest date and then by the address of the rev_file object
  * (which are always unique)
  */
 
-#ifdef __UNUSED__
 bool
 rev_file_later(rev_file *af, rev_file *bf)
 {
