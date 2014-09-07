@@ -110,6 +110,7 @@ rev_list_set_tail(rev_list *rl)
 
 static rev_ref *
 rev_ref_find_name(rev_ref *h, char *name)
+/* find a revision reference by name */
 {
     for (; h; h = h->next)
 	if (h->ref_name == name)
@@ -159,6 +160,7 @@ rev_ref_tsort(rev_ref *refs, rev_list *head)
 
 static int
 rev_list_count(rev_list *head)
+/* count entries in a rev_list */
 {
     int	count = 0;
     while (head) {
@@ -214,6 +216,7 @@ cvs_commit_date_compare(const void *av, const void *bv)
 
 static int
 cvs_commit_date_sort(cvs_commit **commits, int ncommit)
+/* sort CVS commits by date */
 {
     qsort(commits, ncommit, sizeof(cvs_commit *),
 	   cvs_commit_date_compare);
@@ -227,6 +230,7 @@ cvs_commit_date_sort(cvs_commit **commits, int ncommit)
 
 bool
 git_commit_has_file(git_commit *c, rev_file *f)
+/* does this commit toauch a specified file? */
 {
     int	i, j;
 
@@ -241,11 +245,17 @@ git_commit_has_file(git_commit *c, rev_file *f)
     return false;
 }
 
+/*
+ * These statics are part of an optimization to reduce allocation calls
+ * by only doing one when more memory needs to be grabbed than the 
+ * previous commit build used.
+ */
 static rev_file **files = NULL;
 static int	    sfiles = 0;
 
 void
 git_commit_cleanup(void)
+/* clean up after a commit build */
 {
     if (files) {
 	free(files);
