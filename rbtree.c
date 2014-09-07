@@ -47,33 +47,6 @@ rbtree_node_color(rbtree_node *node)
     return BLACK;
 }
 
-#ifdef __UNUSED__
-static void
-rbtree_dump_helper(rbtree_node *node, int level)
-{
-    int i;
-    for (i = 0; i < level ; ++i) {
-	fprintf(stderr, "    ");
-    }
-    const char* color = (rbtree_node_color(node) == RED) ? "R" : "B";
-    if (node)
-	fprintf(stderr, "%s: %p %s\n", color, node->key, (char*)node->key);
-    else
-	fprintf(stderr, "%s: %s\n", color, "NIL");
-    if (node) {
-	rbtree_dump_helper(node->right, level + 1);
-	rbtree_dump_helper(node->left, level + 1);
-    }
-}
-
-static void
-rbtree_dump(rbtree_node *root, char* marker)
-{
-    fprintf(stderr, "=== dump of symbol tree(%s) ===\n", marker);
-    rbtree_dump_helper(root, 0);
-}
-#endif
-
 #if RBDEBUG
 static void
 rbtree_assert_links(rbtree_node *node)

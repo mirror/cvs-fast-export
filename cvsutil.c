@@ -19,47 +19,6 @@
 #include "cvs.h"
 #include <assert.h>
 
-#ifdef __UNUSED__
-cvs_number
-cvs_branch_head(cvs_file *f, cvs_number *branch)
-/* find the newest revision along a specified branch */
-{
-    cvs_number	n;
-    cvs_version	*v;
-
-    n = *branch;
-    /* Check for magic branch format */
-    if ((n.c & 1) == 0 && n.n[n.c-2] == 0) {
-	n.n[n.c-2] = n.n[n.c-1];
-	n.c--;
-    }
-    for (v = f->versions; v; v = v->next) {
-	if (cvs_same_branch(&n, &v->number) &&
-	    cvs_number_compare(&n, &v->number) > 0)
-	    n = v->number;
-    }
-    return n;
-}
-
-cvs_number
-cvs_branch_parent(cvs_file *f, cvs_number *branch)
-/* return the parent branch of a specified CVS branch */
-{
-    cvs_number	n;
-    cvs_version	*v;
-
-    n = *branch;
-    n.n[n.c-1] = 0;
-    for (v = f->versions; v; v = v->next) {
-	if (cvs_same_branch(&n, &v->number) &&
-	    cvs_number_compare(branch, &v->number) < 0 &&
-	    cvs_number_compare(&n, &v->number) >= 0)
-	    n = v->number;
-    }
-    return n;
-}
-#endif /* __UNUSED__ */
-
 Node *
 cvs_find_version(cvs_file *cvs, cvs_number *number)
 /* find the file version associated with the specified CVS release number */

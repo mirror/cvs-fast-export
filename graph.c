@@ -26,70 +26,6 @@
 /* FIXME: never set anywhere - should see what happens if it is */
 static bool difffiles = false;
 
-#ifdef __UNUSED__
-static void dump_symbols(char *name, cvs_symbol *symbols)
-/* dump a list of symbols and their CVS-version values to standard output */
-{
-    printf("%s\n", name);
-    while (symbols) {
-	printf("\t");
-	dump_number(symbols->name, &symbols->number);
-	printf("\n");
-	symbols = symbols->next;
-    }
-}
-
-static void dump_branches(char *name, cvs_branch *branches)
-/* dump a list of branches and their CVS-version roots to standard output */
-{
-    printf("%s", name);
-    while (branches) {
-	dump_number(" ", &branches->number);
-	branches = branches->next;
-    }
-    printf("\n");
-}
-
-static void dump_versions(char *name, cvs_version *versions)
-/* dump metadata of a list of versions to standard output */
-{
-    printf("%s\n", name);
-    while (versions) {
-	dump_number  ("\tnumber:", &versions->number); printf("\n");
-	printf       ("\t\tdate:     %s", ctime(&versions->date));
-	printf       ("\t\tauthor:   %s\n", versions->author);
-	dump_branches("\t\tbranches:", versions->branches);
-	dump_number  ("\t\tparent:  ", &versions->parent); printf("\n");
-	if (versions->commitid)
-	    printf   ("\t\tcommitid: %s\n", versions->commitid);
-	printf("\n");
-	versions = versions->next;
-    }
-}
-
-static void dump_patches(char *name, cvs_patch *patches)
-/* dump metadata of a list of patches to standard output */
-{
-    printf("%s\n", name);
-    while (patches) {
-	dump_number("\tnumber: ", &patches->number); printf("\n");
-	printf("\t\tlog: %d bytes\n", (int)strlen(patches->log));
-	printf("\t\ttext: %d bytes\n", (int)strlen(patches->text));
-	patches = patches->next;
-    }
-}
-
-static void dump_file(cvs_file *file)
-/* dump the patch list of a given file to standard output */
-{
-    dump_number("head", &file->head);  printf("\n");
-    dump_number("branch", &file->branch); printf("\n");
-    dump_symbols("symbols", file->symbols);
-    dump_versions("versions", file->versions);
-    dump_patches("patches", file->patches);
-}
-#endif /* __UNUSED__ */
-
 void
 dump_log(FILE *f, char *log)
 {
@@ -332,25 +268,6 @@ static void dot_tags(rev_list *rl, char *title, char *shape)
     }
     free(v);
 }
-
-#ifdef __UNUSED__
-/*
- * Fossil code, apparently from an experiment in eliding intermediate
- * graph nodes.
- */
-bool elide = false;
-
-static git_commit *
-dump_get_rev_parent(git_commit *c)
-{
-    int	seen = c->seen;
-
-    c = c->parent;
-    while (c && c->seen == seen && !c->tail && !c->tagged)
-	c = c->parent;
-    return c;
-}
-#endif
 
 #define dump_get_rev_parent(c) ((c)->parent)
 

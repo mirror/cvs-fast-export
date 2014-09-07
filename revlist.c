@@ -53,52 +53,6 @@ rev_find_head(rev_list *rl, char *name)
     return NULL;
 }
 
-#ifdef __UNUSED__
-/*
- * We keep all file lists in a canonical sorted order,
- * first by latest date and then by the address of the rev_file object
- * (which are always unique)
- */
-
-bool
-rev_file_later(rev_file *af, rev_file *bf)
-{
-    long	t;
-
-    /*
-     * When merging file lists, we should never see the same
-     * object in both trees
-     */
-    assert(af != bf);
-
-    t = time_compare(af->date, bf->date);
-
-    if (t > 0)
-	return true;
-    if (t < 0)
-	return false;
-    if ((uintptr_t) af > (uintptr_t) bf)
-	return true;
-    return false;
-}
-
-bool
-git_commit_later(git_commit *a, git_commit *b)
-{
-    long	t;
-
-    assert(a != b);
-    t = time_compare(a->date, b->date);
-    if (t > 0)
-	return true;
-    if (t < 0)
-	return false;
-    if ((uintptr_t) a > (uintptr_t) b)
-	return true;
-    return true;
-}
-#endif /* __UNUSED__ */
-
 static bool
 commit_time_close(cvstime_t a, cvstime_t b)
 /* are two timestamps within the commit-coalescence window? */
@@ -131,27 +85,6 @@ cvs_commit_match(cvs_commit *a, cvs_commit *b)
     return true;
 }
 
-#ifdef __UNUSED__
-static void
-git_commit_dump(FILE *f, char *title, git_commit *c, git_commit *m)
-{
-    fprintf(f, "\n%s\n", title);
-    while (c) {
-	int	i;
-
-	fprintf(f, "%c0x%x %s\n", c == m ? '>' : ' ',
-		(int) c, ctime_nonl(&c->date));
-	for (i = 0; i < c->nfiles; i++) {
-	    fprintf(f, "\t%s", ctime_nonl(&c->files[i]->date));
-	    dump_number_file(f, c->files[i]->name, &c->files[i]->number);
-	    fprintf(f, "\n");
-	}
-	fprintf(f, "\n");
-	c = c->parent;
-    }
-}
-#endif
-
 void
 rev_list_set_tail(rev_list *rl)
 {
@@ -174,83 +107,6 @@ rev_list_set_tail(rev_list *rl)
 	head->commit->tagged = true;
     }
 }
-
-#if 0
-static int
-rev_ref_len(rev_ref *r)
-{
-    int	l = 0;
-    while (r) {
-	l++;
-	r = r->next;
-    }
-    return l;
-}
-
-static rev_ref *
-rev_ref_sel(rev_ref *r, int len)
-{
-    rev_ref	*head, **tail;
-    rev_ref	*a = r;
-    rev_ref	*b;
-    int		alen = len / 2;
-    int		blen = len - alen;
-    int		i;
-
-    if (len <= 1)
-	return r;
-
-    /*
-     * split
-     */
-    for (i = 0; i < alen - 1; i++)
-	r = r->next;
-    b = r->next;
-    r->next = 0;
-    /*
-     * recurse
-     */
-    a = rev_ref_sel(a, alen);
-    b = rev_ref_sel(b, blen);
-    /*
-     * merge
-     */
-    tail = &head;
-    while (a && b) {
-	if (a->degree < b->degree) {
-	    *tail = a;
-	    a = a->next;
-	} else {
-	    *tail = b;
-	    b = b->next;
-	}
-	tail = &(*tail)->next;
-    }
-    /*
-     * paste
-     */
-    if (a)
-	*tail = a;
-    else
-	*tail = b;
-    /*
-     * done
-     */
-    return head;
-}
-
-static rev_ref *
-rev_ref_sel_sort(rev_ref *r)
-{
-    rev_ref	*s;
-
-    r = rev_ref_sel(r, rev_ref_len(r));
-    for (s = r; s && s->next; s = s->next) {
-	assert(s->degree <= s->next->degree);
-    }
-    return r;
-}
-#endif
 
 static rev_ref *
 rev_ref_find_name(rev_ref *h, char *name)
@@ -385,19 +241,6 @@ git_commit_has_file(git_commit *c, rev_file *f)
     return false;
 }
 
-#ifdef __UNUSED__
-static rev_file *
-git_commit_find_file(git_commit *c, char *name)
-{
-    int	n;
-
-    for (n = 0; n < c->nfiles; n++)
-	if (c->files[n]->name == name)
-	    return c->files[n];
-    return NULL;
-}
-#endif
-
 static rev_file **files = NULL;
 static int	    sfiles = 0;
 
@@ -475,30 +318,6 @@ git_commit_build(cvs_commit **revisions, cvs_commit *leader, int nrevisions)
 
     return commit;
 }
-
-#ifdef __UNUSED__
-static git_commit *
-rev_ref_find_commit_file(rev_ref *branch, rev_file *file)
-{
-    git_commit	*c;
-
-    for (c = branch->commit; c; c = c->parent)
-	if (git_commit_has_file(c, file))
-	    return c;
-    return NULL;
-}
-
-static bool
-git_commit_is_ancestor(git_commit *old, git_commit *young)
-{
-    while (young) {
-	if (young == old)
-	    return true;
-	young = young->parent;
-    }
-    return false;
-}
-#endif
 
 static git_commit *
 git_commit_locate_date(rev_ref *branch, cvstime_t date)
@@ -876,79 +695,6 @@ rev_ref_set_parent(rev_list *rl, rev_ref *dest, rev_list *source)
     else
 	dest->depth = 1;
 }
-
-
-#ifdef __UNUSED__
-static void
-rev_head_find_parent(rev_list *rl, rev_ref *h, rev_list *lhead)
-{
-    rev_list	*l;
-    rev_ref	*lh;
-
-    for (l = lhead; l; l = l->next) {
-	lh = rev_find_head(l, h->name);
-	if (!lh)
-	    continue;
-	
-    }
-}
-#endif
-
-#ifdef __UNUSED__
-static bool
-rev_branch_name_is_ancestor(rev_ref *old, rev_ref *young)
-{
-    while (young) {
-	if (young->name == old->name)
-	    return true;
-	young = young->parent;
-    }
-    return false;
-}
-#endif
-
-#ifdef __UNUSED__
-static rev_ref *
-rev_ref_parent(rev_ref **refs, int nref, rev_list *rl)
-{
-    rev_ref	*parent = NULL;
-    rev_ref	*branch = NULL;
-    int		n;
-    rev_ref	*h;
-
-    for (n = 0; n < nref; n++)
-    {
-	if (refs[n]->parent) {
-	    if (!parent) {
-		parent = refs[n]->parent;
-		branch = refs[n];
-	    } else if (parent->name != refs[n]->parent->name) {
-		if (rev_branch_name_is_ancestor(refs[n]->parent, parent))
-		    ;
-		else if (rev_branch_name_is_ancestor(parent, refs[n]->parent)) {
-		    parent = refs[n]->parent;
-		    branch = refs[n];
-		} else {
-		    fprintf(stderr, "Branch name collision:\n");
-		    fprintf(stderr, "\tfirst branch: ");
-		    dump_ref_name(stderr, branch);
-		    fprintf(stderr, "\n");
-		    fprintf(stderr, "\tsecond branch: ");
-		    dump_ref_name(stderr, refs[n]);
-		    fprintf(stderr, "\n");
-		}
-	    }
-	}
-    }
-    if (!parent)
-	return NULL;
-    for (h = rl->heads; h; h = h->next)
-	if (parent->name == h->name)
-	    return h;
-    announce("reference missing in merge: %s\n", parent->name);
-    return NULL;
-}
-#endif
 
 rev_list *
 rev_list_merge(rev_list *head)

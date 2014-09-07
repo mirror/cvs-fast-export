@@ -93,42 +93,6 @@ cvs_number_compare(cvs_number *a, cvs_number *b)
     return 0;
 }
 
-#ifdef __UNUSED__
-int
-cvs_number_compare_n(cvs_number *a, cvs_number *b, int l)
-/* total ordering for CVS revision number prefixes */
-{
-    int n = min(l, min(a->c, b->c));
-    int i;
-
-    for (i = 0; i < n; i++) {
-	if (a->n[i] < b->n[i])
-	    return -1;
-	if (a->n[i] > b->n[i])
-	    return 1;
-    }
-    if (l > a->c)
-	return -1;
-    if (l > b->c)
-	return 1;
-    return 0;
-}
-
-bool
-cvs_is_branch_of(cvs_number *trunk, cvs_number *branch)
-/* is the specified branch rooted at the specified trunk revision */
-{
-    cvs_number	n;
-
-    if (branch->c > 2) {
-	n = *branch;
-	n.c -= 2;
-	return cvs_same_branch(trunk, &n);
-    }
-    return false;
-}
-#endif /* __UNUSED__ */
-
 int
 cvs_number_degree(cvs_number *n)
 /* what is the degree of branchiness of the specified revision? */
@@ -146,37 +110,6 @@ cvs_number_degree(cvs_number *n)
 	return n->c - 1;
     return n->c;
 }
-
-#ifdef __UNUSED__
-cvs_number
-cvs_previous_rev(cvs_number *n)
-/* return the revision previous to a specified one */
-{
-    cvs_number	p;
-    int		i;
-    
-    p.c = n->c;
-    for (i = 0; i < n->c - 1; i++)
-	p.n[i] = n->n[i];
-    if (n->n[i] == 1) {
-	p.c = 0;
-	return p;
-    }
-    p.n[i] = n->n[i] - 1;
-    return p;
-}
-
-cvs_number
-cvs_master_rev(cvs_number *n)
-/* what is the master branch revision from which the specified one derives? */
-{
-    cvs_number p;
-
-    p = *n;
-    p.c -= 2;
-    return p;
-}
-#endif /* __UNUSED__ */
 
 bool
 cvs_is_trunk(cvs_number *number)
