@@ -203,11 +203,11 @@ opt_number	: NUMBER
 		|
 		  { $$.c = 0; }
 		;
-opt_commitid : commitid
-      { $$ = $1; }
-    |
+opt_commitid	: commitid
+		  { $$ = $1; }
+		|
 		  { $$ = NULL; }
-    ;
+		;
 commitid	: COMMITID NAME SEMI
 		  { $$ = $2; }
 		;
