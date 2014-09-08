@@ -44,8 +44,6 @@ unsigned long hash_files(rev_file **files, int nfiles)
     return h;
 }
 
-static int	total_dirs = 0;
-
 static rev_dir *
 rev_pack_dir(rev_file **files, int nfiles)
 /* pack a collection of file revisions for soace effeciency */
@@ -69,7 +67,6 @@ rev_pack_dir(rev_file **files, int nfiles)
     h->hash = hash;
     h->dir.nfiles = nfiles;
     memcpy(h->dir.files, files, nfiles * sizeof(rev_file *));
-    total_dirs++;
     return &h->dir;
 }
 
