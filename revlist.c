@@ -278,7 +278,6 @@ git_commit_build(cvs_commit **revisions, cvs_commit *leader, int nrevisions)
     git_commit	*commit;
     int		nds;
     rev_dir	**rds;
-    rev_file	*first;
 
     if (nrevisions > sfiles) {
 	free(files);
@@ -293,11 +292,6 @@ git_commit_build(cvs_commit **revisions, cvs_commit *leader, int nrevisions)
 	if (revisions[n] && revisions[n]->file)
 	    files[nfile++] = revisions[n]->file;
     
-    if (nfile)
-	first = files[0];
-    else
-	first = NULL;
-    
     rds = rev_pack_files(files, nfile, &nds);
         
     commit = xcalloc(1, sizeof(git_commit) +
@@ -311,7 +305,6 @@ git_commit_build(cvs_commit **revisions, cvs_commit *leader, int nrevisions)
     commit->dead = false;
     commit->refcount = commit->serial = 0;
 
-    commit->file = first;
     commit->nfiles = nfile;
 
     memcpy(commit->dirs, rds, (commit->ndirs = nds) * sizeof(rev_dir *));
@@ -608,6 +601,7 @@ rev_branch_merge(rev_ref **branches, int nbranch,
 						 revisions[present])))
 	{
 	    if (prev && time_compare((*tail)->date, prev->date) > 0) {
+		rev_file *first;
 		announce("warning - branch point %s -> %s later than branch\n",
 			 branch->ref_name, branch->parent->ref_name);
 		fprintf(stderr, "\ttrunk(%3d):  %s %s", n,
@@ -618,11 +612,19 @@ rev_branch_merge(rev_ref **branches, int nbranch,
 				      revisions[present]->file->file_name,
 				      &revisions[present]->file->number);
 		fprintf(stderr, "\n");
+		/*
+		 * The file part of the error message could be spurious for
+		 * a multi-file commit, alas.  It wasn't any better back when
+		 * both flavors of commit had dedicated 'file' members; the
+		 * problem is that we can't actually know which CVS file
+		 * commit is the right one for purposes of this message.
+		 */
+		first = prev->dirs[0]->files[0];
 		fprintf(stderr, "\tbranch(%3d): %s  ", n,
-			 ctime_nonl(&prev->file->u.date));
+			 ctime_nonl(&first->u.date));
 		dump_number_file(stderr,
-				  prev->file->file_name,
-				  &prev->file->number);
+				  first->file_name,
+				  &first->number);
 		fprintf(stderr, "\n");
 	    }
 	} else if ((*tail = git_commit_locate_date(branch->parent,

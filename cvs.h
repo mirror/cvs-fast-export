@@ -227,13 +227,14 @@ typedef struct _cvs_commit {
     char		*log;
     char		*author;
     char		*commitid;
-    rev_file		*file;		/* first file */
     cvstime_t		date;
     serial_t            serial;
     uint8_t		refcount;
     unsigned		tail:1;
     unsigned		tailed:1;
     unsigned		dead:1;
+    /* CVS-only members begin here */
+    rev_file		*file;		/* first file */
 } cvs_commit;
 
 typedef struct _git_commit {
@@ -242,7 +243,6 @@ typedef struct _git_commit {
     char		*log;
     char		*author;
     char		*commitid;
-    rev_file		*file;		/* first file */
     cvstime_t		date;
     serial_t            serial;
     uint8_t		refcount;
