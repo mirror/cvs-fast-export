@@ -34,6 +34,7 @@ static rev_dir_hash	*buckets[REV_DIR_HASH];
 
 static 
 unsigned long hash_files(rev_file **files, int nfiles)
+/* hash a file list so we can recognize it cheaply */
 {
     unsigned long   h = 0;
     int		    i;
@@ -45,16 +46,15 @@ unsigned long hash_files(rev_file **files, int nfiles)
 
 static int	total_dirs = 0;
 
-/*
- * Take a collection of file revisions and pack them together
- */
 static rev_dir *
 rev_pack_dir(rev_file **files, int nfiles)
+/* pack a collection of file revisions for soace effeciency */
 {
     unsigned long   hash = hash_files(files, nfiles);
     rev_dir_hash    **bucket = &buckets[hash % REV_DIR_HASH];
     rev_dir_hash    *h;
 
+    /* avoid packing a file list if we've done it before */ 
     for (h = *bucket; h; h = h->next) {
 	if (h->hash == hash && h->dir.nfiles == nfiles &&
 	    !memcmp(files, h->dir.files, nfiles * sizeof(rev_file *)))
@@ -71,6 +71,18 @@ rev_pack_dir(rev_file **files, int nfiles)
     memcpy(h->dir.files, files, nfiles * sizeof(rev_file *));
     total_dirs++;
     return &h->dir;
+}
+
+static int compare_rev_file(const void *a, const void *b)
+{
+    rev_file **ap = (rev_file **)a;
+    rev_file **bp = (rev_file **)b;
+
+#ifdef ORDERDEBUG
+    fprintf(stderr, "Comparing %s with %s\n", 
+	    (*ap)->file_name, (*bp)->file_name);
+#endif /* ORDERDEBUG */
+    return strcmp((*ap)->file_name, (*bp)->file_name);
 }
 
 /* entry points begin here */
@@ -97,18 +109,6 @@ rev_free_dirs(void)
 	rds = NULL;
 	sds = 0;
     }
-}
-
-static int compare_rev_file(const void *a, const void *b)
-{
-    rev_file **ap = (rev_file **)a;
-    rev_file **bp = (rev_file **)b;
-
-#ifdef ORDERDEBUG
-    fprintf(stderr, "Comparing %s with %s\n", 
-	    (*ap)->file_name, (*bp)->file_name);
-#endif /* ORDERDEBUG */
-    return strcmp((*ap)->file_name, (*bp)->file_name);
 }
 
 rev_dir **
