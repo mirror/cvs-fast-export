@@ -93,17 +93,18 @@ rev_list_set_tail(rev_list *rl)
 
     for (head = rl->heads; head; head = head->next) {
 	flag tail = true;
-	if (head->commit && head->commit->seen) {
+	if (head->commit && head->commit->refcount > 0) {
 	    head->tail = tail;
 	    tail = false;
 	}
 	for (c = head->commit; c; c = c->parent) {
-	    if (tail && c->parent && c->seen < c->parent->seen) {
+	    if (tail && c->parent && c->refcount < c->parent->refcount) {
 		c->tail = true;
 		tail = false;
 	    }
-	    c->seen++;
+	    c->refcount++;
 	}
+	/* all branch heads are considered tagged */
 	head->commit->tagged = true;
     }
 }
@@ -303,7 +304,7 @@ git_commit_build(cvs_commit **revisions, cvs_commit *leader, int nrevisions)
     commit->author = leader->author;
     commit->tail = commit->tailed = false;
     commit->tagged = commit->dead = false;
-    commit->seen = commit->serial = 0;
+    commit->refcount = commit->serial = 0;
 
     commit->file = first;
     commit->nfiles = nfile;
@@ -875,7 +876,7 @@ rev_commit_free(cvs_commit *commit, int free_files)
 
     while ((c = commit)) {
 	commit = c->parent;
-	if (--c->seen == 0)
+	if (--c->refcount == 0)
 	{
 	    if (free_files && c->file)
 		rev_file_mark_for_free(c->file);

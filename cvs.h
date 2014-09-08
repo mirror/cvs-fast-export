@@ -230,7 +230,7 @@ typedef struct _cvs_commit {
     rev_file		*file;		/* first file */
     cvstime_t		date;
     serial_t            serial;
-    serial_t		seen;
+    serial_t		refcount;
     unsigned		tail:1;
     unsigned		tailed:1;
     unsigned		tagged:1;
@@ -246,7 +246,7 @@ typedef struct _git_commit {
     rev_file		*file;		/* first file */
     cvstime_t		date;
     serial_t            serial;
-    serial_t		seen;
+    serial_t		refcount;
     unsigned		tail:1;
     unsigned		tailed:1;
     unsigned		tagged:1;
