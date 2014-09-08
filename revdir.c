@@ -99,6 +99,18 @@ rev_free_dirs(void)
     }
 }
 
+static int compare_rev_file(const void *a, const void *b)
+{
+    rev_file **ap = (rev_file **)a;
+    rev_file **bp = (rev_file **)b;
+
+#ifdef ORDERDEBUG
+    fprintf(stderr, "Comparing %s with %s\n", 
+	    (*ap)->file_name, (*bp)->file_name);
+#endif /* ORDERDEBUG */
+    return strcmp((*ap)->file_name, (*bp)->file_name);
+}
+
 rev_dir **
 rev_pack_files(rev_file **files, int nfiles, int *ndr)
 {
@@ -119,9 +131,18 @@ rev_pack_files(rev_file **files, int nfiles, int *ndr)
 	rev_file **s;
 
 	for (s = files; s < files + nfiles; s++)
-	    fprintf(stderr, "rev_file: %s\n", (*s)->name);
+	    fprintf(stderr, "rev_file: %s\n", (*s)->file_name);
     }
 #endif /* ORDERDEBUG */
+
+    /*
+     * The purpose of this sort is to rearrange the files in
+     * directory-path order so we get the longesr possible 
+     * runs of common directory prefixes, and thus maximum 
+     * space-saving effect out of the next step.  This reduces
+     * working-set size at the expense of the sort runtime.
+     */
+    qsort(files, nfiles, sizeof(rev_file *), compare_rev_file);
 
     /* pull out directories */
     for (i = 0; i < nfiles; i++) {
