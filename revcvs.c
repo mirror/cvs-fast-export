@@ -417,15 +417,16 @@ rev_list_find_branch(rev_list *rl, cvs_number *number)
 
 static void
 rev_list_set_refs(rev_list *rl, cvs_file *cvsfile)
+/* create head references or tags for each symbol in the CVS master */
 {
     rev_ref	*h;
     cvs_symbol	*s;
     
-    /*
-     * Locate a symbolic name for this head
-     */
     for (s = cvsfile->symbols; s; s = s->next) {
 	cvs_commit	*c = NULL;
+	/*
+	 * Locate a symbolic name for this head
+	 */
 	if (cvs_is_head(&s->number)) {
 	    for (h = rl->heads; h; h = h->next) {
 		if (cvs_same_branch(&h->commit->file->number, &s->number))
@@ -549,6 +550,7 @@ cvs_symbol_name_compare(void *x, void *y)
 
 static cvs_symbol *
 cvs_find_symbol(cvs_file *cvs, char *name)
+/* return the CVS symbol corresponding to a specified name */
 {
     rbtree_node *n, **tree;
 
@@ -580,12 +582,9 @@ rev_ref_compare(cvs_file *cvs, rev_ref *r1, rev_ref *r2)
     return cvs_number_compare(&s1->number, &s2->number);
 }
 
-/*
- * Implemented from description at
- * http://www.chiark.greenend.org.uk/~sgtatham/algorithms/listsort.html
- */
 static void
 rev_list_sort_heads(rev_list *rl, cvs_file *cvs)
+/* sort branch heads so they are in symbol-compare order */
 {
     rev_ref *p = rl->heads, *q;
     rev_ref *e;
@@ -593,7 +592,11 @@ rev_list_sort_heads(rev_list *rl, cvs_file *cvs)
     int k = 1;
     int i, psize, qsize;
 
-    while (1) {
+    /*
+     * Implemented from description at
+     * http://www.chiark.greenend.org.uk/~sgtatham/algorithms/listsort.html
+     */
+    for (;;) {
 	int passmerges = 0;
 
 	passmerges = 0;
@@ -674,6 +677,7 @@ rev_list_sort_heads(rev_list *rl, cvs_file *cvs)
 
 rev_list *
 rev_list_cvs(cvs_file *cvs)
+/* return a rev_list capturing the CVS master file structure */ 
 {
     rev_list	*rl = xcalloc(1, sizeof(rev_list), "rev_list_cvs");
     cvs_number	trunk_number;
