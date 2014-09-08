@@ -87,17 +87,24 @@ cvs_commit_match(cvs_commit *a, cvs_commit *b)
 
 void
 rev_list_set_tail(rev_list *rl)
+/* set tail bits so we can walk through each conmit in a revlist exactly ince */
 {
     rev_ref	*head;
     cvs_commit	*c;
 
+    /* 
+     * Set tail bit true where traversal should stop in order to avoid
+     * multiple visits to the same commit.
+     */ 
     for (head = rl->heads; head; head = head->next) {
 	flag tail = true;
+	/* set tail on each previously visited head reference */
 	if (head->commit && head->commit->refcount > 0) {
 	    head->tail = tail;
 	    tail = false;
 	}
 	for (c = head->commit; c; c = c->parent) {
+	    /* set tail on the child of the first join commit on this branch */
 	    if (tail && c->parent && c->refcount < c->parent->refcount) {
 		c->tail = true;
 		tail = false;
