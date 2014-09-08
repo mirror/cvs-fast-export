@@ -75,7 +75,7 @@ rev_branch_cvs(cvs_file *cvs, cvs_number *branch)
 	c->date = v->date;
 	c->commitid = v->commitid;
 	c->author = v->author;
-	c->tail = c->tailed = c->tagged = false;
+	c->tail = c->tailed = false;
 	c->refcount = c->serial = 0;
 	if (p)
 	    c->log = p->log;

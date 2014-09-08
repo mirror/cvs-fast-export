@@ -233,7 +233,6 @@ typedef struct _cvs_commit {
     uint8_t		refcount;
     unsigned		tail:1;
     unsigned		tailed:1;
-    unsigned		tagged:1;
     unsigned		dead:1;
 } cvs_commit;
 
@@ -249,7 +248,6 @@ typedef struct _git_commit {
     uint8_t		refcount;
     unsigned		tail:1;
     unsigned		tailed:1;
-    unsigned		tagged:1;
     unsigned		dead:1;		/* not actually used in gitspace */
     /* gitspace-only members begin here */
     short		nfiles;

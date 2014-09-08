@@ -111,8 +111,6 @@ rev_list_set_tail(rev_list *rl)
 	    }
 	    c->refcount++;
 	}
-	/* all branch heads are considered tagged */
-	head->commit->tagged = true;
     }
 }
 
@@ -310,7 +308,7 @@ git_commit_build(cvs_commit **revisions, cvs_commit *leader, int nrevisions)
     commit->log = leader->log;
     commit->author = leader->author;
     commit->tail = commit->tailed = false;
-    commit->tagged = commit->dead = false;
+    commit->dead = false;
     commit->refcount = commit->serial = 0;
 
     commit->file = first;
@@ -679,8 +677,6 @@ rev_tag_search(Tag *tag, cvs_commit **revisions, rev_list *rl)
 	tag->commit = git_commit_build(revisions, revisions[0], tag->count);
 #endif
     }
-    if (tag->commit)
-	tag->commit->tagged = true;
 }
 
 static void
