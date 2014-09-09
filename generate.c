@@ -103,8 +103,8 @@ struct in_buffer_type *Ginbuf = &in_buffer_store;
  */
 static int depth;
 static struct {
-    Node *next_branch;
-    Node *node;
+    node_t *next_branch;
+    node_t *node;
     uchar **line;
     size_t gap, gapsize, linemax;
 } stack[CVS_MAX_DEPTH/2];
@@ -738,7 +738,7 @@ uncache_exit:
     return r + e;
 }
 
-static void process_delta(Node *node, enum stringwork func)
+static void process_delta(node_t *node, enum stringwork func)
 {
     long editline = 0, linecnt = 0, adjust = 0;
     int editor_command;
@@ -805,7 +805,7 @@ static void snapshotedit(void)
 	snapshotline(*p++);
 }
 
-static void enter_branch(Node *node)
+static void enter_branch(node_t *node)
 {
     uchar **p = xmalloc(sizeof(uchar *) * stack[depth].linemax, "enter branch");
 	memcpy(p, stack[depth].line, sizeof(uchar *) * stack[depth].linemax);
@@ -817,14 +817,14 @@ static void enter_branch(Node *node)
 
 void generate_files(cvs_file *cvs,
 		    bool enable_keyword_expansion,
-		    void(*hook)(Node *node, void *buf, size_t len))
+		    void(*hook)(node_t *node, void *buf, size_t len))
 /* export all the revision states of a CVS/RS master through a hook */
 {
     if (head_node == NULL)
 	return;
 
     int expandflag = Gexpand < EXPANDKO;
-    Node *node = head_node;
+    node_t *node = head_node;
     depth = 0;
     Gfilename = cvs->master_name;
     if (enable_keyword_expansion)

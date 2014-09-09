@@ -140,7 +140,7 @@ static char *blobfile(int serial, bool create)
     return path;
 }
 
-void export_blob(Node *node, void *buf, size_t len)
+void export_blob(node_t *node, void *buf, size_t len)
 /* save the blob where it will be available for random access */
 {
     size_t extralen = 0;

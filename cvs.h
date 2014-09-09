@@ -124,7 +124,7 @@ typedef struct node {
     struct node *sib;
     cvs_number number;
     flag starts;
-} Node;
+} node_t;
 
 typedef struct _cvs_symbol {
     /* a CVS symbol-to-revision association */
@@ -137,7 +137,7 @@ typedef struct _cvs_branch {
     /* a CVS branch name */
     struct _cvs_branch	*next;
     cvs_number		number;
-    Node		*node;
+    node_t		*node;
 } cvs_branch;
 
 typedef struct _cvs_version {
@@ -147,7 +147,7 @@ typedef struct _cvs_version {
     char		*state;
     cvs_branch		*branches;
     char		*commitid;
-    Node		*node;
+    node_t		*node;
     cvs_number		number;
     cvstime_t		date;
     cvs_number		parent;	/* next in ,v file */
@@ -160,7 +160,7 @@ typedef struct _cvs_patch {
     cvs_number		number;
     char		*log;
     char		*text;
-    Node		*node;
+    node_t		*node;
 } cvs_patch;
 
 typedef struct {
@@ -360,13 +360,13 @@ enum { Ncommits = 256 };
 typedef struct _chunk {
 	struct _chunk *next;
 	cvs_commit *v[Ncommits];
-} Chunk;
+} chunk_t;
 
 typedef struct _tag {
 	struct _tag *next;
 	struct _tag *hash_next;
 	char *name;
-	Chunk *commits;
+	chunk_t *commits;
 	int count;
 	int left;
 	git_commit *commit;
@@ -415,7 +415,7 @@ cvs_branch_head(cvs_file *f, cvs_number *branch);
 cvs_number
 cvs_branch_parent(cvs_file *f, cvs_number *branch);
 
-Node *
+node_t *
 cvs_find_version(cvs_file *cvs, cvs_number *number);
 
 bool
@@ -510,7 +510,7 @@ rev_list_validate(rev_list *rl);
 #define time_compare(a,b) ((long)(a) - (long)(b))
 
 void 
-export_blob(Node *node, void *buf, size_t len);
+export_blob(node_t *node, void *buf, size_t len);
 
 void
 export_init(void);
@@ -532,7 +532,7 @@ free_author_map(void);
 
 void generate_files(cvs_file *cvs, 
 		    bool enable_keyword_expansion,
-		    void (*hook)(Node *node, void *buf, size_t len));
+		    void (*hook)(node_t *node, void *buf, size_t len));
 
 rev_dir **
 rev_pack_files(rev_file **files, int nfiles, int *ndr);
@@ -577,7 +577,7 @@ void hash_patch(cvs_patch *);
 void hash_branch(cvs_branch *);
 void clean_hash(void);
 void build_branches(void);
-extern Node *head_node;
+extern node_t *head_node;
 
 extern cvstime_t skew_vulnerable;
 extern unsigned int total_revisions;

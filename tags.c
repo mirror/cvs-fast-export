@@ -51,7 +51,7 @@ void tag_commit(cvs_commit *c, char *name, cvs_file *cvsfile)
     }
     tag->last = cvsfile->master_name;
     if (!tag->left) {
-	Chunk *v = xmalloc(sizeof(Chunk), __func__);
+	chunk_t *v = xmalloc(sizeof(chunk_t), __func__);
 	v->next = tag->commits;
 	tag->commits = v;
 	tag->left = Ncommits;
@@ -67,7 +67,7 @@ cvs_commit **tagged(Tag *tag)
 
     if (tag->count) {
 	cvs_commit **p = xmalloc(tag->count * sizeof(*p), __func__);
-	Chunk *c = tag->commits;
+	chunk_t *c = tag->commits;
 	int n = Ncommits - tag->left;
 
 	v = p;
@@ -86,9 +86,9 @@ void discard_tags(void)
     all_tags = NULL;
     while (tag) {
 	Tag *p = tag->next;
-	Chunk *c = tag->commits;
+	chunk_t *c = tag->commits;
 	while (c) {
-	    Chunk *next = c->next;
+	    chunk_t *next = c->next;
 	    free(c);
 	    c = next;
 	}

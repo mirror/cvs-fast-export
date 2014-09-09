@@ -19,7 +19,7 @@
 #include "cvs.h"
 #include <assert.h>
 
-Node *
+node_t *
 cvs_find_version(cvs_file *cvs, cvs_number *number)
 /* find the file version associated with the specified CVS release number */
 {

@@ -2,16 +2,16 @@
 
 #define NODE_HASH_SIZE	4096
 
-static Node *table[NODE_HASH_SIZE];
+static node_t *table[NODE_HASH_SIZE];
 static int nentries;
 
-Node *head_node;
+node_t *head_node;
 
-static Node *hash_number(cvs_number *n)
+static node_t *hash_number(cvs_number *n)
 /* look up the node associated with a specified CVS release number */
 {
     cvs_number key = *n;
-    Node *p;
+    node_t *p;
     int hash;
     int i;
 
@@ -32,7 +32,7 @@ static Node *hash_number(cvs_number *n)
 	if (i == key.c)
 	    return p;
     }
-    p = xcalloc(1, sizeof(Node), "hash number generation");
+    p = xcalloc(1, sizeof(node_t), "hash number generation");
     p->number = key;
     p->hash_next = table[hash];
     table[hash] = p;
@@ -40,11 +40,11 @@ static Node *hash_number(cvs_number *n)
     return p;
 }
 
-static Node *find_parent(cvs_number *n, int depth)
+static node_t *find_parent(cvs_number *n, int depth)
 /* find the parent node of the specified prefix of a release number */
 {
     cvs_number key = *n;
-    Node *p;
+    node_t *p;
     int hash;
     int i;
 
@@ -110,10 +110,10 @@ void clean_hash(void)
 {
     int i;
     for (i = 0; i < NODE_HASH_SIZE; i++) {
-	Node *p = table[i];
+	node_t *p = table[i];
 	table[i] = NULL;
 	while (p) {
-	    Node *q = p->hash_next;
+	    node_t *q = p->hash_next;
 	    free(p);
 	    p = q;
 	}
@@ -125,7 +125,7 @@ void clean_hash(void)
 static int compare(const void *a, const void *b)
 /* total ordering of nodes by associated CVS revision number */
 {
-    Node *x = *(Node * const *)a, *y = *(Node * const *)b;
+    node_t *x = *(node_t * const *)a, *y = *(node_t * const *)b;
     int n, i;
     n = x->number.c;
     if (n < y->number.c)
@@ -141,7 +141,7 @@ static int compare(const void *a, const void *b)
     return 0;
 }
 
-static void try_pair(Node *a, Node *b)
+static void try_pair(node_t *a, node_t *b)
 {
     int n = a->number.c;
 
@@ -166,7 +166,7 @@ static void try_pair(Node *a, Node *b)
     if ((b->number.c & 1) == 0) {
 	b->starts = 1;
 	/* can the code below ever be needed? */
-	Node *p = find_parent(&b->number, 1);
+	node_t *p = find_parent(&b->number, 1);
 	if (p)
 	    p->next = b;
     }
@@ -178,22 +178,22 @@ void build_branches(void)
     if (nentries == 0)
 	return;
 
-    Node **v = xmalloc(sizeof(Node *) * nentries, __func__), **p = v;
+    node_t **v = xmalloc(sizeof(node_t *) * nentries, __func__), **p = v;
     int i;
 
     for (i = 0; i < NODE_HASH_SIZE; i++) {
-	Node *q;
+	node_t *q;
 	for (q = table[i]; q; q = q->hash_next)
 	    *p++ = q;
     }
-    qsort(v, nentries, sizeof(Node *), compare);
+    qsort(v, nentries, sizeof(node_t *), compare);
     /* only trunk? */
     if (v[nentries-1]->number.c == 2)
 	head_node = v[nentries-1];
     for (p = v + nentries - 2 ; p >= v; p--)
 	try_pair(p[0], p[1]);
     for (p = v + nentries - 1 ; p >= v; p--) {
-	Node *a = *p, *b = NULL;
+	node_t *a = *p, *b = NULL;
 	if (!a->starts)
 	    continue;
 	b = find_parent(&a->number, 2);

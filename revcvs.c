@@ -61,7 +61,7 @@ rev_branch_cvs(cvs_file *cvs, cvs_number *branch)
     cvs_number	n;
     cvs_commit	*head = NULL;
     cvs_commit	*c, *p, *gc;
-    Node	*node;
+    node_t	*node;
 
     n = *branch;
     n.n[n.c-1] = -1;
