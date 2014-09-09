@@ -109,7 +109,8 @@ rev_list_set_tail(rev_list *rl)
 		c->tail = true;
 		tail = false;
 	    }
-	    c->refcount++;
+	    if (c->refcount++ >= MAX_BRANCHCOUNT_T)
+		fatal_error("too many branches, bump size of branchcount_t");
 	}
     }
 }

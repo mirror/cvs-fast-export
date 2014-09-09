@@ -34,6 +34,7 @@
 #include <errno.h>
 #include <stdbool.h>
 #include <limits.h>
+#include <stdint.h>	/* for CHAR_BIT */
 
 /* 
  * CVS_MAX_BRANCHWIDTH should match the number in the longrev test.
@@ -43,6 +44,11 @@
 #define CVS_MAX_BRANCHWIDTH	10
 #define CVS_MAX_DEPTH		(2*CVS_MAX_BRANCHWIDTH + 2)
 #define CVS_MAX_REV_LEN		(CVS_MAX_DEPTH * (CVS_MAX_DIGITS + 1))
+
+/*
+ * Typedefs following this (everything before rbtree_color) have been
+ * carefully chosen to minimize working set.
+ */
 
 /*
  * Use instead of bool in frequently used structures to reduce
@@ -64,8 +70,17 @@ typedef uint32_t	cvstime_t;
 
 /*
  * This type must be wide enough to enumerate every CVS revision.
+ * There's a sanity check in the code.
  */
 typedef uint32_t	serial_t;
+#define MAX_SERIAL_T	UINT32_MAX
+
+/*
+ * This type must be wide enough to count all branches cointaining a commit.
+ * There's a sanity check in the code.
+ */
+typedef uint8_t			branchcount_t;
+#define MAX_BRANCHCOUNT_T	UINT8_MAX
 
 /*
  * Structures for the red/black tree
@@ -220,8 +235,6 @@ extern ssize_t striplen;
  * If the common fields in these structures don't remain in the same order,
  * bad things will happen.
  */
-
-typedef uint8_t	branchcount_t;	/* counts branches cointaining a commit */
 
 typedef struct _cvs_commit {
     /* a CVS revision */

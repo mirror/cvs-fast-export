@@ -154,6 +154,8 @@ void export_blob(Node *node, void *buf, size_t len)
 	extralen = sizeof(CVS_IGNORES) - 1;
     }
     
+    if (seqno >= MAX_SERIAL_T)
+	fatal_error("sequence number too large, widen serial_t");
     node->file->serial = ++seqno;
 
 #ifndef ZLIB
