@@ -221,6 +221,8 @@ extern ssize_t striplen;
  * bad things will happen.
  */
 
+typedef uint8_t	branchcount_t;	/* counts branches cointaining a commit */
+
 typedef struct _cvs_commit {
     /* a CVS revision */
     struct _cvs_commit	*parent;
@@ -229,7 +231,7 @@ typedef struct _cvs_commit {
     char		*commitid;
     cvstime_t		date;
     serial_t            serial;
-    uint8_t		refcount;
+    branchcount_t	refcount;
     unsigned		tail:1;
     unsigned		tailed:1;
     unsigned		dead:1;
@@ -245,7 +247,7 @@ typedef struct _git_commit {
     char		*commitid;
     cvstime_t		date;
     serial_t            serial;
-    uint8_t		refcount;
+    branchcount_t	refcount;
     unsigned		tail:1;
     unsigned		tailed:1;
     unsigned		dead:1;		/* not actually used in gitspace */
