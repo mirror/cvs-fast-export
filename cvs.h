@@ -34,7 +34,6 @@
 #include <errno.h>
 #include <stdbool.h>
 #include <limits.h>
-#include <stdint.h>	/* for CHAR_BIT */
 
 /* 
  * CVS_MAX_BRANCHWIDTH should match the number in the longrev test.
