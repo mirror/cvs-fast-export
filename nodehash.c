@@ -1,3 +1,9 @@
+/*
+ * The per-CVS-master node list this module builds and exports is used
+ * during the analysis phase (only) to walk through all deltas and 
+ * build them into snapshots.
+ */
+
 #include "cvs.h"
 
 #define NODE_HASH_SIZE	4096
