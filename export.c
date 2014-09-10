@@ -155,7 +155,7 @@ void export_blob(node_t *node, void *buf, size_t len)
     }
     
     if (seqno >= MAX_SERIAL_T)
-	fatal_error("sequence number too large, widen serial_t");
+	fatal_error("snapshot sequence number too large, widen serial_t");
     node->file->serial = ++seqno;
 
 #ifndef ZLIB
