@@ -1,0 +1,128 @@
+blob
+mark :1
+data 35
+Not an obfuscated C contest entry.
+
+blob
+mark :2
+data 46
+The quick brown fox jumped over the lazy dog.
+
+commit refs/heads/master
+mark :3
+committer foo <foo> 1800 +0000
+data 13
+First commit
+
+M 100644 :1 bar.c
+M 100644 :2 foo.c
+M 100644 inline .gitignore
+data 198
+# CVS default ignores begin
+tags
+TAGS
+.make.state
+.nse_depinfo
+*~
+#*
+.#*
+,*
+_$*
+*$
+*.old
+*.bak
+*.BAK
+*.orig
+*.rej
+.del-*
+*.a
+*.olb
+*.o
+*.obj
+*.so
+*.exe
+*.Z
+*.elc
+*.ln
+core
+# CVS default ignores end
+
+
+blob
+mark :4
+data 49
+The world will little note, nor long remember...
+
+commit refs/heads/master
+mark :5
+committer foo <foo> 3000 +0000
+data 14
+Second commit
+
+from :3
+M 100644 :4 bar.c
+
+blob
+mark :6
+data 47
+One is dead, one is mad, and I have forgotten.
+
+blob
+mark :7
+data 44
+And now for something completely different.
+
+commit refs/heads/master
+mark :8
+committer foo <foo> 4800 +0000
+data 13
+Third commit
+
+from :5
+M 100644 :6 bar.c
+M 100644 :7 foo.c
+
+reset refs/tags/alternate_root
+from :8
+
+blob
+mark :9
+data 30
+Ceci n'est pas un sourcefile.
+
+commit refs/heads/alternate
+mark :10
+committer foo <foo> 6000 +0000
+data 14
+Fourth commit
+
+from :8
+M 100644 :9 foo.c
+
+blob
+mark :11
+data 36
+...did gyre and gimble in the wabe.
+
+blob
+mark :12
+data 38
+Twas brillig, and the slithy toves...
+
+commit refs/heads/alternate
+mark :13
+committer foo <foo> 7800 +0000
+data 13
+Fifth commit
+
+from :10
+M 100644 :11 bar.c
+M 100644 :12 foo.c
+
+reset refs/heads/master
+from :8
+
+reset refs/heads/alternate
+from :13
+
+done
