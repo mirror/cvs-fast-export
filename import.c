@@ -121,7 +121,7 @@ rev_list *analyze_masters(int argc, char *argv[],
 /* main entry point; collect and parse CVS masters */
 {
     rev_filename    *fn_head, **fn_tail = &fn_head, *fn;
-    rev_list	    *head, **tail = &head, *rl;
+    rev_list	    *head = NULL, **tail = &head, *rl;
     char	    name[10240], *last = NULL;
     char	    *file;
     int		    nfile = 0;
