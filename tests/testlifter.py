@@ -200,7 +200,7 @@ class CVSCheckout:
         self.do("up", "-j", branchname)
     def commit(self, message):
         "Commit changes to the repository."
-        time.sleep(1)
+        time.sleep(2)
         apply(self.do, ["commit", "-m '%s'" % message])
     def write(self, fn, content):
         "Create file content in the repository."
