@@ -200,6 +200,9 @@ class CVSCheckout:
         self.do("up", "-j", branchname)
     def commit(self, message):
         "Commit changes to the repository."
+        # The CVS tools weren't designed to be called in rapid-fire
+        # succession by scripts; they have race conditions.  This
+        # presents misbehavior.
         time.sleep(2)
         apply(self.do, ["commit", "-m '%s'" % message])
     def write(self, fn, content):
