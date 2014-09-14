@@ -25,12 +25,9 @@
 
 #include "cvs.h"
 
-/*
- * Given a single-file tree, locate the specific version number
- */
-
 static cvs_commit *
 rev_find_cvs_revision(rev_list *rl, cvs_number *number)
+/* given a single-file revlist tree, locate the specific version number */
 {
     rev_ref	*h;
     cvs_commit	*c;
@@ -51,12 +48,9 @@ rev_find_cvs_revision(rev_list *rl, cvs_number *number)
     return NULL;
 }
 
-/*
- * Construct a branch using CVS revision numbers.
- * Note that this produces a list of commit objects, not a revlist.
- */
 static cvs_commit *
 rev_branch_cvs(cvs_file *cvs, cvs_number *branch)
+/* build a list of commit objects representing a branch from deltas on it */
 {
     cvs_number	n;
     cvs_commit	*head = NULL;
@@ -289,13 +283,9 @@ rev_list_patch_vendor_branch(rev_list *rl, cvs_file *cvs)
 #endif
 }
 
-/*
- * Given a disconnected set of branches, graft the bottom
- * of each branch where it belongs on the parent branch
- */
-
 static void
 rev_list_graft_branches(rev_list *rl, cvs_file *cvs)
+/* turn disconnected branches into a tree by grafting roots to parents */ 
 {
     rev_ref	*h;
     cvs_commit	*c;
@@ -387,12 +377,9 @@ rev_list_graft_branches(rev_list *rl, cvs_file *cvs)
     }
 }
 
-/*
- * For each symbol, locate the appropriate commit
- */
-
 static rev_ref *
 rev_list_find_branch(rev_list *rl, cvs_number *number)
+/* look up a revision reference in a revlist by symbol */
 {
     cvs_number	n;
     rev_ref	*h;
@@ -539,6 +526,7 @@ rev_list_free_dead_files(rev_list *rl)
 
 static int
 cvs_symbol_name_compare(void *x, void *y)
+/* compare function used for red-black tree lookup */
 {
     if (x < y)
 	return -1;
@@ -569,6 +557,7 @@ cvs_find_symbol(cvs_file *cvs, char *name)
 
 static int
 rev_ref_compare(cvs_file *cvs, rev_ref *r1, rev_ref *r2)
+/* comparison function used for topological sorting */
 {
     cvs_symbol *s1, *s2;
     s1 = cvs_find_symbol(cvs, r1->ref_name);
