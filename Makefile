@@ -10,6 +10,8 @@ VERSION=1.18
 
 prefix?=/usr/local
 target=$(DESTDIR)$(prefix)
+srcdir=$(dir $(abspath $(firstword $(MAKEFILE_LIST))))
+VPATH=$(srcdir)
 
 INSTALL = install
 YACC = bison -y
@@ -20,6 +22,7 @@ GCC_WARNINGS2=-Wmissing-prototypes -Wmissing-declarations
 GCC_WARNINGS3=-Wno-unused-function -Wno-unused-label -Wno-format-zero-length
 GCC_WARNINGS=$(GCC_WARNINGS1) $(GCC_WARNINGS2) $(GCC_WARNINGS3)
 CFLAGS=$(GCC_WARNINGS) -DVERSION=\"$(VERSION)\"
+CPPFLAGS += $(addprefix -I,$(subst :, ,$(VPATH)))
 
 # To enable debugging of the Yacc grammar, uncomment the following line
 #CFLAGS += -DYYDEBUG=1
@@ -55,7 +58,7 @@ $(OBJS): cvs.h
 
 gram.c: gram.y
 	@echo "Expect conflicts: 16 shift/reduce, 2 reduce/reduce"
-	$(YACC) $(YFLAGS) gram.y 
+	$(YACC) $(YFLAGS) $<
 	mv -f y.tab.c gram.c
 
 lex.o: y.tab.h
@@ -68,9 +71,9 @@ y.tab.h: gram.c
 
 # Requires asciidoc and xsltproc/docbook stylesheets.
 .asc.1:
-	a2x --doctype manpage --format manpage $*.asc
+	a2x --doctype manpage --format manpage -D . $<
 .asc.html:
-	a2x --doctype manpage --format xhtml $*.asc
+	a2x --doctype manpage --format xhtml -D . $<
 	rm -f docbook-xsl.css
 
 man: cvssync.1 cvs-fast-export.1
@@ -84,13 +87,15 @@ clean:
 	rm -f MANIFEST index.html *.tar.gz docbook-xsl.css
 
 check: cvs-fast-export
-	@(cd tests >/dev/null; make -s)
+	@[ -d tests ] || mkdir tests
+	$(MAKE) -C tests -s -f $(srcdir)tests/Makefile
 
-install: cvs-fast-export man
+install: install-bin install-man
+install-bin: cvs-fast-export cvssync
 	$(INSTALL) -d "$(target)/bin"
+	$(INSTALL) $^ "$(target)/bin"
+install-man: man
 	$(INSTALL) -d "$(target)/share/man/man1"
-	$(INSTALL) cvs-fast-export "$(target)/bin"
-	$(INSTALL) cvssync "$(target)/bin"
 	$(INSTALL) -m 644 cvs-fast-export.1 "$(target)/share/man/man1"
 	$(INSTALL) -m 644 cvssync.1 "$(target)/share/man/man1"
 
