@@ -11,6 +11,15 @@ DEBUG_LIFTER   = 4
 verbose = 0
 
 os.putenv("PATH", os.getenv("PATH") + "|..") 
+Program = os.getenv("CVS_FAST_EXPORT", "cvs-fast-export")
+
+def find_srcdir():
+    srcdir = "."
+    for arg in sys.argv:
+        if arg.startswith("-s"):
+	    srcdir = arg[2:]
+    return srcdir
+SrcDir = find_srcdir()
 
 def do_or_die(dcmd, legend=""):
     "Either execute a command or raise a fatal exception."
@@ -101,7 +110,7 @@ class RCSRepository:
         "Convert the repo.  Leave the stream dump in a log file."
         vopt = "-v " * (verbose - DEBUG_LIFTER + 1)
         do_or_die("rm -fr {0} && mkdir {0} && git init --quiet {0}".format(gitdir))
-        do_or_die('find {0} -name "*,v" | sort | cvs-fast-export {2} {3} | tee {1}.fi | (cd {1} >/dev/null; git fast-import --quiet --done && git checkout)'.format(self.directory, gitdir, vopt, more_opts))
+        do_or_die('find {0} -name "*,v" | sort | {2} {3} {4} | tee {1}.fi | (cd {1} >/dev/null; git fast-import --quiet --done && git checkout)'.format(self.directory, gitdir, Program, vopt, more_opts))
         self.conversions.append(gitdir)
     def cleanup(self):
         "Clean up the repository conversions."
@@ -110,12 +119,12 @@ class RCSRepository:
                 os.system("rm -fr " % " ".join(conversions))
 
 class CVSRepository:
-    def __init__(self, name):
+    def __init__(self, name, adir = os.getcwd()):
         self.name = name
         self.retain = ("-n" in sys.argv[1:])
         global verbose
         verbose += sys.argv[1:].count("-v")
-        self.directory = os.path.join(os.getcwd(), self.name)
+        self.directory = os.path.join(adir, self.name)
         self.checkouts = []
         self.conversions = []
     def do(self, *cmd):
@@ -144,7 +153,7 @@ class CVSRepository:
         "Convert a specified module.  Leave the stream dump in a log file."
         vopt = "-v " * (verbose - DEBUG_LIFTER + 1)
         do_or_die("rm -fr {0} && mkdir {0} && git init --quiet {0}".format(gitdir))
-        do_or_die('find {0}/{1} -name "*,v" | sort | cvs-fast-export {3} {4} | tee {2}.fi | (cd {2} >/dev/null; git fast-import --quiet --done && git checkout)'.format(self.directory, module, gitdir, vopt, more_opts))
+        do_or_die('find {0}/{1} -name "*,v" | sort | {3} {4} {5} | tee {2}.fi | (cd {2} >/dev/null; git fast-import --quiet --done && git checkout)'.format(self.directory, module, gitdir, Program, vopt, more_opts))
         self.conversions.append(gitdir)
     def cleanup(self):
         "Clean up the repository checkout directories."
@@ -255,7 +264,7 @@ class ConvertComparison:
     def __init__(self, stem, module, options=""):
         self.stem = stem
         self.module = module
-        self.repo = CVSRepository(stem + ".testrepo")
+        self.repo = CVSRepository(stem + ".testrepo", SrcDir)
         self.checkout = self.repo.checkout(module, stem + ".checkout")
         self.repo.convert("module", stem + ".git", more_opts=options)
         with directory_context(stem + ".git"):

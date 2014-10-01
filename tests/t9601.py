@@ -37,7 +37,7 @@
 
 import os, testlifter
 
-repo = testlifter.CVSRepository("t9601.testrepo")
+repo = testlifter.CVSRepository("t9601.testrepo", testlifter.SrcDir)
 co = repo.checkout("module", "t9601.checkout")
 repo.convert("module", "t9601.git")
 
