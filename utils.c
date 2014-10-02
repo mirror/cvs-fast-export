@@ -5,6 +5,7 @@ static int progress_max = NO_MAX;
 void fatal_system_error(char const *format,...)
 {
     va_list args;
+    int errno_save = errno;
 
     if (progress_max != NO_MAX) {
 	fputc('\n', stderr);
@@ -16,6 +17,7 @@ void fatal_system_error(char const *format,...)
     vfprintf(stderr, format, args);
     va_end(args);
     fputs(": ", stderr);
+    errno = errno_save;
     perror(NULL);
     exit(1);
 }
