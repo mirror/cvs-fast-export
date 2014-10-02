@@ -1,5 +1,9 @@
 		cvs-fast-export project news
 
+
+1.18: 2014-10-02
+    A bug in the regression tests was fixed by slowing down calls to CVS.
+
 1.17: 2014-09-11
     Some changes to reduce working-set size. More internals documentation.
 

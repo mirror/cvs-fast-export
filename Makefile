@@ -6,7 +6,7 @@
 # The test suite requires Python 2.6, and you will see some meaningless failures
 # with git 1.7.1 and older.
 
-VERSION=1.17
+VERSION=1.18
 
 prefix?=/usr/local
 target=$(DESTDIR)$(prefix)
