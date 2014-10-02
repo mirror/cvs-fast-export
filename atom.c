@@ -18,6 +18,7 @@
 
 #include "cvs.h"
 #include <stdint.h>
+#include <pthread.h>
 
 typedef uint32_t	crc32_t;
 
@@ -60,6 +61,7 @@ typedef struct _hash_bucket {
 } hash_bucket_t;
 
 static hash_bucket_t	*buckets[HASH_SIZE];
+static pthread_mutex_t bucket_mutex = PTHREAD_MUTEX_INITIALIZER;
 
 char *
 atom(char *string)
@@ -71,15 +73,23 @@ atom(char *string)
     int			len = strlen(string);
 
     while ((b = *head)) {
+collision:
 	if (b->crc == crc && !strcmp(string, b->string))
 	    return b->string;
 	head = &(b->next);
     }
+    pthread_mutex_lock(&bucket_mutex);
+    if ((b = *head)) {
+	pthread_mutex_unlock(&bucket_mutex);
+	goto collision;
+    }
+
     b = xmalloc(sizeof(hash_bucket_t) + len + 1, __func__);
     b->next = 0;
     b->crc = crc;
     memcpy(b->string, string, len + 1);
     *head = b;
+    pthread_mutex_unlock(&bucket_mutex);
     return b->string;
 }
 
@@ -90,11 +100,13 @@ discard_atoms(void)
     hash_bucket_t	**head, *b;
     int			i;
 
+    pthread_mutex_lock(&bucket_mutex);
     for (i = 0; i < HASH_SIZE; i++)
 	for (head = &buckets[i]; (b = *head);) {
 	    *head = b->next;
 	    free(b);
 	}
+    pthread_mutex_unlock(&bucket_mutex);
 }
 
 /* end */
