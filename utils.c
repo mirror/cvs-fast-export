@@ -1,3 +1,4 @@
+#include <stdlib.h>
 #include "cvs.h"
 
 static int progress_max = NO_MAX;
@@ -53,6 +54,20 @@ void announce(char const *format,...)
     vfprintf(stderr, format, args);
     va_end(args);
 }
+
+#if _POSIX_C_SOURCE >= 200112L || _XOPEN_SOURCE >= 600
+void* xmemalign(size_t align, size_t size, char const *legend)
+{
+    void *ret;
+    int err;
+
+    err = posix_memalign(&ret, align, size);
+    if (err)
+	fatal_error("posix_memalign(%zd, %zd) failed in %s: %s",
+			   align, size, legend, strerror(err));
+    return ret;
+}
+#endif
 
 void* xmalloc(size_t size, char const *legend)
 {

@@ -330,12 +330,14 @@ typedef struct _cvs_author {
             __attribute__((__noreturn__))
 #define _pure                                  \
             __attribute__((__noreturn__))
+#define _alignof(T)  __alignof__(T)
 #else
 #define _printflike(fmtarg, firstvararg)       /* nothing */
 #define _alloclike(sizearg)                    /* nothing */
 #define _malloclike                            /* nothing */
 #define _noreturn                              /* nothing */
 #define _pure                                  /* nothing */
+#define _alignof(T)  sizeof(long double)
 #endif
 
 cvs_author *fullname(char *);
@@ -567,6 +569,23 @@ rbtree_lookup(rbtree_node *root, void* key,
 
 void
 rbtree_free(rbtree_node *root);
+
+/* xnew(T) allocates aligned (packed) storage. It never returns NULL */
+#define xnew(T, legend) \
+		xnewf(T, 0, legend)
+/* xnewf(T,x) allocates storage with a flexible array member */
+#define xnewf(T, extra, legend) \
+		(T *)xmemalign(_alignof(T), sizeof(T) + (extra), legend)
+/* xnewa(T,n) allocates storage for an array of types */
+#define xnewa(T, n, legend) \
+		(T *)xmemalign(_alignof(T), (n) * sizeof(T), legend)
+
+#if _POSIX_C_SOURCE >= 200112L || _XOPEN_SOURCE >= 600
+void* 
+xmemalign(size_t align, size_t size, char const *legend) _alloclike(2) _malloclike;
+#else
+# define xmemalign(align, size, legend)  xmalloc(size, legend)
+#endif
 
 void* 
 xmalloc(size_t size, char const *legend) _alloclike(1) _malloclike;
