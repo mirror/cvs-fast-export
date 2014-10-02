@@ -320,8 +320,22 @@ typedef struct _cvs_author {
     && (__GNUC__ > 2) || (__GNUC__ == 2 && __GNUC_MINOR__ >= 7)
 #define _printflike(fmtarg, firstvararg)       \
             __attribute__((__format__(__printf__, fmtarg, firstvararg)))
+#define _alloclike(sizearg) 		       \
+            __attribute__((__alloc_size__(sizearg)))
+#define _alloclike2(sizearg1, sizearg2)        \
+            __attribute__((__alloc_size__(sizearg1, sizearg2)))
+#define _malloclike                            \
+            __attribute__((__malloc__))
+#define _noreturn                              \
+            __attribute__((__noreturn__))
+#define _pure                                  \
+            __attribute__((__noreturn__))
 #else
 #define _printflike(fmtarg, firstvararg)       /* nothing */
+#define _alloclike(sizearg)                    /* nothing */
+#define _malloclike                            /* nothing */
+#define _noreturn                              /* nothing */
+#define _pure                                  /* nothing */
 #endif
 
 cvs_author *fullname(char *);
@@ -555,22 +569,22 @@ void
 rbtree_free(rbtree_node *root);
 
 void* 
-xmalloc(size_t size, char const *legend);
+xmalloc(size_t size, char const *legend) _alloclike(1) _malloclike;
 
 void*
-xcalloc(size_t, size_t, char const *legend);
+xcalloc(size_t, size_t, char const *legend) _alloclike2(1,2) _malloclike;
 
 void* 
-xrealloc(void *ptr, size_t size, char const *legend);
+xrealloc(void *ptr, size_t size, char const *legend) _alloclike(2);
 
 void
 announce(char const *format,...) _printflike(1, 2);
 
 void
-fatal_error(char const *format, ...) _printflike(1, 2);
+fatal_error(char const *format, ...) _printflike(1, 2) _noreturn;
 
 void
-fatal_system_error(char const *format, ...) _printflike(1, 2);
+fatal_system_error(char const *format, ...) _printflike(1, 2) _noreturn;
 
 void hash_version(cvs_version *);
 void hash_patch(cvs_patch *);
