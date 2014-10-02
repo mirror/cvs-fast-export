@@ -433,10 +433,6 @@ static void export_commit(git_commit *commit,
 		    noperations += OP_CHUNK;
 		    operations = xrealloc(operations,
 					  sizeof(struct fileop) * noperations, __func__);
-		    if (operations == NULL) {
-			free(operations);	/* pacifies cppcheck */
-			exit(1);
-		    }
 		    // realloc can move operations
 		    op = operations + noperations - OP_CHUNK;
 		}
@@ -480,10 +476,6 @@ static void export_commit(git_commit *commit,
 			operations = xrealloc(operations,
 					      sizeof(struct fileop) * noperations,
 					      __func__);
-			if (operations == NULL) {
-			    free(operations);	/* pacifies cppcheck */
-			    exit(1);
-			}
 			// realloc can move operations
 			op = operations + noperations - OP_CHUNK;
 		    }
