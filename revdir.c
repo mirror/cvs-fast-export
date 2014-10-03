@@ -46,7 +46,7 @@ unsigned long hash_files(rev_file **files, int nfiles)
 
 static rev_dir *
 rev_pack_dir(rev_file **files, int nfiles)
-/* pack a collection of file revisions for soace effeciency */
+/* pack a collection of file revisions for space efficiency */
 {
     unsigned long   hash = hash_files(files, nfiles);
     rev_dir_hash    **bucket = &buckets[hash % REV_DIR_HASH];
@@ -82,10 +82,27 @@ static int compare_rev_file(const void *a, const void *b)
     return strcmp((*ap)->file_name, (*bp)->file_name);
 }
 
-/* entry points begin here */
 
 static int	    sds = 0;
 static rev_dir **rds = NULL;
+
+/* Puts an entry into the rds buffer, growing if needed */
+static void
+rds_put(int index, rev_dir *rd)
+{
+	if (sds == 0) {
+		sds = 128;
+		rds = xmalloc(sds * sizeof *rds, __func__);
+	} else {
+		while (sds <= index) {
+			sds *= 2;
+		}
+		rds = xrealloc(rds, sds * sizeof *rds, __func__);
+	}
+	rds[index] = rd;
+}
+
+/* entry points begin here */
 
 void
 rev_free_dirs(void)
@@ -119,9 +136,6 @@ rev_pack_files(rev_file **files, int nfiles, int *ndr)
     int	    nds = 0;
     rev_dir *rd;
     
-    if (!rds)
-	rds = xmalloc((sds = 16) * sizeof(rev_dir *), __func__);
- 
 #ifdef ORDERDEBUG
     fputs("Packing:\n", stderr);
     {
@@ -134,7 +148,7 @@ rev_pack_files(rev_file **files, int nfiles, int *ndr)
 
     /*
      * The purpose of this sort is to rearrange the files in
-     * directory-path order so we get the longesr possible 
+     * directory-path order so we get the longest possible
      * runs of common directory prefixes, and thus maximum 
      * space-saving effect out of the next step.  This reduces
      * working-set size at the expense of the sort runtime.
@@ -147,11 +161,7 @@ rev_pack_files(rev_file **files, int nfiles, int *ndr)
 	{
 	    if (i > start) {
 		rd = rev_pack_dir(files + start, i - start);
-		if (nds == sds) {
-		    rds = xrealloc(rds, (sds *= 2) * sizeof(rev_dir *),
-		    		__func__);
-		}
-		rds[nds++] = rd;
+		rds_put(nds++, rd);
 	    }
 	    start = i;
 	    dir = files[i]->file_name;
@@ -163,11 +173,7 @@ rev_pack_files(rev_file **files, int nfiles, int *ndr)
 	}
     }
     rd = rev_pack_dir(files + start, nfiles - start);
-    if (nds == sds) {
-	/* coverity[sizecheck] Coverity has a bug here */
-	rds = xrealloc(rds, (sds *= 2) * sizeof(rev_dir *), __func__);
-    }
-    rds[nds++] = rd;
+    rds_put(nds++, rd);
     
     *ndr = nds;
     return rds;
