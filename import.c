@@ -120,7 +120,7 @@ rev_list *analyze_masters(int argc, char *argv[],
 			  bool verbose, int *filecount, int *err)
 /* main entry point; collect and parse CVS masters */
 {
-    rev_filename    *fn_head, **fn_tail = &fn_head, *fn;
+    rev_filename    *fn_head = NULL, **fn_tail = &fn_head, *fn;
     rev_list	    *head = NULL, **tail = &head, *rl;
     char	    name[10240], *last = NULL;
     char	    *file;
