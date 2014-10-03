@@ -297,13 +297,51 @@ static int fileop_sort(const void *a, const void *b)
 
 #define display_date(c, m)	(force_dates ? ((m) * commit_time_window * 2) : ((c)->date + RCS_EPOCH))
 
-static void compute_parent_links(git_commit *commit)
+/*
+ * An iterator structure over the sorted files in a git_commit
+ */
+typedef struct _file_iter {
+    rev_dir * const *dir;
+    rev_dir * const *dirmax;
+    rev_file **file;
+    rev_file **filemax;
+} file_iter;
+
+static rev_file *
+file_iter_next(file_iter *pos) {
+    if (pos->dir == pos->dirmax)
+        return NULL;
+again:
+    if (pos->file != pos->filemax)
+	return *pos->file++;
+    ++pos->dir;
+    if (pos->dir == pos->dirmax)
+        return NULL;
+    pos->file = (*pos->dir)->files;
+    pos->filemax = pos->file + (*pos->dir)->nfiles;
+    goto again;
+}
+
+static void
+file_iter_start(file_iter *pos, const git_commit *commit) {
+    pos->dir = commit->dirs;
+    pos->dirmax = commit->dirs + commit->ndirs;
+    if (pos->dir != pos->dirmax) {
+        pos->file = (*pos->dir)->files;
+        pos->filemax = pos->file + (*pos->dir)->nfiles;
+    } else {
+        pos->file = pos->filemax = NULL;
+    }
+}
+
+static void compute_parent_links(const git_commit *commit)
 /* create reciprocal link pairs between file refs in a commit and its parent */
 {
-    git_commit *parent = commit->parent; 
-    int ncommit = 0, nparent = 0, maxmatch;
-    rev_dir **ddir, **ddir2;
-    rev_file **df, **df2;
+    const git_commit *parent = commit->parent;
+    file_iter commit_iter, parent_iter;
+    rev_file *cf, *pf;
+    unsigned nparent, ncommit, maxmatch;
+
 
     /*
      * This is the worst single computational hotspot in the code, accounting
@@ -312,41 +350,51 @@ static void compute_parent_links(git_commit *commit)
      * intrinsically expensive.
      */
 
-    for (ddir = commit->dirs; ddir < commit->dirs + commit->ndirs; ddir++) {
-	for (df = (*ddir)->files; df < (*ddir)->files + (*ddir)->nfiles; df++) {
-	    (*df)->u.other = NULL;
-	    ncommit++;
-	}
+    ncommit = 0;
+    file_iter_start(&commit_iter, commit);
+    while ((cf = file_iter_next(&commit_iter))) {
+	++ncommit;
+        cf->u.other = NULL;
     }
-    for (ddir2 = parent->dirs; ddir2 < parent->dirs + parent->ndirs; ddir2++) {
-	for (df2 = (*ddir2)->files; df2 < (*ddir2)->files + (*ddir2)->nfiles; df2++) {
-	    (*df2)->u.other = NULL;
-	    nparent++;
-	}
-    }
-    maxmatch = (nparent < ncommit) ? nparent : ncommit;
-    for (ddir = commit->dirs; ddir < commit->dirs + commit->ndirs; ddir++) {
-	for (df = (*ddir)->files; df < (*ddir)->files + (*ddir)->nfiles; df++) {
-	    const bloom_t *bloom = atom_bloom((*df)->file_name);
-	    unsigned k;
-	    for (k = 0; k < BLOOM_M / 64; ++k) {
-	        if (bloom->el[k] & parent->bloom.el[k])
-		    goto next;
-	    }
 
-	    for (ddir2 = parent->dirs; ddir2 < parent->dirs + parent->ndirs; ddir2++) {
-		for (df2 = (*ddir2)->files; df2 < (*ddir2)->files + (*ddir2)->nfiles; df2++) {
-		    if ((*df)->file_name == (*df2)->file_name) {
-			(*df)->u.other = *df2;
-			(*df2)->u.other = *df;
-			if (--maxmatch == 0)
-			    return;
-			goto next;
-		    }
-		}
+    nparent = 0;
+    file_iter_start(&parent_iter, parent);
+    while ((pf = file_iter_next(&parent_iter))) {
+	++nparent;
+        pf->u.other = NULL;
+    }
+
+    maxmatch = (nparent < ncommit) ? nparent : ncommit;
+
+    file_iter_start(&commit_iter, commit);
+    file_iter_start(&parent_iter, parent);
+    while ((cf = file_iter_next(&commit_iter))) {
+	file_iter it;
+	const bloom_t *bloom = atom_bloom(cf->file_name);
+	unsigned k;
+
+	for (k = 0; k < BLOOM_M / 64; ++k) {
+	    if (bloom->el[k] & parent->bloom.el[k]) {
+	        goto next;
 	    }
-	    next: ;
 	}
+
+	/* Because the commit file lists are sorted,
+	 * we can restart the iterator after the
+	 * last successful match */
+	it = parent_iter;
+	while ((pf = file_iter_next(&it))) {
+	    if (cf->file_name == pf->file_name) {
+		cf->u.other = pf;
+		pf->u.other = cf;
+		if (--maxmatch == 0)
+		    return;
+		parent_iter = it;
+		break;
+	    }
+	}
+
+        next:;
     }
 }
 
