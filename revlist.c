@@ -309,6 +309,20 @@ git_commit_build(cvs_commit **revisions, cvs_commit *leader, int nrevisions)
     commit->nfiles = nfile;
 
     memcpy(commit->dirs, rds, (commit->ndirs = nds) * sizeof(rev_dir *));
+
+    /* Prepare the inverse bloom set for this commit */
+    {
+	rev_dir * const *d;
+	rev_file * const *f;
+
+	memset(&commit->bloom, ~0, sizeof commit->bloom);
+	for (d = commit->dirs; d < commit->dirs + commit->ndirs; d++) {
+	    for (f = (*d)->files; f < (*d)->files + (*d)->nfiles; f++) {
+		const bloom_t *b = atom_bloom((*f)->file_name);
+		BLOOM_OP(&commit->bloom, &commit->bloom, & ~, b);
+	    }
+	}
+    }
     
 #ifdef ORDERDEBUG
     fprintf(stderr, "commit_build: %p\n", commit);

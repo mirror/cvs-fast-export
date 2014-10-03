@@ -209,6 +209,19 @@ extern bool progress;
 
 extern ssize_t striplen;
 
+/* A bloom filter is a probabilistic set.
+ * We use them here for testing sets of atoms. */
+#define BLOOM_M 128
+typedef struct _bloom {
+    uint64_t el[BLOOM_M / 64];
+} bloom_t;
+
+#define BLOOM_OP(dst, src1, op, src2) do { \
+    unsigned _i; \
+    for (_i = 0; _i < (BLOOM_M/64); _i++) \
+         (dst)->el[_i] = (src1)->el[_i] op (src2)->el[_i]; \
+  } while (0)
+
 /*
  * Tricky polymorphism hack to reduce working set size for large repos
  * begins here.
@@ -266,6 +279,7 @@ typedef struct _git_commit {
     /* gitspace-only members begin here */
     short		nfiles;
     short		ndirs;
+    bloom_t		bloom;
     rev_dir		*dirs[0];
 } git_commit;
 
@@ -486,6 +500,9 @@ extern int yylex(void);
 
 char *
 atom(char *string);
+
+const bloom_t *
+atom_bloom(char *atom);
 
 void
 discard_atoms(void);

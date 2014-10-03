@@ -327,6 +327,7 @@ static void compute_parent_links(git_commit *commit)
     maxmatch = (nparent < ncommit) ? nparent : ncommit;
     for (ddir = commit->dirs; ddir < commit->dirs + commit->ndirs; ddir++) {
 	for (df = (*ddir)->files; df < (*ddir)->files + (*ddir)->nfiles; df++) {
+	    /* const bloom_t *bloom = atom_bloom((*df)->file_name); */
 	    for (ddir2 = parent->dirs; ddir2 < parent->dirs + parent->ndirs; ddir2++) {
 		for (df2 = (*ddir2)->files; df2 < (*ddir2)->files + (*ddir2)->nfiles; df2++) {
 		    if ((*df)->file_name == (*df2)->file_name) {

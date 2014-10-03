@@ -57,11 +57,43 @@ crc32 (char *string)
 typedef struct _hash_bucket {
     struct _hash_bucket	*next;
     crc32_t		crc;
+    bloom_t        	bloom;
     char		string[0];
 } hash_bucket_t;
 
 static hash_bucket_t	*buckets[HASH_SIZE];
 static pthread_mutex_t bucket_mutex = PTHREAD_MUTEX_INITIALIZER;
+
+#define offsetof(T, f)  (unsigned)(&((T *)0)->f)
+#define containerof(fp, T, f) (T *)((char *)(fp) - offsetof(T, f))
+
+const bloom_t *
+atom_bloom(char *atom)
+{
+    hash_bucket_t *b = containerof(atom, hash_bucket_t, string);
+    return &b->bloom;
+}
+
+#define BLOOM_K 9 /* TODO optimal? */
+
+static void
+make_bloom(crc32_t crc, bloom_t *b)
+{
+    unsigned k, bit;
+    uint64_t n = crc;
+
+    memset(b, 0, sizeof *b);
+    for (k = 0; k < BLOOM_K; k++) {
+        n ^= n >> 12;
+        n ^= n << 25;
+        n ^= n >> 27;
+	n *=  (uint64_t)2685821657736338717;
+
+	bit = n % BLOOM_M;
+	b->el[bit / 64] |= (uint64_t)1 << (bit % 64);
+    }
+}
+
 
 char *
 atom(char *string)
@@ -87,6 +119,7 @@ collision:
     b = xmalloc(sizeof(hash_bucket_t) + len + 1, __func__);
     b->next = 0;
     b->crc = crc;
+    make_bloom(crc, &b->bloom);
     memcpy(b->string, string, len + 1);
     *head = b;
     pthread_mutex_unlock(&bucket_mutex);
