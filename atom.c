@@ -64,7 +64,7 @@ typedef struct _hash_bucket {
 static hash_bucket_t	*buckets[HASH_SIZE];
 static pthread_mutex_t bucket_mutex = PTHREAD_MUTEX_INITIALIZER;
 
-#define offsetof(T, f)  (unsigned)(&((T *)0)->f)
+#define offsetof(T, f)  (size_t)(&((T *)0)->f)
 #define containerof(fp, T, f) (T *)((char *)(fp) - offsetof(T, f))
 
 const bloom_t *
