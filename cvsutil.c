@@ -80,7 +80,6 @@ cvs_patch_free(cvs_patch *patch)
 
     while ((v = patch)) {
 	patch = v->next;
-	free(v->text);
 	free(v);
     }
 }

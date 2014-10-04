@@ -105,6 +105,7 @@ static int depth;
 static struct {
     node_t *next_branch;
     node_t *node;
+    uchar *node_text;
     uchar **line;
     size_t gap, gapsize, linemax;
 } stack[CVS_MAX_DEPTH/2];
@@ -112,6 +113,7 @@ static struct {
 #define Ggap stack[depth].gap
 #define Ggapsize stack[depth].gapsize
 #define Glinemax stack[depth].linemax
+#define Gnode_text stack[depth].node_text
 
 /* backup one position in the input buffer, unless at start of buffer
  *   return character at new position, or EOF if we could not back up
@@ -738,6 +740,28 @@ uncache_exit:
     return r + e;
 }
 
+static uchar *
+load_text(const cvs_text *text)
+{
+    FILE *f = fopen(text->filename, "rb");
+    uchar *data;
+
+    /* TODO: optimize with mmap */
+    if (!f)
+	fatal_error("Cannot open %s", text->filename);
+    if (fseek(f, text->offset, SEEK_SET) == -1)
+        fatal_system_error("fseek %s", text->filename);
+    data = xmalloc(text->length + 2, __func__);
+    if (fread(data, 1, text->length, f) != text->length)
+        fatal_system_error("short read %s", text->filename);
+    if (data[0] != '@') fatal_error("doesn't start with '@'");
+    if (data[text->length - 1] != '@') fatal_error("doesn't end with '@'");
+    data[text->length] = ' ';
+    data[text->length + 1] = '\0';
+    fclose(f);
+    return data;
+}
+
 static void process_delta(node_t *node, enum stringwork func)
 {
     long editline = 0, linecnt = 0, adjust = 0;
@@ -745,8 +769,9 @@ static void process_delta(node_t *node, enum stringwork func)
     struct diffcmd dc;
     uchar *ptr;
 
+    Gnode_text = load_text(&node->patch->text);
     Glog = node->patch->log;
-    in_buffer_init((uchar *)node->patch->text, 1);
+    in_buffer_init(Gnode_text, 1);
     Gversion = node->version;
     cvs_number_string(&Gversion->number, Gversion_number, sizeof(Gversion_number));
 
@@ -852,6 +877,7 @@ void generate_files(cvs_file *cvs,
 	}
 	while ((node = stack[depth].node->to) == NULL) {
 	    free(stack[depth].line);
+	    free(stack[depth].node_text);
 	    if (!depth)
 		goto Done;
 	    node = stack[depth--].next_branch;

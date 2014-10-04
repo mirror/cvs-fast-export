@@ -20,7 +20,9 @@
 #include "y.tab.h"
     
 static char *
-parse_data(int strip);
+parse_data(void);
+static void
+parse_text(cvs_text *text);
 static char *
 parse_data_until_newline(void);
 
@@ -60,7 +62,7 @@ static void fast_export_sanitize(void);
 <INITIAL>log			return LOG;
 <INITIAL>text			BEGIN(SKIP); return TEXT;
 <SKIP>@				{
-					yylval.s = parse_data(0);
+					parse_text(&yylval.text);
 					BEGIN(INITIAL);
 					return TEXT_DATA;
 				}
@@ -96,11 +98,12 @@ static void fast_export_sanitize(void);
 				}
 ;				BEGIN(INITIAL); return SEMI;
 :				return COLON;
-<SKIPTOSEMI>[^;]*			{
-				yylval.s = parse_data_until_newline();
+<SKIPTOSEMI>[^;]*		{
+					yylval.s = parse_data_until_newline();
+					return DATA;
 				}
 <INITIAL,CONTENT>@		{
-					yylval.s = parse_data(1);
+					yylval.s = parse_data();
 					return DATA;
 				}
 " " 				;
@@ -115,51 +118,95 @@ static void fast_export_sanitize(void);
 %%
 int yywrap(void) { return 1; }
 
+/*
+ * A variable-length buffer, allocated on the stack first
+ * but can grow to use the heap.
+ */
 struct varbuf {
-	int len, cur;
+	int max, cur;
 	char *string;
+	char buf[1024];
 };
 
-static inline void addbuf(struct varbuf *buf, char c)
+static void varbuf_init(struct varbuf *buf)
 {
-	if(buf->cur == buf->len) 
-		buf->string = xrealloc(buf->string, buf->len *= 2, __func__);
+	buf->max = sizeof buf->buf;
+	buf->cur = 0;
+	buf->string = buf->buf;
+}
+
+static void varbuf_add(struct varbuf *buf, char c)
+{
+	if (buf->cur == buf->max) {
+	    if (buf->string == buf->buf) {
+		buf->max *= 2;
+		buf->string = xmalloc(buf->max, __func__);
+		memcpy(buf->string, buf->buf, buf->cur);
+	    } else {
+		buf->max *= 2;
+		buf->string = xrealloc(buf->string, buf->max, __func__);
+	    }
+	}
 	buf->string[buf->cur++] = c;
 }
 
+static void varbuf_free(struct varbuf *buf) {
+	if (buf->string != buf->buf) {
+	    free(buf->string);
+	}
+}
+
 static char *
-parse_data(int strip)
+parse_data()
 {
     int c;
     char *ret;
     struct varbuf buf;
 
-    buf.cur = 0;
-    buf.len = 256;
-    buf.string = xmalloc(buf.len, __func__);
+    varbuf_init(&buf);
 
-    if(!strip)
-    	addbuf(&buf, '@');
     for(;;) {
 	c = getc(yyin);
 	if (c == '@') {
-	    if (!strip)
-	    	addbuf(&buf, c);
 	    c = getc (yyin);
 	    if (c != '@') 
 		break;
 	}
-	addbuf(&buf, c);
+	varbuf_add(&buf, c);
     }
     ungetc(c, yyin);
-    addbuf(&buf, 0);
-    if (strip) {
-       ret = atom(buf.string);
-       free(buf.string);
-    } else {
-       ret = buf.string;
-    }
+    varbuf_add(&buf, '\0');
+    ret = atom(buf.string);
+    varbuf_free(&buf);
     return ret;
+}
+
+static void
+parse_text(cvs_text *text)
+{
+    int c;
+    size_t length;
+
+    text->filename = atom(yyfilename);
+    text->offset = ftell(yyin) - 1;
+    length = 1;
+
+    while ((c = getc(yyin)) != EOF) {
+	++length;
+        if (c == '@') {
+	    /* lookahead to see if we hit @@ */
+	    c = getc(yyin);
+	    if (c == '@') {
+	        ++length;
+	    } else {
+		/* We consume only the closing single @,
+		 * leaving it included in the length */
+	        ungetc(c, yyin);
+		break;
+	    }
+	}
+    }
+    text->length = length;
 }
 
 static char *
@@ -169,21 +216,18 @@ parse_data_until_newline(void)
     char *ret;
     struct varbuf buf;
 
-    buf.cur = 0;
-    buf.len = 256;
-    buf.string = xmalloc(buf.len, __func__);
-
+    varbuf_init(&buf);
     for(;;) {
 	c = getc(yyin);
 	if (c == '\n') {
 		break;
 	}
-	addbuf(&buf, c);
+	varbuf_add(&buf, c);
     }
     ungetc(c, yyin);
-    addbuf(&buf, 0);
+    varbuf_add(&buf, '\0');
     ret = atom(buf.string);
-    free(buf.string);
+    varbuf_free(&buf);
     return ret;
 }
 

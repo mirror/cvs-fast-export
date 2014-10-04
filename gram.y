@@ -29,6 +29,7 @@ unsigned int total_revisions = 0;
     int		i;
     cvstime_t	date;
     char	*s;
+    cvs_text	text;
     cvs_number	number;
     cvs_symbol	*symbol;
     cvs_version	*version;
@@ -50,10 +51,12 @@ unsigned int total_revisions = 0;
 %token		DESC LOG TEXT STRICT AUTHOR STATE
 %token		SEMI COLON INT
 %token		BRAINDAMAGED_NUMBER
-%token <s>	HEX NAME DATA TEXT_DATA
+%token <s>	HEX NAME DATA
+%token <text>	TEXT_DATA
 %token <number>	NUMBER
 
-%type <s>	text log
+%type <text>	text
+%type <s>	log
 %type <symbol>	symbollist symbol symbols
 %type <version>	revision
 %type <vlist>	revisions

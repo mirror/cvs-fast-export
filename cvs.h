@@ -154,12 +154,19 @@ typedef struct _cvs_version {
     flag		dead;
 } cvs_version;
 
+typedef struct _cvs_text {
+    /* a reference to a @-encoded text fragment in an rcs file */
+    const char 		*filename;
+    size_t		length; /* includes terminating '@' */
+    off_t		offset; /* position of initial '@' */
+} cvs_text;
+
 typedef struct _cvs_patch {
     /* a CVS patch structure */
     struct _cvs_patch	*next;
     cvs_number		number;
     char		*log;
-    char		*text;
+    cvs_text		text;
     node_t		*node;
 } cvs_patch;
 
