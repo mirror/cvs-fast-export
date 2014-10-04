@@ -364,14 +364,6 @@ static void compute_parent_links(const git_commit *commit)
     rev_file *cf, *pf;
     unsigned nparent, ncommit, maxmatch;
 
-
-    /*
-     * This is the worst single computational hotspot in the code, accounting
-     * for upwards of 30% of the running time.  Unfortunately, we absolutely
-     * need these links to generate M and D ops with, and the setup is
-     * intrinsically expensive.
-     */
-
     ncommit = 0;
     file_iter_start(&commit_iter, commit);
     while ((cf = file_iter_next(&commit_iter))) {
