@@ -1,6 +1,9 @@
 		cvs-fast-export project news
 
 
+1.19: 2014-10-04
+    Dramatic speedups in some bottlneck functions.
+
 1.18: 2014-10-02
     A bug in the regression tests was fixed by slowing down calls to CVS.
 
