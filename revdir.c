@@ -71,57 +71,71 @@ rev_pack_dir(rev_file **files, int nfiles)
 }
 
 /*
- * Compare/order two filenames, such that
- * - files in the same directory are sorted lexicographically
- * - files in a subdirectory sort earlier than the files in the parent
- *   For example, the following are sorted in this way:
- *        x/
- *        x/a
- *        x/b
- *        y/y/a
- *        y/a
- *        a
- *        b
- *        x      note that x/ sorts before x
- *        xx
- *        z
+ * Compare/order filenames, such that files in subdirectories
+ * sort earlier than files in the parent
+ *
+ *    a/x < b/y < a < b
  */
 int path_deep_compare(const void *a, const void *b)
 {
     const char *af = (const char *)a;
     const char *bf = (const char *)b;
-    unsigned pos;
     const char *aslash;
     const char *bslash;
+    int compar;
 
     /* short circuit */
     if (af == bf)
         return 0;
 
-    /* advance pointers over common directory prefixes "foo/" */
-    pos = 0;
-    while (af[pos] && bf[pos] && af[pos] == bf[pos]) {
-        if (af[pos] == '/') {
-	    af += pos + 1;
-	    bf += pos + 1;
-	    pos = 0;
-	} else {
-	    ++pos;
+    compar = strcmp(af, bf);
+
+    /*
+     * strcmp() will suffice, except for this case:
+     *
+     *   p/p/b/x/x < p/p/a
+     *
+     * In the comments below,
+     *   ? is a string without slashes
+     *  ?? is a string that may contain slashes
+     */
+
+    if (compar == 0)
+        return 0;		/* ?? = ?? */
+
+    aslash = strrchr(af, '/');
+    bslash = strrchr(bf, '/');
+
+    if (!aslash && !bslash)
+	return compar;		/*    ? ~ ?    */
+    if (!aslash) return +1;	/*    ? > ??/? */
+    if (!bslash) return -1;     /* ??/? < ?    */
+
+
+    /*
+     * If the final slashes are at the same position, then either
+     * both paths are leaves of the same directory, or they
+     * are totally different paths. Both cases are satisfied by
+     * normal lexicographic sorting:
+     */
+    if (aslash - af == bslash - bf)
+	return compar;		/* ??/? ~ ??/? */
+
+
+    /*
+     * Must find the case where the two paths share a common
+     * prefix (p/p).
+     */
+    if (aslash - af < bslash - bf) {
+	if (bf[aslash - af] == '/' && memcmp(af, bf, aslash - af) == 0) {
+	    return +1;		/* p/p/??? > p/p/???/? */
+	}
+    } else {
+	if (af[bslash - bf] == '/' && memcmp(af, bf, bslash - bf) == 0) {
+	    return -1;		/* ???/???/? ~ ???/??? */
 	}
     }
-    /* handle equal case */
-    if (!af[pos] && !bf[pos])
-        return 0;
-    /* test both to see if they are leaves */
-    aslash = strchr(af + pos, '/');
-    bslash = strchr(bf + pos, '/');
-    /* things in subdirs sort earlier than direct leaves */
-    if (aslash && !bslash)
-        return -1;
-    if (!aslash && bslash)
-        return +1;
-    /* otherwise plain lexicographic sort */
-    return (int)af[pos] - (int)bf[pos];
+    return compar;
 }
 
 static int compare_rev_file(const void *a, const void *b)
