@@ -154,7 +154,7 @@ static void print_sizes(void)
     printf("sizeof(cvstime_t)     = %zu\n", sizeof(cvstime_t));
     printf("sizeof(time_t)        = %zu\n", sizeof(time_t));
     printf("sizeof(cvs_number)    = %zu\n", sizeof(cvs_number));
-    printf("sizeof(node_t)          = %zu\n", sizeof(node_t));
+    printf("sizeof(node_t)        = %zu\n", sizeof(node_t));
     printf("sizeof(cvs_symbol)    = %zu\n", sizeof(cvs_symbol));
     printf("sizeof(cvs_branch)    = %zu\n", sizeof(cvs_branch));
     printf("sizeof(cvs_version)   = %zu\n", sizeof(cvs_version));
@@ -169,7 +169,7 @@ static void print_sizes(void)
     printf("sizeof(rev_file_list) = %zu\n", sizeof(rev_file_list));
     printf("sizeof(rev_diff)      = %zu\n", sizeof(rev_diff));
     printf("sizeof(cvs_author)    = %zu\n", sizeof(cvs_author));
-    printf("sizeof(chunk_t)         = %zu\n", sizeof(chunk_t));
+    printf("sizeof(chunk_t)       = %zu\n", sizeof(chunk_t));
     printf("sizeof(Tag)           = %zu\n", sizeof(Tag));
 }
 
