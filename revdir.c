@@ -70,16 +70,60 @@ rev_pack_dir(rev_file **files, int nfiles)
     return &h->dir;
 }
 
+/*
+ * Compare/order two filenames, such that
+ * - files in the same directory are sorted lexicographically
+ * - files in a subdirectory sort earlier than the files in the parent
+ *   For example, the following are sorted in this way:
+ *        x/
+ *        x/a
+ *        x/b
+ *        y/y/a
+ *        y/a
+ *        a
+ *        b
+ *        x      note that x/ sorts before x
+ *        xx
+ *        z
+ */
 static int compare_rev_file(const void *a, const void *b)
 {
     rev_file **ap = (rev_file **)a;
     rev_file **bp = (rev_file **)b;
+    const char *af = (*ap)->file_name;
+    const char *bf = (*bp)->file_name;
+    unsigned pos;
+    const char *aslash;
+    const char *bslash;
 
 #ifdef ORDERDEBUG
-    fprintf(stderr, "Comparing %s with %s\n", 
-	    (*ap)->file_name, (*bp)->file_name);
+    fprintf(stderr, "Comparing %s with %s\n", af, bf);
 #endif /* ORDERDEBUG */
-    return strcmp((*ap)->file_name, (*bp)->file_name);
+
+    /* advance pointers over common directory prefixes "foo/" */
+    pos = 0;
+    while (af[pos] && bf[pos] && af[pos] == bf[pos]) {
+        if (af[pos] == '/') {
+	    af += pos + 1;
+	    bf += pos + 1;
+	    pos = 0;
+	} else {
+	    ++pos;
+	}
+    }
+    /* handle equal case */
+    if (!af[pos] && !bf[pos])
+        return 0;
+    /* test both to see if they are leaves */
+    aslash = strchr(af + pos, '/');
+    bslash = strchr(bf + pos, '/');
+    /* things in subdirs sort earlier than direct leaves */
+    if (aslash && !bslash)
+        return -1;
+    if (!aslash && bslash)
+        return +1;
+    /* otherwise plain lexicographic sort */
+    return (int)af[pos] - (int)bf[pos];
 }
 
 
@@ -172,8 +216,10 @@ rev_pack_files(rev_file **files, int nfiles, int *ndr)
 		dirlen = 0;
 	}
     }
-    rd = rev_pack_dir(files + start, nfiles - start);
-    rds_put(nds++, rd);
+    if (dir) {
+        rd = rev_pack_dir(files + start, nfiles - start);
+        rds_put(nds++, rd);
+    }
     
     *ndr = nds;
     return rds;
