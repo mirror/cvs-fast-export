@@ -86,19 +86,17 @@ rev_pack_dir(rev_file **files, int nfiles)
  *        xx
  *        z
  */
-static int compare_rev_file(const void *a, const void *b)
+int path_deep_compare(const void *a, const void *b)
 {
-    rev_file **ap = (rev_file **)a;
-    rev_file **bp = (rev_file **)b;
-    const char *af = (*ap)->file_name;
-    const char *bf = (*bp)->file_name;
+    const char *af = (const char *)a;
+    const char *bf = (const char *)b;
     unsigned pos;
     const char *aslash;
     const char *bslash;
 
-#ifdef ORDERDEBUG
-    fprintf(stderr, "Comparing %s with %s\n", af, bf);
-#endif /* ORDERDEBUG */
+    /* short circuit */
+    if (af == bf)
+        return 0;
 
     /* advance pointers over common directory prefixes "foo/" */
     pos = 0;
@@ -124,6 +122,20 @@ static int compare_rev_file(const void *a, const void *b)
         return +1;
     /* otherwise plain lexicographic sort */
     return (int)af[pos] - (int)bf[pos];
+}
+
+static int compare_rev_file(const void *a, const void *b)
+{
+    rev_file **ap = (rev_file **)a;
+    rev_file **bp = (rev_file **)b;
+    const char *af = (*ap)->file_name;
+    const char *bf = (*bp)->file_name;
+
+#ifdef ORDERDEBUG
+    fprintf(stderr, "Comparing %s with %s\n", af, bf);
+#endif /* ORDERDEBUG */
+
+    return path_deep_compare(af, bf);
 }
 
 

@@ -202,26 +202,54 @@ static void drop_path_component(char *string, const char *drop)
 static char *export_filename(rev_file *file, const bool ignoreconv)
 {
     static char name[PATH_MAX];
-    int	len;
-    char *ignore;
+    const char *file_name = file->file_name;
+    unsigned len;
+    const char *s, *snext;
+    char *p;
     
-    if (strlen(file->file_name) - striplen >= PATH_MAX)
-	fatal_error("File name %s\n too long\n", file->file_name);
-    strcpy(name, file->file_name + striplen);
-	drop_path_component(name, "Attic/");
-	drop_path_component(name, "RCS/");
-    len = strlen(name);
-    if (len > 2 && !strcmp(name + len - 2, ",v"))
-	name[len-2] = '\0';
-
-    ignore = name + strlen(name) - 10;
-    if (ignoreconv)
-	if (strcmp(ignore, ".cvsignore") == 0 && (ignore == name || ignore[-1] == '/'))
-	{
-	    *(++ignore) = 'g';
-	    *(++ignore) = 'i';
-	    *(++ignore) = 't';
+    /*
+     * This function is another hot spot.
+     * All the path modifications are now made as the result
+     * string is constructed.
+     */
+    p = name;
+    s = file_name + striplen;
+    while (*s) {
+	for (snext = s; *snext; snext++)
+	    if (*snext == '/') {
+	        ++snext;
+		/* assert(*snext != '\0'); */
+	        break;
+	    }
+	len = snext - s;
+	/* special processing for final components */
+	if (*snext == '\0') {
+	    /* trim trailing ,v */
+	    if (len > 2 && s[len - 2] == ',' && s[len - 1] == 'v')
+	        len -= 2;
+	    /* convert foo/.cvsignore to foo/.gitignore */
+	    if (ignoreconv && len == 10 && memcmp(s, ".cvsignore", len) == 0)
+	    {
+	        s = ".gitignore";
+	        /* len = 10; */
+	    }
+	} else { /* s[len-1] == '/' */
+	    /* drop some path components */
+	    if (len == sizeof "Attic" && memcmp(s, "Attic/", len) == 0)
+	        goto skip;
+	    if (len == sizeof "RCS" && memcmp(s, "RCS/", len) == 0)
+		goto skip;
 	}
+	/* copy the path component */
+	if (p + len >= name + sizeof name)
+	    fatal_error("File name %s\n too long\n", file_name);
+	memcpy(p, s, len);
+	p += len;
+    skip:
+	s = snext;
+    }
+    *p = '\0';
+    len = p - name;
 
     return name;
 }
@@ -272,7 +300,7 @@ struct fileop {
     char op;
     mode_t mode;
     serial_t serial;
-    char path[PATH_MAX+1];	/* extra 1 for the sort sentinel */
+    const char *path;
 };
 
 static int fileop_sort(const void *a, const void *b)
@@ -285,14 +313,8 @@ static int fileop_sort(const void *a, const void *b)
      */
     struct fileop *oa = (struct fileop *)a;
     struct fileop *ob = (struct fileop *)b;
-    int cmp;
 
-    (void)strcat(oa->path, "/");
-    (void)strcat(ob->path, "/");
-    cmp = strcmp(oa->path, ob->path);
-    oa->path[strlen(oa->path)-1] = '\0';
-    ob->path[strlen(ob->path)-1] = '\0';
-    return cmp;
+    return path_deep_compare(oa->path, ob->path);
 }
 
 #define display_date(c, m)	(force_dates ? ((m) * commit_time_window * 2) : ((c)->date + RCS_EPOCH))
@@ -444,6 +466,9 @@ static void export_commit(git_commit *commit,
     struct fileop *operations, *op, *op2;
     int noperations;
     serial_t here;
+    static const char *s_gitignore;
+
+    if (!s_gitignore) s_gitignore = atom(".gitignore");
 
     if (reposurgeon || revmap != NULL)
     {
@@ -482,7 +507,7 @@ static void export_commit(git_commit *commit,
 		else
 		    op->mode = 0644;
 		op->serial = f->serial;
-		(void)strncpy(op->path, stripped, PATH_MAX-1);
+		op->path = atom(stripped);
 		op++;
 		if (op == operations + noperations)
 		{
@@ -522,9 +547,7 @@ static void export_commit(git_commit *commit,
 		present = (f->u.other != NULL);
 		if (!present) {
 		    op->op = 'D';
-		    (void)strncpy(op->path, 
-				  export_filename(f, true),
-				  PATH_MAX-1);
+		    op->path = atom(export_filename(f, true));
 		    op++;
 		    if (op == operations + noperations)
 		    {
@@ -623,7 +646,7 @@ static void export_commit(git_commit *commit,
 	     * If there's a .gitignore in the first commit, don't generate one.
 	     * export_blob() will already have prepended them.
 	     */
-	    if (need_ignores && strcmp(op2->path, ".gitignore") == 0)
+	    if (need_ignores && op2->path == s_gitignore)
 		need_ignores = false;
 	}
 	if (need_ignores) {

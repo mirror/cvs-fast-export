@@ -540,6 +540,9 @@ rev_file_later(rev_file *a, rev_file *b);
 void
 rev_list_validate(rev_list *rl);
 
+int
+path_deep_compare(const void *a, const void *b);
+
 #define time_compare(a,b) ((long)(a) - (long)(b))
 
 void 
