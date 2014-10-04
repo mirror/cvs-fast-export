@@ -91,7 +91,7 @@ cvs_version *Gversion;
 char Gversion_number[CVS_MAX_REV_LEN];
 struct out_buffer_type *Goutbuf;
 struct in_buffer_type in_buffer_store;
-struct in_buffer_type *Ginbuf = &in_buffer_store;
+#define Ginbuf (&in_buffer_store)
 
 /*
  * Gline contains pointers to the lines in the currently edit buffer
@@ -740,13 +740,93 @@ uncache_exit:
     return r + e;
 }
 
+#define USE_MMAP 1
+
+#if USE_MMAP
+
+#include <fcntl.h>
+#include <unistd.h>
+#include <sys/stat.h>
+#include <sys/types.h>
+#include <sys/mman.h>
+
+/* A recently used list of mmapped files */
+#define NMAPS 4
+static struct text_map {
+    const char *filename;
+    uchar *base;
+    size_t size;
+} text_maps[NMAPS];
+
+static uchar *
+load_text(const cvs_text *text)
+{
+    unsigned i;
+    struct stat st;
+    uchar *base;
+    int fd;
+    size_t size;
+    size_t offset = (size_t)text->offset;
+
+    for (i = 0; i < NMAPS && text_maps[i].filename; ++i) {
+        if (text_maps[i].filename == text->filename) {
+	    base = text_maps[i].base;
+	    if (i != 0) {
+	        struct text_map t = text_maps[i];
+		text_maps[i] = text_maps[i-1];
+		text_maps[i-1] = t;
+	    }
+	    return base + offset;
+	}
+    }
+
+    if ((fd = open(text->filename, O_RDONLY)) == -1)
+        fatal_system_error("open: %s", text->filename);
+    if (fstat(fd, &st) == -1)
+        fatal_system_error("fstat: %s", text->filename);
+    if (st.st_size > SIZE_MAX)
+        fatal_error("%s: too big", text->filename);
+    size = st.st_size;
+    base = mmap(NULL, size, PROT_READ, MAP_SHARED, fd, 0);
+    if (base == MAP_FAILED)
+        fatal_system_error("mmap: %s %zu", text->filename, size);
+    close(fd);
+
+    if (i == NMAPS) {
+        --i;
+	munmap(text_maps[i].base, text_maps[i].size);
+    }
+    memmove(text_maps + 1, text_maps, i * sizeof text_maps[0]);
+    text_maps[0].filename = text->filename;
+    text_maps[0].base = base;
+    text_maps[0].size = size;
+
+    return base + offset;
+}
+
+static void
+unload_all_text(void)
+{
+    unsigned i;
+    for (i = 0; i <NMAPS; i++) {
+        if (text_maps[i].filename) {
+	    munmap(text_maps[i].base, text_maps[i].size);
+	    text_maps[i].filename = NULL;
+	}
+    }
+}
+
+static void
+unload_text(const cvs_text *text, uchar *data)
+{
+}
+#else
 static uchar *
 load_text(const cvs_text *text)
 {
     FILE *f = fopen(text->filename, "rb");
     uchar *data;
 
-    /* TODO: optimize with mmap */
     if (!f)
 	fatal_error("Cannot open %s", text->filename);
     if (fseek(f, text->offset, SEEK_SET) == -1)
@@ -762,6 +842,17 @@ load_text(const cvs_text *text)
     return data;
 }
 
+static void
+unload_text(const cvs_text *text, uchar *data) {
+    free(data);
+}
+
+static void
+unload_all_text(void)
+{
+}
+#endif
+
 static void process_delta(node_t *node, enum stringwork func)
 {
     long editline = 0, linecnt = 0, adjust = 0;
@@ -769,7 +860,6 @@ static void process_delta(node_t *node, enum stringwork func)
     struct diffcmd dc;
     uchar *ptr;
 
-    Gnode_text = load_text(&node->patch->text);
     Glog = node->patch->log;
     in_buffer_init(Gnode_text, 1);
     Gversion = node->version;
@@ -859,6 +949,7 @@ void generate_files(cvs_file *cvs,
     Gabspath = NULL;
     Gline = NULL; Ggap = Ggapsize = Glinemax = 0;
     stack[0].node = node;
+    stack[0].node_text = load_text(&node->patch->text);
     process_delta(node, ENTER);
     while (1) {
 	if (node->file) {
@@ -876,8 +967,9 @@ void generate_files(cvs_file *cvs,
 	    goto Next;
 	}
 	while ((node = stack[depth].node->to) == NULL) {
+	    unload_text(&stack[depth].node->patch->text,
+	                stack[depth].node_text);
 	    free(stack[depth].line);
-	    free(stack[depth].node_text);
 	    if (!depth)
 		goto Done;
 	    node = stack[depth--].next_branch;
@@ -888,6 +980,7 @@ void generate_files(cvs_file *cvs,
 	}
     Next:
 	stack[depth].node = node;
+	stack[depth].node_text = load_text(&node->patch->text);
 	process_delta(node, EDIT);
     }
 Done:
@@ -895,6 +988,7 @@ Done:
     Gkeyval = NULL;
     Gkvlen = 0;
     free(Gabspath);
+    unload_all_text();
 }
 
 /* end */
