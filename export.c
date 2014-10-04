@@ -395,7 +395,7 @@ static void compute_parent_links(const git_commit *commit)
 	const bloom_t *bloom = atom_bloom(cf->file_name);
 	unsigned k;
 
-	for (k = 0; k < BLOOM_M / 64; ++k) {
+	for (k = 0; k < BLOOMLENGTH; ++k) {
 	    if (bloom->el[k] & parent->bloom.el[k]) {
 	        goto next;
 	    }

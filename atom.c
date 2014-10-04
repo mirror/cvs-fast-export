@@ -80,17 +80,17 @@ static void
 make_bloom(crc32_t crc, bloom_t *b)
 {
     unsigned k, bit;
-    uint64_t n = crc;
+    bloomword n = crc;
 
     memset(b, 0, sizeof *b);
     for (k = 0; k < BLOOM_K; k++) {
         n ^= n >> 12;
         n ^= n << 25;
         n ^= n >> 27;
-	n *=  (uint64_t)2685821657736338717;
+	n *=  (bloomword)2685821657736338717;
 
-	bit = n % BLOOM_M;
-	b->el[bit / 64] |= (uint64_t)1 << (bit % 64);
+	bit = n % BLOOMSIZE;
+	b->el[bit / BLOOMWIDTH] |= (bloomword)1 << (bit % BLOOMWIDTH);
     }
 }
 

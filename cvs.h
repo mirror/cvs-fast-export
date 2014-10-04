@@ -216,16 +216,22 @@ extern bool progress;
 
 extern ssize_t striplen;
 
-/* A bloom filter is a probabilistic set.
- * We use them here for testing sets of atoms. */
-#define BLOOM_M 128
+/*
+ * A Bloom filter is a technique for probabilistic set matching.
+ * We use them here for testing sets of atoms.
+ */
+#define BLOOMSIZE 128		/* free param: size of the filter-bit vector */
+typedef uint64_t bloomword;	/* integral type for bit-vector elements */
+
+#define BLOOMWIDTH	(sizeof(bloomword) * CHAR_BIT)
+#define BLOOMLENGTH	(BLOOMSIZE / BLOOMWIDTH)
 typedef struct _bloom {
-    uint64_t el[BLOOM_M / 64];
+    bloomword el[BLOOMLENGTH];
 } bloom_t;
 
 #define BLOOM_OP(dst, src1, op, src2) do { \
     unsigned _i; \
-    for (_i = 0; _i < (BLOOM_M/64); _i++) \
+    for (_i = 0; _i < BLOOMLENGTH; _i++) \
          (dst)->el[_i] = (src1)->el[_i] op (src2)->el[_i]; \
   } while (0)
 
