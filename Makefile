@@ -21,8 +21,9 @@ GCC_WARNINGS1=-Wall -Wpointer-arith -Wstrict-prototypes
 GCC_WARNINGS2=-Wmissing-prototypes -Wmissing-declarations
 GCC_WARNINGS3=-Wno-unused-function -Wno-unused-label -Wno-format-zero-length
 GCC_WARNINGS=$(GCC_WARNINGS1) $(GCC_WARNINGS2) $(GCC_WARNINGS3)
-CFLAGS=$(GCC_WARNINGS) -DVERSION=\"$(VERSION)\"
+CFLAGS=$(GCC_WARNINGS)
 CPPFLAGS += $(addprefix -I,$(subst :, ,$(VPATH)))
+CPPFLAGS += -DVERSION=\"$(VERSION)\"
 
 # To enable debugging of the Yacc grammar, uncomment the following line
 #CFLAGS += -DYYDEBUG=1
@@ -42,6 +43,8 @@ LFLAGS=-l
 # Note: the profiler gets confused if you don't also turn off -O flags.
 #CFLAGS += -pg
 CFLAGS += -O3
+CFLAGS += -g
+CFLAGS += $(EXTRA_CFLAGS)
 
 # To enable blob compression, uncomment the following:
 #CFLAGS += -DZLIB
