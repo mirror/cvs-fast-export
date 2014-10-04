@@ -383,8 +383,6 @@ extern cvs_file     *this_file;
 
 int yyparse(void);
 
-extern char *yyfilename;
-
 char *
 ctime_nonl(cvstime_t *date);
 

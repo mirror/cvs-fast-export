@@ -30,7 +30,6 @@ cvs_file	*this_file;	/* gram.y sets this, no other module uses it */
 /* these are only shared with gram.y and lex.l */
 extern FILE *yyin;
 extern int yylineno;
-char *yyfilename;
 
 static int load_current_file;
 static int err;
@@ -47,7 +46,6 @@ rev_list_file(char *name, const bool generate, bool enable_keyword_expansion)
 	++err;
 	return NULL;
     }
-    yyfilename = name;
     yylineno = 0;
     this_file = xcalloc(1, sizeof(cvs_file), __func__);
     this_file->master_name = name;
@@ -56,7 +54,6 @@ rev_list_file(char *name, const bool generate, bool enable_keyword_expansion)
     this_file->mode = buf.st_mode;
     yyparse();
     fclose(yyin);
-    yyfilename = 0;
     rl = rev_list_cvs(this_file);
     if (generate)
 	generate_files(this_file, enable_keyword_expansion, export_blob);

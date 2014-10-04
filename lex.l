@@ -112,7 +112,7 @@ static void fast_export_sanitize(void);
 1				return BRAINDAMAGED_NUMBER;
 .				{ 
 				    fprintf(stderr, "%s: (%d) ignoring %c\n", 
-					yyfilename, yylineno,
+					this_file->master_name, yylineno,
 					yytext[0]);
 				}
 %%
@@ -187,7 +187,7 @@ parse_text(cvs_text *text)
     int c;
     size_t length;
 
-    text->filename = atom(yyfilename);
+    text->filename = atom(this_file->master_name);
     text->offset = ftell(yyin) - 1;
     length = 1;
 
@@ -273,7 +273,7 @@ lex_date(cvs_number *n)
 	d = mktime(&tm);
 	if (d == 0) {
 	    int i;
-	    fprintf(stderr, "%s: (%d) unparsable date: ", yyfilename, yylineno);
+	    fprintf(stderr, "%s: (%d) unparsable date: ", this_file->master_name, yylineno);
 	    for (i = 0; i < n->c; i++) {
 		if (i) fprintf(stderr, ".");
 		fprintf(stderr, "%d", n->n[i]);
@@ -281,10 +281,10 @@ lex_date(cvs_number *n)
 	    fprintf(stderr, "\n");
 	}
 	if (d < RCS_EPOCH)
-	    fatal_error("%s: (%d) date before RCS epoch: ", yyfilename,
+	    fatal_error("%s: (%d) date before RCS epoch: ", this_file->master_name,
 		     yylineno);
 	else if (d >= RCS_OMEGA)
-	    fatal_error("%s: (%d) date too far in future: ", yyfilename,
+	    fatal_error("%s: (%d) date too far in future: ", this_file->master_name,
 		     yylineno);
 	return d - RCS_EPOCH;
 }
@@ -300,14 +300,14 @@ static void fast_export_sanitize(void)
 	    *tp++ = *sp;
 	    if (SUFFIX(yytext, "@{") || SUFFIX(yytext, "..")) {
 		fatal_error("%s: (%d) tag or branch name %s is ill-formed.\n", 
-			    yyfilename, yylineno, yytext);
+			    this_file->master_name, yylineno, yytext);
 	    }
 	}
     }
     *tp = '\0';
     if (strlen(yytext) == 0) {
 	fatal_error("%s: (%d) tag or branch name was empty after sanitization.\n", 
-		    yyfilename, yylineno);
+		    this_file->master_name, yylineno);
     }
 }
 
