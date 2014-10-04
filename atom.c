@@ -52,7 +52,7 @@ crc32 (char *string)
     return ~crc32;
 }
 
-#define HASH_SIZE	9013	/* prime for netterr hash performance */
+#define HASH_SIZE	9013	/* prime for better hash performance */
 
 typedef struct _hash_bucket {
     struct _hash_bucket	*next;
