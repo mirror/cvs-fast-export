@@ -676,7 +676,11 @@ rev_list_cvs(cvs_file *cvs)
     cvs_branch	*cb;
     cvs_version	*ctrunk = NULL;
 
-    build_branches();
+    /*
+     * FIXME: Global shared with the parser.
+     * We can't fix this until a Bison parse context is a struct.
+     */
+    build_branches(&context);
     /*
      * Locate first revision on trunk branch
      */

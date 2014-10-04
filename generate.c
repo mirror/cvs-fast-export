@@ -935,11 +935,11 @@ void generate_files(cvs_file *cvs,
 		    void(*hook)(node_t *node, void *buf, size_t len))
 /* export all the revision states of a CVS/RS master through a hook */
 {
-    if (head_node == NULL)
+    if (context.head_node == NULL)
 	return;
 
     int expandflag = Gexpand < EXPANDKO;
-    node_t *node = head_node;
+    node_t *node = context.head_node;
     depth = 0;
     Gfilename = cvs->master_name;
     if (enable_keyword_expansion)

@@ -6,14 +6,7 @@
 
 #include "cvs.h"
 
-#define NODE_HASH_SIZE	4096
-
-static node_t *table[NODE_HASH_SIZE];
-static int nentries;
-
-node_t *head_node;
-
-static node_t *hash_number(cvs_number *n)
+static node_t *hash_number(nodehash_t *context, cvs_number *n)
 /* look up the node associated with a specified CVS release number */
 {
     cvs_number key = *n;
@@ -30,7 +23,7 @@ static node_t *hash_number(cvs_number *n)
     for (i = 0, hash = 0; i < key.c - 1; i++)
 	hash += key.n[i];
     hash = (hash * 256 + key.n[key.c - 1]) % NODE_HASH_SIZE;
-    for (p = table[hash]; p; p = p->hash_next) {
+    for (p = context->table[hash]; p; p = p->hash_next) {
 	if (p->number.c != key.c)
 	    continue;
 	for (i = 0; i < key.c && p->number.n[i] == key.n[i]; i++)
@@ -40,13 +33,13 @@ static node_t *hash_number(cvs_number *n)
     }
     p = xcalloc(1, sizeof(node_t), "hash number generation");
     p->number = key;
-    p->hash_next = table[hash];
-    table[hash] = p;
-    nentries++;
+    p->hash_next = context->table[hash];
+    context->table[hash] = p;
+    context->nentries++;
     return p;
 }
 
-static node_t *find_parent(cvs_number *n, int depth)
+static node_t *find_parent(nodehash_t *context, cvs_number *n, int depth)
 /* find the parent node of the specified prefix of a release number */
 {
     cvs_number key = *n;
@@ -58,7 +51,7 @@ static node_t *find_parent(cvs_number *n, int depth)
     for (i = 0, hash = 0; i < key.c - 1; i++)
 	hash += key.n[i];
     hash = (hash * 256 + key.n[key.c - 1]) % NODE_HASH_SIZE;
-    for (p = table[hash]; p; p = p->hash_next) {
+    for (p = context->table[hash]; p; p = p->hash_next) {
 	if (p->number.c != key.c)
 	    continue;
 	for (i = 0; i < key.c && p->number.n[i] == key.n[i]; i++)
@@ -69,10 +62,10 @@ static node_t *find_parent(cvs_number *n, int depth)
     return p;
 }
 
-void hash_version(cvs_version *v)
+void hash_version(nodehash_t *context, cvs_version *v)
 /* intern a version onto the node list */
 {
-    v->node = hash_number(&v->number);
+    v->node = hash_number(context, &v->number);
     if (v->node->version) {
 	char name[CVS_MAX_REV_LEN];
 	announce("more than one delta with number %s\n",
@@ -87,10 +80,10 @@ void hash_version(cvs_version *v)
     }
 }
 
-void hash_patch(cvs_patch *p)
+void hash_patch(nodehash_t *context, cvs_patch *p)
 /* intern a patch onto the node list */
 {
-    p->node = hash_number(&p->number);
+    p->node = hash_number(context, &p->number);
     if (p->node->patch) {
 	char name[CVS_MAX_REV_LEN];
 	announce("more than one delta with number %s\n",
@@ -105,27 +98,27 @@ void hash_patch(cvs_patch *p)
     }
 }
 
-void hash_branch(cvs_branch *b)
+void hash_branch(nodehash_t *context, cvs_branch *b)
 /* intern a branch onto the node list */
 {
-    b->node = hash_number(&b->number);
+    b->node = hash_number(context, &b->number);
 }
 
-void clean_hash(void)
+void clean_hash(nodehash_t *context)
 /* discard the node list */
 {
     int i;
     for (i = 0; i < NODE_HASH_SIZE; i++) {
-	node_t *p = table[i];
-	table[i] = NULL;
+	node_t *p = context->table[i];
+	context->table[i] = NULL;
 	while (p) {
 	    node_t *q = p->hash_next;
 	    free(p);
 	    p = q;
 	}
     }
-    nentries = 0;
-    head_node = NULL;
+    context->nentries = 0;
+    context->head_node = NULL;
 }
 
 static int compare(const void *a, const void *b)
@@ -147,7 +140,7 @@ static int compare(const void *a, const void *b)
     return 0;
 }
 
-static void try_pair(node_t *a, node_t *b)
+static void try_pair(nodehash_t *context, node_t *a, node_t *b)
 {
     int n = a->number.c;
 
@@ -167,42 +160,42 @@ static void try_pair(node_t *a, node_t *b)
 	    return;
 	}
     } else if (n == 2) {
-	head_node = a;
+	context->head_node = a;
     }
     if ((b->number.c & 1) == 0) {
 	b->starts = 1;
 	/* can the code below ever be needed? */
-	node_t *p = find_parent(&b->number, 1);
+	node_t *p = find_parent(context, &b->number, 1);
 	if (p)
 	    p->next = b;
     }
 }
 
-void build_branches(void)
+void build_branches(nodehash_t *context)
 /* set head_node global and build branch links in the node list */ 
 {
-    if (nentries == 0)
+    if (context->nentries == 0)
 	return;
 
-    node_t **v = xmalloc(sizeof(node_t *) * nentries, __func__), **p = v;
+    node_t **v = xmalloc(sizeof(node_t *) * context->nentries, __func__), **p = v;
     int i;
 
     for (i = 0; i < NODE_HASH_SIZE; i++) {
 	node_t *q;
-	for (q = table[i]; q; q = q->hash_next)
+	for (q = context->table[i]; q; q = q->hash_next)
 	    *p++ = q;
     }
-    qsort(v, nentries, sizeof(node_t *), compare);
+    qsort(v, context->nentries, sizeof(node_t *), compare);
     /* only trunk? */
-    if (v[nentries-1]->number.c == 2)
-	head_node = v[nentries-1];
-    for (p = v + nentries - 2 ; p >= v; p--)
-	try_pair(p[0], p[1]);
-    for (p = v + nentries - 1 ; p >= v; p--) {
+    if (v[context->nentries-1]->number.c == 2)
+	context->head_node = v[context->nentries-1];
+    for (p = v + context->nentries - 2 ; p >= v; p--)
+	try_pair(context, p[0], p[1]);
+    for (p = v + context->nentries - 1 ; p >= v; p--) {
 	node_t *a = *p, *b = NULL;
 	if (!a->starts)
 	    continue;
-	b = find_parent(&a->number, 2);
+	b = find_parent(context, &a->number, 2);
 	if (!b) {
 	    char name[CVS_MAX_REV_LEN];
 	    announce("no parent for %s\n", cvs_number_string(&a->number, name, sizeof(name)));

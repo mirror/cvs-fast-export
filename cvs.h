@@ -126,6 +126,14 @@ typedef struct node {
     flag starts;
 } node_t;
 
+#define NODE_HASH_SIZE	4096
+
+typedef struct nodehash {
+    node_t *table[NODE_HASH_SIZE];
+    int nentries;
+    node_t *head_node;
+} nodehash_t;
+
 typedef struct _cvs_symbol {
     /* a CVS symbol-to-revision association */
     struct _cvs_symbol	*next;
@@ -638,12 +646,12 @@ fatal_error(char const *format, ...) _printflike(1, 2) _noreturn;
 void
 fatal_system_error(char const *format, ...) _printflike(1, 2) _noreturn;
 
-void hash_version(cvs_version *);
-void hash_patch(cvs_patch *);
-void hash_branch(cvs_branch *);
-void clean_hash(void);
-void build_branches(void);
-extern node_t *head_node;
+void hash_version(nodehash_t *, cvs_version *);
+void hash_patch(nodehash_t *, cvs_patch *);
+void hash_branch(nodehash_t *, cvs_branch *);
+void clean_hash(nodehash_t *);
+void build_branches(nodehash_t *);
+nodehash_t context;
 
 extern cvstime_t skew_vulnerable;
 extern unsigned int total_revisions;

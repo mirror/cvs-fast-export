@@ -93,7 +93,7 @@ cvs_file_free(cvs_file *cvs)
     cvs_version_free(cvs->versions);
     cvs_patch_free(cvs->patches);
     free(cvs);
-    clean_hash();
+    clean_hash(&context);
 }
 
 /* end */
