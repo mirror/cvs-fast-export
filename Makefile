@@ -14,8 +14,6 @@ srcdir=$(dir $(abspath $(firstword $(MAKEFILE_LIST))))
 VPATH=$(srcdir)
 
 INSTALL = install
-YACC = bison -y
-LEX = flex --header-file=lex.h
 
 GCC_WARNINGS1=-Wall -Wpointer-arith -Wstrict-prototypes
 GCC_WARNINGS2=-Wmissing-prototypes -Wmissing-declarations
@@ -59,15 +57,15 @@ cvs-fast-export: $(OBJS)
 
 $(OBJS): cvs.h
 
-gram.c: gram.y
+gram.h gram.c: gram.y
 	@echo "Expect conflicts: 16 shift/reduce, 2 reduce/reduce"
-	$(YACC) $(YFLAGS) $<
-	mv -f y.tab.c gram.c
-y.tab.h: gram.c
+	bison --defines=gram.h --output-file=gram.c $(YFLAGS) $<
+lex.h lex.c: lex.l
+	flex $(LFLAGS) --header-file=lex.h --outfile=lex.c $<
 
-gram.o: gram.c lex.h y.tab.h
-import.o: import.c lex.h y.tab.h
-lex.o: lex.c y.tab.h
+gram.o: gram.c lex.h gram.h
+import.o: import.c lex.h gram.h
+lex.o: lex.c gram.h
 
 .SUFFIXES: .html .asc .txt .1
 
@@ -83,7 +81,7 @@ man: cvssync.1 cvs-fast-export.1
 html: cvssync.1 cvs-fast-export.1
 
 clean:
-	rm -f $(OBJS) y.tab.h gram.c lex.c cvs-fast-export docbook-xsl.css
+	rm -f $(OBJS) gram.h gram.c lex.c cvs-fast-export docbook-xsl.css
 	rm -f cvs-fast-export.1 cvs-fast-export.html
 	rm -f cvssync.1 cvssync.html PROFILE gmon.out
 	rm -f MANIFEST index.html *.tar.gz docbook-xsl.css

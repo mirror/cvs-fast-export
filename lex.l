@@ -18,7 +18,7 @@
  *  59 Temple Place, Suite 330, Boston, MA 02111-1307 USA.
  */
 #include "cvs.h"
-#include "y.tab.h"
+#include "gram.h"
     
 static char *
 parse_data(yyscan_t scanner);

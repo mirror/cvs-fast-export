@@ -18,7 +18,7 @@
  */
 
 #include "cvs.h"
-#include "y.tab.h"
+#include "gram.h"
 #include "lex.h"
 
 cvstime_t skew_vulnerable = 0;

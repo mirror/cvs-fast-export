@@ -20,7 +20,7 @@
 #include <sys/types.h>
 
 #include "cvs.h"
-#include "y.tab.h"
+#include "gram.h"
 #include "lex.h"
 
 /*

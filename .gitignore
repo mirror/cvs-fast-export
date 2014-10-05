@@ -1,9 +1,7 @@
 *.o
-gram.c
-y.tab.h
-lex.h
+gram.[ch]
+lex.[ch]
 cvs-fast-export
 test
-lex.c
 *.html
 docbook-xsl.css
