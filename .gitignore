@@ -1,6 +1,7 @@
 *.o
 gram.c
 y.tab.h
+lex.h
 cvs-fast-export
 test
 lex.c
