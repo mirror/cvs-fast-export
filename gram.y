@@ -28,9 +28,8 @@ unsigned int total_revisions = 0;
  * For an explanation of the black magic used here, see:
  * http://www.lemoda.net/c/reentrant-parser/
  */
-extern int yylex(YYSTYPE *yylal, yyscan_t scanner);
-extern int yyerror(yyscan_t, cvs_file *, char *);
 
+extern int yyerror(yyscan_t, cvs_file *, char *);
 %}
 
 %define api.pure full
