@@ -37,7 +37,7 @@ CPPFLAGS += -DVERSION=\"$(VERSION)\"
 #CFLAGS += -DORDERDEBUG=1
 
 YFLAGS=-d -l
-LFLAGS=-l
+LFLAGS=
 
 # To enable profiling, uncomment the following line
 # Note: the profiler gets confused if you don't also turn off -O flags.
