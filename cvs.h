@@ -380,8 +380,6 @@ cvs_author *fullname(char *);
 
 bool load_author_map(char *);
 
-extern cvs_file     *this_file;
-
 typedef void *yyscan_t;
 
 int yyget_column (yyscan_t);

@@ -34,6 +34,7 @@ fast_export_sanitize(yyscan_t scanner, cvs_file *cvs);
     result = (c == EOF) ? YY_NULL : (buf[0] = c, 1); \
 }
     
+extern cvs_file	*this_file;
 %}
 %s CONTENT SKIP COMMIT PERM REVISION FNAME SKIPTOSEMI AUTHORSS
 %%

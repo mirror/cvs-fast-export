@@ -29,13 +29,13 @@ unsigned int total_revisions = 0;
  * http://www.lemoda.net/c/reentrant-parser/
  */
 extern int yylex(YYSTYPE *yylal, yyscan_t scanner);
-extern int yyerror(yyscan_t, char *);
+extern int yyerror(yyscan_t, cvs_file *, char *);
 
 %}
 
-%pure-parser
+%define api.pure full
 %lex-param {yyscan_t scanner}
-%parse-param {yyscan_t scanner}
+%parse-param {yyscan_t scanner} {cvs_file *cvsfile}
 
 %union {
     int		i;
@@ -98,16 +98,16 @@ headers		: header headers
 		|
 		;
 header		: HEAD opt_number SEMI
-		  { this_file->head = $2; }
+		  { cvsfile->head = $2; }
 		| BRANCH NUMBER SEMI
-		  { this_file->branch = $2; }
+		  { cvsfile->branch = $2; }
 		| ACCESS SEMI
 		| symbollist
-		  { this_file->symbols = $1; }
+		  { cvsfile->symbols = $1; }
 		| LOCKS locks SEMI lock_type
 		| COMMENT DATA SEMI
 		| EXPAND DATA SEMI
-		  { this_file->expand = $2; }
+		  { cvsfile->expand = $2; }
 		;
 locks		: locks lock
 		|
@@ -150,7 +150,7 @@ name		: NAME
 revisions	: revisions revision
 		  { *$1 = $2; $$ = &$2->next; total_revisions++; }
 		|
-		  { $$ = &this_file->versions; }
+		  { $$ = &cvsfile->versions; }
 		;
 
 revtrailer	: paramlist opt_commitid paramlist 
@@ -180,14 +180,14 @@ revision	: NUMBER date author state branches next revtrailer
 			$$->commitid = $7;
 			if ($$->commitid == NULL && skew_vulnerable < $$->date)
 			    skew_vulnerable = $$->date;
-			hash_version(&this_file->nodehash, $$);
-			++this_file->nversions;
+			hash_version(&cvsfile->nodehash, $$);
+			++cvsfile->nversions;
 			
 		  }
 		;
 date		: DATE NUMBER SEMI
 		  {
-			$$ = lex_date (&$2, scanner, this_file);
+			$$ = lex_date (&$2, scanner, cvsfile);
 		  }
 		;
 author		: AUTHOR NAME SEMI
@@ -205,7 +205,7 @@ numbers		: NUMBER numbers
 				    "gram.y::numbers");
 			$$->next = $2;
 			$$->number = $1;
-			hash_branch(&this_file->nodehash, $$);
+			hash_branch(&cvsfile->nodehash, $$);
 		  }
 		|
 		  { $$ = NULL; }
@@ -227,25 +227,25 @@ commitid	: COMMITID NAME SEMI
 		  { $$ = $2; }
 		;
 desc		: DESC DATA
-		  { this_file->description = $2; }
+		  { cvsfile->description = $2; }
 		;
 patches		: patches patch
 		  { *$1 = $2; $$ = &$2->next; }
 		|
-		  { $$ = &this_file->patches; }
+		  { $$ = &cvsfile->patches; }
 		;
 patch		: NUMBER log text
 		  { $$ = xcalloc (1, sizeof (cvs_patch), "gram.y::patch");
 		    $$->number = $1;
 			if (!strcmp($2, "Initial revision\n")) {
-				if (strlen(this_file->description) == 0)
+				if (strlen(cvsfile->description) == 0)
 					$$->log = strdup("*** empty log message ***\n");
 				else
-					$$->log = this_file->description;
+					$$->log = cvsfile->description;
 			} else
 				$$->log = $2;
 		    $$->text = $3;
-		    hash_patch(&this_file->nodehash, $$);
+		    hash_patch(&cvsfile->nodehash, $$);
 		  }
 		;
 log		: LOG DATA
@@ -283,7 +283,7 @@ hardlinks	: HARDLINKS strings SEMI
 strings		: DATA strings | /* empty*/;
 %%
 
-int yyerror(yyscan_t scanner, char *msg)
+int yyerror(yyscan_t scanner, cvs_file *cvs, char *msg)
 {
 	fprintf(stderr, "parse error %s at %s\n", msg, yyget_text(scanner));
 	exit(1);

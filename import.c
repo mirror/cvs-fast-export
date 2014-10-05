@@ -28,7 +28,7 @@
  * the entire CVS history of a collection.
  */
 
-cvs_file	*this_file;	/* gram.y sets this, no other module uses it */
+cvs_file	*this_file;
 
 static int load_current_file;
 static int err;
@@ -53,7 +53,7 @@ rev_list_file(char *name, const bool generate, bool enable_keyword_expansion)
     if (yyget_in(scanner) != NULL)
 	assert(fstat(fileno(yyget_in(scanner)), &buf) == 0);
     this_file->mode = buf.st_mode;
-    yyparse(scanner);
+    yyparse(scanner, this_file);
     fclose(yyget_in(scanner));
     yylex_destroy(scanner);
     rl = rev_list_cvs(this_file);
