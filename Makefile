@@ -64,6 +64,8 @@ gram.c: gram.y
 	$(YACC) $(YFLAGS) $<
 	mv -f y.tab.c gram.c
 
+gram.o: y.tab.h
+
 lex.o: y.tab.h
 
 lex.o: lex.c

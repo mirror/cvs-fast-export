@@ -15,10 +15,12 @@
  *  with this program; if not, write to the Free Software Foundation, Inc.,
  *  59 Temple Place, Suite 330, Boston, MA 02111-1307 USA.
  */
-#include "cvs.h"
 #include <unistd.h>
 #include <sys/stat.h>
 #include <sys/types.h>
+
+#include "cvs.h"
+#include "y.tab.h"
 
 /*
  * CVS master analysis.  Grinds out a revlist structure represnting
@@ -26,10 +28,6 @@
  */
 
 cvs_file	*this_file;	/* gram.y sets this, no other module uses it */
-
-/* these are only shared with gram.y and lex.l */
-extern FILE *yyin;
-extern int yylineno;
 
 static int load_current_file;
 static int err;
@@ -39,21 +37,24 @@ rev_list_file(char *name, const bool generate, bool enable_keyword_expansion)
 {
     rev_list	*rl;
     struct stat	buf;
+    void *scanner;
 
-    yyin = fopen(name, "r");
-    if (!yyin) {
+    yylex_init(&scanner);
+    yyset_in(fopen(name, "r"), scanner);
+    if (!yyget_in(scanner)) {
 	perror(name);
 	++err;
 	return NULL;
     }
-    yylineno = 0;
+    //yyset_lineno(0, scanner);
     this_file = xcalloc(1, sizeof(cvs_file), __func__);
     this_file->master_name = name;
-    if (yyin)
-	assert(fstat(fileno(yyin), &buf) == 0);
+    if (yyget_in(scanner) != NULL)
+	assert(fstat(fileno(yyget_in(scanner)), &buf) == 0);
     this_file->mode = buf.st_mode;
-    yyparse();
-    fclose(yyin);
+    yyparse(scanner);
+    fclose(yyget_in(scanner));
+    yylex_destroy(scanner);
     rl = rev_list_cvs(this_file);
     if (generate)
 	generate_files(this_file, enable_keyword_expansion, export_blob);

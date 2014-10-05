@@ -1,3 +1,4 @@
+%option reentrant bison-bridge
 %{
 /*
  *  Copyright © 2006 Keith Packard <keithp@keithp.com>
@@ -20,13 +21,13 @@
 #include "y.tab.h"
     
 static char *
-parse_data(void);
+parse_data(void *scanner);
 static void
-parse_text(cvs_text *text);
+parse_text(cvs_text *text, void *scanner);
 static char *
-parse_data_until_newline(void);
-
-static void fast_export_sanitize(void);
+parse_data_until_newline(void *scanner);
+static void
+fast_export_sanitize(void *scanner);
 
 #define YY_INPUT(buf,result,max_size) { \
     int c = getc(yyin); \
@@ -62,48 +63,48 @@ static void fast_export_sanitize(void);
 <INITIAL>log			return LOG;
 <INITIAL>text			BEGIN(SKIP); return TEXT;
 <SKIP>@				{
-					parse_text(&yylval.text);
+					parse_text(&yylval->text, yyg);
 					BEGIN(INITIAL);
 					return TEXT_DATA;
 				}
 <CONTENT>[-a-zA-Z_+%][-a-zA-Z_0-9+/%=.~^\\*?#!\[\]()<>]* {
-					fast_export_sanitize();
-					yylval.s = atom(yytext);
+					fast_export_sanitize(yyg);
+					yylval->s = atom(yytext);
 					return NAME;
 				}
 <AUTHORSS>[-a-zA-Z_0-9+%][-a-zA-Z_0-9+/%=.~^\\*?]* {
-					fast_export_sanitize();
-					yylval.s = atom(yytext);
+					fast_export_sanitize(yyg);
+					yylval->s = atom(yytext);
 					return NAME;
 				}
 <PERM>[0-9]+ {
-					yylval.s = atom(yytext);
+					yylval->s = atom(yytext);
 					return NAME;
 				}
 <COMMIT>[0-9a-zA-Z]+		{
-					yylval.s = atom(yytext);
+					yylval->s = atom(yytext);
 					return NAME;
 				}
 <REVISION>[0-9]+\.[0-9.]*			{
-					yylval.number = lex_number(yytext);
+					yylval->number = lex_number(yytext);
 					return NUMBER;
 				}
 <FNAME>[^;]* {
-	yylval.s = atom(yytext);
+	yylval->s = atom(yytext);
 	return NAME;
 }
 [0-9]+\.[0-9.]*			{
-					yylval.number = lex_number(yytext);
+					yylval->number = lex_number(yytext);
 					return NUMBER;
 				}
 ;				BEGIN(INITIAL); return SEMI;
 :				return COLON;
 <SKIPTOSEMI>[^;]*		{
-					yylval.s = parse_data_until_newline();
+					yylval->s = parse_data_until_newline(yyg);
 					return DATA;
 				}
 <INITIAL,CONTENT>@		{
-					yylval.s = parse_data();
+					yylval->s = parse_data(yyg);
 					return DATA;
 				}
 " " 				;
@@ -116,7 +117,7 @@ static void fast_export_sanitize(void);
 					yytext[0]);
 				}
 %%
-int yywrap(void) { return 1; }
+int yywrap(yyscan_t scanner) { return 1; }
 
 /*
  * A variable-length buffer, allocated on the stack first
@@ -157,7 +158,7 @@ static void varbuf_free(struct varbuf *buf) {
 }
 
 static char *
-parse_data()
+parse_data(void *scanner)
 {
     int c;
     char *ret;
@@ -166,15 +167,15 @@ parse_data()
     varbuf_init(&buf);
 
     for(;;) {
-	c = getc(yyin);
+	c = getc(yyget_in(scanner));
 	if (c == '@') {
-	    c = getc (yyin);
+	    c = getc (yyget_in(scanner));
 	    if (c != '@') 
 		break;
 	}
 	varbuf_add(&buf, c);
     }
-    ungetc(c, yyin);
+    ungetc(c, yyget_in(scanner));
     varbuf_add(&buf, '\0');
     ret = atom(buf.string);
     varbuf_free(&buf);
@@ -182,26 +183,26 @@ parse_data()
 }
 
 static void
-parse_text(cvs_text *text)
+parse_text(cvs_text *text, void *scanner)
 {
     int c;
     size_t length;
 
     text->filename = atom(this_file->master_name);
-    text->offset = ftell(yyin) - 1;
+    text->offset = ftell(yyget_in(scanner)) - 1;
     length = 1;
 
-    while ((c = getc(yyin)) != EOF) {
+    while ((c = getc(yyget_in(scanner))) != EOF) {
 	++length;
         if (c == '@') {
 	    /* lookahead to see if we hit @@ */
-	    c = getc(yyin);
+	    c = getc(yyget_in(scanner));
 	    if (c == '@') {
 	        ++length;
 	    } else {
 		/* We consume only the closing single @,
 		 * leaving it included in the length */
-	        ungetc(c, yyin);
+	        ungetc(c, yyget_in(scanner));
 		break;
 	    }
 	}
@@ -210,7 +211,7 @@ parse_text(cvs_text *text)
 }
 
 static char *
-parse_data_until_newline(void)
+parse_data_until_newline(void *scanner)
 {
     int c;
     char *ret;
@@ -218,13 +219,13 @@ parse_data_until_newline(void)
 
     varbuf_init(&buf);
     for(;;) {
-	c = getc(yyin);
+	c = getc(yyget_in(scanner));
 	if (c == '\n') {
 		break;
 	}
 	varbuf_add(&buf, c);
     }
-    ungetc(c, yyin);
+    ungetc(c, yyget_in(scanner));
     varbuf_add(&buf, '\0');
     ret = atom(buf.string);
     varbuf_free(&buf);
@@ -253,7 +254,7 @@ lex_number(char *s)
 }
 
 cvstime_t
-lex_date(cvs_number *n)
+lex_date(cvs_number *n, void *scanner)
 {
 	struct tm	tm;
 	time_t		d;
@@ -273,7 +274,7 @@ lex_date(cvs_number *n)
 	d = mktime(&tm);
 	if (d == 0) {
 	    int i;
-	    fprintf(stderr, "%s: (%d) unparsable date: ", this_file->master_name, yylineno);
+	    fprintf(stderr, "%s: (%d) unparsable date: ", this_file->master_name, yyget_lineno(scanner));
 	    for (i = 0; i < n->c; i++) {
 		if (i) fprintf(stderr, ".");
 		fprintf(stderr, "%d", n->n[i]);
@@ -282,37 +283,31 @@ lex_date(cvs_number *n)
 	}
 	if (d < RCS_EPOCH)
 	    fatal_error("%s: (%d) date before RCS epoch: ", this_file->master_name,
-		     yylineno);
+		     yyget_lineno(scanner));
 	else if (d >= RCS_OMEGA)
 	    fatal_error("%s: (%d) date too far in future: ", this_file->master_name,
-		     yylineno);
+		     yyget_lineno(scanner));
 	return d - RCS_EPOCH;
 }
 
-static void fast_export_sanitize(void)
+static void fast_export_sanitize(void *scanner)
 {
     char *sp, *tp;
 
 #define SUFFIX(a, s)	(strcmp(a + strlen(a) - strlen(s), s) == 0) 
 #define BADCHARS	"~^\\*?"
-    for (sp = tp = yytext; *sp; sp++) {
+    for (sp = tp = yyget_text(scanner); *sp; sp++) {
 	if (isgraph((unsigned char)*sp) && strchr(BADCHARS, *sp) == NULL) {
 	    *tp++ = *sp;
-	    if (SUFFIX(yytext, "@{") || SUFFIX(yytext, "..")) {
+	    if (SUFFIX(yyget_text(scanner), "@{") || SUFFIX(yyget_text(scanner), "..")) {
 		fatal_error("%s: (%d) tag or branch name %s is ill-formed.\n", 
-			    this_file->master_name, yylineno, yytext);
+			    this_file->master_name, yyget_lineno(scanner), yyget_text(scanner));
 	    }
 	}
     }
     *tp = '\0';
-    if (strlen(yytext) == 0) {
+    if (strlen(yyget_text(scanner)) == 0) {
 	fatal_error("%s: (%d) tag or branch name was empty after sanitization.\n", 
-		    this_file->master_name, yylineno);
+		    this_file->master_name, yyget_lineno(scanner));
     }
-}
-
-char *
-lex_text(void)
-{
-    return yytext;
 }

@@ -18,14 +18,25 @@
  */
 
 #include "cvs.h"
-
-void yyerror (char *msg);
+#include "y.tab.h"
 
 nodehash_t context;
 
 cvstime_t skew_vulnerable = 0;
 unsigned int total_revisions = 0;
+
+/*
+ * For an explanation of the black magic used here, see:
+ * http://www.lemoda.net/c/reentrant-parser/
+ */
+extern int yylex(YYSTYPE *yylal, yyscan_t scanner);
+extern int yyerror(char *, void *);
+
 %}
+
+%pure-parser
+%lex-param {void *scanner}
+%parse-param {void *scanner}
 
 %union {
     int		i;
@@ -177,7 +188,7 @@ revision	: NUMBER date author state branches next revtrailer
 		;
 date		: DATE NUMBER SEMI
 		  {
-			$$ = lex_date (&$2);
+			$$ = lex_date (&$2, scanner);
 		  }
 		;
 author		: AUTHOR NAME SEMI
@@ -273,8 +284,8 @@ hardlinks	: HARDLINKS strings SEMI
 strings		: DATA strings | /* empty*/;
 %%
 
-void yyerror (char *msg)
+int yyerror(char *msg, void *scanner)
 {
-	fprintf (stderr, "parse error %s at %s\n", msg, lex_text ());
+	fprintf(stderr, "parse error %s at %s\n", msg, yyget_text(scanner));
 	exit(1);
 }

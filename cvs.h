@@ -381,7 +381,17 @@ bool load_author_map(char *);
 
 extern cvs_file     *this_file;
 
-int yyparse(void);
+typedef void *yyscan_t;
+
+int yylex_init(yyscan_t *);
+FILE *yyget_in(void *);
+void yyset_in(FILE *, void *);
+int yyget_lineno(void *);
+void yyset_lineno(int, void *);
+char *yyget_text(void *);
+int yylex_destroy(yyscan_t);
+int yyget_column (yyscan_t);
+void yyset_column(int, yyscan_t);
 
 char *
 ctime_nonl(cvstime_t *date);
@@ -390,10 +400,7 @@ cvs_number
 lex_number(char *);
 
 cvstime_t
-lex_date(cvs_number *n);
-
-char *
-lex_text(void);
+lex_date(cvs_number *n, void *scanner);
 
 rev_list *
 rev_list_cvs(cvs_file *cvs);
@@ -514,8 +521,6 @@ dump_rev_graph(rev_list *rl, char *title);
 
 void
 dump_rev_tree(rev_list *rl, FILE *);
-
-extern int yylex(void);
 
 char *
 atom(char *string);
