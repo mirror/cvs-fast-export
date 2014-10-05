@@ -384,11 +384,11 @@ extern cvs_file     *this_file;
 typedef void *yyscan_t;
 
 int yylex_init(yyscan_t *);
-FILE *yyget_in(void *);
-void yyset_in(FILE *, void *);
-int yyget_lineno(void *);
-void yyset_lineno(int, void *);
-char *yyget_text(void *);
+FILE *yyget_in(yyscan_t);
+void yyset_in(FILE *, yyscan_t);
+int yyget_lineno(yyscan_t);
+void yyset_lineno(int, yyscan_t);
+char *yyget_text(yyscan_t);
 int yylex_destroy(yyscan_t);
 int yyget_column (yyscan_t);
 void yyset_column(int, yyscan_t);
@@ -400,7 +400,7 @@ cvs_number
 lex_number(char *);
 
 cvstime_t
-lex_date(cvs_number *n, void *scanner);
+lex_date(cvs_number *n, yyscan_t);
 
 rev_list *
 rev_list_cvs(cvs_file *cvs);

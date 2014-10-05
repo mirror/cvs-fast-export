@@ -21,13 +21,13 @@
 #include "y.tab.h"
     
 static char *
-parse_data(void *scanner);
+parse_data(yyscan_t scanner);
 static void
-parse_text(cvs_text *text, void *scanner);
+parse_text(cvs_text *text, yyscan_t scanner);
 static char *
-parse_data_until_newline(void *scanner);
+parse_data_until_newline(yyscan_t scanner);
 static void
-fast_export_sanitize(void *scanner);
+fast_export_sanitize(yyscan_t scanner);
 
 #define YY_INPUT(buf,result,max_size) { \
     int c = getc(yyin); \
@@ -158,7 +158,7 @@ static void varbuf_free(struct varbuf *buf) {
 }
 
 static char *
-parse_data(void *scanner)
+parse_data(yyscan_t scanner)
 {
     int c;
     char *ret;
@@ -183,7 +183,7 @@ parse_data(void *scanner)
 }
 
 static void
-parse_text(cvs_text *text, void *scanner)
+parse_text(cvs_text *text, yyscan_t scanner)
 {
     int c;
     size_t length;
@@ -211,7 +211,7 @@ parse_text(cvs_text *text, void *scanner)
 }
 
 static char *
-parse_data_until_newline(void *scanner)
+parse_data_until_newline(yyscan_t scanner)
 {
     int c;
     char *ret;
@@ -254,7 +254,7 @@ lex_number(char *s)
 }
 
 cvstime_t
-lex_date(cvs_number *n, void *scanner)
+lex_date(cvs_number *n, yyscan_t scanner)
 {
 	struct tm	tm;
 	time_t		d;
@@ -290,7 +290,7 @@ lex_date(cvs_number *n, void *scanner)
 	return d - RCS_EPOCH;
 }
 
-static void fast_export_sanitize(void *scanner)
+static void fast_export_sanitize(yyscan_t scanner)
 {
     char *sp, *tp;
 

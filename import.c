@@ -37,7 +37,7 @@ rev_list_file(char *name, const bool generate, bool enable_keyword_expansion)
 {
     rev_list	*rl;
     struct stat	buf;
-    void *scanner;
+    yyscan_t scanner;
 
     yylex_init(&scanner);
     yyset_in(fopen(name, "r"), scanner);

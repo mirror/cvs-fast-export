@@ -30,13 +30,13 @@ unsigned int total_revisions = 0;
  * http://www.lemoda.net/c/reentrant-parser/
  */
 extern int yylex(YYSTYPE *yylal, yyscan_t scanner);
-extern int yyerror(char *, void *);
+extern int yyerror(char *, yyscan_t);
 
 %}
 
 %pure-parser
-%lex-param {void *scanner}
-%parse-param {void *scanner}
+%lex-param {yyscan_t scanner}
+%parse-param {yyscan_t scanner}
 
 %union {
     int		i;
@@ -284,7 +284,7 @@ hardlinks	: HARDLINKS strings SEMI
 strings		: DATA strings | /* empty*/;
 %%
 
-int yyerror(char *msg, void *scanner)
+int yyerror(char *msg, yyscan_t scanner)
 {
 	fprintf(stderr, "parse error %s at %s\n", msg, yyget_text(scanner));
 	exit(1);
