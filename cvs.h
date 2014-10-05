@@ -384,13 +384,6 @@ extern cvs_file     *this_file;
 
 typedef void *yyscan_t;
 
-int yylex_init(yyscan_t *);
-FILE *yyget_in(yyscan_t);
-void yyset_in(FILE *, yyscan_t);
-int yyget_lineno(yyscan_t);
-void yyset_lineno(int, yyscan_t);
-char *yyget_text(yyscan_t);
-int yylex_destroy(yyscan_t);
 int yyget_column (yyscan_t);
 void yyset_column(int, yyscan_t);
 

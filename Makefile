@@ -15,7 +15,7 @@ VPATH=$(srcdir)
 
 INSTALL = install
 YACC = bison -y
-LEX = flex
+LEX = flex --header-file=lex.h
 
 GCC_WARNINGS1=-Wall -Wpointer-arith -Wstrict-prototypes
 GCC_WARNINGS2=-Wmissing-prototypes -Wmissing-declarations
@@ -63,14 +63,11 @@ gram.c: gram.y
 	@echo "Expect conflicts: 16 shift/reduce, 2 reduce/reduce"
 	$(YACC) $(YFLAGS) $<
 	mv -f y.tab.c gram.c
-
-gram.o: y.tab.h
-
-lex.o: y.tab.h
-
-lex.o: lex.c
-
 y.tab.h: gram.c
+
+gram.o: gram.c lex.h y.tab.h
+import.o: import.c lex.h y.tab.h
+lex.o: lex.c y.tab.h
 
 .SUFFIXES: .html .asc .txt .1
 

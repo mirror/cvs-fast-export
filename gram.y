@@ -19,6 +19,7 @@
 
 #include "cvs.h"
 #include "y.tab.h"
+#include "lex.h"
 
 cvstime_t skew_vulnerable = 0;
 unsigned int total_revisions = 0;

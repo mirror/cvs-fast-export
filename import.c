@@ -21,6 +21,7 @@
 
 #include "cvs.h"
 #include "y.tab.h"
+#include "lex.h"
 
 /*
  * CVS master analysis.  Grinds out a revlist structure represnting
