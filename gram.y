@@ -28,7 +28,7 @@ unsigned int total_revisions = 0;
  * http://www.lemoda.net/c/reentrant-parser/
  */
 extern int yylex(YYSTYPE *yylal, yyscan_t scanner);
-extern int yyerror(char *, yyscan_t);
+extern int yyerror(yyscan_t, char *);
 
 %}
 
@@ -186,7 +186,7 @@ revision	: NUMBER date author state branches next revtrailer
 		;
 date		: DATE NUMBER SEMI
 		  {
-		      $$ = lex_date (&$2, scanner, this_file);
+			$$ = lex_date (&$2, scanner, this_file);
 		  }
 		;
 author		: AUTHOR NAME SEMI
@@ -282,7 +282,7 @@ hardlinks	: HARDLINKS strings SEMI
 strings		: DATA strings | /* empty*/;
 %%
 
-int yyerror(char *msg, yyscan_t scanner)
+int yyerror(yyscan_t scanner, char *msg)
 {
 	fprintf(stderr, "parse error %s at %s\n", msg, yyget_text(scanner));
 	exit(1);
