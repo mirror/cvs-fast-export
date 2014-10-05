@@ -26,7 +26,7 @@ unsigned int total_revisions = 0;
 
 extern int yyerror(yyscan_t, cvs_file *, char *);
 
-YY_DECL;
+extern YY_DECL;	/* FIXME: once the Bison bug requiring this is fixed */
 %}
 
 %define api.pure full

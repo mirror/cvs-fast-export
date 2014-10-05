@@ -655,11 +655,7 @@ void progress_step(void);
 void progress_jump(int /*count*/);
 void progress_end(const char * /*format*/, ...) _printflike(1, 2);
 
-/*
- * For an explanation of the black magic used here, see:
- * http://www.lemoda.net/c/reentrant-parser/
- */
-
+/* FIXME: once the Bison bug requiring this is fixed */
 #define YY_DECL int yylex \
 	(YYSTYPE * yylval_param , yyscan_t yyscanner, cvs_file *cvs)
 
