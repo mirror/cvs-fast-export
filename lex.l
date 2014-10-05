@@ -23,11 +23,11 @@
 static char *
 parse_data(yyscan_t scanner);
 static void
-parse_text(cvs_text *text, yyscan_t scanner);
+parse_text(cvs_text *text, yyscan_t scanner, cvs_file *);
 static char *
 parse_data_until_newline(yyscan_t scanner);
 static void
-fast_export_sanitize(yyscan_t scanner);
+fast_export_sanitize(yyscan_t scanner, cvs_file *cvs);
 
 #define YY_INPUT(buf,result,max_size) { \
     int c = getc(yyin); \
@@ -63,17 +63,17 @@ fast_export_sanitize(yyscan_t scanner);
 <INITIAL>log			return LOG;
 <INITIAL>text			BEGIN(SKIP); return TEXT;
 <SKIP>@				{
-					parse_text(&yylval->text, yyg);
+					parse_text(&yylval->text, yyg, this_file);
 					BEGIN(INITIAL);
 					return TEXT_DATA;
 				}
 <CONTENT>[-a-zA-Z_+%][-a-zA-Z_0-9+/%=.~^\\*?#!\[\]()<>]* {
-					fast_export_sanitize(yyg);
+					fast_export_sanitize(yyg, this_file);
 					yylval->s = atom(yytext);
 					return NAME;
 				}
 <AUTHORSS>[-a-zA-Z_0-9+%][-a-zA-Z_0-9+/%=.~^\\*?]* {
-					fast_export_sanitize(yyg);
+					fast_export_sanitize(yyg, this_file);
 					yylval->s = atom(yytext);
 					return NAME;
 				}
@@ -183,12 +183,12 @@ parse_data(yyscan_t scanner)
 }
 
 static void
-parse_text(cvs_text *text, yyscan_t scanner)
+parse_text(cvs_text *text, yyscan_t scanner, cvs_file *cvs)
 {
     int c;
     size_t length;
 
-    text->filename = atom(this_file->master_name);
+    text->filename = atom(cvs->master_name);
     text->offset = ftell(yyget_in(scanner)) - 1;
     length = 1;
 
@@ -254,7 +254,7 @@ lex_number(char *s)
 }
 
 cvstime_t
-lex_date(cvs_number *n, yyscan_t scanner)
+lex_date(cvs_number *n, yyscan_t scanner, cvs_file *cvs)
 {
 	struct tm	tm;
 	time_t		d;
@@ -274,7 +274,8 @@ lex_date(cvs_number *n, yyscan_t scanner)
 	d = mktime(&tm);
 	if (d == 0) {
 	    int i;
-	    fprintf(stderr, "%s: (%d) unparsable date: ", this_file->master_name, yyget_lineno(scanner));
+	    fprintf(stderr, "%s: (%d) unparsable date: ", 
+			    cvs->master_name, yyget_lineno(scanner));
 	    for (i = 0; i < n->c; i++) {
 		if (i) fprintf(stderr, ".");
 		fprintf(stderr, "%d", n->n[i]);
@@ -282,15 +283,17 @@ lex_date(cvs_number *n, yyscan_t scanner)
 	    fprintf(stderr, "\n");
 	}
 	if (d < RCS_EPOCH)
-	    fatal_error("%s: (%d) date before RCS epoch: ", this_file->master_name,
-		     yyget_lineno(scanner));
+	    fatal_error("%s: (%d) date before RCS epoch: ",
+			cvs->master_name,
+			yyget_lineno(scanner));
 	else if (d >= RCS_OMEGA)
-	    fatal_error("%s: (%d) date too far in future: ", this_file->master_name,
-		     yyget_lineno(scanner));
+	    fatal_error("%s: (%d) date too far in future: ",
+			cvs->master_name,
+			yyget_lineno(scanner));
 	return d - RCS_EPOCH;
 }
 
-static void fast_export_sanitize(yyscan_t scanner)
+static void fast_export_sanitize(yyscan_t scanner, cvs_file *cvs)
 {
     char *sp, *tp;
 
@@ -301,13 +304,13 @@ static void fast_export_sanitize(yyscan_t scanner)
 	    *tp++ = *sp;
 	    if (SUFFIX(yyget_text(scanner), "@{") || SUFFIX(yyget_text(scanner), "..")) {
 		fatal_error("%s: (%d) tag or branch name %s is ill-formed.\n", 
-			    this_file->master_name, yyget_lineno(scanner), yyget_text(scanner));
+			    cvs->master_name, yyget_lineno(scanner), yyget_text(scanner));
 	    }
 	}
     }
     *tp = '\0';
     if (strlen(yyget_text(scanner)) == 0) {
 	fatal_error("%s: (%d) tag or branch name was empty after sanitization.\n", 
-		    this_file->master_name, yyget_lineno(scanner));
+		    cvs->master_name, yyget_lineno(scanner));
     }
 }

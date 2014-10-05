@@ -186,7 +186,7 @@ revision	: NUMBER date author state branches next revtrailer
 		;
 date		: DATE NUMBER SEMI
 		  {
-			$$ = lex_date (&$2, scanner);
+		      $$ = lex_date (&$2, scanner, this_file);
 		  }
 		;
 author		: AUTHOR NAME SEMI

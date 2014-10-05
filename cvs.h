@@ -401,7 +401,7 @@ cvs_number
 lex_number(char *);
 
 cvstime_t
-lex_date(cvs_number *n, yyscan_t);
+lex_date(cvs_number *n, yyscan_t, cvs_file *cvs);
 
 rev_list *
 rev_list_cvs(cvs_file *cvs);
