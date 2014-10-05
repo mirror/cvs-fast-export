@@ -191,6 +191,7 @@ typedef struct {
     cvs_number		branch;
     mode_t		mode;
     serial_t		nversions;
+    nodehash_t		nodehash;
 } cvs_file;
 
 typedef struct _rev_file {
@@ -654,7 +655,6 @@ void hash_patch(nodehash_t *, cvs_patch *);
 void hash_branch(nodehash_t *, cvs_branch *);
 void clean_hash(nodehash_t *);
 void build_branches(nodehash_t *);
-nodehash_t context;
 
 extern cvstime_t skew_vulnerable;
 extern unsigned int total_revisions;

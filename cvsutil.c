@@ -92,8 +92,8 @@ cvs_file_free(cvs_file *cvs)
     rbtree_free(cvs->symbols_by_name);
     cvs_version_free(cvs->versions);
     cvs_patch_free(cvs->patches);
+    clean_hash(&cvs->nodehash);
     free(cvs);
-    clean_hash(&context);
 }
 
 /* end */

@@ -680,7 +680,7 @@ rev_list_cvs(cvs_file *cvs)
      * FIXME: Global shared with the parser.
      * We can't fix this until a Bison parse context is a struct.
      */
-    build_branches(&context);
+    build_branches(&cvs->nodehash);
     /*
      * Locate first revision on trunk branch
      */

@@ -20,8 +20,6 @@
 #include "cvs.h"
 #include "y.tab.h"
 
-nodehash_t context;
-
 cvstime_t skew_vulnerable = 0;
 unsigned int total_revisions = 0;
 
@@ -181,7 +179,7 @@ revision	: NUMBER date author state branches next revtrailer
 			$$->commitid = $7;
 			if ($$->commitid == NULL && skew_vulnerable < $$->date)
 			    skew_vulnerable = $$->date;
-			hash_version(&context, $$);
+			hash_version(&this_file->nodehash, $$);
 			++this_file->nversions;
 			
 		  }
@@ -206,7 +204,7 @@ numbers		: NUMBER numbers
 				    "gram.y::numbers");
 			$$->next = $2;
 			$$->number = $1;
-			hash_branch(&context, $$);
+			hash_branch(&this_file->nodehash, $$);
 		  }
 		|
 		  { $$ = NULL; }
@@ -246,7 +244,7 @@ patch		: NUMBER log text
 			} else
 				$$->log = $2;
 		    $$->text = $3;
-		    hash_patch(&context, $$);
+		    hash_patch(&this_file->nodehash, $$);
 		  }
 		;
 log		: LOG DATA
