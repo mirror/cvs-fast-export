@@ -24,16 +24,13 @@
 cvstime_t skew_vulnerable = 0;
 unsigned int total_revisions = 0;
 
-/*
- * For an explanation of the black magic used here, see:
- * http://www.lemoda.net/c/reentrant-parser/
- */
-
 extern int yyerror(yyscan_t, cvs_file *, char *);
+
+YY_DECL;
 %}
 
 %define api.pure full
-%lex-param {yyscan_t scanner}
+%lex-param {yyscan_t scanner} {cvs_file *cvsfile}
 %parse-param {yyscan_t scanner} {cvs_file *cvsfile}
 
 %union {

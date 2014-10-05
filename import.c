@@ -28,8 +28,6 @@
  * the entire CVS history of a collection.
  */
 
-cvs_file	*this_file;
-
 static int load_current_file;
 static int err;
 
@@ -39,6 +37,7 @@ rev_list_file(char *name, const bool generate, bool enable_keyword_expansion)
     rev_list	*rl;
     struct stat	buf;
     yyscan_t scanner;
+    cvs_file	*this_file;
 
     yylex_init(&scanner);
     yyset_in(fopen(name, "r"), scanner);

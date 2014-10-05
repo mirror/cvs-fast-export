@@ -33,7 +33,7 @@ fast_export_sanitize(yyscan_t scanner, cvs_file *cvs);
     result = (c == EOF) ? YY_NULL : (buf[0] = c, 1); \
 }
     
-extern cvs_file	*this_file;
+YY_DECL;
 %}
 %option reentrant bison-bridge
 
@@ -65,17 +65,17 @@ extern cvs_file	*this_file;
 <INITIAL>log			return LOG;
 <INITIAL>text			BEGIN(SKIP); return TEXT;
 <SKIP>@				{
-					parse_text(&yylval->text, yyg, this_file);
+					parse_text(&yylval->text, yyg, cvs);
 					BEGIN(INITIAL);
 					return TEXT_DATA;
 				}
 <CONTENT>[-a-zA-Z_+%][-a-zA-Z_0-9+/%=.~^\\*?#!\[\]()<>]* {
-					fast_export_sanitize(yyg, this_file);
+					fast_export_sanitize(yyg, cvs);
 					yylval->s = atom(yytext);
 					return NAME;
 				}
 <AUTHORSS>[-a-zA-Z_0-9+%][-a-zA-Z_0-9+/%=.~^\\*?]* {
-					fast_export_sanitize(yyg, this_file);
+					fast_export_sanitize(yyg, cvs);
 					yylval->s = atom(yytext);
 					return NAME;
 				}
@@ -115,7 +115,7 @@ extern cvs_file	*this_file;
 1				return BRAINDAMAGED_NUMBER;
 .				{ 
 				    fprintf(stderr, "%s: (%d) ignoring %c\n", 
-					this_file->master_name, yylineno,
+					cvs->master_name, yylineno,
 					yytext[0]);
 				}
 %%
