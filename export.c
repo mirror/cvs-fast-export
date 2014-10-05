@@ -257,11 +257,24 @@ static char *export_filename(rev_file *file, const bool ignoreconv)
 void export_wrap(void)
 /* clean up after export, removing the blob storage */
 {
-    char cmdbuf[PATH_MAX];
-    (void)fputs("done\n", stdout);
-    (void)snprintf(cmdbuf, sizeof(cmdbuf), "rm -r %s", blobdir);
-    if (system(cmdbuf))
-	fatal_error("blob directory deletion failed");
+    (void) puts("done");
+
+    /* Remove files and directories in the order created */
+    while (seqno) {
+        char *path = blobfile(seqno, false);
+        (void) unlink(path);
+        int len = strlen(path);
+        if (len > 3 && path[len-3] == '/'
+                    && path[len-2] == '='
+                    && path[len-1] == '0') {
+            path[len-3] = '\0';
+            (void) rmdir(path);
+        }
+        seqno--;
+    }
+
+    if (rmdir(blobdir) == -1)
+	perror(blobdir);
 }
 
 static const char *utc_offset_timestamp(const time_t *timep, const char *tz)
