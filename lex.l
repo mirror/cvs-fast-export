@@ -1,4 +1,3 @@
-%option reentrant bison-bridge
 %{
 /*
  *  Copyright © 2006 Keith Packard <keithp@keithp.com>
@@ -36,6 +35,8 @@ fast_export_sanitize(yyscan_t scanner, cvs_file *cvs);
     
 extern cvs_file	*this_file;
 %}
+%option reentrant bison-bridge
+
 %s CONTENT SKIP COMMIT PERM REVISION FNAME SKIPTOSEMI AUTHORSS
 %%
 <INITIAL>head			BEGIN(CONTENT); return HEAD;
