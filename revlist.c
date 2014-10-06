@@ -765,6 +765,7 @@ rev_list_merge(rev_list *head)
     rl->heads = rev_ref_tsort(rl->heads, head);
     if (!rl->heads) {
 	free(refs);
+	/* coberity[leaked_storage] */
 	return NULL;
     }
     progress_end(NULL);

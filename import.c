@@ -40,6 +40,7 @@ rev_list_file(const char *name, const bool generate, bool enable_keyword_expansi
     cvs_file	*this_file;
 
     yylex_init(&scanner);
+    /* coverity[leaked_storage] */
     yyset_in(fopen(name, "r"), scanner);
     if (!yyget_in(scanner)) {
 	perror(name);

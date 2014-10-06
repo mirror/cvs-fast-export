@@ -784,15 +784,15 @@ load_text(const cvs_text *text)
         fatal_system_error("open: %s", text->filename);
     if (fstat(fd, &st) == -1)
         fatal_system_error("fstat: %s", text->filename);
-    if (st.st_size > SIZE_MAX)
-        fatal_error("%s: too big", text->filename);
-    size = st.st_size;
-    base = mmap(NULL, size, PROT_READ, MAP_SHARED, fd, 0);
 #if 0
     /* Coverity points out this always succeeds */
+    if (st.st_size > SIZE_MAX)
+        fatal_error("%s: too big", text->filename);
+#endif
+    size = st.st_size;
+    base = mmap(NULL, size, PROT_READ, MAP_SHARED, fd, 0);
     if (base == MAP_FAILED)
         fatal_system_error("mmap: %s %zu", text->filename, size);
-#endif
     close(fd);
 
     if (i == NMAPS) {

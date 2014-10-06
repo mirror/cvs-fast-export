@@ -91,13 +91,15 @@ void* xcalloc(size_t nmemb, size_t size, char const *legend)
 
 void* xrealloc(void *ptr, size_t size, char const *legend)
 {
-        void *ret = realloc(ptr, size);
-        if (!ret && !size)
-                ret = realloc(ptr, 1);
-        if (!ret)
-	    fatal_system_error("Out of memory, realloc(%zd) failed in %s",
-			       size, legend);
-        return ret;
+    void *ret = realloc(ptr, size);
+#ifdef __COVERITY__
+    if (!ret && !size)
+	ret = realloc(ptr, 1);
+#endif /* __COVERITY__ */
+    if (!ret)
+	fatal_system_error("Out of memory, realloc(%zd) failed in %s",
+			   size, legend);
+    return ret;
 }
 
 /*
