@@ -282,7 +282,7 @@ static const char *utc_offset_timestamp(const time_t *timep, const char *tz)
     static char outbuf[BUFSIZ];
     struct tm *tm;
     char tzbuf[BUFSIZ];
-    /* coverity[tainted_data] */
+    /* coverity[tainted_string_return_content] */
     char *oldtz = getenv("TZ");
 
     // make a copy in case original is clobbered

@@ -72,8 +72,10 @@ void* xmemalign(size_t align, size_t size, char const *legend)
 void* xmalloc(size_t size, char const *legend)
 {
     void *ret = malloc(size);
+#ifndef __COVERITY__
     if (!ret && !size)
 	ret = malloc(1);
+#endif /* __COVERITY__ */
     if (!ret)
 	fatal_system_error("Out of memory, malloc(%zd) failed in %s",
 			   size, legend);
@@ -92,7 +94,7 @@ void* xcalloc(size_t nmemb, size_t size, char const *legend)
 void* xrealloc(void *ptr, size_t size, char const *legend)
 {
     void *ret = realloc(ptr, size);
-#ifdef __COVERITY__
+#ifndef __COVERITY__
     if (!ret && !size)
 	ret = realloc(ptr, 1);
 #endif /* __COVERITY__ */

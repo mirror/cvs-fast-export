@@ -880,6 +880,7 @@ static void process_delta(node_t *node, enum stringwork func)
     case ENTER:
 	while ( (ptr=in_get_line()) )
 	    insertline(editline++, ptr);
+	/* coverity[fallthrough] */
     case EDIT:
 	dc.dafter = dc.adprev = 0;
 	while ((editor_command = parse_next_delta_command(&dc)) >= 0) {
