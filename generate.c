@@ -788,8 +788,11 @@ load_text(const cvs_text *text)
         fatal_error("%s: too big", text->filename);
     size = st.st_size;
     base = mmap(NULL, size, PROT_READ, MAP_SHARED, fd, 0);
+#if 0
+    /* Coverity points out this always succeeds */
     if (base == MAP_FAILED)
         fatal_system_error("mmap: %s %zu", text->filename, size);
+#endif
     close(fd);
 
     if (i == NMAPS) {

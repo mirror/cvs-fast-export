@@ -156,20 +156,20 @@ static int compare_rev_file(const void *a, const void *b)
 static int	    sds = 0;
 static rev_dir **rds = NULL;
 
-/* Puts an entry into the rds buffer, growing if needed */
 static void
 rds_put(int index, rev_dir *rd)
+/* puts an entry into the rds buffer, growing if needed */
 {
-	if (sds == 0) {
-		sds = 128;
-		rds = xmalloc(sds * sizeof *rds, __func__);
-	} else {
-		while (sds <= index) {
-			sds *= 2;
-		}
-		rds = xrealloc(rds, sds * sizeof *rds, __func__);
+    if (sds == 0) {
+	sds = 128;
+	rds = xmalloc(sds * sizeof(rev_dir *), __func__);
+    } else {
+	while (sds <= index) {
+	    sds *= 2;
 	}
-	rds[index] = rd;
+	rds = xrealloc(rds, sds * sizeof(rev_dir *), __func__);
+    }
+    rds[index] = rd;
 }
 
 /* entry points begin here */

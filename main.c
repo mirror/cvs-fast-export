@@ -192,7 +192,7 @@ main(int argc, char **argv)
     bool	    force_dates = false;
     time_t	    start_time;
     char	    *branch_prefix = "refs/heads/";
-    bool	    enable_keyword_expansion;
+    bool	    enable_keyword_expansion = false;
 
 #if defined(__GLIBC__)
     /* 

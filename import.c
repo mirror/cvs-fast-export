@@ -44,6 +44,7 @@ rev_list_file(const char *name, const bool generate, bool enable_keyword_expansi
     if (!yyget_in(scanner)) {
 	perror(name);
 	++err;
+	yylex_destroy(scanner);
 	return NULL;
     }
     //yyset_lineno(0, scanner);
