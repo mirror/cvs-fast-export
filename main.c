@@ -192,6 +192,7 @@ main(int argc, char **argv)
     bool	    force_dates = false;
     time_t	    start_time;
     char	    *branch_prefix = "refs/heads/";
+    bool	    promiscuous = false;
     bool	    enable_keyword_expansion = false;
 
 #if defined(__GLIBC__)
@@ -221,11 +222,12 @@ main(int argc, char **argv)
             { "remote",             1, 0, 'e' },
             { "strip",              1, 0, 's' },
             { "progress",           0, 0, 'p' },
+            { "promiscuous",        0, 0, 'P' },
             { "incremental",        1, 0, 'i' },
             { "branchorder",        0, 0, 'B' },	/* undocumented */
 	    { "sizes",              0, 0, 'S' },	/* undocumented */
 	};
-	int c = getopt_long(argc, argv, "+hVw:grvA:R:Tke:s:pi:BS", options, NULL);
+	int c = getopt_long(argc, argv, "+hVw:grvA:R:Tke:s:pPi:BS", options, NULL);
 	if (c < 0)
 	    break;
 	switch(c) {
@@ -245,6 +247,7 @@ main(int argc, char **argv)
                    " -e --remote                     Relocate branches to refs/remotes/REMOTE\n"
                    " -s --strip                      Strip the given prefix instead of longest common prefix\n"
 		   " -p --progress                   Enable load-status reporting\n"
+		   " -P --promiscuous                Process files without ,v extension\n"
 		   " -v --verbose                    Show verbose progress messages\n"
 		   " -i --incremental TIME           Incremental dump beginning after specified RFC3339-format time.\n"
 		   "\n"
@@ -315,6 +318,7 @@ main(int argc, char **argv)
 
     /* build CVS structures by parsing masters; may read stdin */
     head = analyze_masters(argc, argv,
+			   promiscuous,
 			   enable_keyword_expansion,
 			   exec_mode == ExecuteExport,
 			   verbose,

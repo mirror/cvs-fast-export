@@ -429,6 +429,7 @@ void discard_tags(void);
 
 rev_list *
 analyze_masters(int argc, char *argv[0], 
+		const bool promiscuous,
 		const bool enable_keyword_expansion,
 		const bool generate,
 		const bool verbose,

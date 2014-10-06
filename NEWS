@@ -1,5 +1,7 @@
 		cvs-fast-export project news
 
+Repository head
+    Files not ending with ,v are now ignored unless the new -P option is on.
 
 1.19: 2014-10-04
     Dramatic speedups in some bottlneck functions.
