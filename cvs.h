@@ -429,9 +429,10 @@ void discard_tags(void);
 
 rev_list *
 analyze_masters(int argc, char *argv[0], 
-		bool enable_keyword_expansion,
-		bool generate, time_t fromtime, 
-		bool verbose, int *total_files, int *err);
+		const bool enable_keyword_expansion,
+		const bool generate,
+		const bool verbose,
+		int *total_files, int *err);
 
 bool
 cvs_is_head(cvs_number *n);

@@ -39,7 +39,9 @@ static pthread_mutex_t progress_mutex = PTHREAD_MUTEX_INITIALIZER;
 #endif /* THREADS */
 
 static rev_list *
-rev_list_file(const char *name, const bool generate, bool enable_keyword_expansion)
+rev_list_file(const char *name, 
+	      const bool generate, 
+	      const bool enable_keyword_expansion)
 {
     rev_list	*rl;
     struct stat	buf;
@@ -131,9 +133,10 @@ static void load_status_next(void)
 }
 
 rev_list *analyze_masters(int argc, char *argv[], 
-			  bool enable_keyword_expansion,
-			  bool generate, time_t fromtime, 
-			  bool verbose, int *filecount, int *err)
+			  const bool enable_keyword_expansion, 
+			  const bool generate,
+			  const bool verbose, 
+			  int *filecount, int *err)
 /* main entry point; collect and parse CVS masters */
 {
     rev_filename    *fn_head = NULL, **fn_tail = &fn_head, *fn;

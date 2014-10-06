@@ -316,7 +316,8 @@ main(int argc, char **argv)
     /* build CVS structures by parsing masters; may read stdin */
     head = analyze_masters(argc, argv,
 			   enable_keyword_expansion,
-			   exec_mode == ExecuteExport, fromtime, verbose,
+			   exec_mode == ExecuteExport,
+			   verbose,
 			   &load_total_files, &err);
 
     /* commit set coalescence happens here */
