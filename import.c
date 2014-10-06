@@ -136,7 +136,7 @@ rev_list *analyze_masters(int argc, char *argv[],
 	if (argc < 2) {
 	    int l;
 	    /* coverity[tainted_data] Safe, never handed to exec */
-	    if (fgets(name, sizeof(name) - 1, stdin) == NULL)
+	    if (fgets(name, sizeof(name), stdin) == NULL)
 		break;
 	    l = strlen(name);
 	    if (name[l-1] == '\n')
