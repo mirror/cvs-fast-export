@@ -18,6 +18,9 @@
 #include <unistd.h>
 #include <sys/stat.h>
 #include <sys/types.h>
+#ifdef THREADS
+#include <pthread.h>
+#endif /* THREADS */
 
 #include "cvs.h"
 #include "gram.h"
@@ -30,6 +33,10 @@
 
 static int load_current_file;
 static int err;
+
+#ifdef THREADS
+static pthread_mutex_t progress_mutex = PTHREAD_MUTEX_INITIALIZER;
+#endif /* THREADS */
 
 static rev_list *
 rev_list_file(const char *name, const bool generate, bool enable_keyword_expansion)
@@ -92,7 +99,7 @@ typedef struct _rev_filename {
 
 #define PROGRESS_LEN	20
 
-static void load_status(const char *name, int load_total_files)
+static void load_status(const char *name, int load_total_files, bool complete)
 {
     int	spot = load_current_file * PROGRESS_LEN / load_total_files;
     int	    s;
@@ -101,16 +108,25 @@ static void load_status(const char *name, int load_total_files)
     l = strlen(name);
     if (l > 35) name += l - 35;
 
-    fprintf(STATUS, "\rLoad: %35.35s ", name);
+#ifdef THREADS
+    pthread_mutex_lock(&progress_mutex);
+#endif /* THREADS */
+    if (complete)
+	fprintf(STATUS, "\rDone: %35.35s ", name);
+    else
+	fprintf(STATUS, "\rLoad: %35.35s ", name);
     for (s = 0; s < PROGRESS_LEN + 1; s++)
 	putc(s == spot ? '*' : '.', STATUS);
     fprintf(STATUS, " %5d of %5d ", load_current_file, load_total_files);
     fflush(STATUS);
+#ifdef THREADS
+    pthread_mutex_lock(&progress_mutex);
+#endif /* THREADS */
 }
 
 static void load_status_next(void)
 {
-    fprintf(STATUS, "\n");
+    fprintf(STATUS, "\r");
     fflush(STATUS);
 }
 
@@ -197,8 +213,10 @@ rev_list *analyze_masters(int argc, char *argv[],
 	if (verbose)
 	    announce("processing %s\n", fn->file);
 	if (progress)
-	    load_status(fn->file + striplen, *filecount);
+	    load_status(fn->file + striplen, *filecount, false);
 	rl = rev_list_file(fn->file, generate, enable_keyword_expansion);
+	if (progress)
+	    load_status(fn->file + striplen, *filecount, true);
 	*tail = rl;
 	tail = &rl->next;
 
