@@ -24,18 +24,19 @@ CPPFLAGS += -I. -I$(srcdir)
 CPPFLAGS += -DVERSION=\"$(VERSION)\"
 
 # Enable this for multithreading (experimental)
-CFLAGS += -pthread -DTHREADS
+CFLAGS += -pthread
+CPPFLAGS += -DTHREADS
 
 # To enable debugging of the Yacc grammar, uncomment the following line
-#CFLAGS += -DYYDEBUG=1
+#CPPFLAGS += -DYYDEBUG=1
 # To enable debugging of blob export, uncomment the following line
-#CFLAGS += -DFDEBUG=1
+#CPPFLAGS += -DFDEBUG=1
 # To enable assertions of red black trees, uncomment the following line
-#CFLAGS += -DRBDEBUG=1
+#CPPFLAGS += -DRBDEBUG=1
 # To enable debugging of CVS rev list generation, uncomment the following line
-#CFLAGS += -DCVSDEBUG=1
+#CPPFLAGS += -DCVSDEBUG=1
 # To enable debugging of order instability issues
-#CFLAGS += -DORDERDEBUG=1
+#CPPFLAGS += -DORDERDEBUG=1
 
 YFLAGS=-d
 LFLAGS=
@@ -49,14 +50,14 @@ CFLAGS += $(EXTRA_CFLAGS)
 
 # To enable blob compression, uncomment the following:
 #CFLAGS += -DZLIB
-#LDFLAGS += -lz
+#LIBS += -lz
 
 OBJS=gram.o lex.o rbtree.o main.o import.o dump.o cvsnumber.o \
 	cvsutil.o revdir.o revlist.o atom.o revcvs.o generate.o export.o \
 	nodehash.o tags.o authormap.o graph.o utils.o
 
 cvs-fast-export: $(OBJS)
-	$(CC) $(CFLAGS) $(OBJS) $(LDFLAGS) -o $@ 
+	$(CC) $(CFLAGS) $(OBJS) $(LDFLAGS) $(LIBS) -o $@
 
 $(OBJS): cvs.h
 
