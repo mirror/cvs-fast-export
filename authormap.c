@@ -8,11 +8,17 @@
 
 static cvs_author	*author_buckets[AUTHOR_HASH];
 
+static unsigned
+author_hash(const char *name)
+{
+    return (size_t)name % AUTHOR_HASH;
+}
+
 cvs_author *
-fullname(char *name)
+fullname(const char *name)
 /* return the fullname structure corresponding to a specified shortname */
 {
-    cvs_author	**bucket = &author_buckets[((unsigned long) name) % AUTHOR_HASH];
+    cvs_author	**bucket = &author_buckets[author_hash(name)];
     cvs_author	*a;
 
     for (a = *bucket; a; a = a->next)
@@ -33,20 +39,22 @@ free_author_map(void)
 
 	while ((a = *bucket)) {
 	    *bucket = a->next;
+	    free(a->full);
+	    free(a->email);
 	    free(a);
 	}
     }
 }
 
 bool
-load_author_map(char *filename)
+load_author_map(const char *filename)
 /* load author-map information from a file */
 {
     char    line[10240];
     char    *equal;
     char    *angle;
     char    *email;
-    char    *name;
+    const char *name;
     char    *full;
     FILE    *f;
     int	    lineno = 0;
@@ -94,7 +102,7 @@ load_author_map(char *filename)
         while (angle > full && angle[-1] == ' ')
 	    angle--;
 	*angle = '\0';
-	a->full = atom(full);
+	a->full = strdup(full);
 	angle = strchr(email, '>');
 	if (!angle) {
 	    announce("\"%s\", line %d: malformed email address '%s\n",
@@ -104,7 +112,7 @@ load_author_map(char *filename)
 	    return false;
 	}
 	*angle = '\0';
-	a->email = atom(email);
+	a->email = strdup(email);
 	a->timezone = NULL;
 	if (*++angle) {
 	    while (isspace((unsigned char)*angle))
@@ -118,7 +126,7 @@ load_author_map(char *filename)
 	    }
 	    a->timezone = atom(angle);
 	}
-	bucket = &author_buckets[((unsigned long) name) % AUTHOR_HASH];
+	bucket = &author_buckets[author_hash(name)];
 	a->next = *bucket;
 	*bucket = a;
     }

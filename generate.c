@@ -82,7 +82,7 @@ enum expand_mode {EXPANDKKV,	/* default form, $<key>: <value>$ */
 		  EXPANDKB,	/* old-value with no EOL normalization */
 		};
 enum expand_mode Gexpand;
-char * Glog;
+const char *Glog;
 int Gkvlen = 0;
 char* Gkeyval = NULL;
 char const *Gfilename;

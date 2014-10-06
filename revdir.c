@@ -198,7 +198,7 @@ rev_free_dirs(void)
 rev_dir **
 rev_pack_files(rev_file **files, int nfiles, int *ndr)
 {
-    char    *dir = 0;
+    const char *dir = 0;
     char    *slash;
     int	    dirlen = 0;
     int	    i;

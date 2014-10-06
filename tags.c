@@ -11,7 +11,7 @@ static Tag *table[4096];
 
 Tag *all_tags;
 
-static int tag_hash(char *name)
+static int tag_hash(const char *name)
 /* return the hash code for a specified tag */ 
 {
     uintptr_t l = (uintptr_t)name;
@@ -23,7 +23,7 @@ static int tag_hash(char *name)
     return res & 4095;
 }
 
-static Tag *find_tag(char *name)
+static Tag *find_tag(const char *name)
 /* look up a tag by name */
 {
     int hash = tag_hash(name);
@@ -40,7 +40,7 @@ static Tag *find_tag(char *name)
     return tag;
 }
 
-void tag_commit(cvs_commit *c, char *name, cvs_file *cvsfile)
+void tag_commit(cvs_commit *c, const char *name, cvs_file *cvsfile)
 /* add a CVS commit to the list associated with a named tag */
 {
     Tag *tag = find_tag(name);

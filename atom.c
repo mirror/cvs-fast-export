@@ -43,7 +43,7 @@ generate_crc32_table(void)
 }
 
 static crc32_t
-crc32 (char *string)
+crc32 (const char *string)
 {
     crc32_t		crc32 = ~0;
     unsigned char	c;
@@ -72,7 +72,7 @@ static pthread_mutex_t bucket_mutex = PTHREAD_MUTEX_INITIALIZER;
 #define containerof(fp, T, f) (T *)((char *)(fp) - offsetof(T, f))
 
 const bloom_t *
-atom_bloom(char *atom)
+atom_bloom(const char *atom)
 {
     hash_bucket_t *b = containerof(atom, hash_bucket_t, string);
     return &b->bloom;
@@ -99,8 +99,8 @@ make_bloom(crc32_t crc, bloom_t *b)
 }
 
 
-char *
-atom(char *string)
+const char *
+atom(const char *string)
 /* intern a string, avoiding having separate storage for duplicate copies */
 {
     crc32_t		crc = crc32 (string);

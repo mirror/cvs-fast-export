@@ -91,7 +91,7 @@ typedef enum _rbtree_color {
 } rbtree_color;
 
 typedef struct _rbtree_node {
-    void		*key;
+    const void		*key;
     void		*value;
     struct _rbtree_node	*parent;
     struct _rbtree_node	*left;
@@ -137,7 +137,7 @@ typedef struct nodehash {
 typedef struct _cvs_symbol {
     /* a CVS symbol-to-revision association */
     struct _cvs_symbol	*next;
-    char		*symbol_name;
+    const char		*symbol_name;
     cvs_number		number;
 } cvs_symbol;
 
@@ -151,10 +151,10 @@ typedef struct _cvs_branch {
 typedef struct _cvs_version {
     /* metadata of a delta within a CVS file */
     struct _cvs_version	*next;
-    char		*author;
-    char		*state;
+    const char		*author;
+    const char		*state;
     cvs_branch		*branches;
-    char		*commitid;
+    const char		*commitid;
     node_t		*node;
     cvs_number		number;
     cvstime_t		date;
@@ -173,19 +173,19 @@ typedef struct _cvs_patch {
     /* a CVS patch structure */
     struct _cvs_patch	*next;
     cvs_number		number;
-    char		*log;
+    const char		*log;
     cvs_text		text;
     node_t		*node;
 } cvs_patch;
 
 typedef struct {
     /* this represents the entire metadata content of a CVS master file */
-    char		*master_name;
+    const char		*master_name;
     cvs_symbol		*symbols;
     rbtree_node		*symbols_by_name;
     cvs_version		*versions;
     cvs_patch		*patches;
-    char 		*expand;
+    const char 		*expand;
     char		*description;
     cvs_number		head;
     cvs_number		branch;
@@ -197,7 +197,7 @@ typedef struct {
 typedef struct _rev_file {
     /* a CVS file revision state (composed from delta in a master) */
     struct _rev_file	*link;
-    char		*file_name;
+    const char		*file_name;
     cvs_number		number;
     union {
 	cvstime_t	date;
@@ -273,9 +273,9 @@ typedef struct _bloom {
 typedef struct _cvs_commit {
     /* a CVS revision */
     struct _cvs_commit	*parent;
-    char		*log;
-    char		*author;
-    char		*commitid;
+    const char		*log;
+    const char		*author;
+    const char		*commitid;
     cvstime_t		date;
     serial_t            serial;
     branchcount_t	refcount;
@@ -289,9 +289,9 @@ typedef struct _cvs_commit {
 typedef struct _git_commit {
     /* a gitspace changeset */
     struct _git_commit	*parent;
-    char		*log;
-    char		*author;
-    char		*commitid;
+    const char		*log;
+    const char		*author;
+    const char		*commitid;
     cvstime_t		date;
     serial_t            serial;
     branchcount_t	refcount;
@@ -310,7 +310,7 @@ typedef struct _rev_ref {
     struct _rev_ref	*next;
     cvs_commit		*commit;
     struct _rev_ref	*parent;	/* link into tree */
-    char		*ref_name;
+    const char		*ref_name;
     cvs_number		number;
     unsigned		depth:7;	/* depth in branching tree (1 is trunk) */
     unsigned		degree:7;	/* number of digits in original CVS version */
@@ -337,10 +337,10 @@ typedef struct _rev_diff {
 
 typedef struct _cvs_author {
     struct _cvs_author	*next;
-    char		*name;
+    const char		*name;
     char		*full;
     char		*email;
-    char		*timezone;
+    const char		*timezone;
 } cvs_author;
 
 /*
@@ -376,9 +376,9 @@ typedef struct _cvs_author {
 #define _alignof(T)  sizeof(long double)
 #endif
 
-cvs_author *fullname(char *);
+cvs_author *fullname(const char *);
 
-bool load_author_map(char *);
+bool load_author_map(const char *);
 
 typedef void *yyscan_t;
 
@@ -389,7 +389,7 @@ char *
 ctime_nonl(cvstime_t *date);
 
 cvs_number
-lex_number(char *);
+lex_number(const char *);
 
 cvstime_t
 lex_date(cvs_number *n, yyscan_t, cvs_file *cvs);
@@ -413,17 +413,17 @@ typedef struct _chunk {
 typedef struct _tag {
 	struct _tag *next;
 	struct _tag *hash_next;
-	char *name;
+	const char *name;
 	chunk_t *commits;
 	int count;
 	int left;
 	git_commit *commit;
 	rev_ref *parent;
-	char *last;
+	const char *last;
 } Tag;
 
 extern Tag *all_tags;
-void tag_commit(cvs_commit *c, char *name, cvs_file *cvsfile);
+void tag_commit(cvs_commit *c, const char *name, cvs_file *cvsfile);
 cvs_commit **tagged(Tag *tag);
 void discard_tags(void);
 
@@ -485,16 +485,17 @@ void
 dump_ref_name(FILE *f, rev_ref *ref);
 
 char *
-stringify_revision(char *name, char *sep, cvs_number *number);
+stringify_revision(const char *name, const char *sep, cvs_number *number,
+		   char *buf, size_t bufsz);
 
 void
-dump_number_file(FILE *f, char *name, cvs_number *number);
+dump_number_file(FILE *f, const char *name, cvs_number *number);
 
 void
-dump_number(char *name, cvs_number *number);
+dump_number(const char *name, cvs_number *number);
 
 void
-dump_log(FILE *f, char *log);
+dump_log(FILE *f, const char *log);
 
 void
 dump_git_commit(git_commit *e, FILE *);
@@ -509,22 +510,22 @@ void
 dump_splits(rev_list *rl);
 
 void
-dump_rev_graph(rev_list *rl, char *title);
+dump_rev_graph(rev_list *rl, const char *title);
 
 void
 dump_rev_tree(rev_list *rl, FILE *);
 
-char *
-atom(char *string);
+const char *
+atom(const char *string);
 
 const bloom_t *
-atom_bloom(char *atom);
+atom_bloom(const char *atom);
 
 void
 discard_atoms(void);
 
 rev_ref *
-rev_list_add_head(rev_list *rl, cvs_commit *commit, char *name, int degree);
+rev_list_add_head(rev_list *rl, cvs_commit *commit, const char *name, int degree);
 
 bool
 git_commit_has_file(git_commit *c, rev_file *f);
@@ -533,7 +534,7 @@ rev_diff *
 git_commit_diff(git_commit *old, git_commit *new);
 
 bool
-rev_file_list_has_filename(rev_file_list *fl, char *name);
+rev_file_list_has_filename(rev_file_list *fl, const char *name);
 
 void
 rev_diff_free(rev_diff *d);
@@ -542,7 +543,7 @@ rev_ref *
 rev_branch_of_commit(rev_list *rl, cvs_commit *commit);
 
 rev_file *
-rev_file_rev(char *name, cvs_number *n, cvstime_t date);
+rev_file_rev(const char *name, cvs_number *n, cvstime_t date);
 
 void
 rev_file_free(rev_file *f);
@@ -568,7 +569,7 @@ void
 export_init(void);
 
 bool
-export_commits(rev_list *rl, char *branch_prefix, 
+export_commits(rev_list *rl, const char *branch_prefix, 
 	       time_t fromtime, const char *revision_map,
 	       bool reposurgeon, bool force_dates, bool branchorder,
 	       bool progress);
@@ -596,12 +597,12 @@ void
 git_commit_cleanup(void);
 
 void
-rbtree_insert(rbtree_node **root, void *key, void *value,
-              int (*compare)(void* key1, void* key2));
+rbtree_insert(rbtree_node **root, const void *key, void *value,
+              int (*compare)(const void* key1, const void* key2));
 
 rbtree_node*
-rbtree_lookup(rbtree_node *root, void* key,
-              int (*compare)(void* key1, void* key2));
+rbtree_lookup(rbtree_node *root, const void* key,
+              int (*compare)(const void* key1, const void* key2));
 
 void
 rbtree_free(rbtree_node *root);

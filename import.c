@@ -32,7 +32,7 @@ static int load_current_file;
 static int err;
 
 static rev_list *
-rev_list_file(char *name, const bool generate, bool enable_keyword_expansion)
+rev_list_file(const char *name, const bool generate, bool enable_keyword_expansion)
 {
     rev_list	*rl;
     struct stat	buf;
@@ -64,7 +64,7 @@ rev_list_file(char *name, const bool generate, bool enable_keyword_expansion)
 }
 
 static int
-strcommonendingwith(char *a, char *b, char endc)
+strcommonendingwith(const char *a, const char *b, char endc)
 /* return the length of the common prefix of strings a and b ending with endc */
 {
     int c = 0;
@@ -85,12 +85,12 @@ strcommonendingwith(char *a, char *b, char endc)
 
 typedef struct _rev_filename {
     struct _rev_filename	*next;
-    char		*file;
+    const char			*file;
 } rev_filename;
 
 #define PROGRESS_LEN	20
 
-static void load_status(char *name, int load_total_files)
+static void load_status(const char *name, int load_total_files)
 {
     int	spot = load_current_file * PROGRESS_LEN / load_total_files;
     int	    s;
@@ -120,7 +120,8 @@ rev_list *analyze_masters(int argc, char *argv[],
 {
     rev_filename    *fn_head = NULL, **fn_tail = &fn_head, *fn;
     rev_list	    *head = NULL, **tail = &head, *rl;
-    char	    name[10240], *last = NULL;
+    char	    name[10240];
+    const char      *last = NULL;
     char	    *file;
     int		    nfile = 0;
     off_t	    textsize = 0;
@@ -155,21 +156,21 @@ rev_list *analyze_masters(int argc, char *argv[],
 	    textsize += stb.st_size;
 
 	fn = xcalloc(1, sizeof(rev_filename), "filename gathering");
-	fn->file = atom(file);
 	*fn_tail = fn;
 	fn_tail = &fn->next;
 	if (striplen > 0 && last != NULL) {
-	    c = strcommonendingwith(fn->file, last, '/');
+	    c = strcommonendingwith(file, last, '/');
 	    if (c < striplen)
 		striplen = c;
 	} else if (striplen < 0) {
 	    size_t i;
 
 	    striplen = 0;
-	    for (i = 0; i < strlen(fn->file); i++)
-		if (fn->file[i] == '/')
+	    for (i = 0; i < strlen(file); i++)
+		if (file[i] == '/')
 		    striplen = i + 1;
 	}
+	fn->file = atom(file);
 	last = fn->file;
 	nfile++;
 	if (progress && nfile % 100 == 0)

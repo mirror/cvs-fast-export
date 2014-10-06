@@ -157,25 +157,24 @@ cvs_number_string(cvs_number *n, char *str, size_t maxlen)
 }
 
 char *
-stringify_revision(char *name, char *sep, cvs_number *number)
+stringify_revision(const char *name, const char *sep, cvs_number *number,
+		   char *buf, size_t bufsz)
 /* stringify a revision number */
 {
-    static char result[BUFSIZ];
-
     if (name != NULL)
     {
-	if (strlen(name) >= sizeof(result) - strlen(sep) - 1)
+	if (strlen(name) >= bufsz - strlen(sep) - 1)
 	    fatal_error("filename too long");
-	strncpy(result, name, sizeof(result) - strlen(sep) - 1);
-	strcat(result, sep);
+	strncpy(buf, name, bufsz - strlen(sep) - 1);
+	strcat(buf, sep);
     }
 
     if (number)
 	cvs_number_string(number,
-			  result + strlen(result),
-			  sizeof(result) - strlen(result));
+			  buf + strlen(buf),
+			  bufsz - strlen(buf));
 
-    return result;
+    return buf;
 }
 
 /* end */

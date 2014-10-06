@@ -525,7 +525,7 @@ rev_list_free_dead_files(rev_list *rl)
 }
 
 static int
-cvs_symbol_name_compare(void *x, void *y)
+cvs_symbol_name_compare(const void *x, const void *y)
 /* compare function used for red-black tree lookup */
 {
     if (x < y)
@@ -537,7 +537,7 @@ cvs_symbol_name_compare(void *x, void *y)
 }
 
 static cvs_symbol *
-cvs_find_symbol(cvs_file *cvs, char *name)
+cvs_find_symbol(cvs_file *cvs, const char *name)
 /* return the CVS symbol corresponding to a specified name */
 {
     rbtree_node *n, **tree;
@@ -556,7 +556,7 @@ cvs_find_symbol(cvs_file *cvs, char *name)
 }
 
 static int
-rev_ref_compare(cvs_file *cvs, rev_ref *r1, rev_ref *r2)
+rev_ref_compare(cvs_file *cvs, const rev_ref *r1, const rev_ref *r2)
 /* comparison function used for topological sorting */
 {
     cvs_symbol *s1, *s2;

@@ -24,7 +24,7 @@
  */
 
 rev_ref *
-rev_list_add_head(rev_list *rl, cvs_commit *commit, char *name, int degree)
+rev_list_add_head(rev_list *rl, cvs_commit *commit, const char *name, int degree)
 /* decorate a commit list with a named head reference */
 {
     rev_ref	*r;
@@ -42,7 +42,7 @@ rev_list_add_head(rev_list *rl, cvs_commit *commit, char *name, int degree)
 }
 
 static rev_ref *
-rev_find_head(rev_list *rl, char *name)
+rev_find_head(rev_list *rl, const char *name)
 /* find a named hesd in a revlist */
 {
     rev_ref	*h;
@@ -116,7 +116,7 @@ rev_list_set_tail(rev_list *rl)
 }
 
 static rev_ref *
-rev_ref_find_name(rev_ref *h, char *name)
+rev_ref_find_name(rev_ref *h, const char *name)
 /* find a revision reference by name */
 {
     for (; h; h = h->next)
@@ -126,7 +126,7 @@ rev_ref_find_name(rev_ref *h, char *name)
 }
 
 static bool
-rev_ref_is_ready(char *name, rev_list *source, rev_ref *ready)
+rev_ref_is_ready(const char *name, rev_list *source, rev_ref *ready)
 {
     for (; source; source = source->next) {
 	rev_ref *head = rev_find_head(source, name);
@@ -873,7 +873,7 @@ rev_file_free_marked(void)
 }
 
 rev_file *
-rev_file_rev(char *name, cvs_number *n, cvstime_t date)
+rev_file_rev(const char *name, cvs_number *n, cvstime_t date)
 {
     rev_file	*f = xcalloc(1, sizeof(rev_file), "allocating file rev");
 
@@ -972,7 +972,7 @@ rev_uniq_file(git_commit *uniq, git_commit *common, int *nuniqp)
 }
 
 bool
-rev_file_list_has_filename(rev_file_list *fl, char *name)
+rev_file_list_has_filename(rev_file_list *fl, const char *name)
 {
     for (; fl; fl = fl->next)
 	if (fl->file->file_name == name)

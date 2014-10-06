@@ -227,8 +227,8 @@ rbtree_insert_fixup(rbtree_node **root, rbtree_node *z)
 }
 
 void
-rbtree_insert(rbtree_node **root, void *key, void *value,
-              int(*compare)(void* key1, void* key2))
+rbtree_insert(rbtree_node **root, const void *key, void *value,
+              int(*compare)(const void *key1, const void *key2))
 {
     rbtree_node *parent, *node, **nodep;
 
@@ -259,8 +259,8 @@ rbtree_insert(rbtree_node **root, void *key, void *value,
 }
 
 rbtree_node*
-rbtree_lookup(rbtree_node *root, void* key,
-              int(*compare)(void* key1, void* key2))
+rbtree_lookup(rbtree_node *root, const void *key,
+              int(*compare)(const void *key1, const void *key2))
 {
     rbtree_node *node;
     node = root;

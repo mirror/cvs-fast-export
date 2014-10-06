@@ -440,16 +440,16 @@ static void dump_commit(git_commit *commit, FILE *fp)
 #endif /* ORDERDEBUG */
 
 static void export_commit(git_commit *commit, 
-			  char *branch_prefix, char *branch, 
+			  const char *branch_prefix, const char *branch, 
 			  bool report, FILE *revmap,
 			  bool reposurgeon, bool force_dates)
 /* export a commit(and the blobs it is the first to reference) */
 {
 #define OP_CHUNK	32
     cvs_author *author;
-    char *full;
-    char *email;
-    char *timezone;
+    const char *full;
+    const char *email;
+    const char *timezone;
     char *revpairs = NULL;
     size_t revpairsize = 0;
     time_t ct;
@@ -511,8 +511,9 @@ static void export_commit(git_commit *commit,
 		}
 
 		if (revmap != NULL || reposurgeon) {
-		    char *fr = stringify_revision(export_filename(f, false), 
-						  " ", &f->number);
+		    char fr[BUFSIZ];
+		    stringify_revision(export_filename(f, false), 
+				  " ", &f->number, fr, sizeof fr);
 		    if (reposurgeon)
 		    {
 			if (strlen(revpairs) + strlen(fr) + 2 > revpairsize)
@@ -705,7 +706,7 @@ static int sort_by_date(const void *ap, const void *bp)
 }
 
 bool export_commits(rev_list *rl, 
-		    char *branch_prefix,
+		    const char *branch_prefix,
 		    time_t fromtime,
 		    const char *revision_map,
 		    bool reposurgeon,

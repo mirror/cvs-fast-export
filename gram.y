@@ -36,7 +36,8 @@ extern YY_DECL;	/* FIXME: once the Bison bug requiring this is fixed */
 %union {
     int		i;
     cvstime_t	date;
-    char	*s;
+    char	*s; 		/* on heap */
+    const char	*atom;
     cvs_text	text;
     cvs_number	number;
     cvs_symbol	*symbol;
@@ -59,7 +60,8 @@ extern YY_DECL;	/* FIXME: once the Bison bug requiring this is fixed */
 %token		DESC LOG TEXT STRICT AUTHOR STATE
 %token		SEMI COLON INT
 %token		BRAINDAMAGED_NUMBER
-%token <s>	HEX NAME DATA
+%token <atom>	NAME
+%token <s>	DATA
 %token <text>	TEXT_DATA
 %token <number>	NUMBER
 
@@ -70,15 +72,14 @@ extern YY_DECL;	/* FIXME: once the Bison bug requiring this is fixed */
 %type <vlist>	revisions
 %type <date>	date
 %type <branch>	branches numbers
-%type <s>	opt_commitid commitid revtrailer
-%type <s>	desc name
-%type <s>	author state
-%type <s>	deltatype
-%type <s>	group
-%type <s>	kopt
-%type <s>	owner
-%type <s>	permissions
-%type <s>	filename
+%type <atom>	opt_commitid commitid revtrailer
+%type <atom>	name
+%type <atom>	author state
+%type <atom>	deltatype
+%type <atom>	group
+%type <atom>	owner
+%type <atom>	permissions
+%type <atom>	filename
 %type <number>	mergepoint
 %type <number>	next opt_number
 %type <patch>	patch
@@ -88,6 +89,10 @@ extern YY_DECL;	/* FIXME: once the Bison bug requiring this is fixed */
 %%
 file		: headers revisions desc patches
 		  {
+			/* The description text (if any) is only used
+			 * for empty log messages in the 'patch' production */
+		  	free(cvsfile->description);
+		  	cvsfile->description = NULL;
 		  }
 		;
 headers		: header headers
@@ -102,6 +107,7 @@ header		: HEAD opt_number SEMI
 		  { cvsfile->symbols = $1; }
 		| LOCKS locks SEMI lock_type
 		| COMMENT DATA SEMI
+		  { free($2); }
 		| EXPAND DATA SEMI
 		  { cvsfile->expand = $2; }
 		;
@@ -234,14 +240,17 @@ patch		: NUMBER log text
 		  { $$ = xcalloc (1, sizeof (cvs_patch), "gram.y::patch");
 		    $$->number = $1;
 			if (!strcmp($2, "Initial revision\n")) {
+				/* description is available because the
+				 * desc production has already been reduced */
 				if (strlen(cvsfile->description) == 0)
-					$$->log = strdup("*** empty log message ***\n");
+					$$->log = atom("*** empty log message ***\n");
 				else
-					$$->log = cvsfile->description;
+					$$->log = atom(cvsfile->description);
 			} else
-				$$->log = $2;
+				$$->log = atom($2);
 		    $$->text = $3;
 		    hash_patch(&cvsfile->nodehash, $$);
+		    free($2);
 		  }
 		;
 log		: LOG DATA
@@ -257,9 +266,8 @@ group		: GROUP NAME SEMI
 			{ $$ = $2; }
 		;
 kopt		: KOPT DATA SEMI
-			{ $$ = $2; }
+			{ free($2); }
                 | KOPT SEMI
-			{ $$ = NULL; }
 		;
 owner		: OWNER NAME SEMI
 			{ $$ = $2; }
@@ -276,7 +284,10 @@ mergepoint	: MERGEPOINT NUMBER SEMI
 hardlinks	: HARDLINKS strings SEMI
 		;
 
-strings		: DATA strings | /* empty*/;
+strings		: DATA strings 
+			{ free($1); }
+		| /* empty*/
+		;
 %%
 
 int yyerror(yyscan_t scanner, cvs_file *cvs, char *msg)

@@ -71,20 +71,20 @@ YY_DECL;
 				}
 <CONTENT>[-a-zA-Z_+%][-a-zA-Z_0-9+/%=.~^\\*?#!\[\]()<>]* {
 					fast_export_sanitize(yyg, cvs);
-					yylval->s = atom(yytext);
+					yylval->atom = atom(yytext);
 					return NAME;
 				}
 <AUTHORSS>[-a-zA-Z_0-9+%][-a-zA-Z_0-9+/%=.~^\\*?]* {
 					fast_export_sanitize(yyg, cvs);
-					yylval->s = atom(yytext);
+					yylval->atom = atom(yytext);
 					return NAME;
 				}
 <PERM>[0-9]+ {
-					yylval->s = atom(yytext);
+					yylval->atom = atom(yytext);
 					return NAME;
 				}
 <COMMIT>[0-9a-zA-Z]+		{
-					yylval->s = atom(yytext);
+					yylval->atom = atom(yytext);
 					return NAME;
 				}
 <REVISION>[0-9]+\.[0-9.]*			{
@@ -92,7 +92,7 @@ YY_DECL;
 					return NUMBER;
 				}
 <FNAME>[^;]* {
-	yylval->s = atom(yytext);
+	yylval->atom = atom(yytext);
 	return NAME;
 }
 [0-9]+\.[0-9.]*			{
@@ -159,6 +159,12 @@ static void varbuf_free(struct varbuf *buf) {
 	}
 }
 
+static char *varbuf_dup(struct varbuf *buf, const char *legend) {
+	char *dup = xmalloc(buf->cur, legend);
+	memcpy(dup, buf->string, buf->cur);
+	return dup;
+}
+
 static char *
 parse_data(yyscan_t scanner)
 {
@@ -179,7 +185,7 @@ parse_data(yyscan_t scanner)
     }
     ungetc(c, yyget_in(scanner));
     varbuf_add(&buf, '\0');
-    ret = atom(buf.string);
+    ret = varbuf_dup(&buf, "parse_data");
     varbuf_free(&buf);
     return ret;
 }
@@ -190,7 +196,7 @@ parse_text(cvs_text *text, yyscan_t scanner, cvs_file *cvs)
     int c;
     size_t length;
 
-    text->filename = atom(cvs->master_name);
+    text->filename = cvs->master_name;
     text->offset = ftell(yyget_in(scanner)) - 1;
     length = 1;
 
@@ -229,20 +235,20 @@ parse_data_until_newline(yyscan_t scanner)
     }
     ungetc(c, yyget_in(scanner));
     varbuf_add(&buf, '\0');
-    ret = atom(buf.string);
+    ret = varbuf_dup(&buf, "parse_data_until_newline");
     varbuf_free(&buf);
     return ret;
 }
 
 cvs_number
-lex_number(char *s)
+lex_number(const char *s)
 {
     cvs_number	n;
-    char	*next;
+    const char	*next;
 
     n.c = 0;
     while (*s) {
-	n.n[n.c] = (int)strtol(s, &next, 10);
+	n.n[n.c] = (int)strtol(s, (char **)&next, 10);
 	if (next == s)
 	    break;
 	if (*next == '.')

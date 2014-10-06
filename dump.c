@@ -27,14 +27,16 @@
 #include <unistd.h>
 
 void
-dump_number_file(FILE *f, char *name, cvs_number *number)
+dump_number_file(FILE *f, const char *name, cvs_number *number)
 /* dump a filename/CVS-version pair to a specified file pointer */
 {
-    fputs(stringify_revision(name, " ", number), f);
+    char buf[BUFSIZ];
+
+    fputs(stringify_revision(name, " ", number, buf, sizeof buf), f);
 }
 
 void
-dump_number(char *name, cvs_number *number)
+dump_number(const char *name, cvs_number *number)
 /* dump a filename/CVS-version pair to standard output */
 {
     dump_number_file(stdout, name, number);
