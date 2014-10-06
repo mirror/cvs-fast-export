@@ -132,6 +132,87 @@ static void load_status_next(void)
     fflush(STATUS);
 }
 
+#if defined(THREADS) && defined(__FUTURE__) 
+#define THREAD_POOL_SIZE	8
+
+struct threadslot {
+    pthread_t	pt;
+    bool	active;
+    const char	*filename;
+    bool	generate;
+    bool	enable_keyword_expansion;
+    rev_list    *revlist;
+};
+
+static volatile int total, unprocessed;
+static pthread_mutex_t finished_mutex = PTHREAD_MUTEX_INITIALIZER;
+static pthread_cond_t any_thread_finished = PTHREAD_COND_INITIALIZER;
+
+static void *thread_monitor(void *arg)
+/* do a master analysis, to be run unside a thread */
+{
+    struct threadslot *ctrl = (struct threadslot *)arg;
+    if (progress)
+	load_status(ctrl->filename + striplen, total, false);
+    ctrl->revlist = rev_list_file(ctrl->filename,
+				  ctrl->generate,
+				  ctrl->enable_keyword_expansion);
+    ++load_current_file;
+    if (progress)
+	load_status(ctrl->filename + striplen, total, true);
+    ctrl->active = false;
+    /* counting on this to be atomic */
+    --unprocessed;
+    pthread_mutex_lock(&finished_mutex);
+    pthread_cond_signal(&any_thread_finished);
+    pthread_exit(NULL);
+}
+#endif /* THREADS */
+
+static void threaded_dispatch(rev_filename *fn_head,
+			      const int total_files,
+			      const bool enable_keyword_expansion, 
+			      const bool generate)
+/* control threaded processing of a master file list */
+{
+    struct threadslot threadslots[THREAD_POOL_SIZE];
+    int i; 
+
+    for (i = 0; i < THREAD_POOL_SIZE; i++) {
+	threadslots[i].active = false;
+	threadslots[i].generate = generate;
+	threadslots[i].enable_keyword_expansion = enable_keyword_expansion;
+    }
+    unprocessed = total_files;
+    do {
+	/* if un-dispatched masters remain, dispatch the next one */
+	if (fn_head != NULL) {
+	    for (i = 0; i < THREAD_POOL_SIZE; i++) {
+		if (!threadslots[i].active) {
+		    int retval = pthread_create(&threadslots[i].pt, 
+						NULL, thread_monitor, 
+						(void *)&threadslots[i]);
+		    if (retval == 0) {
+			threadslots[i].active = true;
+			threadslots[i].filename = fn_head->file;
+			fn_head = fn_head->next;
+			break;
+		    } else {
+			fprintf(STATUS, "Analysis thread creation failed!\n");
+			exit(0);
+		    }
+		}
+	    }
+	}
+
+	/* wait for any one of the threads to terminate */
+	pthread_cond_wait(&any_thread_finished, &finished_mutex);
+    } while (unprocessed > 0);
+
+    pthread_mutex_destroy(&progress_mutex);
+    pthread_cond_destroy(&any_thread_finished);
+}
+
 rev_list *analyze_masters(int argc, char *argv[], 
 			  const bool enable_keyword_expansion, 
 			  const bool generate,
