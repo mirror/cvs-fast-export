@@ -20,7 +20,7 @@ GCC_WARNINGS2=-Wmissing-prototypes -Wmissing-declarations
 GCC_WARNINGS3=-Wno-unused-function -Wno-unused-label -Wno-format-zero-length
 GCC_WARNINGS=$(GCC_WARNINGS1) $(GCC_WARNINGS2) $(GCC_WARNINGS3)
 CFLAGS=$(GCC_WARNINGS)
-CPPFLAGS += $(addprefix -I,$(subst :, ,$(VPATH)))
+CPPFLAGS += -I. -I$(srcdir)
 CPPFLAGS += -DVERSION=\"$(VERSION)\"
 
 # Enable this out to disable parse multithreading (experimental)
