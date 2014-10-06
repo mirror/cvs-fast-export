@@ -141,7 +141,7 @@ rev_list *analyze_masters(int argc, char *argv[],
     char	    name[10240];
     const char      *last = NULL;
     char	    *file;
-    int		    nfile = 0;
+    int		    total_files = 0;
     off_t	    textsize = 0;
     int		    j = 1;
     int		    c;
@@ -190,12 +190,12 @@ rev_list *analyze_masters(int argc, char *argv[],
 	}
 	fn->file = atom(file);
 	last = fn->file;
-	nfile++;
-	if (progress && nfile % 100 == 0)
-	    progress_jump(nfile);
+	total_files++;
+	if (progress && total_files % 100 == 0)
+	    progress_jump(total_files);
     }
-    progress_end("done, %ldKB in %d files", (long)(textsize/1024), nfile);
-    *filecount = nfile;
+    progress_end("done, %ldKB in %d files", (long)(textsize/1024), total_files);
+    *filecount = total_files;
     load_current_file = 0;
     /*
      * Analyze the files for CVS revision structure.
@@ -206,7 +206,6 @@ rev_list *analyze_masters(int argc, char *argv[],
      * of CVS commit structures (cvs_commit).
      */
     while (fn_head) {
-	
 	fn = fn_head;
 	fn_head = fn_head->next;
 	++load_current_file;
@@ -219,7 +218,6 @@ rev_list *analyze_masters(int argc, char *argv[],
 	    load_status(fn->file + striplen, *filecount, true);
 	*tail = rl;
 	tail = &rl->next;
-
 	free(fn);
     }
     if (progress)
