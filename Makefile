@@ -37,7 +37,7 @@ CPPFLAGS += -DVERSION=\"$(VERSION)\"
 # To enable debugging of order instability issues
 #CFLAGS += -DORDERDEBUG=1
 
-YFLAGS=-d -l
+YFLAGS=-d
 LFLAGS=
 
 # To enable profiling, uncomment the following line
