@@ -69,7 +69,7 @@ void save_status_end(time_t start_time)
 	struct rusage rusage;
 
 	(void)getrusage(RUSAGE_SELF, &rusage);
-	progress_end("100%%, %d commits in %dsec(%d commits/sec) using %ldKb.",
+	progress_end("100%%, %d commits in %dsec (%d commits/sec) using %ldKb.",
 		     export_total_commits,
 		     (int)elapsed,
 		     (int)(export_total_commits / (elapsed > 0 ? elapsed : 1)),
