@@ -167,7 +167,6 @@ static void *thread_monitor(void *arg)
     pthread_cond_signal(&any_thread_finished);
     pthread_exit(NULL);
 }
-#endif /* THREADS */
 
 static void threaded_dispatch(rev_filename *fn_head,
 			      const int total_files,
@@ -212,8 +211,10 @@ static void threaded_dispatch(rev_filename *fn_head,
     pthread_mutex_destroy(&progress_mutex);
     pthread_cond_destroy(&any_thread_finished);
 }
+#endif /* THREADS */
 
 rev_list *analyze_masters(int argc, char *argv[], 
+			  const bool promiscuous,
 			  const bool enable_keyword_expansion, 
 			  const bool generate,
 			  const bool verbose, 
@@ -254,6 +255,12 @@ rev_list *analyze_masters(int argc, char *argv[],
 	    continue;
 	else if (S_ISDIR(stb.st_mode) != 0)
 	    continue;
+	else if (!promiscuous)
+	{
+	    char *end = file + strlen(file);
+	    if (end - file < 2 || end[-1] != 'v' || end[-2] != ',')
+		continue;
+	}
 	else
 	    textsize += stb.st_size;
 
