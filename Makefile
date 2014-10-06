@@ -23,7 +23,7 @@ CFLAGS=$(GCC_WARNINGS)
 CPPFLAGS += -I. -I$(srcdir)
 CPPFLAGS += -DVERSION=\"$(VERSION)\"
 
-# Enable this out to disable parse multithreading (experimental)
+# Enable this for multithreading (experimental)
 #CFLAGS += -pthread -DTHREADS
 
 # To enable debugging of the Yacc grammar, uncomment the following line
