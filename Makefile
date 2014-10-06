@@ -23,6 +23,9 @@ CFLAGS=$(GCC_WARNINGS)
 CPPFLAGS += $(addprefix -I,$(subst :, ,$(VPATH)))
 CPPFLAGS += -DVERSION=\"$(VERSION)\"
 
+# Enable this out to disable parse multithreading (experimental)
+#CFLAGS += -pthread -DTHREADS
+
 # To enable debugging of the Yacc grammar, uncomment the following line
 #CFLAGS += -DYYDEBUG=1
 # To enable debugging of blob export, uncomment the following line

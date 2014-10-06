@@ -18,7 +18,9 @@
 
 #include "cvs.h"
 #include <stdint.h>
+#ifdef THREADS
 #include <pthread.h>
+#endif /* THREADS */
 
 typedef uint32_t	crc32_t;
 
@@ -62,7 +64,9 @@ typedef struct _hash_bucket {
 } hash_bucket_t;
 
 static hash_bucket_t	*buckets[HASH_SIZE];
+#ifdef THREADS
 static pthread_mutex_t bucket_mutex = PTHREAD_MUTEX_INITIALIZER;
+#endif /* THREADS */
 
 #define offsetof(T, f)  (size_t)(&((T *)0)->f)
 #define containerof(fp, T, f) (T *)((char *)(fp) - offsetof(T, f))
@@ -110,9 +114,13 @@ collision:
 	    return b->string;
 	head = &(b->next);
     }
+#ifdef THREADS
     pthread_mutex_lock(&bucket_mutex);
+#endif /* THREADS */
     if ((b = *head)) {
+#ifdef THREADS
 	pthread_mutex_unlock(&bucket_mutex);
+#endif /* THREADS */
 	goto collision;
     }
 
@@ -122,7 +130,9 @@ collision:
     make_bloom(crc, &b->bloom);
     memcpy(b->string, string, len + 1);
     *head = b;
+#ifdef THREADS
     pthread_mutex_unlock(&bucket_mutex);
+#endif /* THREADS */
     return b->string;
 }
 
@@ -133,13 +143,17 @@ discard_atoms(void)
     hash_bucket_t	**head, *b;
     int			i;
 
+#ifdef THREADS
     pthread_mutex_lock(&bucket_mutex);
+#endif /* THREADS */
     for (i = 0; i < HASH_SIZE; i++)
 	for (head = &buckets[i]; (b = *head);) {
 	    *head = b->next;
 	    free(b);
 	}
+#ifdef THREADS
     pthread_mutex_unlock(&bucket_mutex);
+#endif /* THREADS */
 }
 
 /* end */
