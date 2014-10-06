@@ -307,6 +307,7 @@ static char const * getfullRCSname(void)
     wdbuf = xmalloc(wdbuflen, "getcwd");
     while (!getcwd(wdbuf, wdbuflen)) {
 	if (errno == ERANGE)
+	    /* coverity[leaked_storage] */
 	    xrealloc(wdbuf, wdbuflen<<1, "getcwd");
 	else 
 	    fatal_system_error("getcwd");
@@ -473,8 +474,11 @@ static void keyreplace(enum markers marker)
 
     out_printf("%c%s", KDELIM, kw);
 
+    /* bug: Locker expansion is not implemented */
     if (exp != EXPANDKK) {
-	const char *target_lockedby = NULL;	// Not wired in yet
+#ifdef __UNUSED__
+	const char *target_lockedby = NULL;
+#endif /* __UNUSED__ */
 
 	if (exp != EXPANDKV)
 	    out_printf("%c%c", VDELIM, ' ');
@@ -495,12 +499,16 @@ static void keyreplace(enum markers marker)
 	    out_printf(" %s %s %s %s",
 		       Gversion_number, date_string,
 		       Gversion->author, Gversion->state);
+#ifdef __UNUSED__
 	    if (target_lockedby && exp == EXPANDKKVL)
 		out_printf(" %s", target_lockedby);
+#endif /* __UNUSED__ */
 	    break;
 	case Locker:
+#ifdef __UNUSED__
 	    if (target_lockedby && exp == EXPANDKKVL)
 		out_fputs(target_lockedby);
+#endif /* __UNUSED__ */
 	    break;
 	case Log:
 	case RCSfile:
