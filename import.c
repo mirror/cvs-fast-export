@@ -181,7 +181,7 @@ static pthread_mutex_t announce_mutex = PTHREAD_MUTEX_INITIALIZER;
 
 static void thread_announce(char const *format,...)
 {
-    if (debug) {
+    if (verbose) {
 	va_list args;
 
 	pthread_mutex_lock(&announce_mutex);
@@ -208,9 +208,6 @@ static void *thread_monitor(void *arg)
     if (progress)
 	load_status(slot->filename + striplen, total_files, false);
     rl = rev_list_file(slot->filename);
-    thread_announce("slot %ld: %s done (%d of %d)\n", 
-		    slot - threadslots, slot->filename,
-		    load_current_file, total_files);
     if (progress)
 	load_status(slot->filename + striplen, total_files, true);
     pthread_mutex_lock(&revlist_mutex);
@@ -219,6 +216,9 @@ static void *thread_monitor(void *arg)
     tail = &rl->next;
     pthread_mutex_unlock(&revlist_mutex);
     pthread_mutex_unlock(&slot->mutex);
+    thread_announce("slot %ld: %s done (%d of %d)\n", 
+		    slot - threadslots, slot->filename,
+		    load_current_file, total_files);
     pthread_exit(NULL);
 }
 #endif /* THREADS */
@@ -319,7 +319,7 @@ rev_list *analyze_masters(int argc, char *argv[],
     while (fn_head) {
 	fn = fn_head;
 	fn_head = fn_head->next;
-#if defined(THREADS)
+#if defined(THREADS) && defined(__FUTURE__)
 	for (;;) {
 	    for (i = 0; i < THREAD_POOL_SIZE; i++) {
 		if (pthread_mutex_trylock(&threadslots[i].mutex) == 0) {
