@@ -21,6 +21,9 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <sys/resource.h>
+#ifdef THREADS
+#include <pthread.h>
+#endif /* THREADS */
 
 /*
  * Blob compression with zlib is not enabled by default because, (a) in general,
@@ -51,6 +54,9 @@ static struct mark *markmap;
 static serial_t seqno, mark;
 static char blobdir[PATH_MAX];
 static serial_t export_total_commits;
+#ifdef THREADS
+static pthread_mutex_t seqno_mutex = PTHREAD_MUTEX_INITIALIZER;
+#endif /* THREADS */
 
 /*
  * GNU CVS default ignores.  We omit from this things that CVS ignores
@@ -156,7 +162,13 @@ void export_blob(node_t *node, void *buf, size_t len)
     
     if (seqno >= MAX_SERIAL_T)
 	fatal_error("snapshot sequence number too large, widen serial_t");
+#ifdef THREADS
+    pthread_mutex_lock(&seqno_mutex);
+#endif /* THREADS */
     node->file->serial = ++seqno;
+#ifdef THREADS
+    pthread_mutex_unlock(&seqno_mutex);
+#endif /* THREADS */
 
 #ifndef ZLIB
     wfp = fopen(blobfile(seqno, true), "w");
@@ -259,6 +271,9 @@ void export_wrap(void)
 {
     char cmdbuf[PATH_MAX];
     (void)fputs("done\n", stdout);
+#ifdef THREADS
+    pthread_mutex_destroy(&seqno_mutex);
+#endif /* THREADS */
     (void)snprintf(cmdbuf, sizeof(cmdbuf), "rm -r %s", blobdir);
     if (system(cmdbuf))
 	fatal_error("blob directory deletion failed");
