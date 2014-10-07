@@ -168,7 +168,7 @@ static void load_status_next(void)
 #define DEBUG_THREAD
 
 struct threadslot {
-    pthread_t	    pt;
+    pthread_t	    thread;
     pthread_mutex_t mutex;
     const char	    *filename;
 };
@@ -200,23 +200,23 @@ static void *thread_monitor(void *arg)
 /* do a master analysis, to be run inside a thread */
 {
     rev_list *rl;
-    struct threadslot *ctrl = (struct threadslot *)arg;
+    struct threadslot *slot = (struct threadslot *)arg;
     thread_announce("slot %ld: %s begins\n", 
-		    ctrl - threadslots, ctrl->filename);
+		    slot - threadslots, slot->filename);
     if (progress)
-	load_status(ctrl->filename + striplen, total_files, false);
-    rl = rev_list_file(ctrl->filename);
+	load_status(slot->filename + striplen, total_files, false);
+    rl = rev_list_file(slot->filename);
     thread_announce("slot %ld: %s done (%d of %d)\n", 
-		    ctrl - threadslots, ctrl->filename,
+		    slot - threadslots, slot->filename,
 		    load_current_file, total_files);
     if (progress)
-	load_status(ctrl->filename + striplen, total_files, true);
+	load_status(slot->filename + striplen, total_files, true);
     pthread_mutex_lock(&revlist_mutex);
     ++load_current_file;
     *tail = rl;
     tail = &rl->next;
     pthread_mutex_unlock(&revlist_mutex);
-    pthread_mutex_unlock(&ctrl->mutex);
+    pthread_mutex_unlock(&slot->mutex);
     pthread_exit(NULL);
 }
 #endif /* THREADS */
@@ -318,23 +318,23 @@ rev_list *analyze_masters(int argc, char *argv[],
 	fn = fn_head;
 	fn_head = fn_head->next;
 #if defined(THREADS) && defined(__FUTURE__)
-    retry:
-	for (i = 0; i < THREAD_POOL_SIZE; i++) {
-	    if (pthread_mutex_trylock(&threadslots[i].mutex) == 0) {
-		int retval = pthread_create(&threadslots[i].pt, 
-					    NULL, thread_monitor, 
-					    (void *)&threadslots[i]);
-		if (retval == 0) {
+	for (;;) {
+	    for (i = 0; i < THREAD_POOL_SIZE; i++) {
+		if (pthread_mutex_trylock(&threadslots[i].mutex) == 0) {
 		    threadslots[i].filename = fn->file;
-		    goto success;
-		} else {
-		    thread_announce("Analysis thread creation failed!\n");
-		    exit(0);
+		    j = pthread_create(&threadslots[i].thread, 
+				       NULL, thread_monitor, 
+				       (void *)&threadslots[i]);
+		    if (j == 0) {
+			goto dispatched;
+		    } else {
+			thread_announce("Analysis thread creation failed!\n");
+			exit(0);
+		    }
 		}
 	    }
 	}
-	goto retry;
-    success:
+    dispatched:
 #else
 	++load_current_file;
 	if (verbose)
@@ -358,7 +358,7 @@ rev_list *analyze_masters(int argc, char *argv[],
 #ifdef THREADS
     /* wait on all threads still running before continuing */
     for (i = 0; i < THREAD_POOL_SIZE; i++)
-	pthread_join(threadslots[i].pt, NULL);
+	pthread_join(threadslots[i].thread, NULL);
     pthread_mutex_destroy(&revlist_mutex);
     for (i = 0; i < THREAD_POOL_SIZE; i++)
 	pthread_mutex_destroy(&threadslots[i].mutex);
