@@ -136,6 +136,8 @@ static void load_status_next(void)
     fflush(STATUS);
 }
 
+#define DEBUG_THREAD
+
 #if defined(THREADS)
 #define THREAD_POOL_SIZE	8
 
@@ -145,7 +147,7 @@ struct threadslot {
     const char	*filename;
 };
 
-static volatile int total, unprocessed;
+static volatile int unprocessed;
 static pthread_mutex_t scheduler_mutex = PTHREAD_MUTEX_INITIALIZER;
 static pthread_cond_t any_thread_finished = PTHREAD_COND_INITIALIZER;
 
@@ -154,18 +156,38 @@ static void *thread_monitor(void *arg)
 {
     rev_list *rl;
     struct threadslot *ctrl = (struct threadslot *)arg;
+#ifdef DEBUG_THREAD
+    if (verbose)
+	announce("monitor processing of %s begins\n", ctrl->filename);
+#endif /* DEBUG_THREAD */
     if (progress)
-	load_status(ctrl->filename + striplen, total, false);
+	load_status(ctrl->filename + striplen, total_files, false);
     rl = rev_list_file(ctrl->filename);
     ++load_current_file;
+#ifdef DEBUG_THREAD
+    if (verbose)
+	announce("monitor processing of %s complete\n", ctrl->filename);
+#endif /* DEBUG_THREAD */
     if (progress)
-	load_status(ctrl->filename + striplen, total, true);
+	load_status(ctrl->filename + striplen, total_files, true);
+#ifdef DEBUG_THREAD
+    if (verbose)
+	announce("Waiting on scheduler mutex\n");
+#endif /* DEBUG_THREAD */
     pthread_mutex_lock(&scheduler_mutex);
+#ifdef DEBUG_THREAD
+    if (verbose)
+	announce("Acquired scheduler mutex\n");
+#endif /* DEBUG_THREAD */
     --unprocessed;
     *tail = rl;
     tail = &rl->next;
     ctrl->active = false;
     pthread_cond_signal(&any_thread_finished);
+#ifdef DEBUG_THREAD
+    if (verbose)
+	announce("Wakeup signal shipped\n");
+#endif /* DEBUG_THREAD */
     pthread_exit(NULL);
 }
 
@@ -185,8 +207,6 @@ static void threaded_dispatch(rev_filename *fn_head)
 	if (fn_head != NULL) {
 	    for (i = 0; i < THREAD_POOL_SIZE; i++) {
 		if (!threadslots[i].active) {
-		    if (verbose)
-			announce("processing of %s scheduled\n", fn->file);
 		    int retval = pthread_create(&threadslots[i].pt, 
 						NULL, thread_monitor, 
 						(void *)&threadslots[i]);
@@ -196,6 +216,8 @@ static void threaded_dispatch(rev_filename *fn_head)
 			pthread_mutex_lock(&scheduler_mutex);
 			threadslots[i].active = true;
 			threadslots[i].filename = fn->file;
+			if (verbose)
+			    announce("processing of %s scheduled\n", fn->file);
 			pthread_mutex_unlock(&scheduler_mutex);
 			free(fn);
 			break;
@@ -207,8 +229,16 @@ static void threaded_dispatch(rev_filename *fn_head)
 	    }
 	}
 
+#ifdef DEBUG_THREAD
+	if (verbose)
+	    announce("Waiting on wakeup\n");
+#endif /* DEBUG_THREAD */
 	/* wait for any one of the threads to terminate */
 	pthread_cond_wait(&any_thread_finished, &scheduler_mutex);
+#ifdef DEBUG_THREAD
+	if (verbose)
+	    announce("Wakeup signal received\n");
+#endif /* DEBUG_THREAD */
     } while (unprocessed > 0);
 
     pthread_mutex_destroy(&progress_mutex);
