@@ -223,7 +223,6 @@ rev_list *analyze_masters(int argc, char *argv[],
 /* main entry point; collect and parse CVS masters */
 {
     rev_filename    *fn_head = NULL, **fn_tail = &fn_head, *fn;
-    rev_list	    *rl;
     char	    name[10240];
     const char      *last = NULL;
     char	    *file;
@@ -304,6 +303,7 @@ rev_list *analyze_masters(int argc, char *argv[],
     threaded_dispatch(fn_head);
 #else
     while (fn_head) {
+	rev_list *rl;
 	fn = fn_head;
 	fn_head = fn_head->next;
 	++load_current_file;
