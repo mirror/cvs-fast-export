@@ -151,16 +151,18 @@ static void load_status_next(void)
  * this stage of analysis the mater files are all separate universes
  * (and will remain that way until branch merging).
  *
- * This scheduler works with a fixed-sized worker thread pool.  In each
- * work cycle, it first tries to find an unused pool slot to assign
- * the next master in the list to.  If it does, it starts a thread 
- * analyzing that master and then immediately goes back to try
- * to schedule another.
+ * Instead of running the analyses seqentially, the threaded version
+ * repeatedly tries to send each master to the worker pool until it
+ * succeeds.  If all slots in the pool have active threads, it retries
+ * (implicitly waiting for some worker thread to finish) until it can
+ * dispatch.
+
+ * After all files have been dispatched, any remainihg worker threads
+ * are joined, so execaution of thwe main program waits until thery're
+ * all done.
  *
- * When the thread pool is full, the scheduler waits for some thread
- * to signal that it has completed before going back around the loop.
- * Thus no busy-waiting is required; a new masters is dispatched 
- * exactly as soon as a thread slot becomes available.
+ * Beware of setting the worker pool size too high, the program's working set
+ * can get large due to mapping entire delta sequences into memory.
  */
 
 #define THREAD_POOL_SIZE	8
