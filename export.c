@@ -90,21 +90,20 @@ void export_init(void)
     if (tmp == NULL) 
     	tmp = "/tmp";
     seqno = mark = 0;
-    snprintf(blobdir, sizeof(blobdir), "%s/cvs-fast-export-XXXXXXXXXX", tmp);
+    snprintf(blobdir, sizeof(blobdir), "%s/cvs-fast-export-XXXXXX", tmp);
     if (mkdtemp(blobdir) == NULL)
 	fatal_error("temp dir creation failed\n");
 }
 
-static char *blobfile(int serial, bool create)
+static char *blobfile(int serial, bool create, char *path)
 /* Random-access location of the blob corresponding to the specified serial */
 {
-    static char path[PATH_MAX];
     int m;
 
 #ifdef FDEBUG
     (void)fprintf(stderr, "-> blobfile(%d, %d)...\n", serial, create);
 #endif /* FDEBUG */
-    (void)snprintf(path, sizeof(path), "%s", blobdir);
+    (void)snprintf(path, PATH_MAX, "%s", blobdir);
     /*
      * FANOUT should be chosen to be the largest directory size that does not
      * cause slow secondary allocations.  It's something near 256 on ext4
@@ -134,8 +133,9 @@ static char *blobfile(int serial, bool create)
 #ifdef FDEBUG
 		(void)fprintf(stderr, "directory: %s\n", path);
 #endif /* FDEBUG */
-		if (mkdir(path,S_IRWXU | S_IRWXG) != 0)
-		    fatal_error("blob subdir creation of %s failed\n", path);
+		errno = 0;
+		if (mkdir(path,S_IRWXU | S_IRWXG) != 0 && errno != EEXIST)
+		    fatal_error("blob subdir creation of %s failed: %s (%d)\n", path, strerror(errno), errno);
 	    }
 	}
     }
@@ -149,6 +149,7 @@ static char *blobfile(int serial, bool create)
 void export_blob(node_t *node, void *buf, size_t len)
 /* save the blob where it will be available for random access */
 {
+    char path[PATH_MAX];
     size_t extralen = 0;
 #ifndef ZLIB
     FILE *wfp;
@@ -171,16 +172,17 @@ void export_blob(node_t *node, void *buf, size_t len)
 #endif /* THREADS */
 
 #ifndef ZLIB
-    wfp = fopen(blobfile(seqno, true), "w");
+    wfp = fopen(blobfile(seqno, true, path), "w");
 #else
     /*
      * Blobs are written compressed.  This costs a little compression time,
      * but we get it back in reduced disk seeks.
      */
-    wfp = gzopen(blobfile(seqno, true), "w");
+    eerno = 0;
+    wfp = gzopen(blobfile(seqno, true, path), "w");
 #endif
     if (wfp == NULL)
-	fatal_system_error("blobfile open");
+	fatal_error("blobfile open of %s: %s (%d)", path, strerror(errno), errno);
 #ifndef ZLIB
     fprintf(wfp, "data %zd\n", len + extralen);
     if (extralen > 0)
@@ -577,7 +579,8 @@ static void export_commit(git_commit *commit,
 	{
 	    markmap[op2->serial].external = ++mark;
 	    if (report) {
-		char *fn = blobfile(op2->serial, false);
+		char path[PATH_MAX];
+		char *fn = blobfile(op2->serial, false, path);
 #ifndef ZLIB
 		FILE *rfp = fopen(fn, "r");
 #else
