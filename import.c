@@ -264,19 +264,19 @@ static void threaded_dispatch(rev_filename *fn_head)
 		    }
 		}
 	    }
-	}
 
 #ifdef DEBUG_THREAD
-	if (verbose)
-	    announce("Waiting on wakeup\n");
+	    if (verbose)
+		announce("Waiting on wakeup\n");
 #endif /* DEBUG_THREAD */
-	/* wait for any one of the threads to terminate */
-	pthread_mutex_lock(&scheduler_mutex);
-	pthread_cond_wait(&any_thread_finished, &scheduler_mutex);
+	    /* wait for any one of the threads to terminate */
+	    pthread_mutex_lock(&scheduler_mutex);
+	    pthread_cond_wait(&any_thread_finished, &scheduler_mutex);
 #ifdef DEBUG_THREAD
-	if (verbose)
-	    announce("Wakeup signal received\n");
+	    if (verbose)
+		announce("Wakeup signal received\n");
 #endif /* DEBUG_THREAD */
+	}
     } while (unprocessed > 0);
 
     pthread_mutex_destroy(&progress_mutex);
