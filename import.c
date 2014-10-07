@@ -136,15 +136,14 @@ static void load_status_next(void)
     fflush(STATUS);
 }
 
-#define DEBUG_THREAD
-
 #if defined(THREADS)
 #define THREAD_POOL_SIZE	8
 
 struct threadslot {
-    pthread_t	pt;
-    bool	active;
-    const char	*filename;
+    pthread_t	    pt;
+    pthread_mutex_t mutex;
+    bool	    active;
+    const char	    *filename;
 };
 
 static volatile int unprocessed;
@@ -172,17 +171,18 @@ static void *thread_monitor(void *arg)
 	load_status(ctrl->filename + striplen, total_files, true);
 #ifdef DEBUG_THREAD
     if (verbose)
-	announce("Waiting on scheduler mutex\n");
+	announce("Waiting on threadslot mutex\n");
 #endif /* DEBUG_THREAD */
-    pthread_mutex_lock(&scheduler_mutex);
+    pthread_mutex_lock(&ctrl->mutex);
 #ifdef DEBUG_THREAD
     if (verbose)
-	announce("Acquired scheduler mutex\n");
+	announce("Acquired threadslot mutex\n");
 #endif /* DEBUG_THREAD */
     --unprocessed;
     *tail = rl;
     tail = &rl->next;
     ctrl->active = false;
+    pthread_mutex_unlock(&ctrl->mutex);
     pthread_cond_signal(&any_thread_finished);
 #ifdef DEBUG_THREAD
     if (verbose)
@@ -200,6 +200,7 @@ static void threaded_dispatch(rev_filename *fn_head)
 
     for (i = 0; i < THREAD_POOL_SIZE; i++) {
 	threadslots[i].active = false;
+	pthread_mutex_init(&threadslots[i].mutex, NULL);
     }
     unprocessed = total_files;
     do {
@@ -213,12 +214,12 @@ static void threaded_dispatch(rev_filename *fn_head)
 		    if (retval == 0) {
 			fn = fn_head;
 			fn_head = fn_head->next;
-			pthread_mutex_lock(&scheduler_mutex);
+			pthread_mutex_lock(&threadslots[i].mutex);
 			threadslots[i].active = true;
 			threadslots[i].filename = fn->file;
 			if (verbose)
 			    announce("processing of %s scheduled\n", fn->file);
-			pthread_mutex_unlock(&scheduler_mutex);
+			pthread_mutex_unlock(&threadslots[i].mutex);
 			free(fn);
 			break;
 		    } else {
@@ -234,6 +235,7 @@ static void threaded_dispatch(rev_filename *fn_head)
 	    announce("Waiting on wakeup\n");
 #endif /* DEBUG_THREAD */
 	/* wait for any one of the threads to terminate */
+	pthread_mutex_lock(&scheduler_mutex);
 	pthread_cond_wait(&any_thread_finished, &scheduler_mutex);
 #ifdef DEBUG_THREAD
 	if (verbose)
@@ -242,6 +244,9 @@ static void threaded_dispatch(rev_filename *fn_head)
     } while (unprocessed > 0);
 
     pthread_mutex_destroy(&progress_mutex);
+    pthread_mutex_destroy(&scheduler_mutex);
+    for (i = 0; i < THREAD_POOL_SIZE; i++)
+	pthread_mutex_destroy(&threadslots[i].mutex);
     pthread_cond_destroy(&any_thread_finished);
 }
 #endif /* THREADS */
