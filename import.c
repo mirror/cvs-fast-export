@@ -173,6 +173,7 @@ static void threaded_dispatch(rev_filename *fn_head)
 /* control threaded processing of a master file list */
 {
     struct threadslot threadslots[THREAD_POOL_SIZE];
+    rev_filename *fn;
     int i; 
 
     for (i = 0; i < THREAD_POOL_SIZE; i++) {
@@ -188,11 +189,13 @@ static void threaded_dispatch(rev_filename *fn_head)
 						NULL, thread_monitor, 
 						(void *)&threadslots[i]);
 		    if (retval == 0) {
+			fn = fn_head;
+			fn_head = fn_head->next;
 			pthread_mutex_lock(&scheduler_mutex);
 			threadslots[i].active = true;
-			threadslots[i].filename = fn_head->file;
-			fn_head = fn_head->next;
+			threadslots[i].filename = fn->file;
 			pthread_mutex_unlock(&scheduler_mutex);
+			free(fn);
 			break;
 		    } else {
 			fprintf(STATUS, "Analysis thread creation failed!\n");
@@ -297,6 +300,9 @@ rev_list *analyze_masters(int argc, char *argv[],
      * CVS branch heads (rev_refs), each one of which points at a list
      * of CVS commit structures (cvs_commit).
      */
+#if defined(THREADS) && defined(__FUTURE__)
+    threaded_dispatch(fn_head);
+#else
     while (fn_head) {
 	fn = fn_head;
 	fn_head = fn_head->next;
@@ -312,6 +318,7 @@ rev_list *analyze_masters(int argc, char *argv[],
 	tail = &rl->next;
 	free(fn);
     }
+#endif /* THREADS */
     if (progress)
 	load_status_next();
     return head;
