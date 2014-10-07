@@ -36,7 +36,7 @@
  * visible.
  */
 static int total_files, load_current_file;
-static bool generate, enable_keyword_expansion; 
+static bool generate, enable_keyword_expansion, verbose;
 static rev_list	*head = NULL, **tail = &head;
 static int err;
 
@@ -185,6 +185,8 @@ static void threaded_dispatch(rev_filename *fn_head)
 	if (fn_head != NULL) {
 	    for (i = 0; i < THREAD_POOL_SIZE; i++) {
 		if (!threadslots[i].active) {
+		    if (verbose)
+			announce("processing of %s scheduled\n", fn->file);
 		    int retval = pthread_create(&threadslots[i].pt, 
 						NULL, thread_monitor, 
 						(void *)&threadslots[i]);
@@ -218,7 +220,7 @@ rev_list *analyze_masters(int argc, char *argv[],
 			  const bool promiscuous,
 			  const bool arg_enable_keyword_expansion, 
 			  const bool arg_generate,
-			  const bool verbose, 
+			  const bool arg_verbose,
 			  int *filecount, int *err)
 /* main entry point; collect and parse CVS masters */
 {
@@ -291,6 +293,7 @@ rev_list *analyze_masters(int argc, char *argv[],
     load_current_file = 0;
     enable_keyword_expansion = arg_enable_keyword_expansion;
     generate = arg_generate;
+    verbose = arg_verbose;
     /*
      * Analyze the files for CVS revision structure.
      *
