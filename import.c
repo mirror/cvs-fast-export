@@ -35,7 +35,8 @@
  * Ugh...least painful way to make some stuff that isn't thread-local
  * visible.
  */
-static int total_files, load_current_file;
+static int total_files;
+static volatile int load_current_file;
 static bool generate, enable_keyword_expansion, verbose;
 static rev_list	*head = NULL, **tail = &head;
 static int err;
@@ -173,7 +174,6 @@ struct threadslot {
     const char	    *filename;
 };
 
-static volatile int unprocessed;
 static pthread_mutex_t scheduler_mutex = PTHREAD_MUTEX_INITIALIZER;
 static pthread_cond_t any_thread_finished = PTHREAD_COND_INITIALIZER;
 
@@ -189,7 +189,6 @@ static void *thread_monitor(void *arg)
     if (progress)
 	load_status(ctrl->filename + striplen, total_files, false);
     rl = rev_list_file(ctrl->filename);
-    ++load_current_file;
 #ifdef DEBUG_THREAD
     if (verbose)
 	announce("monitor processing of %s complete\n", ctrl->filename);
@@ -205,7 +204,7 @@ static void *thread_monitor(void *arg)
     if (verbose)
 	announce("Acquired threadslot mutex\n");
 #endif /* DEBUG_THREAD */
-    --unprocessed;
+    ++load_current_file;
     *tail = rl;
     tail = &rl->next;
     ctrl->active = false;
@@ -229,7 +228,6 @@ static void threaded_dispatch(rev_filename *fn_head)
 	threadslots[i].active = false;
 	pthread_mutex_init(&threadslots[i].mutex, NULL);
     }
-    unprocessed = total_files;
     do {
     schedule_another:
 #ifdef DEBUG_THREAD
@@ -277,7 +275,7 @@ static void threaded_dispatch(rev_filename *fn_head)
 		announce("Wakeup signal received\n");
 #endif /* DEBUG_THREAD */
 	}
-    } while (unprocessed > 0);
+    } while (load_current_file < total_files);
 
     pthread_mutex_destroy(&progress_mutex);
     pthread_mutex_destroy(&scheduler_mutex);
