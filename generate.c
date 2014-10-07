@@ -702,8 +702,6 @@ uncache_exit:
     return r + e;
 }
 
-#define USE_MMAP 1
-
 #if USE_MMAP
 
 #include <fcntl.h>
@@ -711,24 +709,9 @@ uncache_exit:
 #include <sys/stat.h>
 #include <sys/types.h>
 #include <sys/mman.h>
-#ifdef THREADS
-#include <pthread.h>
-#endif /* THREADS */
-
-#ifdef THREADS
-static pthread_mutex_t mmap_mutex = PTHREAD_MUTEX_INITIALIZER;
-#endif /* THREADS */
-
-/* A recently used list of mmapped files */
-#define NMAPS 4
-static struct text_map {
-    const char *filename;
-    uchar *base;
-    size_t size;
-} text_maps[NMAPS];
 
 static uchar *
-load_text(const cvs_text *text)
+load_text(editbuffer_t *eb, const cvs_text *text)
 {
     unsigned i;
     struct stat st;
@@ -737,20 +720,14 @@ load_text(const cvs_text *text)
     size_t size;
     size_t offset = (size_t)text->offset;
 
-#ifdef THREADS
-    pthread_mutex_lock(&mmap_mutex);
-#endif /* THREADS */
-    for (i = 0; i < NMAPS && text_maps[i].filename; ++i) {
-        if (text_maps[i].filename == text->filename) {
-	    base = text_maps[i].base;
+    for (i = 0; i < NMAPS && eb->text_maps[i].filename; ++i) {
+        if (eb->text_maps[i].filename == text->filename) {
+	    base = eb->text_maps[i].base;
 	    if (i != 0) {
-	        struct text_map t = text_maps[i];
-		text_maps[i] = text_maps[i-1];
-		text_maps[i-1] = t;
+	        struct text_map t = eb->text_maps[i];
+		eb->text_maps[i] = eb->text_maps[i-1];
+		eb->text_maps[i-1] = t;
 	    }
-#ifdef THREADS
-	    pthread_mutex_unlock(&mmap_mutex);
-#endif /* THREADS */
 	    return base + offset;
 	}
     }
@@ -772,39 +749,30 @@ load_text(const cvs_text *text)
 
     if (i == NMAPS) {
         --i;
-	munmap(text_maps[i].base, text_maps[i].size);
+	munmap(eb->text_maps[i].base, eb->text_maps[i].size);
     }
-    memmove(text_maps + 1, text_maps, i * sizeof text_maps[0]);
-    text_maps[0].filename = text->filename;
-    text_maps[0].base = base;
-    text_maps[0].size = size;
-#ifdef THREADS
-    pthread_mutex_unlock(&mmap_mutex);
-#endif /* THREADS */
+    memmove(eb->text_maps + 1, eb->text_maps, i * sizeof eb->text_maps[0]);
+    eb->text_maps[0].filename = text->filename;
+    eb->text_maps[0].base = base;
+    eb->text_maps[0].size = size;
 
     return base + offset;
 }
 
 static void
-unload_all_text(void)
+unload_all_text(editbuffer_t *eb)
 {
     unsigned i;
-#ifdef THREADS
-    pthread_mutex_lock(&mmap_mutex);
-#endif /* THREADS */
     for (i = 0; i <NMAPS; i++) {
-        if (text_maps[i].filename) {
-	    munmap(text_maps[i].base, text_maps[i].size);
-	    text_maps[i].filename = NULL;
+        if (eb->text_maps[i].filename) {
+	    munmap(eb->text_maps[i].base, eb->text_maps[i].size);
+	    eb->text_maps[i].filename = NULL;
 	}
     }
-#ifdef THREADS
-    pthread_mutex_unlock(&mmap_mutex);
-#endif /* THREADS */
 }
 
 static void
-unload_text(const cvs_text *text, uchar *data)
+unload_text(editbuffer_t *eb, const cvs_text *text, uchar *data)
 {
 }
 #else
@@ -944,7 +912,7 @@ void generate_files(cvs_file *cvs,
     eb->Gabspath = NULL;
     Gline(eb) = NULL; Ggap(eb) = Ggapsize(eb) = Glinemax(eb) = 0;
     eb->stack[0].node = node;
-    eb->stack[0].node_text = load_text(&node->patch->text);
+    eb->stack[0].node_text = load_text(eb, &node->patch->text);
     process_delta(eb, node, ENTER);
     while (1) {
 	if (node->file) {
@@ -962,7 +930,7 @@ void generate_files(cvs_file *cvs,
 	    goto Next;
 	}
 	while ((node = eb->stack[eb->depth].node->to) == NULL) {
-	    unload_text(&eb->stack[eb->depth].node->patch->text,
+	    unload_text(eb, &eb->stack[eb->depth].node->patch->text,
 	                eb->stack[eb->depth].node_text);
 	    free(eb->stack[eb->depth].line);
 	    if (!eb->depth)
@@ -975,7 +943,7 @@ void generate_files(cvs_file *cvs,
 	}
     Next:
 	eb->stack[eb->depth].node = node;
-	eb->stack[eb->depth].node_text = load_text(&node->patch->text);
+	eb->stack[eb->depth].node_text = load_text(eb, &node->patch->text);
 	process_delta(eb, node, EDIT);
     }
 Done:
@@ -983,7 +951,7 @@ Done:
     eb->Gkeyval = NULL;
     eb->Gkvlen = 0;
     free(eb->Gabspath);
-    unload_all_text();
+    unload_all_text(eb);
 }
 
 /* end */

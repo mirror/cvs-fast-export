@@ -35,6 +35,8 @@
 #include <stdbool.h>
 #include <limits.h>
 
+#define USE_MMAP 1
+
 /* 
  * CVS_MAX_BRANCHWIDTH should match the number in the longrev test.
  * If it goes above 128 some bitfield widths in rev_ref must increase.
@@ -178,6 +180,7 @@ typedef struct _cvs_patch {
     node_t		*node;
 } cvs_patch;
 
+
 struct out_buffer_type {
     char *text, *ptr, *end_of_text;
     size_t size;
@@ -197,7 +200,15 @@ enum expand_mode {EXPANDKKV,	/* default form, $<key>: <value>$ */
 		  EXPANDKB,	/* old-value with no EOL normalization */
 		};
 
+#define NMAPS 4
+
 typedef struct _editbuffer {
+    /* A recently used list of mmapped files */
+    struct text_map {
+	const char *filename;
+	unsigned char *base;
+	size_t size;
+    } text_maps[NMAPS];
     const char *Glog;
     int Gkvlen;
     char* Gkeyval;
