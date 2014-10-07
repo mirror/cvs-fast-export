@@ -181,14 +181,16 @@ static pthread_mutex_t announce_mutex = PTHREAD_MUTEX_INITIALIZER;
 
 static void thread_announce(char const *format,...)
 {
-    va_list args;
+    if (debug) {
+	va_list args;
 
-    pthread_mutex_lock(&announce_mutex);
-    fprintf(stderr, "threading: ");
-    va_start(args, format);
-    vfprintf(stderr, format, args);
-    va_end(args);
-    pthread_mutex_unlock(&announce_mutex);
+	pthread_mutex_lock(&announce_mutex);
+	fprintf(stderr, "threading: ");
+	va_start(args, format);
+	vfprintf(stderr, format, args);
+	va_end(args);
+	pthread_mutex_unlock(&announce_mutex);
+    }
 }
 #else
 static void thread_announce(char const *format,...)
@@ -317,7 +319,7 @@ rev_list *analyze_masters(int argc, char *argv[],
     while (fn_head) {
 	fn = fn_head;
 	fn_head = fn_head->next;
-#if defined(THREADS) && defined(__FUTURE__)
+#if defined(THREADS)
 	for (;;) {
 	    for (i = 0; i < THREAD_POOL_SIZE; i++) {
 		if (pthread_mutex_trylock(&threadslots[i].mutex) == 0) {
