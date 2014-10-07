@@ -31,7 +31,13 @@
  * the entire CVS history of a collection.
  */
 
-static int load_current_file;
+/*
+ * Ugh...least painful way to make some stuff that isn't thread-local
+ * visible.
+ */
+static int total_files, load_current_file;
+static bool generate, enable_keyword_expansion; 
+static rev_list	*head = NULL, **tail = &head;
 static int err;
 
 #ifdef THREADS
@@ -39,9 +45,7 @@ static pthread_mutex_t progress_mutex = PTHREAD_MUTEX_INITIALIZER;
 #endif /* THREADS */
 
 static rev_list *
-rev_list_file(const char *name, 
-	      const bool generate, 
-	      const bool enable_keyword_expansion)
+rev_list_file(const char *name) 
 {
     rev_list	*rl;
     struct stat	buf;
@@ -139,8 +143,6 @@ struct threadslot {
     pthread_t	pt;
     bool	active;
     const char	*filename;
-    bool	generate;
-    bool	enable_keyword_expansion;
     rev_list    *revlist;
 };
 
@@ -155,8 +157,8 @@ static void *thread_monitor(void *arg)
     if (progress)
 	load_status(ctrl->filename + striplen, total, false);
     ctrl->revlist = rev_list_file(ctrl->filename,
-				  ctrl->generate,
-				  ctrl->enable_keyword_expansion);
+				  generate,
+				  enable_keyword_expansion);
     ++load_current_file;
     if (progress)
 	load_status(ctrl->filename + striplen, total, true);
@@ -168,10 +170,7 @@ static void *thread_monitor(void *arg)
     pthread_exit(NULL);
 }
 
-static void threaded_dispatch(rev_filename *fn_head,
-			      const int total_files,
-			      const bool enable_keyword_expansion, 
-			      const bool generate)
+static void threaded_dispatch(rev_filename *fn_head)
 /* control threaded processing of a master file list */
 {
     struct threadslot threadslots[THREAD_POOL_SIZE];
@@ -179,8 +178,6 @@ static void threaded_dispatch(rev_filename *fn_head,
 
     for (i = 0; i < THREAD_POOL_SIZE; i++) {
 	threadslots[i].active = false;
-	threadslots[i].generate = generate;
-	threadslots[i].enable_keyword_expansion = enable_keyword_expansion;
     }
     unprocessed = total_files;
     do {
@@ -215,18 +212,17 @@ static void threaded_dispatch(rev_filename *fn_head,
 
 rev_list *analyze_masters(int argc, char *argv[], 
 			  const bool promiscuous,
-			  const bool enable_keyword_expansion, 
-			  const bool generate,
+			  const bool arg_enable_keyword_expansion, 
+			  const bool arg_generate,
 			  const bool verbose, 
 			  int *filecount, int *err)
 /* main entry point; collect and parse CVS masters */
 {
     rev_filename    *fn_head = NULL, **fn_tail = &fn_head, *fn;
-    rev_list	    *head = NULL, **tail = &head, *rl;
+    rev_list	    *rl;
     char	    name[10240];
     const char      *last = NULL;
     char	    *file;
-    int		    total_files = 0;
     off_t	    textsize = 0;
     int		    j = 1;
     int		    c;
@@ -287,7 +283,11 @@ rev_list *analyze_masters(int argc, char *argv[],
     }
     progress_end("done, %ldKB in %d files", (long)(textsize/1024), total_files);
     *filecount = total_files;
+
+    /* things that must be visible to inner functions */
     load_current_file = 0;
+    enable_keyword_expansion = arg_enable_keyword_expansion;
+    generate = arg_generate;
     /*
      * Analyze the files for CVS revision structure.
      *
@@ -304,7 +304,7 @@ rev_list *analyze_masters(int argc, char *argv[],
 	    announce("processing %s\n", fn->file);
 	if (progress)
 	    load_status(fn->file + striplen, *filecount, false);
-	rl = rev_list_file(fn->file, generate, enable_keyword_expansion);
+	rl = rev_list_file(fn->file);
 	if (progress)
 	    load_status(fn->file + striplen, *filecount, true);
 	*tail = rl;
