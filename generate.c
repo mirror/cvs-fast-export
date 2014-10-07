@@ -711,6 +711,13 @@ uncache_exit:
 #include <sys/stat.h>
 #include <sys/types.h>
 #include <sys/mman.h>
+#ifdef THREADS
+#include <pthread.h>
+#endif /* THREADS */
+
+#ifdef THREADS
+static pthread_mutex_t mmap_mutex = PTHREAD_MUTEX_INITIALIZER;
+#endif /* THREADS */
 
 /* A recently used list of mmapped files */
 #define NMAPS 4
@@ -730,6 +737,9 @@ load_text(const cvs_text *text)
     size_t size;
     size_t offset = (size_t)text->offset;
 
+#ifdef THREADS
+    pthread_mutex_lock(&mmap_mutex);
+#endif /* THREADS */
     for (i = 0; i < NMAPS && text_maps[i].filename; ++i) {
         if (text_maps[i].filename == text->filename) {
 	    base = text_maps[i].base;
@@ -738,6 +748,9 @@ load_text(const cvs_text *text)
 		text_maps[i] = text_maps[i-1];
 		text_maps[i-1] = t;
 	    }
+#ifdef THREADS
+	    pthread_mutex_unlock(&mmap_mutex);
+#endif /* THREADS */
 	    return base + offset;
 	}
     }
@@ -765,6 +778,9 @@ load_text(const cvs_text *text)
     text_maps[0].filename = text->filename;
     text_maps[0].base = base;
     text_maps[0].size = size;
+#ifdef THREADS
+    pthread_mutex_unlock(&mmap_mutex);
+#endif /* THREADS */
 
     return base + offset;
 }
@@ -773,12 +789,18 @@ static void
 unload_all_text(void)
 {
     unsigned i;
+#ifdef THREADS
+    pthread_mutex_lock(&mmap_mutex);
+#endif /* THREADS */
     for (i = 0; i <NMAPS; i++) {
         if (text_maps[i].filename) {
 	    munmap(text_maps[i].base, text_maps[i].size);
 	    text_maps[i].filename = NULL;
 	}
     }
+#ifdef THREADS
+    pthread_mutex_unlock(&mmap_mutex);
+#endif /* THREADS */
 }
 
 static void
@@ -808,7 +830,8 @@ load_text(const cvs_text *text)
 }
 
 static void
-unload_text(const cvs_text *text, uchar *data) {
+unload_text(const cvs_text *text, uchar *data)
+{
     free(data);
 }
 
@@ -816,7 +839,7 @@ static void
 unload_all_text(void)
 {
 }
-#endif
+#endif /* !USE_MMAP */
 
 static void process_delta(editbuffer_t *eb, node_t *node, enum stringwork func)
 {
