@@ -160,6 +160,8 @@ static void load_status_next(void)
 
 #define THREAD_POOL_SIZE	128
 
+#define DEBUG_THREAD
+
 struct threadslot {
     pthread_t	    pt;
     pthread_mutex_t mutex;
