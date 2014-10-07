@@ -51,7 +51,8 @@ struct mark {
     bool emitted;
 };
 static struct mark *markmap;
-static serial_t seqno, mark;
+static serial_t mark;
+static volatile int seqno;
 static char blobdir[PATH_MAX];
 static serial_t export_total_commits;
 #ifdef THREADS
