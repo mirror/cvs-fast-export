@@ -132,12 +132,33 @@ static void load_status(const char *name, int load_total_files, bool complete)
 
 static void load_status_next(void)
 {
-    fprintf(STATUS, "\r");
+    fprintf(STATUS, "\n");
     fflush(STATUS);
 }
 
 #if defined(THREADS)
-#define THREAD_POOL_SIZE	8
+/*
+ * A simple multithread scheduler to avoid stalling on I/O waits.
+ *
+ * Without threading, analysis of all CVS masters is stalled during
+ * I/O waits.  The biggest non-IO bottleneck in the code is assembling
+ * deltas into blobs. This lends itself to parallelization because at
+ * this stage of analysis the mater files are all separate universes
+ * (and will remain that way until branch merging).
+ *
+ * This scheduler works with a fixed-sized worker thread pool.  In each
+ * work cycle, it first tries to find an unused pool slot to assign
+ * the next master in the list to.  If it does, it starts a thread 
+ * analyzing that master and then immediately goes back to try
+ * to schedule another.
+ *
+ * When the thread pool is full, the scheduler waits for some thread
+ * to signal that it has completed before going back around the loop.
+ * Thus no busy-waiting is required; a new masters is dispatched 
+ * exactly as soon as a thread slot becomes available.
+ */
+
+#define THREAD_POOL_SIZE	128
 
 struct threadslot {
     pthread_t	    pt;
@@ -151,7 +172,7 @@ static pthread_mutex_t scheduler_mutex = PTHREAD_MUTEX_INITIALIZER;
 static pthread_cond_t any_thread_finished = PTHREAD_COND_INITIALIZER;
 
 static void *thread_monitor(void *arg)
-/* do a master analysis, to be run unside a thread */
+/* do a master analysis, to be run inside a thread */
 {
     rev_list *rl;
     struct threadslot *ctrl = (struct threadslot *)arg;
@@ -204,6 +225,7 @@ static void threaded_dispatch(rev_filename *fn_head)
     }
     unprocessed = total_files;
     do {
+    schedule_another:
 	/* if un-dispatched masters remain, dispatch the next one */
 	if (fn_head != NULL) {
 	    for (i = 0; i < THREAD_POOL_SIZE; i++) {
@@ -221,7 +243,7 @@ static void threaded_dispatch(rev_filename *fn_head)
 			    announce("processing of %s scheduled\n", fn->file);
 			pthread_mutex_unlock(&threadslots[i].mutex);
 			free(fn);
-			break;
+			goto schedule_another;
 		    } else {
 			fprintf(STATUS, "Analysis thread creation failed!\n");
 			exit(0);

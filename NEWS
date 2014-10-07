@@ -2,6 +2,7 @@
 
 Repository head
     Files not ending with ,v are now ignored unless the new -P option is on.
+    First-stage CVS master analysis is now multithreaded for speed.
 
 1.19: 2014-10-04
     Dramatic speedups in some bottlneck functions.
