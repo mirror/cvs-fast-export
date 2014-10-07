@@ -153,6 +153,11 @@ discard_atoms(void)
 	}
 #ifdef THREADS
     pthread_mutex_unlock(&bucket_mutex);
+    /*
+     * This is irreversible, and will have to be factored out if
+     * dicard_atoms() is ever called anywhere but in final cleanup.
+     */
+    pthread_mutex_destroy(&bucket_mutex);
 #endif /* THREADS */
 }
 
