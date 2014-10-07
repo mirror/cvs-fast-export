@@ -126,7 +126,7 @@ static void load_status(const char *name, int load_total_files, bool complete)
     fprintf(STATUS, " %5d of %5d ", load_current_file, load_total_files);
     fflush(STATUS);
 #ifdef THREADS
-    pthread_mutex_lock(&progress_mutex);
+    pthread_mutex_unlock(&progress_mutex);
 #endif /* THREADS */
 }
 
