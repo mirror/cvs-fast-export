@@ -163,7 +163,7 @@ static void load_status_next(void)
  * exactly as soon as a thread slot becomes available.
  */
 
-#define THREAD_POOL_SIZE	128
+#define THREAD_POOL_SIZE	8
 
 #define DEBUG_THREAD
 
@@ -175,23 +175,42 @@ struct threadslot {
 
 static pthread_mutex_t scheduler_mutex = PTHREAD_MUTEX_INITIALIZER;
 static pthread_cond_t any_thread_finished = PTHREAD_COND_INITIALIZER;
+static struct threadslot threadslots[THREAD_POOL_SIZE];
+
+#ifdef DEBUG_THREAD
+static pthread_mutex_t announce_mutex = PTHREAD_MUTEX_INITIALIZER;
+
+static void thread_announce(char const *format,...)
+{
+    va_list args;
+
+    pthread_mutex_lock(&announce_mutex);
+    fprintf(stderr, "threading: ");
+    va_start(args, format);
+    vfprintf(stderr, format, args);
+    va_end(args);
+    pthread_mutex_unlock(&announce_mutex);
+}
+#else
+static void thread_announce(char const *format,...)
+{
+}
+#endif /* DEBUG_THREAD */
+
 
 static void *thread_monitor(void *arg)
 /* do a master analysis, to be run inside a thread */
 {
     rev_list *rl;
     struct threadslot *ctrl = (struct threadslot *)arg;
-#ifdef DEBUG_THREAD
-    if (verbose)
-	announce("monitor processing of %s begins\n", ctrl->filename);
-#endif /* DEBUG_THREAD */
+    thread_announce("slot %ld: %s begins\n", 
+		    ctrl - threadslots, ctrl->filename);
     if (progress)
 	load_status(ctrl->filename + striplen, total_files, false);
     rl = rev_list_file(ctrl->filename);
-#ifdef DEBUG_THREAD
-    if (verbose)
-	announce("monitor processing of %s complete\n", ctrl->filename);
-#endif /* DEBUG_THREAD */
+    thread_announce("slot %ld: %s done (%d of %d)\n", 
+		    ctrl - threadslots, ctrl->filename,
+		    load_current_file, total_files);
     if (progress)
 	load_status(ctrl->filename + striplen, total_files, true);
     ++load_current_file;
@@ -199,17 +218,12 @@ static void *thread_monitor(void *arg)
     tail = &rl->next;
     pthread_mutex_unlock(&ctrl->mutex);
     pthread_cond_signal(&any_thread_finished);
-#ifdef DEBUG_THREAD
-    if (verbose)
-	announce("Wakeup signal shipped\n");
-#endif /* DEBUG_THREAD */
     pthread_exit(NULL);
 }
 
 static void threaded_dispatch(rev_filename *fn_head)
 /* control threaded processing of a master file list */
 {
-    struct threadslot threadslots[THREAD_POOL_SIZE];
     rev_filename *fn;
     int i; 
 
@@ -218,18 +232,10 @@ static void threaded_dispatch(rev_filename *fn_head)
     }
     do {
     schedule_another:
-#ifdef DEBUG_THREAD
-	if (verbose)
-	    announce("About to schedule a master\n");
-#endif /* DEBUG_THREAD */
 	/* if un-dispatched masters remain, dispatch the next one */
 	if (fn_head != NULL) {
 	    for (i = 0; i < THREAD_POOL_SIZE; i++) {
 		if (pthread_mutex_trylock(&threadslots[i].mutex) == 0) {
-#ifdef DEBUG_THREAD
-		    if (verbose)
-			announce("Found slot %d for %s\n", i, fn_head->file);
-#endif /* DEBUG_THREAD */
 		    int retval = pthread_create(&threadslots[i].pt, 
 						NULL, thread_monitor, 
 						(void *)&threadslots[i]);
@@ -246,17 +252,11 @@ static void threaded_dispatch(rev_filename *fn_head)
 		}
 	    }
 
-#ifdef DEBUG_THREAD
-	    if (verbose)
-		announce("Waiting on wakeup\n");
-#endif /* DEBUG_THREAD */
+	    thread_announce("No slots, waiting on wakeup\n");
 	    /* wait for any one of the threads to terminate */
 	    pthread_mutex_lock(&scheduler_mutex);
 	    pthread_cond_wait(&any_thread_finished, &scheduler_mutex);
-#ifdef DEBUG_THREAD
-	    if (verbose)
-		announce("Wakeup signal received\n");
-#endif /* DEBUG_THREAD */
+	    thread_announce("Wakeup signal received\n");
 	}
     } while (load_current_file < total_files);
 
