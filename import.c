@@ -170,7 +170,6 @@ static void load_status_next(void)
 struct threadslot {
     pthread_t	    pt;
     pthread_mutex_t mutex;
-    bool	    active;
     const char	    *filename;
 };
 
@@ -195,19 +194,9 @@ static void *thread_monitor(void *arg)
 #endif /* DEBUG_THREAD */
     if (progress)
 	load_status(ctrl->filename + striplen, total_files, true);
-#ifdef DEBUG_THREAD
-    if (verbose)
-	announce("Waiting on threadslot mutex\n");
-#endif /* DEBUG_THREAD */
-    pthread_mutex_lock(&ctrl->mutex);
-#ifdef DEBUG_THREAD
-    if (verbose)
-	announce("Acquired threadslot mutex\n");
-#endif /* DEBUG_THREAD */
     ++load_current_file;
     *tail = rl;
     tail = &rl->next;
-    ctrl->active = false;
     pthread_mutex_unlock(&ctrl->mutex);
     pthread_cond_signal(&any_thread_finished);
 #ifdef DEBUG_THREAD
@@ -225,7 +214,6 @@ static void threaded_dispatch(rev_filename *fn_head)
     int i; 
 
     for (i = 0; i < THREAD_POOL_SIZE; i++) {
-	threadslots[i].active = false;
 	pthread_mutex_init(&threadslots[i].mutex, NULL);
     }
     do {
@@ -237,10 +225,10 @@ static void threaded_dispatch(rev_filename *fn_head)
 	/* if un-dispatched masters remain, dispatch the next one */
 	if (fn_head != NULL) {
 	    for (i = 0; i < THREAD_POOL_SIZE; i++) {
-		if (!threadslots[i].active) {
+		if (pthread_mutex_trylock(&threadslots[i].mutex) == 0) {
 #ifdef DEBUG_THREAD
 		    if (verbose)
-			announce("Found slot %d\n", i);
+			announce("Found slot %d for %s\n", i, fn_head->file);
 #endif /* DEBUG_THREAD */
 		    int retval = pthread_create(&threadslots[i].pt, 
 						NULL, thread_monitor, 
@@ -248,12 +236,7 @@ static void threaded_dispatch(rev_filename *fn_head)
 		    if (retval == 0) {
 			fn = fn_head;
 			fn_head = fn_head->next;
-			pthread_mutex_lock(&threadslots[i].mutex);
-			threadslots[i].active = true;
 			threadslots[i].filename = fn->file;
-			if (verbose)
-			    announce("processing of %s scheduled\n", fn->file);
-			pthread_mutex_unlock(&threadslots[i].mutex);
 			free(fn);
 			goto schedule_another;
 		    } else {
