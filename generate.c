@@ -78,8 +78,6 @@ enum expand_mode Gexpand;
 #define Glinemax(eb) eb->stack[eb->depth].linemax
 #define Gnode_text(eb) eb->stack[eb->depth].node_text
 
-static editbuffer_t editbuffer;
-
 /* backup one position in the input buffer, unless at start of buffer
  *   return character at new position, or EOF if we could not back up
  */
@@ -913,7 +911,7 @@ void generate_files(cvs_file *cvs,
 /* export all the revision states of a CVS/RS master through a hook */
 {
     /* this must become local to the CVS file */
-    editbuffer_t *eb = &editbuffer;
+    editbuffer_t *eb = &cvs->editbuffer;
 
     if (cvs->nodehash.head_node == NULL)
 	return;
