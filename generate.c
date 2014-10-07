@@ -63,15 +63,6 @@ enum markers { Nomatch, Author, Date, Header, Id, Locker, Log,
 	Name, RCSfile, Revision, Source, State };
 enum stringwork {ENTER, EDIT};
 
-enum expand_mode {EXPANDKKV,	/* default form, $<key>: <value>$ */
-		  EXPANDKKVL,	/* like KKV but with locker's name inserted */
-		  EXPANDKK,	/* keyword-only expansion, $<key>$ */
-		  EXPANDKV,	/* value-only expansion, $<value>$ */
-		  EXPANDKO,	/* old-value expansion */
-		  EXPANDKB,	/* old-value with no EOL normalization */
-		};
-enum expand_mode Gexpand;
-
 #define Gline(eb) eb->stack[eb->depth].line
 #define Ggap(eb) eb->stack[eb->depth].gap
 #define Ggapsize(eb) eb->stack[eb->depth].gapsize
@@ -429,7 +420,7 @@ static void keyreplace(editbuffer_t *eb, enum markers marker)
 {
     char *leader = NULL;
     char date_string[25];
-    enum expand_mode exp = Gexpand;
+    enum expand_mode exp = eb->Gexpand;
     char const *kw = Keyword[(int)marker];
     time_t utime = RCS_EPOCH + eb->Gversion->date;
 
@@ -916,14 +907,17 @@ void generate_files(cvs_file *cvs,
     if (cvs->nodehash.head_node == NULL)
 	return;
 
-    int expandflag = Gexpand < EXPANDKO;
+    eb->Gkeyval = NULL;
+    eb->Gkvlen = 0;
+
+    int expandflag = eb->Gexpand < EXPANDKO;
     node_t *node = cvs->nodehash.head_node;
     eb->depth = 0;
     eb->Gfilename = cvs->master_name;
     if (enable_keyword_expansion)
-	Gexpand = expand_override(cvs->expand);
+	eb->Gexpand = expand_override(cvs->expand);
     else
-	Gexpand = EXPANDKK;
+	eb->Gexpand = EXPANDKK;
     eb->Gabspath = NULL;
     Gline(eb) = NULL; Ggap(eb) = Ggapsize(eb) = Glinemax(eb) = 0;
     eb->stack[0].node = node;

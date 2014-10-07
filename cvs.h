@@ -189,6 +189,14 @@ struct in_buffer_type {
     int read_count;
 };
 
+enum expand_mode {EXPANDKKV,	/* default form, $<key>: <value>$ */
+		  EXPANDKKVL,	/* like KKV but with locker's name inserted */
+		  EXPANDKK,	/* keyword-only expansion, $<key>$ */
+		  EXPANDKV,	/* value-only expansion, $<value>$ */
+		  EXPANDKO,	/* old-value expansion */
+		  EXPANDKB,	/* old-value with no EOL normalization */
+		};
+
 typedef struct _editbuffer {
     const char *Glog;
     int Gkvlen;
@@ -199,6 +207,7 @@ typedef struct _editbuffer {
     char Gversion_number[CVS_MAX_REV_LEN];
     struct out_buffer_type *Goutbuf;
     struct in_buffer_type in_buffer_store;
+    enum expand_mode Gexpand;
 
 /*
  * Gline contains pointers to the lines in the currently edit buffer
