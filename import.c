@@ -173,8 +173,7 @@ struct threadslot {
     const char	    *filename;
 };
 
-static pthread_mutex_t scheduler_mutex = PTHREAD_MUTEX_INITIALIZER;
-static pthread_cond_t any_thread_finished = PTHREAD_COND_INITIALIZER;
+static pthread_mutex_t revlist_mutex = PTHREAD_MUTEX_INITIALIZER;
 static struct threadslot threadslots[THREAD_POOL_SIZE];
 
 #ifdef DEBUG_THREAD
@@ -197,7 +196,6 @@ static void thread_announce(char const *format,...)
 }
 #endif /* DEBUG_THREAD */
 
-
 static void *thread_monitor(void *arg)
 /* do a master analysis, to be run inside a thread */
 {
@@ -213,58 +211,13 @@ static void *thread_monitor(void *arg)
 		    load_current_file, total_files);
     if (progress)
 	load_status(ctrl->filename + striplen, total_files, true);
+    pthread_mutex_lock(&revlist_mutex);
     ++load_current_file;
     *tail = rl;
     tail = &rl->next;
+    pthread_mutex_unlock(&revlist_mutex);
     pthread_mutex_unlock(&ctrl->mutex);
-    pthread_cond_signal(&any_thread_finished);
     pthread_exit(NULL);
-}
-
-static void threaded_dispatch(rev_filename *fn_head)
-/* control threaded processing of a master file list */
-{
-    rev_filename *fn;
-    int i; 
-
-    for (i = 0; i < THREAD_POOL_SIZE; i++) {
-	pthread_mutex_init(&threadslots[i].mutex, NULL);
-    }
-    do {
-    schedule_another:
-	/* if un-dispatched masters remain, dispatch the next one */
-	if (fn_head != NULL) {
-	    for (i = 0; i < THREAD_POOL_SIZE; i++) {
-		if (pthread_mutex_trylock(&threadslots[i].mutex) == 0) {
-		    int retval = pthread_create(&threadslots[i].pt, 
-						NULL, thread_monitor, 
-						(void *)&threadslots[i]);
-		    if (retval == 0) {
-			fn = fn_head;
-			fn_head = fn_head->next;
-			threadslots[i].filename = fn->file;
-			free(fn);
-			goto schedule_another;
-		    } else {
-			fprintf(STATUS, "Analysis thread creation failed!\n");
-			exit(0);
-		    }
-		}
-	    }
-
-	    thread_announce("No slots, waiting on wakeup\n");
-	    /* wait for any one of the threads to terminate */
-	    pthread_mutex_lock(&scheduler_mutex);
-	    pthread_cond_wait(&any_thread_finished, &scheduler_mutex);
-	    thread_announce("Wakeup signal received\n");
-	}
-    } while (load_current_file < total_files);
-
-    pthread_mutex_destroy(&progress_mutex);
-    pthread_mutex_destroy(&scheduler_mutex);
-    for (i = 0; i < THREAD_POOL_SIZE; i++)
-	pthread_mutex_destroy(&threadslots[i].mutex);
-    pthread_cond_destroy(&any_thread_finished);
 }
 #endif /* THREADS */
 
@@ -283,6 +236,13 @@ rev_list *analyze_masters(int argc, char *argv[],
     off_t	    textsize = 0;
     int		    j = 1;
     int		    c;
+#ifdef THREADS
+    int i;
+
+    for (i = 0; i < THREAD_POOL_SIZE; i++) {
+	pthread_mutex_init(&threadslots[i].mutex, NULL);
+    }
+#endif /* THREADS */
 
     progress_begin("Reading list of files...", NO_MAX);
     for (;;)
@@ -354,28 +314,56 @@ rev_list *analyze_masters(int argc, char *argv[],
      * CVS branch heads (rev_refs), each one of which points at a list
      * of CVS commit structures (cvs_commit).
      */
-#if defined(THREADS) && defined(__FUTURE__)
-    threaded_dispatch(fn_head);
-#else
     while (fn_head) {
-	rev_list *rl;
 	fn = fn_head;
 	fn_head = fn_head->next;
+#if defined(THREADS) && defined(__FUTURE__)
+    retry:
+	for (i = 0; i < THREAD_POOL_SIZE; i++) {
+	    if (pthread_mutex_trylock(&threadslots[i].mutex) == 0) {
+		int retval = pthread_create(&threadslots[i].pt, 
+					    NULL, thread_monitor, 
+					    (void *)&threadslots[i]);
+		if (retval == 0) {
+		    threadslots[i].filename = fn->file;
+		    goto success;
+		} else {
+		    thread_announce("Analysis thread creation failed!\n");
+		    exit(0);
+		}
+	    }
+	}
+	goto retry;
+    success:
+#else
 	++load_current_file;
 	if (verbose)
 	    announce("processing %s\n", fn->file);
 	if (progress)
 	    load_status(fn->file + striplen, *filecount, false);
-	rl = rev_list_file(fn->file);
-	if (progress)
-	    load_status(fn->file + striplen, *filecount, true);
-	*tail = rl;
-	tail = &rl->next;
+	{
+	    rev_list *rl;
+	    rl = rev_list_file(fn->file);
+	    if (progress)
+		load_status(fn->file + striplen, *filecount, true);
+	    *tail = rl;
+	    tail = &rl->next;
+	}
+#endif /* THREADS */
 	free(fn);
     }
-#endif /* THREADS */
     if (progress)
 	load_status_next();
+
+#ifdef THREADS
+    /* wait on all threads still running before continuing */
+    for (i = 0; i < THREAD_POOL_SIZE; i++)
+	pthread_join(threadslots[i].pt, NULL);
+    pthread_mutex_destroy(&revlist_mutex);
+    for (i = 0; i < THREAD_POOL_SIZE; i++)
+	pthread_mutex_destroy(&threadslots[i].mutex);
+#endif /* THREADS */
+
     return head;
 }
 
