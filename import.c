@@ -136,36 +136,35 @@ static void load_status_next(void)
     fflush(STATUS);
 }
 
-#if defined(THREADS) && defined(__FUTURE__) 
+#if defined(THREADS)
 #define THREAD_POOL_SIZE	8
 
 struct threadslot {
     pthread_t	pt;
     bool	active;
     const char	*filename;
-    rev_list    *revlist;
 };
 
 static volatile int total, unprocessed;
-static pthread_mutex_t finished_mutex = PTHREAD_MUTEX_INITIALIZER;
+static pthread_mutex_t scheduler_mutex = PTHREAD_MUTEX_INITIALIZER;
 static pthread_cond_t any_thread_finished = PTHREAD_COND_INITIALIZER;
 
 static void *thread_monitor(void *arg)
 /* do a master analysis, to be run unside a thread */
 {
+    rev_list *rl;
     struct threadslot *ctrl = (struct threadslot *)arg;
     if (progress)
 	load_status(ctrl->filename + striplen, total, false);
-    ctrl->revlist = rev_list_file(ctrl->filename,
-				  generate,
-				  enable_keyword_expansion);
+    rl = rev_list_file(ctrl->filename);
     ++load_current_file;
     if (progress)
 	load_status(ctrl->filename + striplen, total, true);
-    ctrl->active = false;
-    /* counting on this to be atomic */
+    pthread_mutex_lock(&scheduler_mutex);
     --unprocessed;
-    pthread_mutex_lock(&finished_mutex);
+    *tail = rl;
+    tail = &rl->next;
+    ctrl->active = false;
     pthread_cond_signal(&any_thread_finished);
     pthread_exit(NULL);
 }
@@ -189,9 +188,11 @@ static void threaded_dispatch(rev_filename *fn_head)
 						NULL, thread_monitor, 
 						(void *)&threadslots[i]);
 		    if (retval == 0) {
+			pthread_mutex_lock(&scheduler_mutex);
 			threadslots[i].active = true;
 			threadslots[i].filename = fn_head->file;
 			fn_head = fn_head->next;
+			pthread_mutex_unlock(&scheduler_mutex);
 			break;
 		    } else {
 			fprintf(STATUS, "Analysis thread creation failed!\n");
@@ -202,7 +203,7 @@ static void threaded_dispatch(rev_filename *fn_head)
 	}
 
 	/* wait for any one of the threads to terminate */
-	pthread_cond_wait(&any_thread_finished, &finished_mutex);
+	pthread_cond_wait(&any_thread_finished, &scheduler_mutex);
     } while (unprocessed > 0);
 
     pthread_mutex_destroy(&progress_mutex);
