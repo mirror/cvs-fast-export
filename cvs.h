@@ -427,6 +427,48 @@ void tag_commit(cvs_commit *c, const char *name, cvs_file *cvsfile);
 cvs_commit **tagged(Tag *tag);
 void discard_tags(void);
 
+struct out_buffer_type {
+    char *text, *ptr, *end_of_text;
+    size_t size;
+};
+
+struct in_buffer_type {
+    unsigned char *buffer;
+    unsigned char *ptr;
+    int read_count;
+};
+
+typedef struct _editbuffer {
+    const char *Glog;
+    int Gkvlen;
+    char* Gkeyval;
+    char const *Gfilename;
+    char *Gabspath;
+    cvs_version *Gversion;
+    char Gversion_number[CVS_MAX_REV_LEN];
+    struct out_buffer_type *Goutbuf;
+    struct in_buffer_type in_buffer_store;
+
+/*
+ * Gline contains pointers to the lines in the currently edit buffer
+ * It is a 0-origin array that represents Glinemax-Ggapsize lines.
+ * Gline[0 .. Ggap-1] and Gline[Ggap+Ggapsize .. Glinemax-1] hold
+ * pointers to lines.  Gline[Ggap .. Ggap+Ggapsize-1] contains garbage.
+ * Any @s in lines are duplicated.
+ * Lines are terminated by \n, or(for a last partial line only) by single @.
+ */
+    int depth;
+    struct {
+	node_t *next_branch;
+	node_t *node;
+	unsigned char *node_text;
+	unsigned char **line;
+	size_t gap, gapsize, linemax;
+    } stack[CVS_MAX_DEPTH/2];
+} editbuffer_t;
+
+#define Ginbuf(eb) (&eb->in_buffer_store)
+
 rev_list *
 analyze_masters(int argc, char *argv[0], 
 		const bool promiscuous,
