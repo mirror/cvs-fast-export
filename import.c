@@ -128,6 +128,10 @@ static void load_status(const char *name, int load_total_files, bool complete)
 #ifdef THREADS
     pthread_mutex_unlock(&progress_mutex);
 #endif /* THREADS */
+#ifdef DEBUG_THREAD
+    if (verbose)
+	announce("Status report complete\n");
+#endif /* DEBUG_THREAD */
 }
 
 static void load_status_next(void)
@@ -228,10 +232,18 @@ static void threaded_dispatch(rev_filename *fn_head)
     unprocessed = total_files;
     do {
     schedule_another:
+#ifdef DEBUG_THREAD
+	if (verbose)
+	    announce("About to schedule a master\n");
+#endif /* DEBUG_THREAD */
 	/* if un-dispatched masters remain, dispatch the next one */
 	if (fn_head != NULL) {
 	    for (i = 0; i < THREAD_POOL_SIZE; i++) {
 		if (!threadslots[i].active) {
+#ifdef DEBUG_THREAD
+		    if (verbose)
+			announce("Found slot %d\n", i);
+#endif /* DEBUG_THREAD */
 		    int retval = pthread_create(&threadslots[i].pt, 
 						NULL, thread_monitor, 
 						(void *)&threadslots[i]);
