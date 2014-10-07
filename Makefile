@@ -24,7 +24,7 @@ CPPFLAGS += -I. -I$(srcdir)
 CPPFLAGS += -DVERSION=\"$(VERSION)\"
 
 # Enable this for multithreading (experimental)
-CFLAGS += -pthread -DTHREADS
+#CFLAGS += -pthread -DTHREADS
 
 # To enable debugging of the Yacc grammar, uncomment the following line
 #CFLAGS += -DYYDEBUG=1
