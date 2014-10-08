@@ -738,12 +738,55 @@ struct commit_seq {
     bool realized;
 };
 
-static int sort_by_date(const void *ap, const void *bp)
+static int compare_commit(git_commit *ac, git_commit *bc)
 {
-    struct commit_seq *ac = (struct commit_seq *)ap;
-    struct commit_seq *bc = (struct commit_seq *)bp;
+    time_t timediff;
+    int cmp;
+    
+    timediff = ac->date - bc->date;
+    if (timediff != 0)
+	return timediff;
+    timediff = ac->date - bc->date;
+    if (timediff != 0)
+	return timediff;
+    if (bc == ac->parent || (ac->parent && bc == ac->parent->parent))
+	return 1;
+    if (ac == bc->parent || (bc->parent && ac == bc->parent->parent))
+	return -1;
 
-    return ac->commit->date - bc->commit->date;
+    /* 
+     * Any remaining tiebreakers would be essentially arbitrary,
+     * inserted just to have as few cases where the threaded scheduler
+     * is random as posssible.
+     */
+    cmp = strcmp(ac->author, bc->author);
+    if (cmp != 0)
+	return cmp;
+    cmp = strcmp(ac->log, bc->log);
+    if (cmp != 0)
+	return cmp;
+    
+    return 0;
+}
+
+static int sort_by_date(const void *ap, const void *bp)
+/* return > 0 if ap newer than bp, < 0 if bp newer than ap */
+{
+    git_commit *ac = ((struct commit_seq *)ap)->commit;
+    git_commit *bc = ((struct commit_seq *)bp)->commit;
+    int cmp;
+
+    cmp = compare_commit(ac, bc);
+    if (cmp != 0)
+	return cmp;
+
+    if (ac->parent && bc->parent) {
+	cmp = compare_commit(ac->parent, bc->parent);
+	if (cmp != 0)
+	    return cmp;
+    }
+
+    return 0;
 }
 
 bool export_commits(rev_list *rl, 
