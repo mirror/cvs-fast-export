@@ -1,10 +1,12 @@
 # Test makefile for cvs-fast-export
 
+# Set OPTS to pass options to the cvs-fast-export instances.
+
 PATH := ${PWD}/..:${PATH}
 SHELL = sh	# Do not introduce bashisms!
 CVS = cvs
 DIFF = diff -u -a
-CVS_FAST_EXPORT = ../cvs-fast-export
+CVS_FAST_EXPORT = ../cvs-fast-export $(OPTS)
 
 .SUFFIXES: .tst .repo .checkout
 
