@@ -496,6 +496,7 @@ analyze_masters(int argc, char *argv[0],
 		const bool enable_keyword_expansion,
 		const bool generate,
 		const bool verbose,
+		const int threads,
 		int *total_files, int *err);
 
 bool

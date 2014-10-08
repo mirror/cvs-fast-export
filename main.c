@@ -194,6 +194,7 @@ main(int argc, char **argv)
     char	    *branch_prefix = "refs/heads/";
     bool	    promiscuous = false;
     bool	    enable_keyword_expansion = false;
+    int             threads = 0;
 
 #if defined(__GLIBC__)
     /* 
@@ -224,10 +225,11 @@ main(int argc, char **argv)
             { "progress",           0, 0, 'p' },
             { "promiscuous",        0, 0, 'P' },
             { "incremental",        1, 0, 'i' },
+            { "threads",	    0, 0, 't' },
             { "branchorder",        0, 0, 'B' },	/* undocumented */
 	    { "sizes",              0, 0, 'S' },	/* undocumented */
 	};
-	int c = getopt_long(argc, argv, "+hVw:grvA:R:Tke:s:pPi:BS", options, NULL);
+	int c = getopt_long(argc, argv, "+hVw:grvA:R:Tke:s:pPi:t:BS", options, NULL);
 	if (c < 0)
 	    break;
 	switch(c) {
@@ -250,8 +252,9 @@ main(int argc, char **argv)
 		   " -P --promiscuous                Process files without ,v extension\n"
 		   " -v --verbose                    Show verbose progress messages\n"
 		   " -i --incremental TIME           Incremental dump beginning after specified RFC3339-format time.\n"
+		   " -t --threads N                  Use threaded scheduler for CVS master analyses.\n"
 		   "\n"
-		   "Example: find -name '*,v' | cvs-fast-export\n");
+		   "Example: find | cvs-fast-export\n");
 	    return 0;
 	case 'g':
 	    exec_mode = ExecuteGraph;
@@ -297,6 +300,9 @@ main(int argc, char **argv)
 	case 'i':
 	    fromtime = convert_date(optarg);
 	    break;
+	case 't':
+	    threads = atoi(optarg);
+	    break;
 	case 'B':
 	    branchorder = true;
 	    break;
@@ -321,7 +327,7 @@ main(int argc, char **argv)
 			   promiscuous,
 			   enable_keyword_expansion,
 			   exec_mode == ExecuteExport,
-			   verbose,
+			   verbose, threads,
 			   &load_total_files, &err);
 
     /* commit set coalescence happens here */

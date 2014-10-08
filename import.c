@@ -230,6 +230,7 @@ rev_list *analyze_masters(int argc, char *argv[],
 			  const bool arg_enable_keyword_expansion, 
 			  const bool arg_generate,
 			  const bool arg_verbose,
+			  const int threads,
 			  int *filecount, int *err)
 /* main entry point; collect and parse CVS masters */
 {
@@ -321,39 +322,42 @@ rev_list *analyze_masters(int argc, char *argv[],
     while (fn_head) {
 	fn = fn_head;
 	fn_head = fn_head->next;
-#if defined(THREADS) && defined(__FUTURE__)
-	for (;;) {
-	    for (i = 0; i < THREAD_POOL_SIZE; i++) {
-		if (pthread_mutex_trylock(&threadslots[i].mutex) == 0) {
-		    threadslots[i].filename = fn->file;
-		    j = pthread_create(&threadslots[i].thread, 
-				       NULL, thread_monitor, 
-				       (void *)&threadslots[i]);
-		    if (j == 0) {
-			goto dispatched;
-		    } else {
-			thread_announce("Analysis thread creation failed!\n");
-			exit(0);
+#if defined(THREADS)
+	if (threads > 1) {
+	    for (;;) {
+		for (i = 0; i < THREAD_POOL_SIZE; i++) {
+		    if (pthread_mutex_trylock(&threadslots[i].mutex) == 0) {
+			threadslots[i].filename = fn->file;
+			j = pthread_create(&threadslots[i].thread, 
+					   NULL, thread_monitor, 
+					   (void *)&threadslots[i]);
+			if (j == 0) {
+			    goto dispatched;
+			} else {
+			    thread_announce("Analysis thread creation failed!\n");
+			    exit(0);
+			}
 		    }
 		}
 	    }
+	dispatched:
+	    ;
 	}
-    dispatched:
-#else
-	++load_current_file;
-	if (verbose)
-	    announce("processing %s\n", fn->file);
-	if (progress)
-	    load_status(fn->file + striplen, *filecount, false);
+	else
+#endif /* THREADS */
 	{
 	    rev_list *rl;
+	    ++load_current_file;
+	    if (verbose)
+		announce("processing %s\n", fn->file);
+	    if (progress)
+		load_status(fn->file + striplen, *filecount, false);
 	    rl = rev_list_file(fn->file);
 	    if (progress)
 		load_status(fn->file + striplen, *filecount, true);
 	    *tail = rl;
 	    tail = &rl->next;
 	}
-#endif /* THREADS */
 	free(fn);
     }
     if (progress)
