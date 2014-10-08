@@ -50,40 +50,31 @@ rev_list_file(const char *name)
 {
     rev_list	*rl;
     struct stat	buf;
-    parser_context ctx;
-    FILE *in;
-    cvs_file *this_file;
+    yyscan_t scanner;
+    cvs_file	*this_file;
 
-    in = fopen(name, "r");
+    yylex_init(&scanner);
     /* coverity[leaked_storage] */
-    if (!in) {
+    yyset_in(fopen(name, "r"), scanner);
+    if (!yyget_in(scanner)) {
 	perror(name);
 	++err;
+	yylex_destroy(scanner);
 	return NULL;
     }
-    if (stat(name, &buf) == -1) {
-	fatal_system_error("%s", name);
-    }
-
-    memset(&ctx, 0, sizeof ctx);
-    yylex_init(&ctx.scanner);
-    yyset_in(in, ctx.scanner);
-    //yyset_lineno(0, ctx.scanner);
-
+    //yyset_lineno(0, scanner);
     this_file = xcalloc(1, sizeof(cvs_file), __func__);
     this_file->master_name = name;
+    if (yyget_in(scanner) != NULL)
+	assert(fstat(fileno(yyget_in(scanner)), &buf) == 0);
     this_file->mode = buf.st_mode;
-    ctx.cvs_file = this_file;
-
-    yyset_extra(&ctx, ctx.scanner);
-    yyparse(&ctx);
-    fclose(in);
-    yylex_destroy(ctx.scanner);
-
-    rl = rev_list_cvs(ctx.cvs_file);
+    yyparse(scanner, this_file);
+    fclose(yyget_in(scanner));
+    yylex_destroy(scanner);
+    rl = rev_list_cvs(this_file);
     if (generate)
-	generate_files(ctx.cvs_file, enable_keyword_expansion, export_blob);
-
+	generate_files(this_file, enable_keyword_expansion, export_blob);
+   
     cvs_file_free(this_file);
     return rl;
 }

@@ -24,16 +24,14 @@
 cvstime_t skew_vulnerable = 0;
 unsigned int total_revisions = 0;
 
-extern int yyerror(parser_context *, char *);
+extern int yyerror(yyscan_t, cvs_file *, char *);
 
-#define cvsfile (ctx->cvs_file)
-#define yyscanner (ctx->scanner)
-#define YYLEX_PARAM yyscanner
+extern YY_DECL;	/* FIXME: once the Bison bug requiring this is fixed */
 %}
 
-%pure-parser
-%lex-param {parser_context *ctx}
-%parse-param {parser_context *ctx}
+%define api.pure full
+%lex-param {yyscan_t scanner} {cvs_file *cvsfile}
+%parse-param {yyscan_t scanner} {cvs_file *cvsfile}
 
 %union {
     int		i;
@@ -191,7 +189,7 @@ revision	: NUMBER date author state branches next revtrailer
 		;
 date		: DATE NUMBER SEMI
 		  {
-			$$ = lex_date (&$2, yyscanner);
+			$$ = lex_date (&$2, scanner, cvsfile);
 		  }
 		;
 author		: AUTHOR NAME SEMI
@@ -292,8 +290,8 @@ strings		: DATA strings
 		;
 %%
 
-int yyerror(parser_context *ctx, char *msg)
+int yyerror(yyscan_t scanner, cvs_file *cvs, char *msg)
 {
-	fprintf(stderr, "parse error %s at %s\n", msg, yyget_text(yyscanner));
+	fprintf(stderr, "parse error %s at %s\n", msg, yyget_text(scanner));
 	exit(1);
 }

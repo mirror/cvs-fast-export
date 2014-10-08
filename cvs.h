@@ -442,12 +442,6 @@ cvs_author *fullname(const char *);
 bool load_author_map(const char *);
 
 typedef void *yyscan_t;
-typedef struct _parser_context {
-    yyscan_t scanner;
-    cvs_file *cvs_file;
-} parser_context;
-#define YY_EXTRA_TYPE parser_context *
-int yyparse(parser_context *);
 
 int yyget_column (yyscan_t);
 void yyset_column(int, yyscan_t);
@@ -459,7 +453,7 @@ cvs_number
 lex_number(const char *);
 
 cvstime_t
-lex_date(cvs_number *n, yyscan_t);
+lex_date(cvs_number *n, yyscan_t, cvs_file *cvs);
 
 rev_list *
 rev_list_cvs(cvs_file *cvs);
@@ -733,5 +727,9 @@ void progress_begin(char * /*msg*/, int /*max*/);
 void progress_step(void);
 void progress_jump(int /*count*/);
 void progress_end(const char * /*format*/, ...) _printflike(1, 2);
+
+/* FIXME: once the Bison bug requiring this is fixed */
+#define YY_DECL int yylex \
+	(YYSTYPE * yylval_param , yyscan_t yyscanner, cvs_file *cvs)
 
 #endif /* _CVS_H_ */
