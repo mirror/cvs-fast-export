@@ -26,7 +26,7 @@
 #include "cvs.h"
 
 static cvs_commit *
-rev_find_cvs_revision(rev_list *rl, cvs_number *number)
+rev_find_cvs_revision(rev_list *rl, const cvs_number *number)
 /* given a single-file revlist tree, locate the specific version number */
 {
     rev_ref	*h;
@@ -49,7 +49,7 @@ rev_find_cvs_revision(rev_list *rl, cvs_number *number)
 }
 
 static cvs_commit *
-rev_branch_cvs(cvs_file *cvs, cvs_number *branch)
+rev_branch_cvs(cvs_file *cvs, const cvs_number *branch)
 /* build a list of commit objects representing a branch from deltas on it */
 {
     cvs_number	n;
@@ -378,7 +378,7 @@ rev_list_graft_branches(rev_list *rl, cvs_file *cvs)
 }
 
 static rev_ref *
-rev_list_find_branch(rev_list *rl, cvs_number *number)
+rev_list_find_branch(rev_list *rl, const cvs_number *number)
 /* look up a revision reference in a revlist by symbol */
 {
     cvs_number	n;

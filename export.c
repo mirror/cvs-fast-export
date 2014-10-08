@@ -86,7 +86,7 @@ static int seqno_next(void) {
  */
 #define CVS_IGNORES "# CVS default ignores begin\ntags\nTAGS\n.make.state\n.nse_depinfo\n*~\n#*\n.#*\n,*\n_$*\n*$\n*.old\n*.bak\n*.BAK\n*.orig\n*.rej\n.del-*\n*.a\n*.olb\n*.o\n*.obj\n*.so\n*.exe\n*.Z\n*.elc\n*.ln\ncore\n# CVS default ignores end\n"
 
-void save_status_end(struct timespec *start_time)
+void save_status_end(const struct timespec *start_time)
 {
     if (!progress)
 	return;
@@ -121,7 +121,7 @@ void export_init(void)
 	fatal_error("temp dir creation failed\n");
 }
 
-static char *blobfile(int serial, bool create, char *path)
+static char *blobfile(const int serial, const bool create, char *path)
 /* Random-access location of the blob corresponding to the specified serial */
 {
     int m;
@@ -172,7 +172,7 @@ static char *blobfile(int serial, bool create, char *path)
     return path;
 }
 
-void export_blob(node_t *node, void *buf, size_t len)
+void export_blob(node_t *node, void *buf, const size_t len)
 /* save the blob where it will be available for random access */
 {
     char path[PATH_MAX];
@@ -470,7 +470,7 @@ static void dump_file(rev_file *rev_file, FILE *fp)
 	    cvs_number_string(&rev_file->number, buf, sizeof(buf)));
  }
 
-static void dump_dir(rev_dir *rev_dir, FILE *fp)
+static void dump_dir(const rev_dir *rev_dir, FILE *fp)
 {
     int i;
 
@@ -479,7 +479,7 @@ static void dump_dir(rev_dir *rev_dir, FILE *fp)
 	dump_file(rev_dir->files[i], fp);
 }
 
-static void dump_commit(git_commit *commit, FILE *fp)
+static void dump_commit(const git_commit *commit, FILE *fp)
 {
     int i;
     fprintf(fp, "commit %p seq %d mark %d nfiles: %d, ndirs = %d\n", 
@@ -491,8 +491,8 @@ static void dump_commit(git_commit *commit, FILE *fp)
 
 static void export_commit(git_commit *commit, 
 			  const char *branch_prefix, const char *branch, 
-			  bool report, FILE *revmap,
-			  bool reposurgeon, bool force_dates)
+			  const bool report, FILE *revmap,
+			  const bool reposurgeon, const bool force_dates)
 /* export a commit(and the blobs it is the first to reference) */
 {
 #define OP_CHUNK	32
@@ -748,7 +748,7 @@ struct commit_seq {
     bool realized;
 };
 
-static int compare_commit(git_commit *ac, git_commit *bc)
+static int compare_commit(const git_commit *ac, const git_commit *bc)
 /* attempt the mathemaically impossible total ordering on the DAG */
 {
     time_t timediff;
@@ -805,12 +805,12 @@ static int sort_by_date(const void *ap, const void *bp)
 
 bool export_commits(rev_list *rl, 
 		    const char *branch_prefix,
-		    time_t fromtime,
+		    const time_t fromtime,
 		    const char *revision_map,
-		    bool reposurgeon,
-		    bool force_dates,
-		    bool branchorder, 
-		    bool progress)
+		    const bool reposurgeon,
+		    const bool force_dates,
+		    const bool branchorder, 
+		    const bool progress)
 /* export a revision list as a git fast-import stream in canonical order */
 {
     rev_ref *h;

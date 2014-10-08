@@ -33,7 +33,7 @@ typedef struct _rev_dir_hash {
 static rev_dir_hash	*buckets[REV_DIR_HASH];
 
 static 
-unsigned long hash_files(rev_file **files, int nfiles)
+unsigned long hash_files(rev_file **files, const int nfiles)
 /* hash a file list so we can recognize it cheaply */
 {
     unsigned long   h = 0;
@@ -45,7 +45,7 @@ unsigned long hash_files(rev_file **files, int nfiles)
 }
 
 static rev_dir *
-rev_pack_dir(rev_file **files, int nfiles)
+rev_pack_dir(rev_file **files, const int nfiles)
 /* pack a collection of file revisions for space efficiency */
 {
     unsigned long   hash = hash_files(files, nfiles);
@@ -157,7 +157,7 @@ static int	    sds = 0;
 static rev_dir **rds = NULL;
 
 static void
-rds_put(int index, rev_dir *rd)
+rds_put(const int index, rev_dir *rd)
 /* puts an entry into the rds buffer, growing if needed */
 {
     if (sds == 0) {

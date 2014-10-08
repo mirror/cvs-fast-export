@@ -20,7 +20,7 @@
 #include <assert.h>
 
 node_t *
-cvs_find_version(cvs_file *cvs, cvs_number *number)
+cvs_find_version(const cvs_file *cvs, const cvs_number *number)
 /* find the file version associated with the specified CVS release number */
 {
     cvs_version *cv;

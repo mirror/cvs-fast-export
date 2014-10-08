@@ -1,7 +1,7 @@
 #include "cvs.h"
 
 static rbtree_node *
-rbtree_parent(rbtree_node *node)
+rbtree_parent(const rbtree_node *node)
 /* This function should be called if existence of the parent is
    guaranteed within or required by the calling function */
 {
@@ -10,7 +10,7 @@ rbtree_parent(rbtree_node *node)
 }
 
 static bool
-rbtree_is_left_child(rbtree_node *node, rbtree_node *parent)
+rbtree_is_left_child(const rbtree_node *node, const rbtree_node *parent)
 {
     assert(rbtree_parent(node) == parent);
     if (parent && parent->left == node)
@@ -19,7 +19,7 @@ rbtree_is_left_child(rbtree_node *node, rbtree_node *parent)
 }
 
 static bool
-rbtree_is_right_child(rbtree_node *node, rbtree_node *parent)
+rbtree_is_right_child(const rbtree_node *node, const rbtree_node *parent)
 {
     assert(rbtree_parent(node) == parent);
     if (parent && parent->right == node)
@@ -28,7 +28,7 @@ rbtree_is_right_child(rbtree_node *node, rbtree_node *parent)
 }
 
 static rbtree_node *
-rbtree_sibling(rbtree_node *node)
+rbtree_sibling(const rbtree_node *node)
 {
     rbtree_node *parent;
     parent = rbtree_parent(node);
@@ -39,7 +39,7 @@ rbtree_sibling(rbtree_node *node)
 }
 
 static rbtree_color
-rbtree_node_color(rbtree_node *node)
+rbtree_node_color(const rbtree_node *node)
 /* we use NULL as sentinel */
 {
     if (node)
@@ -49,7 +49,7 @@ rbtree_node_color(rbtree_node *node)
 
 #if RBDEBUG
 static void
-rbtree_assert_links(rbtree_node *node)
+rbtree_assert_links(const rbtree_node *node)
 /* not a red-black property, but make sure parent <-> child links are
  * correct at all times */
 {
@@ -64,14 +64,14 @@ rbtree_assert_links(rbtree_node *node)
 }
 
 static void
-rbtree_assert_property_2 (rbtree_node *root)
+rbtree_assert_property_2(const rbtree_node *root)
 /* 2. red-black property: the root is black */
 {
     assert(rbtree_node_color(root) == BLACK);
 }
 
 static void
-rbtree_assert_property_4 (rbtree_node *node)
+rbtree_assert_property_4(const rbtree_node *node)
 /* 4. red-black property: If a node is red, both its children are black */
 {
     if (node) {
@@ -85,8 +85,8 @@ rbtree_assert_property_4 (rbtree_node *node)
 }
 
 static void
-rbtree_assert_property_5_helper(rbtree_node *node,
-			     int current_count,
+rbtree_assert_property_5_helper(const rbtree_node *node,
+			     const int current_count,
 			     int *first_leaf_count)
 {
     if (rbtree_node_color(node) == BLACK)
@@ -105,7 +105,7 @@ rbtree_assert_property_5_helper(rbtree_node *node,
 }
 
 static void
-rbtree_assert_property_5 (rbtree_node *node)
+rbtree_assert_property_5(const rbtree_node *node)
 /* 5. red-black property: For each node, all paths to its leaf nodes
    contain the same number of black nodes */
 {
@@ -115,7 +115,7 @@ rbtree_assert_property_5 (rbtree_node *node)
 
 
 static void
-rbtree_assert_properties(rbtree_node *root)
+rbtree_assert_properties(const rbtree_node *root)
 {
     rbtree_assert_links(root);
     /* property 1 is implicit: every node is either red or black */

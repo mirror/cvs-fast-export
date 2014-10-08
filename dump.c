@@ -27,7 +27,7 @@
 #include <unistd.h>
 
 void
-dump_number_file(FILE *f, const char *name, cvs_number *number)
+dump_number_file(FILE *f, const char *name, const cvs_number *number)
 /* dump a filename/CVS-version pair to a specified file pointer */
 {
     char buf[BUFSIZ];
@@ -36,7 +36,7 @@ dump_number_file(FILE *f, const char *name, cvs_number *number)
 }
 
 void
-dump_number(const char *name, cvs_number *number)
+dump_number(const char *name, const cvs_number *number)
 /* dump a filename/CVS-version pair to standard output */
 {
     dump_number_file(stdout, name, number);
@@ -44,7 +44,7 @@ dump_number(const char *name, cvs_number *number)
 
 #ifdef ORDERDEBUG
 void
-dump_git_commit(git_commit *c, FILE *fp)
+dump_git_commit(const git_commit *c, FILE *fp)
 /* dump all delta/revision pairs associated with a gitspace commit */
 {
     rev_file	*f;

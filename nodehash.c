@@ -39,7 +39,7 @@ static node_t *hash_number(nodehash_t *context, cvs_number *n)
     return p;
 }
 
-static node_t *find_parent(nodehash_t *context, cvs_number *n, int depth)
+static node_t *find_parent(nodehash_t *context, const cvs_number *n, const int depth)
 /* find the parent node of the specified prefix of a release number */
 {
     cvs_number key = *n;

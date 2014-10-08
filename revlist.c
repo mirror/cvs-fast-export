@@ -24,7 +24,8 @@
  */
 
 rev_ref *
-rev_list_add_head(rev_list *rl, cvs_commit *commit, const char *name, int degree)
+rev_list_add_head(rev_list *rl, cvs_commit *commit, 
+		  const char *name, const int degree)
 /* decorate a commit list with a named head reference */
 {
     rev_ref	*r;
@@ -54,7 +55,7 @@ rev_find_head(rev_list *rl, const char *name)
 }
 
 static bool
-commit_time_close(cvstime_t a, cvstime_t b)
+commit_time_close(const cvstime_t a, const cvstime_t b)
 /* are two timestamps within the commit-coalescence window? */
 {
     long	diff = (long)a - (long)b;
@@ -65,7 +66,7 @@ commit_time_close(cvstime_t a, cvstime_t b)
 }
 
 static bool
-cvs_commit_match(cvs_commit *a, cvs_commit *b)
+cvs_commit_match(const cvs_commit *a, const cvs_commit *b)
 /* are two commits eligible to be coalesced into a changeset? */
 {
     /*
@@ -166,7 +167,7 @@ rev_ref_tsort(rev_ref *refs, rev_list *head)
 }
 
 static int
-rev_list_count(rev_list *head)
+rev_list_count(const rev_list *head)
 /* count entries in a rev_list */
 {
     int	count = 0;
@@ -236,7 +237,7 @@ cvs_commit_date_sort(cvs_commit **commits, int ncommit)
 }
 
 bool
-git_commit_has_file(git_commit *c, rev_file *f)
+git_commit_has_file(const git_commit *c, const rev_file *f)
 /* does this commit touch a specified file? */
 {
     int	i, j;
@@ -272,7 +273,7 @@ git_commit_cleanup(void)
 }
 
 static git_commit *
-git_commit_build(cvs_commit **revisions, cvs_commit *leader, int nrevisions)
+git_commit_build(cvs_commit **revisions, cvs_commit *leader, const int nrevisions)
 /* build a changeset commit from a clique of CVS revisions */
 {
     int		n, nfile;
@@ -344,7 +345,7 @@ git_commit_build(cvs_commit **revisions, cvs_commit *leader, int nrevisions)
 }
 
 static git_commit *
-git_commit_locate_date(rev_ref *branch, cvstime_t date)
+git_commit_locate_date(const rev_ref *branch, const cvstime_t date)
 {
     git_commit	*commit;
 
@@ -358,7 +359,7 @@ git_commit_locate_date(rev_ref *branch, cvstime_t date)
 }
 
 static git_commit *
-git_commit_locate_one(rev_ref *branch, cvs_commit *file)
+git_commit_locate_one(const rev_ref *branch, const cvs_commit *file)
 {
     git_commit	*commit;
 
@@ -378,7 +379,7 @@ git_commit_locate_one(rev_ref *branch, cvs_commit *file)
 }
 
 static git_commit *
-git_commit_locate_any(rev_ref *branch, cvs_commit *file)
+git_commit_locate_any(const rev_ref *branch, const cvs_commit *file)
 {
     git_commit	*commit;
 
@@ -391,7 +392,7 @@ git_commit_locate_any(rev_ref *branch, cvs_commit *file)
 }
 
 static git_commit *
-git_commit_locate(rev_ref *branch, cvs_commit *file)
+git_commit_locate(const rev_ref *branch, const cvs_commit *file)
 {
     git_commit	*commit;
 
@@ -410,7 +411,7 @@ git_commit_locate(rev_ref *branch, cvs_commit *file)
 }
 
 rev_ref *
-rev_branch_of_commit(rev_list *rl, cvs_commit *commit)
+rev_branch_of_commit(const rev_list *rl, const cvs_commit *commit)
 {
     rev_ref	*h;
     cvs_commit	*c;
@@ -875,7 +876,7 @@ rev_file_free_marked(void)
 }
 
 rev_file *
-rev_file_rev(const char *name, cvs_number *n, cvstime_t date)
+rev_file_rev(const char *name, const cvs_number *n, cvstime_t date)
 {
     rev_file	*f = xcalloc(1, sizeof(rev_file), "allocating file rev");
 
@@ -892,7 +893,7 @@ rev_file_free(rev_file *f)
 }
 
 static void
-rev_commit_free(cvs_commit *commit, int free_files)
+rev_commit_free(cvs_commit *commit, const bool free_files)
 {
     cvs_commit	*c;
 
@@ -908,7 +909,7 @@ rev_commit_free(cvs_commit *commit, int free_files)
 }
 
 static void
-rev_head_free(rev_ref *head, int free_files)
+rev_head_free(rev_ref *head, const bool free_files)
 {
     rev_ref	*h;
 
@@ -920,7 +921,7 @@ rev_head_free(rev_ref *head, int free_files)
 }
 
 void
-rev_list_free(rev_list *rl, int free_files)
+rev_list_free(rev_list *rl, const bool free_files)
 {
     rev_head_free(rl->heads, free_files);
     if (free_files)
@@ -974,7 +975,7 @@ rev_uniq_file(git_commit *uniq, git_commit *common, int *nuniqp)
 }
 
 bool
-rev_file_list_has_filename(rev_file_list *fl, const char *name)
+rev_file_list_has_filename(const rev_file_list *fl, const char *name)
 {
     for (; fl; fl = fl->next)
 	if (fl->file->file_name == name)

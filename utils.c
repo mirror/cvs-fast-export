@@ -112,6 +112,8 @@ void* xrealloc(void *ptr, size_t size, char const *legend)
  * activity.  Call progress_end() at the end of the activity.
  *
  * Global 'progress' flag enables or disables all this.
+ *
+ * Note: These functions are not thread-safe!
  */
 
 static char *progress_msg = "";
@@ -122,12 +124,12 @@ static void _progress_print(bool /*newline*/, const char * /*format*/, va_list)
 	_printflike(2, 0);
 
 void
-progress_begin(char *msg, int max)
+progress_begin(const char *msg, const int max)
 {
 
     if (!progress)
 	return;
-    progress_msg = msg;
+    progress_msg = (char *)msg;
     progress_max = max;
     progress_counter = 0;
     _progress_print(false, "", _unused_va_list);
@@ -144,7 +146,7 @@ progress_step(void)
 }
 
 void
-progress_jump(int count)
+progress_jump(const int count)
 {
 
     if (!progress)

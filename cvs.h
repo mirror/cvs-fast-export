@@ -447,7 +447,7 @@ int yyget_column (yyscan_t);
 void yyset_column(int, yyscan_t);
 
 char *
-ctime_nonl(cvstime_t *date);
+ctime_nonl(const cvstime_t *date);
 
 cvs_number
 lex_number(const char *);
@@ -462,7 +462,7 @@ rev_list *
 rev_list_merge(rev_list *lists);
 
 void
-rev_list_free(rev_list *rl, int free_files);
+rev_list_free(rev_list *rl, const bool free_files);
 
 enum { Ncommits = 256 };
 
@@ -506,49 +506,49 @@ analyze_masters(int argc, char *argv[0],
 		stats_t *stats);
 
 bool
-cvs_is_head(cvs_number *n);
+cvs_is_head(const cvs_number *n);
 
 bool
-cvs_same_branch(cvs_number *a, cvs_number *b);
+cvs_same_branch(const cvs_number *a, const cvs_number *b);
 
 int
-cvs_number_compare(cvs_number *a, cvs_number *b);
+cvs_number_compare(const cvs_number *a, const cvs_number *b);
 
 int
-cvs_number_compare_n(cvs_number *a, cvs_number *b, int l);
+cvs_number_compare_n(const cvs_number *a, const cvs_number *b, int l);
 
 bool
-cvs_is_branch_of(cvs_number *trunk, cvs_number *branch);
+cvs_is_branch_of(const cvs_number *trunk, const cvs_number *branch);
 
 int
-cvs_number_degree(cvs_number *a);
+cvs_number_degree(const cvs_number *a);
 
-cvs_number
-cvs_previous_rev(cvs_number *n);
+const cvs_number
+cvs_previous_rev(const cvs_number *n);
 
-cvs_number
-cvs_master_rev(cvs_number *n);
+const cvs_number
+cvs_master_rev(const cvs_number *n);
 
-cvs_number
-cvs_branch_head(cvs_file *f, cvs_number *branch);
+const cvs_number
+cvs_branch_head(cvs_file *f, const cvs_number *branch);
 
-cvs_number
-cvs_branch_parent(cvs_file *f, cvs_number *branch);
+const cvs_number
+cvs_branch_parent(cvs_file *f, const cvs_number *branch);
 
 node_t *
-cvs_find_version(cvs_file *cvs, cvs_number *number);
+cvs_find_version(const cvs_file *cvs, const cvs_number *number);
 
 bool
-cvs_is_trunk(cvs_number *number);
+cvs_is_trunk(const cvs_number *number);
 
 bool
-cvs_is_vendor(cvs_number *number);
+cvs_is_vendor(const cvs_number *number);
 
 void
 cvs_file_free(cvs_file *cvs);
 
 char *
-cvs_number_string(cvs_number *n, char *str, size_t maxlen);
+cvs_number_string(const cvs_number *n, char *str, size_t maxlen);
 
 long
 time_compare(cvstime_t a, cvstime_t b);
@@ -557,20 +557,20 @@ void
 dump_ref_name(FILE *f, rev_ref *ref);
 
 char *
-stringify_revision(const char *name, const char *sep, cvs_number *number,
+stringify_revision(const char *name, const char *sep, const cvs_number *number,
 		   char *buf, size_t bufsz);
 
 void
-dump_number_file(FILE *f, const char *name, cvs_number *number);
+dump_number_file(FILE *f, const char *name, const cvs_number *number);
 
 void
-dump_number(const char *name, cvs_number *number);
+dump_number(const char *name, const cvs_number *number);
 
 void
 dump_log(FILE *f, const char *log);
 
 void
-dump_git_commit(git_commit *e, FILE *);
+dump_git_commit(const git_commit *e, FILE *);
 
 void
 dump_rev_head(rev_ref *h, FILE *);
@@ -600,22 +600,22 @@ rev_ref *
 rev_list_add_head(rev_list *rl, cvs_commit *commit, const char *name, int degree);
 
 bool
-git_commit_has_file(git_commit *c, rev_file *f);
+git_commit_has_file(const git_commit *c, const const rev_file *f);
 
 rev_diff *
 git_commit_diff(git_commit *old, git_commit *new);
 
 bool
-rev_file_list_has_filename(rev_file_list *fl, const char *name);
+rev_file_list_has_filename(const rev_file_list *fl, const char *name);
 
 void
 rev_diff_free(rev_diff *d);
 
 rev_ref *
-rev_branch_of_commit(rev_list *rl, cvs_commit *commit);
+rev_branch_of_commit(const rev_list *rl, const cvs_commit *commit);
 
 rev_file *
-rev_file_rev(const char *name, cvs_number *n, cvstime_t date);
+rev_file_rev(const char *name, const cvs_number *n, const cvstime_t date);
 
 void
 rev_file_free(rev_file *f);
@@ -650,7 +650,7 @@ void
 export_wrap(void);
 
 void
-save_status_end(struct timespec *);
+save_status_end(const struct timespec *);
 
 void
 free_author_map(void);
@@ -723,9 +723,9 @@ void build_branches(nodehash_t *);
 extern cvstime_t skew_vulnerable;
 extern unsigned int total_revisions;
 
-void progress_begin(char * /*msg*/, int /*max*/);
+void progress_begin(const char * /*msg*/, const int /*max*/);
 void progress_step(void);
-void progress_jump(int /*count*/);
+void progress_jump(const int /*count*/);
 void progress_end(const char * /*format*/, ...) _printflike(1, 2);
 
 /* FIXME: once the Bison bug requiring this is fixed */

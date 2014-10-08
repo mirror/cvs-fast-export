@@ -54,7 +54,7 @@ dump_log(FILE *f, const char *log)
 }
 
 static void
-dot_ref_name(FILE *f, rev_ref *ref)
+dot_ref_name(FILE *f, const rev_ref *ref)
 {
     if (ref->parent) {
 	dot_ref_name(f, ref->parent);
@@ -63,7 +63,7 @@ dot_ref_name(FILE *f, rev_ref *ref)
     fprintf(f, "%s", ref->ref_name);
 }
 
-static void dot_commit_graph(git_commit *c, rev_ref *branch)
+static void dot_commit_graph(git_commit *c, const rev_ref *branch)
 {
     rev_file	*f;
 
@@ -117,7 +117,7 @@ static void dot_commit_graph(git_commit *c, rev_ref *branch)
     printf("\"");
 }
 
-static void dot_tag_name(FILE *f, tag_t *tag)
+static void dot_tag_name(FILE *f, const tag_t *tag)
 {
     if (tag->parent) {
 	dot_ref_name(f, tag->parent);
@@ -126,7 +126,7 @@ static void dot_tag_name(FILE *f, tag_t *tag)
     fprintf(f, "%s", tag->name);
 }
 
-static rev_ref *dump_find_branch(rev_list *rl, git_commit *commit)
+static rev_ref *dump_find_branch(rev_list *rl, const git_commit *commit)
 {
     rev_ref	*h;
     git_commit	*c;

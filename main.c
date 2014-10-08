@@ -30,7 +30,7 @@ bool progress = false;
 ssize_t striplen = -1;
 
 char *
-ctime_nonl(cvstime_t *date)
+ctime_nonl(const cvstime_t *date)
 /* ctime(3) with trailing \n removed */
 {
     time_t	udate = RCS_EPOCH + *date;
@@ -41,7 +41,7 @@ ctime_nonl(cvstime_t *date)
 }
 
 static int
-strcommonendingwith(char *a, char *b, char endc)
+strcommonendingwith(const char *a, char *b, const char endc)
 /* return the length of the common prefix of strings a and b ending with endc */
 {
     int c = 0;
@@ -72,7 +72,7 @@ static int get_int_substr(const char * str, const regmatch_t * p)
     return atoi(buff);
 }
 
-static time_t mktime_utc(struct tm * tm, const char* tzbuf)
+static time_t mktime_utc(const struct tm * tm, const char* tzbuf)
 {
     /* coverity[tainted_string_return_content] */
     char * old_tz = getenv("TZ");
@@ -82,7 +82,7 @@ static time_t mktime_utc(struct tm * tm, const char* tzbuf)
 
     tzset();
 
-    ret = mktime(tm);
+    ret = mktime((struct tm *)tm);
 
     if (old_tz)
 	setenv("TZ", old_tz, 1);
@@ -212,7 +212,7 @@ main(int argc, char **argv)
     setenv("TZ", "UTC", 1);
 
     while (1) {
-	static struct option options[] = {
+	static const struct option options[] = {
 	    { "help",		    0, 0, 'h' },
 	    { "version",	    0, 0, 'V' },
 	    { "verbose",	    0, 0, 'v' },

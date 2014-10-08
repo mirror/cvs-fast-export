@@ -23,7 +23,7 @@
 #define max(a,b) ((a) > (b) ? (a) : (b))
 
 bool
-cvs_is_head(cvs_number *n)
+cvs_is_head(const cvs_number *n)
 /* is a specified CVS revision a branch head? */
 {
     assert(n->c <= CVS_MAX_DEPTH); 
@@ -31,7 +31,7 @@ cvs_is_head(cvs_number *n)
 }
 
 bool
-cvs_same_branch(cvs_number *a, cvs_number *b)
+cvs_same_branch(const cvs_number *a, const cvs_number *b)
 /* are two specified CVS revisions on the same branch? */
 {
     cvs_number	t;
@@ -74,7 +74,7 @@ cvs_same_branch(cvs_number *a, cvs_number *b)
 }
 
 int
-cvs_number_compare(cvs_number *a, cvs_number *b)
+cvs_number_compare(const cvs_number *a, const cvs_number *b)
 /* total ordering for CVS revision numbers */
 {
     int n = min(a->c, b->c);
@@ -94,7 +94,7 @@ cvs_number_compare(cvs_number *a, cvs_number *b)
 }
 
 int
-cvs_number_degree(cvs_number *n)
+cvs_number_degree(const cvs_number *n)
 /* what is the degree of branchiness of the specified revision? */
 {
     cvs_number	four;
@@ -112,7 +112,7 @@ cvs_number_degree(cvs_number *n)
 }
 
 bool
-cvs_is_trunk(cvs_number *number)
+cvs_is_trunk(const cvs_number *number)
 /* does the specified CVS release number describe a trunk revision? */
 {
     return number->c == 2;
@@ -122,7 +122,7 @@ cvs_is_trunk(cvs_number *number)
  * Import branches are of the form 1.1.x where x is odd
  */
 bool
-cvs_is_vendor(cvs_number *number)
+cvs_is_vendor(const cvs_number *number)
 /* is the specified CVS release number on a vendor branch? */
 {
     if (number->c != 4) return 0;
@@ -136,7 +136,7 @@ cvs_is_vendor(cvs_number *number)
 }
 
 char *
-cvs_number_string(cvs_number *n, char *str, size_t maxlen)
+cvs_number_string(const cvs_number *n, char *str, size_t maxlen)
 /* return the human-readable representation of a CVS release number */
 {
     char    r[CVS_MAX_DIGITS + 1];
@@ -157,7 +157,8 @@ cvs_number_string(cvs_number *n, char *str, size_t maxlen)
 }
 
 char *
-stringify_revision(const char *name, const char *sep, cvs_number *number,
+stringify_revision(const char *name, const char *sep, 
+		   const cvs_number *number,
 		   char *buf, size_t bufsz)
 /* stringify a revision number */
 {
