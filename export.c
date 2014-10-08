@@ -62,6 +62,22 @@ static serial_t export_total_commits;
 static pthread_mutex_t seqno_mutex = PTHREAD_MUTEX_INITIALIZER;
 #endif /* THREADS */
 
+/* Returns next sequence number, starting with 1 */
+static int seqno_next(void) {
+    int ret;
+
+#ifdef THREADS
+    pthread_mutex_lock(&seqno_mutex);
+#endif /* THREADS */
+    if (seqno >= MAX_SERIAL_T)
+	fatal_error("snapshot sequence number too large, widen serial_t");
+    ret = ++seqno;
+#ifdef THREADS
+    pthread_mutex_unlock(&seqno_mutex);
+#endif /* THREADS */
+    return ret;
+}
+
 /*
  * GNU CVS default ignores.  We omit from this things that CVS ignores
  * by default but which are highly unlikely to turn up outside an
@@ -171,25 +187,17 @@ void export_blob(node_t *node, void *buf, size_t len)
 	extralen = sizeof(CVS_IGNORES) - 1;
     }
     
-    if (seqno >= MAX_SERIAL_T)
-	fatal_error("snapshot sequence number too large, widen serial_t");
-#ifdef THREADS
-    pthread_mutex_lock(&seqno_mutex);
-#endif /* THREADS */
-    node->file->serial = ++seqno;
-#ifdef THREADS
-    pthread_mutex_unlock(&seqno_mutex);
-#endif /* THREADS */
-
+    node->file->serial = seqno_next();
+    blobfile(node->file->serial, true, path);
 #ifndef ZLIB
-    wfp = fopen(blobfile(seqno, true, path), "w");
+    wfp = fopen(path, "w");
 #else
     /*
      * Blobs are written compressed.  This costs a little compression time,
      * but we get it back in reduced disk seeks.
      */
-    eerno = 0;
-    wfp = gzopen(blobfile(seqno, true, path), "w");
+    errno = 0;
+    wfp = gzopen(path, "w");
 #endif
     if (wfp == NULL)
 	fatal_error("blobfile open of %s: %s (%d)", path, strerror(errno), errno);
@@ -278,30 +286,32 @@ static char *export_filename(rev_file *file, const bool ignoreconv)
     return name;
 }
 
-
-static int unlink_cb(const char *fpath, 
-		     const struct stat *sb, 
-		     int typeflag, 
-		     struct FTW *ftwbuf)
-{
-    int rv = remove(fpath);
-
-    if (rv)
-        perror(fpath);
-
-    return rv;
-}
-
 void export_wrap(void)
 /* clean up after export, removing the blob storage */
 {
-    char cmdbuf[PATH_MAX];
-    (void)fputs("done\n", stdout);
+    char path[PATH_MAX];
+    int len;
+
+    (void) puts("done");
 #ifdef THREADS
     pthread_mutex_destroy(&seqno_mutex);
 #endif /* THREADS */
-    (void)snprintf(cmdbuf, sizeof(cmdbuf), "rm -r %s", blobdir);
-    nftw(blobdir, unlink_cb, 64, FTW_DEPTH | FTW_PHYS);
+
+    /* Remove blob files and directories in the order
+     * they were created. */
+    while (seqno) {
+        blobfile(seqno, false, path);
+        (void) unlink(path);
+        len = strlen(path);
+        if (len > 3 && path[len - 3] == '/'
+                    && path[len - 2] == '='
+                    && path[len - 1] == '1')
+	{
+            path[len - 3] = '\0';
+            (void) rmdir(path);
+        }
+        seqno--;
+    }
 }
 
 static const char *utc_offset_timestamp(const time_t *timep, const char *tz)
@@ -473,7 +483,7 @@ static void dump_commit(git_commit *commit, FILE *fp)
 {
     int i;
     fprintf(fp, "commit %p seq %d mark %d nfiles: %d, ndirs = %d\n", 
-	    commit, seqno, markmap[seqno].external, commit->nfiles, commit->ndirs);
+	    commit, commit->serial, markmap[commit->serial].external, commit->nfiles, commit->ndirs);
     for (i = 0; i < commit->ndirs; i++)
 	dump_dir(commit->dirs[i], fp);
 }
@@ -647,14 +657,14 @@ static void export_commit(git_commit *commit,
 
     if (report)
 	printf("commit %s%s\n", branch_prefix, branch);
-    here = markmap[++seqno].external = ++mark;
+    commit->serial = seqno_next();
+    here = markmap[commit->serial].external = ++mark;
 #ifdef ORDERDEBUG2
     /* can't move before mark is updated */
     dump_commit(commit, stderr);
 #endif /* ORDERDEBUG2 */
     if (report)
 	printf("mark :%d\n", mark);
-    commit->serial = seqno;
     if (report) {
 	static bool need_ignores = true;
 	const char *ts;
