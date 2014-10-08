@@ -1,17 +1,14 @@
 # Test makefile for cvs-fast-export
 
+PATH := ${PWD}/..:${PATH}
 SHELL = sh	# Do not introduce bashisms!
-srcdir = $(dir $(abspath $(firstword $(MAKEFILE_LIST))))
-VPATH = $(srcdir)
-CVS = cvs
-DIFF = diff -u -a
-export PYTHONPATH = $(srcdir)
-export CVS_FAST_EXPORT = ../cvs-fast-export
 
-%.repo/: %.tst
+.SUFFIXES: .tst .repo .checkout
+
+.tst.repo:
 	python $<
-%.checkout/: %.repo/
-	$(CVS) -d :local:$(abspath $<) -Q checkout -d $@
+.repo.checkout:
+	cvs -d :local:${PWD}/$*.repo -Q checkout $* && mv $* $*.checkout
 
 test: s_regress m_regress i_regress t_regress
 	@echo "No diff output is good news."
@@ -20,80 +17,70 @@ check: test
 
 rebuild: s_rebuild m_rebuild i_rebuild t_rebuild
 
-TESTLOADS := basic blankbranch expand hack1 hack2 hack3 
-TESTLOADS += longrev postbranch twobranch twotag 
-
-testlist: $(TESTLOADS:=.tst) $(PYTESTS:=.py)
-	@grep '^##' $^ 
+testlist:
+	@grep '^##' *.tst *.py
 
 neutralize.map:
-	echo "$$USER = foo <foo> -0500" >$@
+	@echo "$${USER} = foo <foo> -0500" >neutralize.map
 
-.SECONDARY: $(TESTLOADS:=.repo)
-# Test regressions
-s_rebuild: $(TESTLOADS:=.schk)
-%.schk: %.repo/ neutralize.map
-	-find $*.repo/$* -name '*,v' | sort | \
-	  $(CVS_FAST_EXPORT) -T -A neutralize.map >$@ 2>&1
-	$(CP) $@ $(srcdir)$*.chk
+TESTLOADS := $(shell ls -1 *.tst | sed '/.tst/s///')
+s_rebuild: neutralize.map
+	@-for file in $(TESTLOADS); do \
+	    echo "Remaking $${file}.chk"; \
+	    make --quiet $${file}.repo; \
+	    find $${file}.repo/$${file} -name '*,v' | sort | cvs-fast-export -T -A neutralize.map >$${file}.chk 2>&1; \
+	done;
+s_regress: neutralize.map
+	@echo "== Dump regressions =="
+	@-for file in $(TESTLOADS); do \
+	    echo -n "  $${file} "; grep '##' $${file}.tst  || echo ' ## (no description)'; \
+	    make --quiet $${file}.repo; \
+	    find $${file}.repo/$${file} -name '*,v' | sort | cvs-fast-export -T -A neutralize.map 2>&1 | diff -u $${file}.chk -; \
+	done
 
-s_regress: $(TESTLOADS:=.sreg)
-%.sreg: %.tst %.repo/ neutralize.map
-	@echo -n "  $* "
-	@grep '##' $< || echo ' ## (no description)'
-	find $*.repo/$* -name '*,v' | sort | \
-	   $(CVS_FAST_EXPORT) -T -A neutralize.map 2>&1 | \
-	   $(DIFF) $(srcdir)$*.chk -
-
-
-# Master-parsing regressions
-MASTERS := hardlinks hashsymbol
-m_rebuild: $(MASTERS:=.mchk)
-%.mchk: %,v
-	-$(CVS_FAST_EXPORT) $< >$@ 2>&1
-	$(CP) $@ $(srcdir)$*.chk
-m_regress: $(MASTERS:=.mreg)
-%.mreg: %,v
-	@echo -n "  $*: "
-	@sed <$< -n -e '/^comment	@# \(.*\)@;/s//\1/p'
-	$(CVS_FAST_EXPORT) $< 2>&1 | \
-	    $(DIFF) $(srcdir)$*.chk -
-
+MASTERS := $(shell ls -1 *,v | sed '/,v/s///')
+m_rebuild:
+	@-for file in $(MASTERS); do \
+	    echo "Remaking $${file}.chk"; \
+	    cvs-fast-export $${file},v >$${file}.chk 2>&1; \
+	done;
+m_regress:
+	@echo "== Master-parsing regressions =="
+	@-for file in $(MASTERS); do \
+	    echo -n "  $${file}: "; sed <$${file},v -n -e '/^comment	@# \(.*\)@;/s//\1/p'; \
+	    cvs-fast-export $${file},v 2>&1 | diff -u $${file}.chk -; \
+	done
 
 INCREMENTAL=twobranch
 THRESHOLD=4000
-.SECONDARY: $(INCREMENTAL:=.repo)
-i_rebuild: $(INCREMENTAL:=.ichk)
-%.ichk: %.repo/ neutralize.map
-	-find $*.repo/$* -name '*,v' | sort | \
-	 $(CVS_FAST_EXPORT) -T -A neutralize.map \
-	     -i $(THRESHOLD) >$@ 2>&1
-	$(CP) $@ $(srcdir)$*.inc-chk
+i_rebuild: neutralize.map
+	@-for file in $(INCREMENTAL); do \
+	    echo "Remaking $${file}.inc-chk"; \
+	    make --quiet $${file}.repo; \
+	    find $${file}.repo/$${file} -name '*,v' | sort | cvs-fast-export -T -A neutralize.map -i $(THRESHOLD) >$${file}.inc-chk 2>&1; \
+	done;
+i_regress: neutralize.map
+	@echo "== Incremental-dump regressions =="
+	@-for file in $(INCREMENTAL); do \
+	    echo -n "  $${file} "; grep '##' $${file}.tst  || echo ' ## (no description)'; \
+	    make --quiet $${file}.repo; \
+	    find $${file}.repo/$${file} -name '*,v' | sort | cvs-fast-export -T -i $(THRESHOLD) -A neutralize.map 2>&1 | diff -u $${file}.inc-chk -; \
+	done
 
-i_regress: $(INCREMENTAL:=.ireg)
-%.ireg: %.tst %.repo/ neutralize.map
-	@echo -n "  $* "
-	@grep '##' $< || echo ' ## (no description)'
-	find $*.repo/$* -name '*,v' | sort | \
-	  $(CVS_FAST_EXPORT) -T -A neutralize.map \
-	      -i $(THRESHOLD) 2>&1 | \
-	      $(DIFF) $(srcdir)$*.inc-chk -
 
 PYTESTS=t9601 t9602 t9603 t9604 t9605
-PATHSTRIP := sed -e 's!$(shell pwd)/!tests/!g;s!$(srcdir)!tests/!g'
-t_rebuild: $(PYTESTS:=.pchk)
-%.pchk: %.py
-	-python $^ -s$(srcdir) 2>&1 | $(PATHSTRIP) >$@
-	$(CP) $@ $(srcdir)$*.err
-t_regress:  $(PYTESTS:=.preg)
-%.preg: %.py
-	@echo -n "  $* "
-	@grep '##' $< || echo ' ## (no description)'
-	python $^ -s$(srcdir) 2>&1 | \
-	    $(PATHSTRIP) | $(DIFF) $(srcdir)$*.err -
+PATHSTRIP = sed -e '/\/.*tests/s//tests/'
+t_regress:
+	@echo "== Pathological cases =="
+	@for pytest in $(PYTESTS); do \
+		echo -n "  $${pytest} "; grep '##' $${pytest}.py  || echo ' ## (no description)'; \
+		python $${pytest}.py 2>&1 | $(PATHSTRIP) | diff $${pytest}.err -; \
+	done
+t_rebuild:
+	@for pytest in $(PYTESTS); do \
+		echo "Remaking $${pytest}.err "; \
+		python $${pytest}.py 2>&1 | $(PATHSTRIP) >$${pytest}.err; \
+	done
 
 clean:
-	$(RM) neutralize.map *.pyc
-	$(RM) -r *.checkout *.repo
-realclean: clean
-	$(RM) *.pchk *.ichk *.schk *.mchk
+	rm -fr neutralize.map *.checkout *.repo *.pyc
