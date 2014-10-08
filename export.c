@@ -735,7 +735,7 @@ bool export_commits(rev_list *rl,
 /* export a revision list as a git fast-import stream in canonical order */
 {
     rev_ref *h;
-    Tag *t;
+    tag_t *t;
     git_commit *c;
     int n;
     size_t extent;

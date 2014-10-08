@@ -674,7 +674,7 @@ rev_branch_merge(rev_ref **branches, int nbranch,
  * Locate position in tree corresponding to specific tag
  */
 static void
-rev_tag_search(Tag *tag, cvs_commit **revisions, rev_list *rl)
+rev_tag_search(tag_t *tag, cvs_commit **revisions, rev_list *rl)
 {
     cvs_commit_date_sort(revisions, tag->count);
     /* tag gets parented with branch of most recent matching commit */
@@ -736,7 +736,7 @@ rev_list_merge(rev_list *head)
     rev_list	*rl = xcalloc(1, sizeof(rev_list), "list merge");
     rev_list	*l;
     rev_ref	*lh, *h;
-    Tag		*t;
+    tag_t	*t;
     rev_ref	**refs = xcalloc(count, sizeof(rev_ref *), "list merge");
 
     /*

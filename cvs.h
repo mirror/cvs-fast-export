@@ -481,11 +481,11 @@ typedef struct _tag {
 	git_commit *commit;
 	rev_ref *parent;
 	const char *last;
-} Tag;
+} tag_t;
 
-extern Tag *all_tags;
+extern tag_t *all_tags;
 void tag_commit(cvs_commit *c, const char *name, cvs_file *cvsfile);
-cvs_commit **tagged(Tag *tag);
+cvs_commit **tagged(tag_t *tag);
 void discard_tags(void);
 
 #define Ginbuf(eb) (&eb->in_buffer_store)

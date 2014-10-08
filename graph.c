@@ -117,7 +117,7 @@ static void dot_commit_graph(git_commit *c, rev_ref *branch)
     printf("\"");
 }
 
-static void dot_tag_name(FILE *f, Tag *tag)
+static void dot_tag_name(FILE *f, tag_t *tag)
 {
     if (tag->parent) {
 	dot_ref_name(f, tag->parent);
@@ -213,12 +213,12 @@ static void dot_refs(rev_list *rl, rev_ref *refs,
 
 static void dot_tags(rev_list *rl, const char *title, const char *shape)
 {
-    Tag	*r;
+    tag_t	*r;
     int n;
     int i, count;
     struct {
 	int alias;
-	Tag *t;
+	tag_t *t;
     } *v;
 
     for (r = all_tags, count = 0; r; r = r->next, count++)

@@ -171,7 +171,7 @@ static void print_sizes(void)
     printf("sizeof(rev_diff)      = %zu\n", sizeof(rev_diff));
     printf("sizeof(cvs_author)    = %zu\n", sizeof(cvs_author));
     printf("sizeof(chunk_t)       = %zu\n", sizeof(chunk_t));
-    printf("sizeof(Tag)           = %zu\n", sizeof(Tag));
+    printf("sizeof(Tag)           = %zu\n", sizeof(tag_t));
 }
 
 int
