@@ -48,9 +48,6 @@ core
 # CVS default ignores end
 
 
-reset refs/tags/FUBAR
-from :3
-
 blob
 mark :4
 data 38
@@ -70,6 +67,9 @@ An example second checkin
 from :3
 M 100644 :4 tweedledee
 M 100644 :5 tweedledum
+
+reset refs/tags/FUBAR
+from :6
 
 reset refs/heads/master
 from :6
