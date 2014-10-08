@@ -52,7 +52,7 @@ rev_list_file(const char *name)
     struct stat	buf;
     yyscan_t scanner;
     FILE *in;
-    cvs_file *this_file;
+    cvs_file *cvs;
 
     in = fopen(name, "r");
     if (!in) {
@@ -63,19 +63,22 @@ rev_list_file(const char *name)
     if (stat(name, &buf) == -1) {
 	fatal_system_error("%s", name);
     }
-    this_file = xcalloc(1, sizeof(cvs_file), __func__);
-    this_file->master_name = name;
-    this_file->mode = buf.st_mode;
+
+    cvs = xcalloc(1, sizeof(cvs_file), __func__);
+    cvs->master_name = name;
+    cvs->mode = buf.st_mode;
+
     yylex_init(&scanner);
     yyset_in(in, scanner);
-    yyparse(scanner, this_file);
+    yyparse(scanner, cvs);
     yylex_destroy(scanner);
+
     fclose(in);
-    rl = rev_list_cvs(this_file);
+    rl = rev_list_cvs(cvs);
     if (generate)
-	generate_files(this_file, enable_keyword_expansion, export_blob);
+	generate_files(cvs, enable_keyword_expansion, export_blob);
    
-    cvs_file_free(this_file);
+    cvs_file_free(cvs);
     return rl;
 }
 
