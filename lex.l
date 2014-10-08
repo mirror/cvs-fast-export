@@ -65,17 +65,17 @@ YY_DECL;
 <INITIAL>log			return LOG;
 <INITIAL>text			BEGIN(SKIP); return TEXT;
 <SKIP>@				{
-					parse_text(&yylval->text, yyg, cvs);
+					parse_text(&yylval->text, yyscanner, cvs);
 					BEGIN(INITIAL);
 					return TEXT_DATA;
 				}
 <CONTENT>[-a-zA-Z_+%][-a-zA-Z_0-9+/%=.~^\\*?#!\[\]()<>]* {
-					fast_export_sanitize(yyg, cvs);
+					fast_export_sanitize(yyscanner, cvs);
 					yylval->atom = atom(yytext);
 					return NAME;
 				}
 <AUTHORSS>[-a-zA-Z_0-9+%][-a-zA-Z_0-9+/%=.~^\\*?]* {
-					fast_export_sanitize(yyg, cvs);
+					fast_export_sanitize(yyscanner, cvs);
 					yylval->atom = atom(yytext);
 					return NAME;
 				}
@@ -102,11 +102,11 @@ YY_DECL;
 ;				BEGIN(INITIAL); return SEMI;
 :				return COLON;
 <SKIPTOSEMI>[^;]*		{
-					yylval->s = parse_data_until_newline(yyg);
+					yylval->s = parse_data_until_newline(yyscanner);
 					return DATA;
 				}
 <INITIAL,CONTENT>@		{
-					yylval->s = parse_data(yyg);
+					yylval->s = parse_data(yyscanner);
 					return DATA;
 				}
 " " 				;
