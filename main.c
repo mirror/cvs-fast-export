@@ -19,6 +19,7 @@
 #include <unistd.h>
 #include <getopt.h>
 #include <regex.h>
+#include <time.h>
 #if defined(__GLIBC__)
 #include <malloc.h>
 #endif /* __GLIBC__ */
@@ -190,7 +191,7 @@ main(int argc, char **argv)
     char	    *revision_map = NULL;
     bool	    reposurgeon = false;
     bool	    force_dates = false;
-    time_t	    start_time;
+    struct timespec start_time;
     char	    *branch_prefix = "refs/heads/";
     bool	    promiscuous = false;
     bool	    enable_keyword_expansion = false;
@@ -205,7 +206,7 @@ main(int argc, char **argv)
      */
     mallopt(M_TOP_PAD,16*1024*1024); /* grab memory in 16MB chunks */
 #endif /* __GLIBC__ */
-    start_time = time(NULL);
+    clock_gettime(CLOCK_REALTIME, &start_time);
 
     /* force times using mktime to be interpreted in UTC */
     setenv("TZ", "UTC", 1);
@@ -346,7 +347,7 @@ main(int argc, char **argv)
 	    export_commits(rl, branch_prefix,
 			   fromtime, revision_map, reposurgeon,
 			   force_dates, branchorder, progress);
-	    save_status_end(start_time); /* calls progress_end() */
+	    save_status_end(&start_time); /* calls progress_end() */
 	    break;
 	}
     }

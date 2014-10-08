@@ -2,7 +2,7 @@
 
 Repository head
     Files not ending with ,v are now ignored unless the new -P option is on.
-    New -t option for oarallelizing analysis on multicore systems.
+    New -t option for parallelizing analysis on multicore systems.
 
 1.19: 2014-10-04
     Dramatic speedups in some bottlneck functions.

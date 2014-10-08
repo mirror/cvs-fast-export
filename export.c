@@ -23,6 +23,7 @@
 #include <sys/stat.h>
 #include <sys/resource.h>
 #include <ftw.h>
+#include <time.h>
 #ifdef THREADS
 #include <pthread.h>
 #endif /* THREADS */
@@ -69,20 +70,26 @@ static pthread_mutex_t seqno_mutex = PTHREAD_MUTEX_INITIALIZER;
  */
 #define CVS_IGNORES "# CVS default ignores begin\ntags\nTAGS\n.make.state\n.nse_depinfo\n*~\n#*\n.#*\n,*\n_$*\n*$\n*.old\n*.bak\n*.BAK\n*.orig\n*.rej\n.del-*\n*.a\n*.olb\n*.o\n*.obj\n*.so\n*.exe\n*.Z\n*.elc\n*.ln\ncore\n# CVS default ignores end\n"
 
-void save_status_end(time_t start_time)
+void save_status_end(struct timespec *start_time)
 {
     if (!progress)
 	return;
     else {
-	time_t elapsed = time(NULL) - start_time;
+#define NANOSCALE	1000000000.0
+#define nanosec(ts)	((ts)->tv_nsec + NANOSCALE * (ts)->tv_sec) 
+	struct timespec now;
 	struct rusage rusage;
+	float elapsed;
 
+	clock_gettime(CLOCK_REALTIME, &now);
 	(void)getrusage(RUSAGE_SELF, &rusage);
-	progress_end("100%%, %d commits in %dsec (%d commits/sec) using %ldKb.",
+	elapsed = (nanosec(&now) - nanosec(start_time)) / NANOSCALE;
+	progress_end("100%%, %d commits in %.6fs (%d commits/sec) using %ldKb.",
 		     export_total_commits,
-		     (int)elapsed,
-		     (int)(export_total_commits / (elapsed > 0 ? elapsed : 1)),
+		     elapsed,
+		     (int)(export_total_commits / elapsed),
 		     rusage.ru_maxrss);
+#undef nanosec
     }
 }
 

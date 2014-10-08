@@ -644,7 +644,7 @@ void
 export_wrap(void);
 
 void
-save_status_end(time_t start_time);
+save_status_end(struct timespec *);
 
 void
 free_author_map(void);
