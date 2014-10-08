@@ -1,15 +1,26 @@
 #include <stdint.h>
 #include <stdlib.h>
 #include <stdio.h>
+#ifdef THREADS
+#include <pthread.h>
+#endif /* THREADS */
+
 #include "cvs.h"
 
 /*
  * Manage objects that represent gitspace lightweight tags.
+ *
+ * Because we're going to try to unify tags from different branches
+ * the tag table should *not* be local to any one master.  
  */
 
 static Tag *table[4096];
 
 Tag *all_tags;
+
+#ifdef THREADS
+static pthread_mutex_t tag_mutex = PTHREAD_MUTEX_INITIALIZER;
+#endif /* THREADS */
 
 static int tag_hash(const char *name)
 /* return the hash code for a specified tag */ 
@@ -43,7 +54,11 @@ static Tag *find_tag(const char *name)
 void tag_commit(cvs_commit *c, const char *name, cvs_file *cvsfile)
 /* add a CVS commit to the list associated with a named tag */
 {
-    Tag *tag = find_tag(name);
+    Tag *tag;
+#ifdef THREADS
+    pthread_mutex_lock(&tag_mutex);
+#endif /* THREADS */
+    tag = find_tag(name);
     if (tag->last == cvsfile->master_name) {
 	announce("duplicate tag %s in CVS master %s, ignoring\n",
 		 name, cvsfile->master_name);
@@ -58,6 +73,9 @@ void tag_commit(cvs_commit *c, const char *name, cvs_file *cvsfile)
     }
     tag->commits->v[--tag->left] = c;
     tag->count++;
+#ifdef THREADS
+    pthread_mutex_unlock(&tag_mutex);
+#endif /* THREADS */
 }
 
 cvs_commit **tagged(Tag *tag)
@@ -66,6 +84,7 @@ cvs_commit **tagged(Tag *tag)
     cvs_commit **v = NULL;
 
     if (tag->count) {
+	/* not mutex-locked because it;s ncalled during analysis phase */
 	cvs_commit **p = xmalloc(tag->count * sizeof(*p), __func__);
 	chunk_t *c = tag->commits;
 	int n = Ncommits - tag->left;
