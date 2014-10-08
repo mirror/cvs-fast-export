@@ -77,7 +77,6 @@ rev_list_file(const char *name)
     rl = rev_list_cvs(cvs);
     if (generate)
 	generate_files(cvs, enable_keyword_expansion, export_blob);
-   
     cvs_file_free(cvs);
     return rl;
 }
