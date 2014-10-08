@@ -84,7 +84,7 @@ cvs_commit **tagged(tag_t *tag)
     cvs_commit **v = NULL;
 
     if (tag->count) {
-	/* not mutex-locked because it;s ncalled during analysis phase */
+	/* not mutex-locked because it's called during analysis phase */
 	cvs_commit **p = xmalloc(tag->count * sizeof(*p), __func__);
 	chunk_t *c = tag->commits;
 	int n = Ncommits - tag->left;

@@ -237,7 +237,7 @@ cvs_commit_date_sort(cvs_commit **commits, int ncommit)
 
 bool
 git_commit_has_file(git_commit *c, rev_file *f)
-/* does this commit toauch a specified file? */
+/* does this commit touch a specified file? */
 {
     int	i, j;
 
