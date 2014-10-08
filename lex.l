@@ -264,41 +264,41 @@ lex_number(const char *s)
 cvstime_t
 lex_date(cvs_number *n, yyscan_t yyscanner, cvs_file *cvs)
 {
-	struct tm	tm;
-	time_t		d;
-	
-	tm.tm_year = n->n[0];
-	if (tm.tm_year > 1900)
-	   tm.tm_year -= 1900;
-	tm.tm_mon = n->n[1] - 1;
-	tm.tm_mday = n->n[2];
-	tm.tm_hour = n->n[3];
-	tm.tm_min = n->n[4];
-	tm.tm_sec = n->n[5];
-	tm.tm_isdst = 0;
-	#ifndef __CYGWIN__
-	tm.tm_zone = 0;
-	#endif
-	d = mktime(&tm);
-	if (d == 0) {
-	    int i;
-	    fprintf(stderr, "%s: (%d) unparsable date: ", 
-			    cvs->master_name, yyget_lineno(yyscanner));
-	    for (i = 0; i < n->c; i++) {
-		if (i) fprintf(stderr, ".");
-		fprintf(stderr, "%d", n->n[i]);
-	    }
-	    fprintf(stderr, "\n");
+    struct tm	tm;
+    time_t		d;
+
+    tm.tm_year = n->n[0];
+    if (tm.tm_year > 1900)
+       tm.tm_year -= 1900;
+    tm.tm_mon = n->n[1] - 1;
+    tm.tm_mday = n->n[2];
+    tm.tm_hour = n->n[3];
+    tm.tm_min = n->n[4];
+    tm.tm_sec = n->n[5];
+    tm.tm_isdst = 0;
+#ifndef __CYGWIN__
+    tm.tm_zone = 0;
+#endif
+    d = mktime(&tm);
+    if (d == 0) {
+	int i;
+	fprintf(stderr, "%s: (%d) unparsable date: ", 
+			cvs->master_name, yyget_lineno(yyscanner));
+	for (i = 0; i < n->c; i++) {
+	    if (i) fprintf(stderr, ".");
+	    fprintf(stderr, "%d", n->n[i]);
 	}
-	if (d < RCS_EPOCH)
-	    fatal_error("%s: (%d) date before RCS epoch: ",
-			cvs->master_name,
-			yyget_lineno(yyscanner));
-	else if (d >= RCS_OMEGA)
-	    fatal_error("%s: (%d) date too far in future: ",
-			cvs->master_name,
-			yyget_lineno(yyscanner));
-	return d - RCS_EPOCH;
+	fprintf(stderr, "\n");
+    }
+    if (d < RCS_EPOCH)
+	fatal_error("%s: (%d) date before RCS epoch: ",
+		    cvs->master_name,
+		    yyget_lineno(yyscanner));
+    else if (d >= RCS_OMEGA)
+	fatal_error("%s: (%d) date too far in future: ",
+		    cvs->master_name,
+		    yyget_lineno(yyscanner));
+    return d - RCS_EPOCH;
 }
 
 static void fast_export_sanitize(yyscan_t yyscanner, cvs_file *cvs)
