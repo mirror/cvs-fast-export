@@ -15,12 +15,14 @@
  *  with this program; if not, write to the Free Software Foundation, Inc.,
  *  59 Temple Place, Suite 330, Boston, MA 02111-1307 USA.
  */
+#define _XOPEN_SOURCE 700
 #include <limits.h>
 #include <assert.h>
 #include <stdlib.h>
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <sys/resource.h>
+#include <ftw.h>
 #ifdef THREADS
 #include <pthread.h>
 #endif /* THREADS */
@@ -269,6 +271,20 @@ static char *export_filename(rev_file *file, const bool ignoreconv)
     return name;
 }
 
+
+static int unlink_cb(const char *fpath, 
+		     const struct stat *sb, 
+		     int typeflag, 
+		     struct FTW *ftwbuf)
+{
+    int rv = remove(fpath);
+
+    if (rv)
+        perror(fpath);
+
+    return rv;
+}
+
 void export_wrap(void)
 /* clean up after export, removing the blob storage */
 {
@@ -278,8 +294,7 @@ void export_wrap(void)
     pthread_mutex_destroy(&seqno_mutex);
 #endif /* THREADS */
     (void)snprintf(cmdbuf, sizeof(cmdbuf), "rm -r %s", blobdir);
-    if (system(cmdbuf))
-	fatal_error("blob directory deletion failed");
+    nftw(blobdir, unlink_cb, 64, FTW_DEPTH | FTW_PHYS);
 }
 
 static const char *utc_offset_timestamp(const time_t *timep, const char *tz)
