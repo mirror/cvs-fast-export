@@ -20,20 +20,22 @@
 #include "gram.h"
     
 static char *
-parse_data(yyscan_t scanner);
+parse_data(yyscan_t yyscanner);
 static void
-parse_text(cvs_text *text, yyscan_t scanner, cvs_file *);
+parse_text(cvs_text *text, yyscan_t yyscanner);
 static char *
-parse_data_until_newline(yyscan_t scanner);
+parse_data_until_newline(yyscan_t yyscanner);
 static void
-fast_export_sanitize(yyscan_t scanner, cvs_file *cvs);
+fast_export_sanitize(yyscan_t yyscanner);
 
 #define YY_INPUT(buf,result,max_size) { \
     int c = getc(yyin); \
     result = (c == EOF) ? YY_NULL : (buf[0] = c, 1); \
 }
-    
-YY_DECL;
+
+#define ctx ((parser_context *)yyget_extra(yyscanner))
+#define cvs ctx->cvs_file
+
 %}
 %option reentrant bison-bridge
 
@@ -65,17 +67,17 @@ YY_DECL;
 <INITIAL>log			return LOG;
 <INITIAL>text			BEGIN(SKIP); return TEXT;
 <SKIP>@				{
-					parse_text(&yylval->text, yyg, cvs);
+					parse_text(&yylval->text, yyscanner);
 					BEGIN(INITIAL);
 					return TEXT_DATA;
 				}
 <CONTENT>[-a-zA-Z_+%][-a-zA-Z_0-9+/%=.~^\\*?#!\[\]()<>]* {
-					fast_export_sanitize(yyg, cvs);
+					fast_export_sanitize(yyscanner);
 					yylval->atom = atom(yytext);
 					return NAME;
 				}
 <AUTHORSS>[-a-zA-Z_0-9+%][-a-zA-Z_0-9+/%=.~^\\*?]* {
-					fast_export_sanitize(yyg, cvs);
+					fast_export_sanitize(yyscanner);
 					yylval->atom = atom(yytext);
 					return NAME;
 				}
@@ -102,11 +104,11 @@ YY_DECL;
 ;				BEGIN(INITIAL); return SEMI;
 :				return COLON;
 <SKIPTOSEMI>[^;]*		{
-					yylval->s = parse_data_until_newline(yyg);
+					yylval->s = parse_data_until_newline(yyscanner);
 					return DATA;
 				}
 <INITIAL,CONTENT>@		{
-					yylval->s = parse_data(yyg);
+					yylval->s = parse_data(yyscanner);
 					return DATA;
 				}
 " " 				;
@@ -119,7 +121,7 @@ YY_DECL;
 					yytext[0]);
 				}
 %%
-int yywrap(yyscan_t scanner) { return 1; }
+int yywrap(yyscan_t yyscanner) { return 1; }
 
 /*
  * A variable-length buffer, allocated on the stack first
@@ -166,7 +168,7 @@ static char *varbuf_dup(struct varbuf *buf, const char *legend) {
 }
 
 static char *
-parse_data(yyscan_t scanner)
+parse_data(yyscan_t yyscanner)
 {
     int c;
     char *ret;
@@ -175,15 +177,15 @@ parse_data(yyscan_t scanner)
     varbuf_init(&buf);
 
     for(;;) {
-	c = getc(yyget_in(scanner));
+	c = getc(yyget_in(yyscanner));
 	if (c == '@') {
-	    c = getc (yyget_in(scanner));
+	    c = getc (yyget_in(yyscanner));
 	    if (c != '@') 
 		break;
 	}
 	varbuf_add(&buf, c);
     }
-    ungetc(c, yyget_in(scanner));
+    ungetc(c, yyget_in(yyscanner));
     varbuf_add(&buf, '\0');
     ret = varbuf_dup(&buf, "parse_data");
     varbuf_free(&buf);
@@ -191,26 +193,26 @@ parse_data(yyscan_t scanner)
 }
 
 static void
-parse_text(cvs_text *text, yyscan_t scanner, cvs_file *cvs)
+parse_text(cvs_text *text, yyscan_t yyscanner)
 {
     int c;
     size_t length;
 
     text->filename = cvs->master_name;
-    text->offset = ftell(yyget_in(scanner)) - 1;
+    text->offset = ftell(yyget_in(yyscanner)) - 1;
     length = 1;
 
-    while ((c = getc(yyget_in(scanner))) != EOF) {
+    while ((c = getc(yyget_in(yyscanner))) != EOF) {
 	++length;
         if (c == '@') {
 	    /* lookahead to see if we hit @@ */
-	    c = getc(yyget_in(scanner));
+	    c = getc(yyget_in(yyscanner));
 	    if (c == '@') {
 	        ++length;
 	    } else {
 		/* We consume only the closing single @,
 		 * leaving it included in the length */
-	        ungetc(c, yyget_in(scanner));
+	        ungetc(c, yyget_in(yyscanner));
 		break;
 	    }
 	}
@@ -219,7 +221,7 @@ parse_text(cvs_text *text, yyscan_t scanner, cvs_file *cvs)
 }
 
 static char *
-parse_data_until_newline(yyscan_t scanner)
+parse_data_until_newline(yyscan_t yyscanner)
 {
     int c;
     char *ret;
@@ -227,13 +229,13 @@ parse_data_until_newline(yyscan_t scanner)
 
     varbuf_init(&buf);
     for(;;) {
-	c = getc(yyget_in(scanner));
+	c = getc(yyget_in(yyscanner));
 	if (c == '\n') {
 		break;
 	}
 	varbuf_add(&buf, c);
     }
-    ungetc(c, yyget_in(scanner));
+    ungetc(c, yyget_in(yyscanner));
     varbuf_add(&buf, '\0');
     ret = varbuf_dup(&buf, "parse_data_until_newline");
     varbuf_free(&buf);
@@ -262,7 +264,7 @@ lex_number(const char *s)
 }
 
 cvstime_t
-lex_date(cvs_number *n, yyscan_t scanner, cvs_file *cvs)
+lex_date(cvs_number *n, yyscan_t yyscanner)
 {
 	struct tm	tm;
 	time_t		d;
@@ -283,7 +285,7 @@ lex_date(cvs_number *n, yyscan_t scanner, cvs_file *cvs)
 	if (d == 0) {
 	    int i;
 	    fprintf(stderr, "%s: (%d) unparsable date: ", 
-			    cvs->master_name, yyget_lineno(scanner));
+			    cvs->master_name, yyget_lineno(yyscanner));
 	    for (i = 0; i < n->c; i++) {
 		if (i) fprintf(stderr, ".");
 		fprintf(stderr, "%d", n->n[i]);
@@ -293,32 +295,32 @@ lex_date(cvs_number *n, yyscan_t scanner, cvs_file *cvs)
 	if (d < RCS_EPOCH)
 	    fatal_error("%s: (%d) date before RCS epoch: ",
 			cvs->master_name,
-			yyget_lineno(scanner));
+			yyget_lineno(yyscanner));
 	else if (d >= RCS_OMEGA)
 	    fatal_error("%s: (%d) date too far in future: ",
 			cvs->master_name,
-			yyget_lineno(scanner));
+			yyget_lineno(yyscanner));
 	return d - RCS_EPOCH;
 }
 
-static void fast_export_sanitize(yyscan_t scanner, cvs_file *cvs)
+static void fast_export_sanitize(yyscan_t yyscanner)
 {
     char *sp, *tp;
 
 #define SUFFIX(a, s)	(strcmp(a + strlen(a) - strlen(s), s) == 0) 
 #define BADCHARS	"~^\\*?"
-    for (sp = tp = yyget_text(scanner); *sp; sp++) {
+    for (sp = tp = yyget_text(yyscanner); *sp; sp++) {
 	if (isgraph((unsigned char)*sp) && strchr(BADCHARS, *sp) == NULL) {
 	    *tp++ = *sp;
-	    if (SUFFIX(yyget_text(scanner), "@{") || SUFFIX(yyget_text(scanner), "..")) {
+	    if (SUFFIX(yyget_text(yyscanner), "@{") || SUFFIX(yyget_text(yyscanner), "..")) {
 		fatal_error("%s: (%d) tag or branch name %s is ill-formed.\n", 
-			    cvs->master_name, yyget_lineno(scanner), yyget_text(scanner));
+			    cvs->master_name, yyget_lineno(yyscanner), yyget_text(yyscanner));
 	    }
 	}
     }
     *tp = '\0';
-    if (strlen(yyget_text(scanner)) == 0) {
+    if (strlen(yyget_text(yyscanner)) == 0) {
 	fatal_error("%s: (%d) tag or branch name was empty after sanitization.\n", 
-		    cvs->master_name, yyget_lineno(scanner));
+		    cvs->master_name, yyget_lineno(yyscanner));
     }
 }
