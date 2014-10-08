@@ -119,7 +119,7 @@ YY_DECL;
 					yytext[0]);
 				}
 %%
-int yywrap(yyscan_t scanner) { return 1; }
+int yywrap(yyscan_t yyscanner) { return 1; }
 
 /*
  * A variable-length buffer, allocated on the stack first

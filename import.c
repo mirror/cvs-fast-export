@@ -51,23 +51,22 @@ rev_list_file(const char *name)
     rev_list	*rl;
     struct stat	buf;
     yyscan_t scanner;
+    FILE *in;
     cvs_file	*this_file;
 
-    yylex_init(&scanner);
-    /* coverity[leaked_storage] */
-    yyset_in(fopen(name, "r"), scanner);
-    if (!yyget_in(scanner)) {
+    in = fopen(name, "r");
+    if (!in) {
 	perror(name);
 	++err;
-	yylex_destroy(scanner);
 	return NULL;
     }
-    //yyset_lineno(0, scanner);
     this_file = xcalloc(1, sizeof(cvs_file), __func__);
     this_file->master_name = name;
-    if (yyget_in(scanner) != NULL)
-	assert(fstat(fileno(yyget_in(scanner)), &buf) == 0);
+    if (in != NULL)
+	assert(fstat(fileno(in), &buf) == 0);
     this_file->mode = buf.st_mode;
+    yylex_init(&scanner);
+    yyset_in(in, scanner);
     yyparse(scanner, this_file);
     fclose(yyget_in(scanner));
     yylex_destroy(scanner);
