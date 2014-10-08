@@ -1,6 +1,6 @@
 		cvs-fast-export project news
 
-Repository head
+1.20: 2014-10-08
     Files not ending with ,v are now ignored unless the new -P option is on.
     New -t option for parallelizing analysis on multicore systems.
 
