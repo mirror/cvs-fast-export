@@ -739,6 +739,7 @@ struct commit_seq {
 };
 
 static int compare_commit(git_commit *ac, git_commit *bc)
+/* attempt the mathemaically impossible total ordering on the DAG */
 {
     time_t timediff;
     int cmp;
@@ -749,9 +750,9 @@ static int compare_commit(git_commit *ac, git_commit *bc)
     timediff = ac->date - bc->date;
     if (timediff != 0)
 	return timediff;
-    if (bc == ac->parent || (ac->parent && bc == ac->parent->parent))
+    if (bc == ac->parent || (ac->parent != NULL && bc == ac->parent->parent))
 	return 1;
-    if (ac == bc->parent || (bc->parent && ac == bc->parent->parent))
+    if (ac == bc->parent || (bc->parent != NULL && ac == bc->parent->parent))
 	return -1;
 
     /* 
@@ -776,17 +777,20 @@ static int sort_by_date(const void *ap, const void *bp)
     git_commit *bc = ((struct commit_seq *)bp)->commit;
     int cmp;
 
-    cmp = compare_commit(ac, bc);
-    if (cmp != 0)
-	return cmp;
-
-    if (ac->parent && bc->parent) {
-	cmp = compare_commit(ac->parent, bc->parent);
+    /* older parents drag tied commits back in time (in effect) */ 
+    for (;;) {
+	if (ac == bc)
+	    return 0;
+	cmp = compare_commit(ac, bc);
 	if (cmp != 0)
 	    return cmp;
+	if (ac->parent != NULL && bc->parent != NULL) {
+	    ac = ac->parent;
+	    bc = bc->parent;
+	    continue;
+	}
+	return 0;
     }
-
-    return 0;
 }
 
 bool export_commits(rev_list *rl, 
