@@ -483,6 +483,12 @@ typedef struct _tag {
 	const char *last;
 } tag_t;
 
+typedef struct _stats {
+    int filecount;
+    off_t textsize;
+    int errcount;
+} stats_t;
+
 extern tag_t *all_tags;
 void tag_commit(cvs_commit *c, const char *name, cvs_file *cvsfile);
 cvs_commit **tagged(tag_t *tag);
@@ -497,7 +503,7 @@ analyze_masters(int argc, char *argv[0],
 		const bool generate,
 		const bool verbose,
 		const int threads,
-		int *total_files, int *err);
+		stats_t *stats);
 
 bool
 cvs_is_head(cvs_number *n);

@@ -231,14 +231,13 @@ rev_list *analyze_masters(int argc, char *argv[],
 			  const bool arg_generate,
 			  const bool arg_verbose,
 			  const int threads,
-			  int *filecount, int *err)
+			  stats_t *stats)
 /* main entry point; collect and parse CVS masters */
 {
     rev_filename    *fn_head = NULL, **fn_tail = &fn_head, *fn;
     char	    name[10240];
     const char      *last = NULL;
     char	    *file;
-    off_t	    textsize = 0;
     int		    j = 1;
     int		    c;
 #ifdef THREADS
@@ -249,6 +248,7 @@ rev_list *analyze_masters(int argc, char *argv[],
     }
 #endif /* THREADS */
 
+    stats->textsize = stats->filecount = 0;
     progress_begin("Reading list of files...", NO_MAX);
     for (;;)
     {
@@ -279,8 +279,7 @@ rev_list *analyze_masters(int argc, char *argv[],
 	    if (end - file < 2 || end[-1] != 'v' || end[-2] != ',')
 		continue;
 	}
-	else
-	    textsize += stb.st_size;
+	stats->textsize += stb.st_size;
 
 	fn = xcalloc(1, sizeof(rev_filename), "filename gathering");
 	*fn_tail = fn;
@@ -303,8 +302,11 @@ rev_list *analyze_masters(int argc, char *argv[],
 	if (progress && total_files % 100 == 0)
 	    progress_jump(total_files);
     }
-    progress_end("done, %ldKB in %d files", (long)(textsize/1024), total_files);
-    *filecount = total_files;
+    stats->filecount = total_files;
+    stats->errcount = err;
+
+    progress_end("done, %ldKB in %d files", 
+		 (long)(stats->textsize/1024), stats->filecount);
 
     /* things that must be visible to inner functions */
     load_current_file = 0;
@@ -351,18 +353,15 @@ rev_list *analyze_masters(int argc, char *argv[],
 	    if (verbose)
 		announce("processing %s\n", fn->file);
 	    if (progress)
-		load_status(fn->file + striplen, *filecount, false);
+		load_status(fn->file + striplen, stats->filecount, false);
 	    rl = rev_list_file(fn->file);
 	    if (progress)
-		load_status(fn->file + striplen, *filecount, true);
+		load_status(fn->file + striplen, stats->filecount, true);
 	    *tail = rl;
 	    tail = &rl->next;
 	}
 	free(fn);
     }
-    if (progress)
-	load_status_next();
-
 #ifdef THREADS
     /* wait on all threads still running before continuing */
     for (i = 0; i < THREAD_POOL_SIZE; i++)
@@ -371,6 +370,9 @@ rev_list *analyze_masters(int argc, char *argv[],
     for (i = 0; i < THREAD_POOL_SIZE; i++)
 	pthread_mutex_destroy(&threadslots[i].mutex);
 #endif /* THREADS */
+
+    if (progress)
+	load_status_next();
 
     return head;
 }

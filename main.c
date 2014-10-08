@@ -187,7 +187,7 @@ main(int argc, char **argv)
     int             verbose = 0;
     bool            branchorder = false;
     execution_mode  exec_mode = ExecuteExport;
-    int		    load_total_files, err;
+    stats_t         stats;
     char	    *revision_map = NULL;
     bool	    reposurgeon = false;
     bool	    force_dates = false;
@@ -329,7 +329,7 @@ main(int argc, char **argv)
 			   enable_keyword_expansion,
 			   exec_mode == ExecuteExport,
 			   verbose, threads,
-			   &load_total_files, &err);
+			   &stats);
 
     /* commit set coalescence happens here */
     rl = rev_list_merge(head);
@@ -351,7 +351,7 @@ main(int argc, char **argv)
 	    break;
 	}
     }
-    if (skew_vulnerable > 0 && load_total_files > 1 && !force_dates) {
+    if (skew_vulnerable > 0 && stats.filecount > 1 && !force_dates) {
 	time_t udate = RCS_EPOCH + skew_vulnerable;
 	announce("commits before this date lack commitids: %s",	ctime(&udate));
     }
@@ -368,7 +368,7 @@ main(int argc, char **argv)
     git_commit_cleanup();
     export_wrap();
     free_author_map();
-    return err > 0;
+    return stats.errcount > 0;
 }
 
 /* end */
