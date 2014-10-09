@@ -177,6 +177,8 @@ struct threadslot {
     const char	    *filename;
 };
 
+static pthread_mutex_t wakeup_mutex = PTHREAD_MUTEX_INITIALIZER;
+static pthread_cond_t wakeup_cond;
 static pthread_mutex_t revlist_mutex = PTHREAD_MUTEX_INITIALIZER;
 static struct threadslot threadslots[THREAD_POOL_SIZE];
 
@@ -219,7 +221,9 @@ static void *thread_monitor(void *arg)
     *tail = rl;
     tail = &rl->next;
     pthread_mutex_unlock(&revlist_mutex);
+    pthread_cond_signal(&wakeup_cond);
     pthread_mutex_unlock(&slot->mutex);
+    pthread_mutex_unlock(&wakeup_mutex);
     thread_announce("slot %ld: %s done (%d of %d)\n", 
 		    slot - threadslots, slot->filename,
 		    load_current_file, total_files);
@@ -351,6 +355,8 @@ rev_list *analyze_masters(int argc, char *argv[],
 			}
 		    }
 		}
+		pthread_mutex_lock(&wakeup_mutex);
+		pthread_cond_wait(&wakeup_cond, &wakeup_mutex);
 	    }
 	dispatched:
 	    ;
