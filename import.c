@@ -347,8 +347,8 @@ rev_list *analyze_masters(int argc, char *argv[],
 			if (j == 0) {
 			    goto dispatched;
 			} else {
-			    thread_announce("Analysis thread creation failed!\n");
-			    exit(0);
+			    announce("analysis thread creation failed!\n");
+			    exit(1);
 			}
 		    }
 		}
