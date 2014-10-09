@@ -35,8 +35,6 @@
 #include <stdbool.h>
 #include <limits.h>
 
-#define USE_MMAP 1
-
 /* 
  * CVS_MAX_BRANCHWIDTH should match the number in the longrev test.
  * If it goes above 128 some bitfield widths in rev_ref must increase.

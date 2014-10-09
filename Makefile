@@ -38,8 +38,8 @@ CPPFLAGS += -DTHREADS
 # To enable debugging of order instability issues
 #CPPFLAGS += -DORDERDEBUG=1
 
-YFLAGS=-d
-LFLAGS=
+# Conditions in use of mmap for reading CVS masters
+CPPFLAGS += -DUSE_MMAP
 
 # To enable profiling, uncomment the following line
 # Note: the profiler gets confused if you don't also turn off -O flags.
@@ -49,8 +49,11 @@ CFLAGS += -g
 CFLAGS += $(EXTRA_CFLAGS)
 
 # To enable blob compression, uncomment the following:
-#CFLAGS += -DZLIB
+#CPPFLAGS += -DZLIB
 #LIBS += -lz
+
+YFLAGS=-d
+LFLAGS=
 
 OBJS=gram.o lex.o rbtree.o main.o import.o dump.o cvsnumber.o \
 	cvsutil.o revdir.o revlist.o atom.o revcvs.o generate.o export.o \
