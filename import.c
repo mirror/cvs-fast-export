@@ -348,7 +348,11 @@ rev_list *analyze_masters(int argc, char *argv[],
 			}
 		    }
 		}
-		usleep(100000);
+		{
+		    /* delay 0.1 seconds in a POSIX-clean fashion. */
+		    const struct timespec delay = {0, 100000000};
+		    nanosleep(&delay, NULL);
+		}
 	    }
 	dispatched:
 	    ;
