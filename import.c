@@ -246,7 +246,6 @@ rev_list *analyze_masters(int argc, char *argv[],
     pthread_attr_t  attr;
     int i;
 
-    fprintf(stderr, "%d threads\n", nthreads);
     threadslots = (struct threadslot *)xcalloc(nthreads, sizeof(struct threadslot), __func__);
     for (i = 0; i < nthreads; i++) {
 	pthread_mutex_init(&threadslots[i].mutex, NULL);
