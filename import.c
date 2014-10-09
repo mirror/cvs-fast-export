@@ -243,6 +243,7 @@ rev_list *analyze_masters(int argc, char *argv[],
     int		    j = 1;
     int		    c;
 #ifdef THREADS
+    pthread_attr_t  attr;
     int i;
 
     for (i = 0; i < THREAD_POOL_SIZE; i++) {
@@ -323,17 +324,24 @@ rev_list *analyze_masters(int argc, char *argv[],
      * CVS branch heads (rev_refs), each one of which points at a list
      * of CVS commit structures (cvs_commit).
      */
+
+#ifdef THREADS
+   /* Initialize and set thread detached attribute */
+   pthread_attr_init(&attr);
+   pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_JOINABLE);
+#endif /* THREADS */
+
     while (fn_head) {
 	fn = fn_head;
 	fn_head = fn_head->next;
-#if defined(THREADS)
+#ifdef THREADS
 	if (threads > 1) {
 	    for (;;) {
 		for (i = 0; i < THREAD_POOL_SIZE; i++) {
 		    if (pthread_mutex_trylock(&threadslots[i].mutex) == 0) {
 			threadslots[i].filename = fn->file;
 			j = pthread_create(&threadslots[i].thread, 
-					   NULL, thread_monitor, 
+					   &attr, thread_monitor, 
 					   (void *)&threadslots[i]);
 			if (j == 0) {
 			    goto dispatched;
