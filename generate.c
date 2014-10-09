@@ -736,8 +736,8 @@ load_text(editbuffer_t *eb, const cvs_text *text)
         fatal_system_error("open: %s", text->filename);
     if (fstat(fd, &st) == -1)
         fatal_system_error("fstat: %s", text->filename);
-#if 0
-    /* Coverity points out this always succeeds */
+#if SIZE_MAX < LONG_MAX
+    /* check will always succed if sizeof(size_t) == sizeof(off_t)  */
     if (st.st_size > SIZE_MAX)
         fatal_error("%s: too big", text->filename);
 #endif
