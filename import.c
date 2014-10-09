@@ -167,7 +167,7 @@ static void load_status_next(void)
  * and potentially very large master files into memory.
  */
 
-struct threadslot {
+struct worker {
     pthread_t	    thread;
     pthread_mutex_t mutex;
     const char	    *filename;
@@ -176,7 +176,7 @@ struct threadslot {
 static pthread_mutex_t wakeup_mutex = PTHREAD_MUTEX_INITIALIZER;
 static pthread_cond_t wakeup_cond;
 static pthread_mutex_t revlist_mutex = PTHREAD_MUTEX_INITIALIZER;
-static struct threadslot *threadslots;
+static struct worker *workers;
 
 #ifdef DEBUG_THREAD
 static pthread_mutex_t announce_mutex = PTHREAD_MUTEX_INITIALIZER;
@@ -204,9 +204,9 @@ static void *thread_monitor(void *arg)
 /* do a master analysis, to be run inside a thread */
 {
     rev_list *rl;
-    struct threadslot *slot = (struct threadslot *)arg;
+    struct worker *slot = (struct worker *)arg;
     thread_announce("slot %ld: %s begins\n", 
-		    slot - threadslots, slot->filename);
+		    slot - workers, slot->filename);
     if (progress)
 	load_status(slot->filename + striplen, total_files, false);
     rl = rev_list_file(slot->filename);
@@ -221,7 +221,7 @@ static void *thread_monitor(void *arg)
     pthread_mutex_unlock(&slot->mutex);
     pthread_mutex_unlock(&wakeup_mutex);
     thread_announce("slot %ld: %s done (%d of %d)\n", 
-		    slot - threadslots, slot->filename,
+		    slot - workers, slot->filename,
 		    load_current_file, total_files);
     pthread_exit(NULL);
 }
@@ -246,9 +246,9 @@ rev_list *analyze_masters(int argc, char *argv[],
     pthread_attr_t  attr;
     int i;
 
-    threadslots = (struct threadslot *)xcalloc(nthreads, sizeof(struct threadslot), __func__);
+    workers = (struct worker *)xcalloc(nthreads, sizeof(struct worker), __func__);
     for (i = 0; i < nthreads; i++) {
-	pthread_mutex_init(&threadslots[i].mutex, NULL);
+	pthread_mutex_init(&workers[i].mutex, NULL);
     }
 #endif /* THREADS */
 
@@ -339,11 +339,11 @@ rev_list *analyze_masters(int argc, char *argv[],
 	if (nthreads > 1) {
 	    for (;;) {
 		for (i = 0; i < nthreads; i++) {
-		    if (pthread_mutex_trylock(&threadslots[i].mutex) == 0) {
-			threadslots[i].filename = fn->file;
-			j = pthread_create(&threadslots[i].thread, 
+		    if (pthread_mutex_trylock(&workers[i].mutex) == 0) {
+			workers[i].filename = fn->file;
+			j = pthread_create(&workers[i].thread, 
 					   &attr, thread_monitor, 
-					   (void *)&threadslots[i]);
+					   (void *)&workers[i]);
 			if (j == 0) {
 			    goto dispatched;
 			} else {
@@ -378,10 +378,10 @@ rev_list *analyze_masters(int argc, char *argv[],
 #ifdef THREADS
     /* wait on all threads still running before continuing */
     for (i = 0; i < nthreads; i++)
-	pthread_join(threadslots[i].thread, NULL);
+	pthread_join(workers[i].thread, NULL);
     pthread_mutex_destroy(&revlist_mutex);
     for (i = 0; i < nthreads; i++)
-	pthread_mutex_destroy(&threadslots[i].mutex);
+	pthread_mutex_destroy(&workers[i].mutex);
 #endif /* THREADS */
 
     if (progress)
