@@ -167,10 +167,6 @@ static void load_status_next(void)
  * can get large due to mapping entire delta sequences into memory.
  */
 
-#define THREAD_POOL_SIZE	8
-
-#define DEBUG_THREAD
-
 struct threadslot {
     pthread_t	    thread;
     pthread_mutex_t mutex;
@@ -250,8 +246,9 @@ rev_list *analyze_masters(int argc, char *argv[],
     pthread_attr_t  attr;
     int i;
 
-    threadslots = (struct threadslot *)xcalloc(THREAD_POOL_SIZE, sizeof(struct threadslot), __func__);
-    for (i = 0; i < THREAD_POOL_SIZE; i++) {
+    fprintf(stderr, "%d threads\n", nthreads);
+    threadslots = (struct threadslot *)xcalloc(nthreads, sizeof(struct threadslot), __func__);
+    for (i = 0; i < nthreads; i++) {
 	pthread_mutex_init(&threadslots[i].mutex, NULL);
     }
 #endif /* THREADS */
@@ -342,7 +339,7 @@ rev_list *analyze_masters(int argc, char *argv[],
 #ifdef THREADS
 	if (nthreads > 1) {
 	    for (;;) {
-		for (i = 0; i < THREAD_POOL_SIZE; i++) {
+		for (i = 0; i < nthreads; i++) {
 		    if (pthread_mutex_trylock(&threadslots[i].mutex) == 0) {
 			threadslots[i].filename = fn->file;
 			j = pthread_create(&threadslots[i].thread, 
@@ -381,10 +378,10 @@ rev_list *analyze_masters(int argc, char *argv[],
     }
 #ifdef THREADS
     /* wait on all threads still running before continuing */
-    for (i = 0; i < THREAD_POOL_SIZE; i++)
+    for (i = 0; i < nthreads; i++)
 	pthread_join(threadslots[i].thread, NULL);
     pthread_mutex_destroy(&revlist_mutex);
-    for (i = 0; i < THREAD_POOL_SIZE; i++)
+    for (i = 0; i < nthreads; i++)
 	pthread_mutex_destroy(&threadslots[i].mutex);
 #endif /* THREADS */
 
