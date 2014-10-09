@@ -353,7 +353,16 @@ rev_list *analyze_masters(int argc, char *argv[],
 		    }
 		}
 		pthread_mutex_lock(&wakeup_mutex);
-		pthread_cond_wait(&wakeup_cond, &wakeup_mutex);
+		/*
+		 * Hard wait is unreliable, subject to sporadic hangups,
+		 * so wait until we're signaled or 100 microseconds have
+		 * elapsed, whichever is sooner.
+		 */
+		{
+		    const struct timespec timeout = {0, 10000}; 
+		    pthread_cond_timedwait(&wakeup_cond, &wakeup_mutex, 
+					   &timeout);
+		}
 	    }
 	dispatched:
 	    ;
