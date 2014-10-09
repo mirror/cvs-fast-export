@@ -143,7 +143,7 @@ static void load_status_next(void)
     fflush(STATUS);
 }
 
-#if defined(THREADS)
+#ifdef THREADS
 /*
  * A simple multithread scheduler to avoid stalling on I/O waits.
  *
@@ -155,16 +155,16 @@ static void load_status_next(void)
  *
  * Instead of running the analyses seqentially, the threaded version
  * repeatedly tries to send each master to the worker pool until it
- * succeeds.  If all slots in the pool have active threads, it retries
- * (implicitly waiting for some worker thread to finish) until it can
- * dispatch.
-
+ * succeeds.  If all slots in the pool have active threads, it waits
+ * for some worker thread to finish to retry the dispatch loop.
+ *
  * After all files have been dispatched, any remainihg worker threads
- * are joined, so execaution of thwe main program waits until thery're
+ * are joined, so execution of thwe main program waits until thery're
  * all done.
  *
  * Beware of setting the worker pool size too high, the program's working set
- * can get large due to mapping entire delta sequences into memory.
+ * can get large due to mapping the delta sequences from entire 
+ * and potentially very large master files into memory.
  */
 
 struct threadslot {
