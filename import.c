@@ -180,7 +180,7 @@ struct threadslot {
 static pthread_mutex_t wakeup_mutex = PTHREAD_MUTEX_INITIALIZER;
 static pthread_cond_t wakeup_cond;
 static pthread_mutex_t revlist_mutex = PTHREAD_MUTEX_INITIALIZER;
-static struct threadslot threadslots[THREAD_POOL_SIZE];
+static struct threadslot *threadslots;
 
 #ifdef DEBUG_THREAD
 static pthread_mutex_t announce_mutex = PTHREAD_MUTEX_INITIALIZER;
@@ -236,7 +236,7 @@ rev_list *analyze_masters(int argc, char *argv[],
 			  const bool arg_enable_keyword_expansion, 
 			  const bool arg_generate,
 			  const bool arg_verbose,
-			  const int threads,
+			  const int nthreads,
 			  stats_t *stats)
 /* main entry point; collect and parse CVS masters */
 {
@@ -250,6 +250,7 @@ rev_list *analyze_masters(int argc, char *argv[],
     pthread_attr_t  attr;
     int i;
 
+    threadslots = (struct threadslot *)xcalloc(THREAD_POOL_SIZE, sizeof(struct threadslot), __func__);
     for (i = 0; i < THREAD_POOL_SIZE; i++) {
 	pthread_mutex_init(&threadslots[i].mutex, NULL);
     }
@@ -339,7 +340,7 @@ rev_list *analyze_masters(int argc, char *argv[],
 	fn = fn_head;
 	fn_head = fn_head->next;
 #ifdef THREADS
-	if (threads > 1) {
+	if (nthreads > 1) {
 	    for (;;) {
 		for (i = 0; i < THREAD_POOL_SIZE; i++) {
 		    if (pthread_mutex_trylock(&threadslots[i].mutex) == 0) {
