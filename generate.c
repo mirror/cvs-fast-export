@@ -63,12 +63,6 @@ enum markers { Nomatch, Author, Date, Header, Id, Locker, Log,
 	Name, RCSfile, Revision, Source, State };
 enum stringwork {ENTER, EDIT};
 
-#define Gline(eb) eb->stack[eb->depth].line
-#define Ggap(eb) eb->stack[eb->depth].gap
-#define Ggapsize(eb) eb->stack[eb->depth].gapsize
-#define Glinemax(eb) eb->stack[eb->depth].linemax
-#define Gnode_text(eb) eb->stack[eb->depth].node_text
-
 /* backup one position in the input buffer, unless at start of buffer
  *   return character at new position, or EOF if we could not back up
  */

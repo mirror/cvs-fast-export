@@ -201,12 +201,6 @@ enum expand_mode {EXPANDKKV,	/* default form, $<key>: <value>$ */
 #define NMAPS 4
 
 typedef struct _editbuffer {
-    /* A recently used list of mmapped files */
-    struct text_map {
-	const char *filename;
-	unsigned char *base;
-	size_t size;
-    } text_maps[NMAPS];
     const char *Glog;
     int Gkvlen;
     char* Gkeyval;
@@ -217,15 +211,14 @@ typedef struct _editbuffer {
     struct out_buffer_type *Goutbuf;
     struct in_buffer_type in_buffer_store;
     enum expand_mode Gexpand;
-
-/*
- * Gline contains pointers to the lines in the currently edit buffer
- * It is a 0-origin array that represents Glinemax-Ggapsize lines.
- * Gline[0 .. Ggap-1] and Gline[Ggap+Ggapsize .. Glinemax-1] hold
- * pointers to lines.  Gline[Ggap .. Ggap+Ggapsize-1] contains garbage.
- * Any @s in lines are duplicated.
- * Lines are terminated by \n, or(for a last partial line only) by single @.
- */
+    /*
+     * Gline contains pointers to the lines in the currently edit buffer
+     * It is a 0-origin array that represents Glinemax-Ggapsize lines.
+     * Gline[0 .. Ggap-1] and Gline[Ggap+Ggapsize .. Glinemax-1] hold
+     * pointers to lines.  Gline[Ggap .. Ggap+Ggapsize-1] contains garbage.
+     * Any @s in lines are duplicated.
+     * Lines are terminated by \n, or(for a last partial line only) by single @.
+     */
     int depth;
     struct {
 	node_t *next_branch;
@@ -234,7 +227,21 @@ typedef struct _editbuffer {
 	unsigned char **line;
 	size_t gap, gapsize, linemax;
     } stack[CVS_MAX_DEPTH/2];
+#ifdef USE_MMAP
+    /* A recently used list of mmapped files */
+    struct text_map {
+	const char *filename;
+	unsigned char *base;
+	size_t size;
+    } text_maps[NMAPS];
+#endif /* USE_MMAP */
 } editbuffer_t;
+
+#define Gline(eb) eb->stack[eb->depth].line
+#define Ggap(eb) eb->stack[eb->depth].gap
+#define Ggapsize(eb) eb->stack[eb->depth].gapsize
+#define Glinemax(eb) eb->stack[eb->depth].linemax
+#define Gnode_text(eb) eb->stack[eb->depth].node_text
 
 typedef struct {
     /* this represents the entire metadata content of a CVS master file */
