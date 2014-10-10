@@ -37,12 +37,15 @@
  */
 static int total_files;
 static volatile int load_current_file;
+static volatile bool wakeup;
 static bool generate, enable_keyword_expansion, verbose;
 static rev_list	*head = NULL, **tail = &head;
 static int err;
 
 #ifdef THREADS
 static pthread_mutex_t progress_mutex = PTHREAD_MUTEX_INITIALIZER;
+static pthread_mutex_t wakeup_mutex = PTHREAD_MUTEX_INITIALIZER;
+static pthread_cond_t wakeup_cond;
 #endif /* THREADS */
 
 static rev_list *
@@ -221,6 +224,11 @@ static void *thread_monitor(void *arg)
     thread_announce("slot %ld: %s done (%d of %d)\n", 
 		    slot - workers, slot->filename,
 		    load_current_file, total_files);
+    /* signal the main thread that this slot is free */
+    pthread_mutex_lock(&wakeup_mutex);
+    wakeup = true;
+    pthread_cond_signal(&wakeup_cond);
+    pthread_mutex_unlock(&wakeup_mutex);
     pthread_exit(NULL);
 }
 #endif /* THREADS */
@@ -324,9 +332,10 @@ rev_list *analyze_masters(int argc, char *argv[],
      */
 
 #ifdef THREADS
-   /* Initialize and set thread detached attribute */
-   pthread_attr_init(&attr);
-   pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_JOINABLE);
+    pthread_cond_init (&wakeup_cond, NULL);
+    /* Initialize and set thread detached attribute */
+    pthread_attr_init(&attr);
+    pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_JOINABLE);
 #endif /* THREADS */
 
     while (fn_head) {
@@ -349,11 +358,13 @@ rev_list *analyze_masters(int argc, char *argv[],
 			}
 		    }
 		}
-		{
-		    /* delay 0.1 seconds in a POSIX-clean fashion. */
-		    const struct timespec delay = {0, 100000000};
-		    nanosleep(&delay, NULL);
-		}
+
+		/* wait to receive signal */
+		pthread_mutex_lock(&wakeup_mutex);
+		while (!wakeup)
+		    pthread_cond_wait(&wakeup_cond, &wakeup_mutex);
+		wakeup = false;
+		pthread_mutex_unlock(&wakeup_mutex);
 	    }
 	dispatched:
 	    ;
