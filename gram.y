@@ -55,7 +55,7 @@ extern YY_DECL;	/* FIXME: once the Bison bug requiring this is fixed */
 %token		BRANCHES DELTATYPE NEXT COMMITID EXPAND
 %token		GROUP KOPT OWNER PERMISSIONS FILENAME MERGEPOINT HARDLINKS
 %token		DESC LOG TEXT STRICT AUTHOR STATE
-%token		SEMI COLON INT
+%token		SEMI COLON
 %token		BRAINDAMAGED_NUMBER
 %token <atom>	NAME
 %token <s>	DATA
