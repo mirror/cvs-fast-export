@@ -52,7 +52,7 @@ CFLAGS += $(EXTRA_CFLAGS)
 #CPPFLAGS += -DZLIB
 #LIBS += -lz
 
-YFLAGS=-d
+YFLAGS=
 LFLAGS=
 
 OBJS=gram.o lex.o rbtree.o main.o import.o dump.o cvsnumber.o \
