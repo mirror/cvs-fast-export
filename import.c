@@ -35,12 +35,13 @@
  * Ugh...least painful way to make some stuff that isn't thread-local
  * visible.
  */
-static int total_files;
 static volatile int load_current_file;
 static volatile bool wakeup;
+static volatile rev_list *head = NULL, **tail = &head;
+static volatile int err;
+
+static int total_files;
 static bool generate, enable_keyword_expansion, verbose;
-static rev_list	*head = NULL, **tail = &head;
-static int err;
 
 #ifdef THREADS
 static pthread_mutex_t progress_mutex = PTHREAD_MUTEX_INITIALIZER;
@@ -218,7 +219,7 @@ static void *thread_monitor(void *arg)
     pthread_mutex_lock(&revlist_mutex);
     ++load_current_file;
     *tail = rl;
-    tail = &rl->next;
+    tail = (volatile rev_list **)&rl->next;
     pthread_mutex_unlock(&revlist_mutex);
     pthread_mutex_unlock(&slot->mutex);
     thread_announce("slot %ld: %s done (%d of %d)\n", 
@@ -312,7 +313,6 @@ rev_list *analyze_masters(int argc, char *argv[],
 	    progress_jump(total_files);
     }
     stats->filecount = total_files;
-    stats->errcount = err;
 
     progress_end("done, %ldKB in %d files", 
 		 (long)(stats->textsize/1024), stats->filecount);
@@ -382,7 +382,7 @@ rev_list *analyze_masters(int argc, char *argv[],
 	    if (progress)
 		load_status(fn->file + striplen, stats->filecount, true);
 	    *tail = rl;
-	    tail = &rl->next;
+	    tail = (volatile rev_list **)&rl->next;
 	}
 	free(fn);
     }
@@ -395,10 +395,12 @@ rev_list *analyze_masters(int argc, char *argv[],
 	pthread_mutex_destroy(&workers[i].mutex);
 #endif /* THREADS */
 
+    stats->errcount = err;
+
     if (progress)
 	load_status_next();
 
-    return head;
+    return (rev_list *)head;
 }
 
 /* end */
