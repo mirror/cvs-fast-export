@@ -58,27 +58,30 @@ static serial_t mark;
 static volatile int seqno;
 static char blobdir[PATH_MAX];
 static serial_t export_total_commits;
-#ifdef THREADS
+#if !defined(__GNUC__) && defined(THREADS)
 static pthread_mutex_t seqno_mutex = PTHREAD_MUTEX_INITIALIZER;
-#endif /* THREADS */
+#endif /* !defined(__GNUC__) && defined(THREADS) */
 
 static int seqno_next(void)
 /* Returns next sequence number, starting with 1 */
 {
-    int ret;
-
-#ifdef THREADS
+#ifndef THREADS
+    ++seqno;
+#elif __GNUC__
+    /* the sexy lockless method... */
+    __sync_fetch_and_add(&seqno, 1);
+#else
     if (threads > 1)
 	pthread_mutex_lock(&seqno_mutex);
-#endif /* THREADS */
-    if (seqno >= MAX_SERIAL_T)
-	fatal_error("snapshot sequence number too large, widen serial_t");
-    ret = ++seqno;
-#ifdef THREADS
+    ++seqno;
     if (threads > 1)
 	pthread_mutex_unlock(&seqno_mutex);
 #endif /* THREADS */
-    return ret;
+
+    if (seqno >= MAX_SERIAL_T)
+	fatal_error("snapshot sequence number too large, widen serial_t");
+
+    return seqno;
 }
 
 /*
@@ -296,9 +299,9 @@ void export_wrap(void)
     int len;
 
     (void) puts("done");
-#ifdef THREADS
+#if !defined(__GNUC__) && defined(THREADS)
     pthread_mutex_destroy(&seqno_mutex);
-#endif /* THREADS */
+#endif /* !defined(__GNUC__) && defined(THREADS) */
 
     /* Remove blob files and directories in the order
      * they were created. */
