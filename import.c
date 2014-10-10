@@ -119,44 +119,6 @@ typedef struct _rev_filename {
     const char			*file;
 } rev_filename;
 
-#define PROGRESS_LEN	20
-
-static void load_status(const char *name, int load_total_files, bool complete)
-{
-    int	spot = load_current_file * PROGRESS_LEN / load_total_files;
-    int	    s;
-    int	    l;
-
-    l = strlen(name);
-    if (l > 35) name += l - 35;
-
-#ifdef THREADS
-    if (threads > 1)
-	pthread_mutex_lock(&progress_mutex);
-#endif /* THREADS */
-    if (complete)
-	fprintf(STATUS, "\rDone: %35.35s ", name);
-    else
-	fprintf(STATUS, "\rLoad: %35.35s ", name);
-    for (s = 0; s < PROGRESS_LEN + 1; s++)
-	putc(s == spot ? '*' : '.', STATUS);
-    fprintf(STATUS, " %5d of %5d ", load_current_file, load_total_files);
-    fflush(STATUS);
-#ifdef THREADS
-    if (threads > 1)
-	pthread_mutex_unlock(&progress_mutex);
-#endif /* THREADS */
-#ifdef DEBUG_THREAD
-    if (verbose)
-	announce("Status report complete\n");
-#endif /* DEBUG_THREAD */
-}
-
-static void load_status_next(void)
-{
-    fprintf(STATUS, "\n");
-    fflush(STATUS);
-}
 
 #ifdef THREADS
 /*
@@ -221,11 +183,16 @@ static void *thread_monitor(void *arg)
     analysis_t out;
     thread_announce("slot %ld: %s begins\n", 
 		    slot - workers, slot->filename);
-    if (progress)
-	load_status(slot->filename + striplen, total_files, false);
     rl = rev_list_file(slot->filename, &out);
-    if (progress)
-	load_status(slot->filename + striplen, total_files, true);
+#ifdef THREADS
+    if (threads > 1)
+	pthread_mutex_lock(&progress_mutex);
+#endif /* THREADS */
+    progress_jump(load_current_file+1);
+#ifdef THREADS
+    if (threads > 1)
+	pthread_mutex_unlock(&progress_mutex);
+#endif /* THREADS */
     pthread_mutex_lock(&revlist_mutex);
     ++load_current_file;
     *tail = rl;
@@ -352,6 +319,7 @@ rev_list *analyze_masters(int argc, char *argv[],
     pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_JOINABLE);
 #endif /* THREADS */
 
+    progress_begin("Analyzing masters...", total_files);
     while (fn_head) {
 	fn = fn_head;
 	fn_head = fn_head->next;
@@ -387,14 +355,10 @@ rev_list *analyze_masters(int argc, char *argv[],
 #endif /* THREADS */
 	{
 	    rev_list *rl;
-	    ++load_current_file;
 	    if (verbose)
 		announce("processing %s\n", fn->file);
-	    if (progress)
-		load_status(fn->file + striplen, stats->filecount, false);
 	    rl = rev_list_file(fn->file, &out);
-	    if (progress)
-		load_status(fn->file + striplen, stats->filecount, true);
+	    progress_jump(++load_current_file);
 	    *tail = rl;
 	    tail = (volatile rev_list **)&rl->next;
 	    total_revisions += out.total_revisions;
@@ -403,6 +367,8 @@ rev_list *analyze_masters(int argc, char *argv[],
 	}
 	free(fn);
     }
+    progress_end("done, %d total revisions", total_revisions);
+
 #ifdef THREADS
     /* wait on all threads still running before continuing */
     for (i = 0; i < threads; i++)
@@ -415,9 +381,6 @@ rev_list *analyze_masters(int argc, char *argv[],
     stats->errcount = err;
     stats->total_revisions = total_revisions;
     stats->skew_vulnerable = skew_vulnerable;
-
-    if (progress)
-	load_status_next();
 
     return (rev_list *)head;
 }
