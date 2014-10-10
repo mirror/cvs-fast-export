@@ -52,7 +52,7 @@ CFLAGS += $(EXTRA_CFLAGS)
 #CPPFLAGS += -DZLIB
 #LIBS += -lz
 
-YFLAGS=
+YFLAGS=--verbose
 LFLAGS=
 
 OBJS=gram.o lex.o rbtree.o main.o import.o dump.o cvsnumber.o \
@@ -65,7 +65,6 @@ cvs-fast-export: $(OBJS)
 $(OBJS): cvs.h
 
 gram.h gram.c: gram.y
-	@echo "Expect conflicts: 16 shift/reduce, 2 reduce/reduce"
 	bison --defines=gram.h --output-file=gram.c $(YFLAGS) $<
 lex.h lex.c: lex.l
 	flex $(LFLAGS) --header-file=lex.h --outfile=lex.c $<

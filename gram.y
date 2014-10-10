@@ -69,7 +69,7 @@ extern YY_DECL;	/* FIXME: once the Bison bug requiring this is fixed */
 %type <vlist>	revisions
 %type <date>	date
 %type <branch>	branches numbers
-%type <atom>	opt_commitid commitid revtrailer
+%type <atom>	revtrailer commitid
 %type <atom>	name
 %type <atom>	author state
 %type <atom>	deltatype
@@ -152,18 +152,16 @@ revisions	: revisions revision
 		  { $$ = &cvsfile->versions; }
 		;
 
-revtrailer	: paramlist opt_commitid paramlist 
+revtrailer	: /* empty */
+                  { $$ = NULL; }
+                | revtrailer commitid
 		  { $$ = $2; }
-		|
-		  { $$ = NULL; }
+                | revtrailer ignored
 		;
 
-paramlist : /* empty */ | paramseq
-
-paramseq : parameter | paramseq parameter;
 
 /* ignored items from CVS-NT (except hardlinks which is from late GNU CVS) */
-parameter : owner | group | deltatype | kopt | permissions | mergepoint | filename | hardlinks;
+ignored : owner | group | deltatype | kopt | permissions | mergepoint | filename | hardlinks;
 
 revision	: NUMBER date author state branches next revtrailer
 		  {
@@ -216,11 +214,6 @@ opt_number	: NUMBER
 		  { $$ = $1; }
 		|
 		  { $$.c = 0; }
-		;
-opt_commitid	: commitid
-		  { $$ = $1; }
-		|
-		  { $$ = NULL; }
 		;
 commitid	: COMMITID NAME SEMI
 		  { $$ = $2; }
