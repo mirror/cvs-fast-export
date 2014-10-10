@@ -242,6 +242,7 @@ typedef struct _editbuffer {
 #define Ggapsize(eb) eb->stack[eb->depth].gapsize
 #define Glinemax(eb) eb->stack[eb->depth].linemax
 #define Gnode_text(eb) eb->stack[eb->depth].node_text
+#define Ginbuf(eb) (&eb->in_buffer_store)
 
 typedef struct {
     /* this represents the entire metadata content of a CVS master file */
@@ -282,14 +283,6 @@ typedef struct _rev_dir {
 /*
  * Structures built by master file parsing end.
  */
-
-extern int commit_time_window;
-
-extern bool progress;
-#define STATUS stderr
-#define NO_MAX	-1
-
-extern ssize_t striplen;
 
 /*
  * A Bloom filter is a technique for probabilistic set matching.
@@ -499,15 +492,12 @@ void tag_commit(cvs_commit *c, const char *name, cvs_file *cvsfile);
 cvs_commit **tagged(tag_t *tag);
 void discard_tags(void);
 
-#define Ginbuf(eb) (&eb->in_buffer_store)
-
 rev_list *
 analyze_masters(int argc, char *argv[0], 
 		const bool promiscuous,
 		const bool enable_keyword_expansion,
 		const bool generate,
 		const bool verbose,
-		const int threads,
 		stats_t *stats);
 
 bool
@@ -736,5 +726,21 @@ void progress_end(const char * /*format*/, ...) _printflike(1, 2);
 /* FIXME: once the Bison bug requiring this is fixed */
 #define YY_DECL int yylex \
 	(YYSTYPE * yylval_param , yyscan_t yyscanner, cvs_file *cvs)
+
+/*
+ * Global options
+ */
+
+extern int commit_time_window;
+
+extern bool progress;
+#define STATUS stderr
+#define NO_MAX	-1
+
+extern ssize_t striplen;
+
+#ifdef THREADS
+int threads;
+#endif /* THREADS */
 
 #endif /* _CVS_H_ */

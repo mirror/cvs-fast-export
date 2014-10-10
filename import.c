@@ -118,7 +118,8 @@ static void load_status(const char *name, int load_total_files, bool complete)
     if (l > 35) name += l - 35;
 
 #ifdef THREADS
-    pthread_mutex_lock(&progress_mutex);
+    if (threads > 1)
+	pthread_mutex_lock(&progress_mutex);
 #endif /* THREADS */
     if (complete)
 	fprintf(STATUS, "\rDone: %35.35s ", name);
@@ -129,7 +130,8 @@ static void load_status(const char *name, int load_total_files, bool complete)
     fprintf(STATUS, " %5d of %5d ", load_current_file, load_total_files);
     fflush(STATUS);
 #ifdef THREADS
-    pthread_mutex_unlock(&progress_mutex);
+    if (threads > 1)
+	pthread_mutex_unlock(&progress_mutex);
 #endif /* THREADS */
 #ifdef DEBUG_THREAD
     if (verbose)
@@ -228,7 +230,6 @@ rev_list *analyze_masters(int argc, char *argv[],
 			  const bool arg_enable_keyword_expansion, 
 			  const bool arg_generate,
 			  const bool arg_verbose,
-			  const int nthreads,
 			  stats_t *stats)
 /* main entry point; collect and parse CVS masters */
 {
@@ -242,8 +243,8 @@ rev_list *analyze_masters(int argc, char *argv[],
     pthread_attr_t  attr;
     int i;
 
-    workers = (struct worker *)xcalloc(nthreads, sizeof(struct worker), __func__);
-    for (i = 0; i < nthreads; i++) {
+    workers = (struct worker *)xcalloc(threads, sizeof(struct worker), __func__);
+    for (i = 0; i < threads; i++) {
 	pthread_mutex_init(&workers[i].mutex, NULL);
     }
 #endif /* THREADS */
@@ -332,9 +333,9 @@ rev_list *analyze_masters(int argc, char *argv[],
 	fn = fn_head;
 	fn_head = fn_head->next;
 #ifdef THREADS
-	if (nthreads > 1) {
+	if (threads > 1) {
 	    for (;;) {
-		for (i = 0; i < nthreads; i++) {
+		for (i = 0; i < threads; i++) {
 		    if (pthread_mutex_trylock(&workers[i].mutex) == 0) {
 			workers[i].filename = fn->file;
 			j = pthread_create(&workers[i].thread, 
@@ -376,10 +377,10 @@ rev_list *analyze_masters(int argc, char *argv[],
     }
 #ifdef THREADS
     /* wait on all threads still running before continuing */
-    for (i = 0; i < nthreads; i++)
+    for (i = 0; i < threads; i++)
 	pthread_join(workers[i].thread, NULL);
     pthread_mutex_destroy(&revlist_mutex);
-    for (i = 0; i < nthreads; i++)
+    for (i = 0; i < threads; i++)
 	pthread_mutex_destroy(&workers[i].mutex);
 #endif /* THREADS */
 

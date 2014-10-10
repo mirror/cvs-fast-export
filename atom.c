@@ -115,11 +115,13 @@ collision:
 	head = &(b->next);
     }
 #ifdef THREADS
-    pthread_mutex_lock(&bucket_mutex);
+    if (threads > 1)
+	pthread_mutex_lock(&bucket_mutex);
 #endif /* THREADS */
     if ((b = *head)) {
 #ifdef THREADS
-	pthread_mutex_unlock(&bucket_mutex);
+	if (threads > 1)
+	    pthread_mutex_unlock(&bucket_mutex);
 #endif /* THREADS */
 	goto collision;
     }
@@ -131,7 +133,8 @@ collision:
     memcpy(b->string, string, len + 1);
     *head = b;
 #ifdef THREADS
-    pthread_mutex_unlock(&bucket_mutex);
+    if (threads > 1)
+	pthread_mutex_unlock(&bucket_mutex);
 #endif /* THREADS */
     return b->string;
 }
@@ -144,7 +147,8 @@ discard_atoms(void)
     int			i;
 
 #ifdef THREADS
-    pthread_mutex_lock(&bucket_mutex);
+    if (threads > 1)
+	pthread_mutex_lock(&bucket_mutex);
 #endif /* THREADS */
     for (i = 0; i < HASH_SIZE; i++)
 	for (head = &buckets[i]; (b = *head);) {
@@ -152,12 +156,14 @@ discard_atoms(void)
 	    free(b);
 	}
 #ifdef THREADS
-    pthread_mutex_unlock(&bucket_mutex);
-    /*
-     * This is irreversible, and will have to be factored out if
-     * dicard_atoms() is ever called anywhere but in final cleanup.
-     */
-    pthread_mutex_destroy(&bucket_mutex);
+    if (threads > 1) {
+	pthread_mutex_unlock(&bucket_mutex);
+	/*
+	 * This is irreversible, and will have to be factored out if
+	 * dicard_atoms() is ever called anywhere but in final cleanup.
+	 */
+	pthread_mutex_destroy(&bucket_mutex);
+    }
 #endif /* THREADS */
 }
 

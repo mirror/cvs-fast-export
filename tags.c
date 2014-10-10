@@ -56,7 +56,8 @@ void tag_commit(cvs_commit *c, const char *name, cvs_file *cvsfile)
 {
     tag_t *tag;
 #ifdef THREADS
-    pthread_mutex_lock(&tag_mutex);
+    if (threads > 1)
+	pthread_mutex_lock(&tag_mutex);
 #endif /* THREADS */
     tag = find_tag(name);
     if (tag->last == cvsfile->master_name) {
@@ -74,7 +75,8 @@ void tag_commit(cvs_commit *c, const char *name, cvs_file *cvsfile)
 	tag->count++;
     }
 #ifdef THREADS
-    pthread_mutex_unlock(&tag_mutex);
+    if (threads > 1)
+	pthread_mutex_unlock(&tag_mutex);
 #endif /* THREADS */
 }
 

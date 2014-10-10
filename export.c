@@ -62,18 +62,21 @@ static serial_t export_total_commits;
 static pthread_mutex_t seqno_mutex = PTHREAD_MUTEX_INITIALIZER;
 #endif /* THREADS */
 
+static int seqno_next(void)
 /* Returns next sequence number, starting with 1 */
-static int seqno_next(void) {
+{
     int ret;
 
 #ifdef THREADS
-    pthread_mutex_lock(&seqno_mutex);
+    if (threads > 1)
+	pthread_mutex_lock(&seqno_mutex);
 #endif /* THREADS */
     if (seqno >= MAX_SERIAL_T)
 	fatal_error("snapshot sequence number too large, widen serial_t");
     ret = ++seqno;
 #ifdef THREADS
-    pthread_mutex_unlock(&seqno_mutex);
+    if (threads > 1)
+	pthread_mutex_unlock(&seqno_mutex);
 #endif /* THREADS */
     return ret;
 }

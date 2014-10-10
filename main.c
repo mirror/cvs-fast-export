@@ -195,7 +195,6 @@ main(int argc, char **argv)
     char	    *branch_prefix = "refs/heads/";
     bool	    promiscuous = false;
     bool	    enable_keyword_expansion = false;
-    int             threads = 0;
 
 #if defined(__GLIBC__)
     /* 
@@ -302,7 +301,11 @@ main(int argc, char **argv)
 	    fromtime = convert_date(optarg);
 	    break;
 	case 't':
+#ifdef THREADS
 	    threads = atoi(optarg);
+#else
+	    announce("not built with thread support, -t option ignored.\n");
+#endif
 	    break;
 	case 'B':
 	    branchorder = true;
@@ -328,8 +331,7 @@ main(int argc, char **argv)
 			   promiscuous,
 			   enable_keyword_expansion,
 			   exec_mode == ExecuteExport,
-			   verbose, threads,
-			   &stats);
+			   verbose, &stats);
 
     /* commit set coalescence happens here */
     rl = rev_list_merge(head);
