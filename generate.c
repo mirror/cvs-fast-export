@@ -588,7 +588,7 @@ static void keyreplace(editbuffer_t *eb, enum markers marker)
     }
 }
 
-static int expandline(editbuffer_t *eb, bool enable_keyword_expansion)
+static int expandline(editbuffer_t *eb)
 {
     register int c = 0;
     char * tp;
@@ -615,71 +615,69 @@ static int expandline(editbuffer_t *eb, bool enable_keyword_expansion)
 		r = 2;
 		goto uncache_exit;
 	    case KDELIM:
-		if (enable_keyword_expansion) {
-		    r = 0;
-		    /* check for keyword */
-		    /* first, copy a long enough string into keystring */
-		    tp = eb->Gkeyval;
-		    *tp++ = KDELIM;
+		r = 0;
+		/* check for keyword */
+		/* first, copy a long enough string into keystring */
+		tp = eb->Gkeyval;
+		*tp++ = KDELIM;
+		for (;;) {
+		    c = in_buffer_getc(eb);
+		    if (tp <= &eb->Gkeyval[KEYLENGTH] && latin1_alpha(c))
+			*tp++ = c;
+		    else
+			break;
+		}
+		*tp++ = c; *tp = '\0';
+		matchresult = trymatch(eb->Gkeyval+1);
+		if (matchresult==Nomatch) {
+		    tp[-1] = 0;
+		    out_fputs(eb, eb->Gkeyval);
+		    continue;   /* last c handled properly */
+		}
+
+		/* Now we have a keyword terminated with a K/VDELIM */
+		if (c==VDELIM) {
+		    /* try to find closing KDELIM, and replace value */
+		    tlim = eb->Gkeyval + eb->Gkvlen;
 		    for (;;) {
 			c = in_buffer_getc(eb);
-			if (tp <= &eb->Gkeyval[KEYLENGTH] && latin1_alpha(c))
-			    *tp++ = c;
-			else
+			if (c=='\n' || c==KDELIM)
 			    break;
+			*tp++ =c;
+			if (tlim <= tp) {
+			    orig_size = eb->Gkvlen;
+			    eb->Gkvlen *= 2;
+			    eb->Gkeyval = xrealloc(eb->Gkeyval, eb->Gkvlen, "expandline");
+			    tlim = eb->Gkeyval + eb->Gkvlen;
+			    tp = eb->Gkeyval + orig_size;
+
+			}
+			if (c==EOF)
+			    goto keystring_eof;
 		    }
-		    *tp++ = c; *tp = '\0';
-		    matchresult = trymatch(eb->Gkeyval+1);
-		    if (matchresult==Nomatch) {
-			tp[-1] = 0;
+		    if (c!=KDELIM) {
+			/* couldn't find closing KDELIM -- give up */
+			*tp = 0;
 			out_fputs(eb, eb->Gkeyval);
 			continue;   /* last c handled properly */
 		    }
-
-		    /* Now we have a keyword terminated with a K/VDELIM */
-		    if (c==VDELIM) {
-			/* try to find closing KDELIM, and replace value */
-			tlim = eb->Gkeyval + eb->Gkvlen;
-			for (;;) {
-			    c = in_buffer_getc(eb);
-			    if (c=='\n' || c==KDELIM)
-				break;
-			    *tp++ =c;
-			    if (tlim <= tp) {
-				orig_size = eb->Gkvlen;
-				eb->Gkvlen *= 2;
-				eb->Gkeyval = xrealloc(eb->Gkeyval, eb->Gkvlen, "expandline");
-				tlim = eb->Gkeyval + eb->Gkvlen;
-				tp = eb->Gkeyval + orig_size;
-
-			    }
-			    if (c==EOF)
-				goto keystring_eof;
-			}
-			if (c!=KDELIM) {
-			    /* couldn't find closing KDELIM -- give up */
-			    *tp = 0;
-			    out_fputs(eb, eb->Gkeyval);
-			    continue;   /* last c handled properly */
-			}
-		    }
-		    /*
-		     * CVS will expand keywords that have
-		     * overlapping delimiters, eg "$Name$Id$".  To
-		     * support that(mis)feature, push the closing
-		     * delimiter back on the input so that the
-		     * loop will resume processing starting with
-		     * it.
-		     */
-		    if (c == KDELIM)
-			in_buffer_ungetc(eb);
-
-		    /* now put out the new keyword value */
-		    keyreplace(eb, matchresult);
-		    e = 1;
-		    break;
 		}
-		/* FALL THROUGH */
+		/*
+		 * CVS will expand keywords that have
+		 * overlapping delimiters, eg "$Name$Id$".  To
+		 * support that(mis)feature, push the closing
+		 * delimiter back on the input so that the
+		 * loop will resume processing starting with
+		 * it.
+		 */
+		if (c == KDELIM)
+		    in_buffer_ungetc(eb);
+
+		/* now put out the new keyword value */
+		keyreplace(eb, matchresult);
+		e = 1;
+		break;
+	    beak:
 	    default:
 		out_putc(eb, c);
 		r = 0;
@@ -838,16 +836,16 @@ static void process_delta(editbuffer_t *eb, node_t *node, enum stringwork func)
     }
 }
 
-static void finishedit(editbuffer_t *eb, bool enable_keyword_expansion)
+static void finishedit(editbuffer_t *eb)
 {
     uchar **p, **lim, **l = Gline(eb);
     for (p=l, lim=l+Ggap(eb);  p<lim;  ) {
 	in_buffer_init(eb, *p++, 0);
-	expandline(eb, enable_keyword_expansion);
+	expandline(eb);
     }
     for (p+=Ggapsize(eb), lim=l+Glinemax(eb);  p<lim;  ) {
 	in_buffer_init(eb, *p++, 0);
-	expandline(eb, enable_keyword_expansion);
+	expandline(eb);
     }
 }
 
@@ -895,14 +893,13 @@ void generate_files(cvs_file *cvs,
     eb->Gkeyval = NULL;
     eb->Gkvlen = 0;
 
-    int expandflag = eb->Gexpand < EXPANDKO;
     node_t *node = cvs->nodehash.head_node;
     eb->depth = 0;
     eb->Gfilename = cvs->master_name;
     if (enable_keyword_expansion)
 	eb->Gexpand = expand_override(cvs->expand);
     else
-	eb->Gexpand = EXPANDKK;
+	eb->Gexpand = EXPANDKO;
     eb->Gabspath = NULL;
     Gline(eb) = NULL; Ggap(eb) = Ggapsize(eb) = Glinemax(eb) = 0;
     eb->stack[0].node = node;
@@ -911,8 +908,8 @@ void generate_files(cvs_file *cvs,
     while (1) {
 	if (node->file) {
 	    out_buffer_init(eb);
-	    if (expandflag)
-		finishedit(eb, enable_keyword_expansion);
+	    if (eb->Gexpand < EXPANDKO)
+		finishedit(eb);
 	    else
 		snapshotedit(eb);
 	    hook(node, out_buffer_text(eb), out_buffer_count(eb));
