@@ -657,7 +657,7 @@ static void export_commit(git_commit *commit,
 
     if (report)
 	printf("commit %s%s\n", branch_prefix, branch);
-    commit->serial = seqno_next();
+    commit->serial = ++seqno;
     here = markmap[commit->serial].external = ++mark;
 #ifdef ORDERDEBUG2
     /* can't move before mark is updated */
