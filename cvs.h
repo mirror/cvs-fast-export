@@ -718,6 +718,10 @@ void progress_step(void);
 void progress_jump(const int /*count*/);
 void progress_end(const char * /*format*/, ...) _printflike(1, 2);
 
+#define NANOSCALE		1000000000.0
+#define nanosec(ts)		((ts)->tv_nsec + NANOSCALE * (ts)->tv_sec) 
+#define seconds_diff(a, b)	((nanosec(a) - nanosec(b)) / NANOSCALE)
+
 /* Work around glitches in Bison and Flex */
 
 typedef void *yyscan_t;

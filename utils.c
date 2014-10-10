@@ -119,6 +119,7 @@ void* xrealloc(void *ptr, size_t size, char const *legend)
 static char *progress_msg = "";
 static int progress_counter = 0;
 static va_list _unused_va_list;
+static struct timespec start;  
 
 static void _progress_print(bool /*newline*/, const char * /*format*/, va_list)
 	_printflike(2, 0);
@@ -133,6 +134,7 @@ progress_begin(const char *msg, const int max)
     progress_max = max;
     progress_counter = 0;
     _progress_print(false, "", _unused_va_list);
+    clock_gettime(CLOCK_REALTIME, &start);
 }
 
 void
@@ -172,7 +174,6 @@ progress_end(const char *format, ...)
 static void
 _progress_print(bool newline, const char *format, va_list args)
 {
-
     if (!progress)
 	return;
 
@@ -195,12 +196,18 @@ _progress_print(bool newline, const char *format, va_list args)
 	fprintf(STATUS, "\r%s%d", progress_msg, progress_counter);
     } else if (progress_counter == progress_max) {
 	/* they should both be zero at this point, but it still means "done" */
-	fprintf(STATUS, "\r%sdone                             ", progress_msg);
+	fprintf(STATUS, "\r%sdone ", progress_msg);
     } else {
 	fprintf(STATUS, "\r%s", progress_msg);
     }
     if (newline)
+    {
+	struct timespec end;
+
+	clock_gettime(CLOCK_REALTIME, &end);
+	fprintf(STATUS, " (%.6fsec)", seconds_diff(&end, &start));
 	fprintf(STATUS, "\n");
+    }
     fflush(STATUS);
 }
 

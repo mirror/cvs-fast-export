@@ -349,7 +349,7 @@ main(int argc, char **argv)
 	    export_commits(rl, branch_prefix,
 			   fromtime, revision_map, reposurgeon,
 			   force_dates, branchorder, progress);
-	    save_status_end(&start_time); /* calls progress_end() */
+	    save_status_end(&start_time);
 	    break;
 	}
     }

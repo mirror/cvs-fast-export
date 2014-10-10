@@ -97,21 +97,18 @@ void save_status_end(const struct timespec *start_time)
     if (!progress)
 	return;
     else {
-#define NANOSCALE	1000000000.0
-#define nanosec(ts)	((ts)->tv_nsec + NANOSCALE * (ts)->tv_sec) 
 	struct timespec now;
 	struct rusage rusage;
 	float elapsed;
 
-	clock_gettime(CLOCK_REALTIME, &now);
+	(void)clock_gettime(CLOCK_REALTIME, &now);
 	(void)getrusage(RUSAGE_SELF, &rusage);
-	elapsed = (nanosec(&now) - nanosec(start_time)) / NANOSCALE;
-	progress_end("100%%, %d commits in %.6fs (%d commits/sec) using %ldKb.",
-		     export_total_commits,
-		     elapsed,
-		     (int)(export_total_commits / elapsed),
-		     rusage.ru_maxrss);
-#undef nanosec
+	elapsed = seconds_diff(&now, start_time);
+	fprintf(STATUS, "%d commits in %.6fs (%d commits/sec) using %ldKb.\n",
+		export_total_commits,
+		elapsed,
+		(int)(export_total_commits / elapsed),
+		rusage.ru_maxrss);
     }
 }
 
@@ -997,6 +994,7 @@ bool export_commits(rev_list *rl,
     if (revmap != NULL)
 	fclose(revmap);
 
+    progress_end(NULL);
     return true;
 }
 
