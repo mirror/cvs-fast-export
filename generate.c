@@ -836,7 +836,7 @@ static void process_delta(editbuffer_t *eb, node_t *node, enum stringwork func)
     }
 }
 
-static void finishedit(editbuffer_t *eb)
+static void expandedit(editbuffer_t *eb)
 {
     uchar **p, **lim, **l = Gline(eb);
     for (p=l, lim=l+Ggap(eb);  p<lim;  ) {
@@ -909,7 +909,7 @@ void generate_files(cvs_file *cvs,
 	if (node->file) {
 	    out_buffer_init(eb);
 	    if (eb->Gexpand < EXPANDKO)
-		finishedit(eb);
+		expandedit(eb);
 	    else
 		snapshotedit(eb);
 	    hook(node, out_buffer_text(eb), out_buffer_count(eb));
