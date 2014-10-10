@@ -758,7 +758,7 @@ rev_list_merge(rev_list *head)
 	    progress_jump(n);
     }
     progress_jump(n);
-    progress_end("done, total revisions %d", total_revisions);
+    progress_end(NULL);
     /*
      * Sort by degree so that finding branch points always works
      */

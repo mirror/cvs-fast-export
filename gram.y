@@ -21,9 +21,6 @@
 #include "gram.h"
 #include "lex.h"
 
-cvstime_t skew_vulnerable = 0;
-unsigned int total_revisions = 0;
-
 extern int yyerror(yyscan_t, cvs_file *, char *);
 
 extern YY_DECL;	/* FIXME: once the Bison bug requiring this is fixed */
@@ -150,7 +147,7 @@ name		: NAME
 		  }
 		;
 revisions	: revisions revision
-		  { *$1 = $2; $$ = &$2->next; total_revisions++; }
+		  { *$1 = $2; $$ = &$2->next; cvsfile->total_revisions++; }
 		|
 		  { $$ = &cvsfile->versions; }
 		;
@@ -180,8 +177,8 @@ revision	: NUMBER date author state branches next revtrailer
 			$$->branches = $5;
 			$$->parent = $6;
 			$$->commitid = $7;
-			if ($$->commitid == NULL && skew_vulnerable < $$->date)
-			    skew_vulnerable = $$->date;
+			if ($$->commitid == NULL && cvsfile->skew_vulnerable < $$->date)
+			    cvsfile->skew_vulnerable = $$->date;
 			hash_version(&cvsfile->nodehash, $$);
 			++cvsfile->nversions;
 			

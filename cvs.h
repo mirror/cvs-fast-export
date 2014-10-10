@@ -259,6 +259,8 @@ typedef struct {
     serial_t		nversions;
     nodehash_t		nodehash;
     editbuffer_t	editbuffer;
+    cvstime_t           skew_vulnerable;
+    unsigned int        total_revisions;
 } cvs_file;
 
 typedef struct _rev_file {
@@ -480,6 +482,8 @@ typedef struct _stats {
     int filecount;
     off_t textsize;
     int errcount;
+    cvstime_t skew_vulnerable;
+    unsigned int total_revisions;
 } stats_t;
 
 extern tag_t *all_tags;
@@ -709,9 +713,6 @@ void hash_patch(nodehash_t *, cvs_patch *);
 void hash_branch(nodehash_t *, cvs_branch *);
 void clean_hash(nodehash_t *);
 void build_branches(nodehash_t *);
-
-extern cvstime_t skew_vulnerable;
-extern unsigned int total_revisions;
 
 void progress_begin(const char * /*msg*/, const int /*max*/);
 void progress_step(void);

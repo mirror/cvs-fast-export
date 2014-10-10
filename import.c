@@ -38,6 +38,8 @@
 static volatile int load_current_file;
 static volatile bool wakeup;
 static volatile rev_list *head = NULL, **tail = &head;
+static volatile cvstime_t skew_vulnerable;
+static volatile unsigned int total_revisions;
 static volatile int err;
 
 static int total_files;
@@ -49,8 +51,13 @@ static pthread_mutex_t wakeup_mutex = PTHREAD_MUTEX_INITIALIZER;
 static pthread_cond_t wakeup_cond;
 #endif /* THREADS */
 
+typedef struct _analysis {
+    cvstime_t skew_vulnerable;
+    unsigned int total_revisions;
+} analysis_t;
+
 static rev_list *
-rev_list_file(const char *name) 
+rev_list_file(const char *name, analysis_t *out) 
 {
     rev_list	*rl;
     struct stat	buf;
@@ -81,6 +88,8 @@ rev_list_file(const char *name)
     rl = rev_list_cvs(cvs);
     if (generate)
 	generate_files(cvs, enable_keyword_expansion, export_blob);
+    out->total_revisions = cvs->total_revisions;
+    out->skew_vulnerable = cvs->skew_vulnerable;
     cvs_file_free(cvs);
     return rl;
 }
@@ -209,16 +218,20 @@ static void *thread_monitor(void *arg)
 {
     rev_list *rl;
     struct worker *slot = (struct worker *)arg;
+    analysis_t out;
     thread_announce("slot %ld: %s begins\n", 
 		    slot - workers, slot->filename);
     if (progress)
 	load_status(slot->filename + striplen, total_files, false);
-    rl = rev_list_file(slot->filename);
+    rl = rev_list_file(slot->filename, &out);
     if (progress)
 	load_status(slot->filename + striplen, total_files, true);
     pthread_mutex_lock(&revlist_mutex);
     ++load_current_file;
     *tail = rl;
+    total_revisions += out.total_revisions;
+    if (out.skew_vulnerable > skew_vulnerable)
+	skew_vulnerable = out.skew_vulnerable;
     tail = (volatile rev_list **)&rl->next;
     pthread_mutex_unlock(&revlist_mutex);
     pthread_mutex_unlock(&slot->mutex);
@@ -248,6 +261,7 @@ rev_list *analyze_masters(int argc, char *argv[],
     char	    *file;
     int		    j = 1;
     int		    c;
+    analysis_t      out;
 #ifdef THREADS
     pthread_attr_t  attr;
     int i;
@@ -378,11 +392,14 @@ rev_list *analyze_masters(int argc, char *argv[],
 		announce("processing %s\n", fn->file);
 	    if (progress)
 		load_status(fn->file + striplen, stats->filecount, false);
-	    rl = rev_list_file(fn->file);
+	    rl = rev_list_file(fn->file, &out);
 	    if (progress)
 		load_status(fn->file + striplen, stats->filecount, true);
 	    *tail = rl;
 	    tail = (volatile rev_list **)&rl->next;
+	    total_revisions += out.total_revisions;
+	    if (out.skew_vulnerable > skew_vulnerable)
+		skew_vulnerable = out.skew_vulnerable;
 	}
 	free(fn);
     }
@@ -396,6 +413,8 @@ rev_list *analyze_masters(int argc, char *argv[],
 #endif /* THREADS */
 
     stats->errcount = err;
+    stats->total_revisions = total_revisions;
+    stats->skew_vulnerable = skew_vulnerable;
 
     if (progress)
 	load_status_next();

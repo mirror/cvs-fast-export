@@ -353,8 +353,8 @@ main(int argc, char **argv)
 	    break;
 	}
     }
-    if (skew_vulnerable > 0 && stats.filecount > 1 && !force_dates) {
-	time_t udate = RCS_EPOCH + skew_vulnerable;
+    if (stats.skew_vulnerable > 0 && stats.filecount > 1 && !force_dates) {
+	time_t udate = RCS_EPOCH + stats.skew_vulnerable;
 	announce("commits before this date lack commitids: %s",	ctime(&udate));
     }
     if (rl)
