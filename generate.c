@@ -139,11 +139,12 @@ static void out_buffer_init(editbuffer_t *eb)
 
 static void out_buffer_enlarge(editbuffer_t *eb)
 {
-    int ptroffset = eb->Goutbuf->ptr - eb->Goutbuf->text;
-    eb->Goutbuf->size *= 2;
-    eb->Goutbuf->text = xrealloc(eb->Goutbuf->text, eb->Goutbuf->size, "out_buffer_enlarge");
-    eb->Goutbuf->end_of_text = eb->Goutbuf->text + eb->Goutbuf->size;
-    eb->Goutbuf->ptr = eb->Goutbuf->text + ptroffset;
+    register struct out_buffer_type *ob = eb->Goutbuf;
+    int ptroffset = ob->ptr - ob->text;
+    ob->size *= 2;
+    ob->text = xrealloc(ob->text, ob->size, "out_buffer_enlarge");
+    ob->end_of_text = ob->text + ob->size;
+    ob->ptr = ob->text + ptroffset;
 }
 
 static unsigned long  out_buffer_count(const editbuffer_t *const eb)
@@ -164,8 +165,12 @@ static void out_buffer_cleanup(const editbuffer_t *eb)
 
 inline static void out_putc(editbuffer_t *eb, const int c)
 {
-    *eb->Goutbuf->ptr++ = c;
-    if (eb->Goutbuf->ptr >= eb->Goutbuf->end_of_text)
+    /*
+     * This function is a severe hot spot.
+     */
+    register struct out_buffer_type *ob = eb->Goutbuf;
+    *ob->ptr++ = c;
+    if (ob->ptr >= ob->end_of_text)
 	out_buffer_enlarge(eb);
 }
 
