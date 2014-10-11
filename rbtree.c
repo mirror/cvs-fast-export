@@ -237,9 +237,9 @@ rbtree_insert(rbtree_node **root, const void *key, void *value,
     while ((node = *nodep)) {
 	parent = node;
 	if (compare(node->key, key) < 0)
-	    nodep = &node->left;
+	    nodep = (rbtree_node **)&node->left;
 	else if (compare(node->key, key) > 0)
-	    nodep = &node->right;
+	    nodep = (rbtree_node **)&node->right;
 	else
 	    fatal_error("internal error - duplicate key in red black tree");
     }

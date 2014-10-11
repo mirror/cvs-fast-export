@@ -93,9 +93,9 @@ typedef enum _rbtree_color {
 typedef struct _rbtree_node {
     const void		*key;
     void		*value;
-    struct _rbtree_node	*parent;
-    struct _rbtree_node	*left;
-    struct _rbtree_node	*right;
+    struct _rbtree_node	*__restrict__ parent;
+    struct _rbtree_node	*__restrict__ left;
+    struct _rbtree_node	*__restrict__ right;
     rbtree_color	color;
 } rbtree_node;
 
