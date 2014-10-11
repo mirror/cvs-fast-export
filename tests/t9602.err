@@ -1,3 +1,3 @@
-cvs-fast-export: commits before this date lack commitids: Tue Jun  3 04:33:13 2003
+cvs-fast-export: no commitids before 2003-06-03T04:33:13Z.
 t9602 test of branch vendorbranch: tag or branch vendorbranch unexpectedly missing
 t9602 test of tag vendortag: trees unexpectedly match

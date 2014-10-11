@@ -29,17 +29,6 @@ int commit_time_window = 300;
 bool progress = false;
 ssize_t striplen = -1;
 
-char *
-ctime_nonl(const cvstime_t *date)
-/* ctime(3) with trailing \n removed */
-{
-    time_t	udate = RCS_EPOCH + *date;
-    char	*d = ctime(&udate);
-    
-    d[strlen(d)-1] = '\0';
-    return d;
-}
-
 static int
 strcommonendingwith(const char *a, char *b, const char endc)
 /* return the length of the common prefix of strings a and b ending with endc */
@@ -354,8 +343,8 @@ main(int argc, char **argv)
 	}
     }
     if (stats.skew_vulnerable > 0 && stats.filecount > 1 && !force_dates) {
-	time_t udate = RCS_EPOCH + stats.skew_vulnerable;
-	announce("commits before this date lack commitids: %s",	ctime(&udate));
+	time_t udate = stats.skew_vulnerable;
+	announce("no commitids before %s.\n", cvstime2rfc3339(udate));
     }
     if (rl)
 	rev_list_free(rl, 0);

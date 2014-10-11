@@ -104,6 +104,18 @@ void* xrealloc(void *ptr, size_t size, char const *legend)
     return ret;
 }
 
+char *
+cvstime2rfc3339(const cvstime_t date)
+/* RFC3339 time representation (not thread-safe!) */
+{
+    static char timestr[23];
+    time_t udate = RCS_EPOCH + date;
+    struct tm	*tm = localtime(&udate);
+
+    (void)strftime(timestr, sizeof(timestr), "%Y-%m-%dT%H:%M:%SZ", tm);
+    return timestr;
+}
+
 /*
  * Print progress messages.
  *

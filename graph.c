@@ -73,7 +73,7 @@ static void dot_commit_graph(git_commit *c, const rev_ref *branch)
 //    if (c->tail)
 //	printf("*** TAIL");
     printf("\\n");
-    printf("%s\\n", ctime_nonl(&c->date));
+    printf("%s\\n", cvstime2rfc3339(c->date));
     dump_log(stdout, c->log);
     printf("\\n");
     if (difffiles) {

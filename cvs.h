@@ -442,7 +442,7 @@ cvs_author *fullname(const char *);
 bool load_author_map(const char *);
 
 char *
-ctime_nonl(const cvstime_t *date);
+cvstime2rfc3339(const cvstime_t date);
 
 cvs_number
 lex_number(const char *);

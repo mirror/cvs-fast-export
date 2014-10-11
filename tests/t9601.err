@@ -1,2 +1,2 @@
-cvs-fast-export: commits before this date lack commitids: Mon Feb  9 15:43:16 2004
+cvs-fast-export: no commitids before 2004-02-09T15:43:16Z.
 t9601.checkout/added-imported.txt and t9601.git/added-imported.txt are not the same.

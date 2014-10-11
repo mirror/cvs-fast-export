@@ -622,7 +622,7 @@ rev_branch_merge(rev_ref **branches, int nbranch,
 		announce("warning - branch point %s -> %s later than branch\n",
 			 branch->ref_name, branch->parent->ref_name);
 		fprintf(stderr, "\ttrunk(%3d):  %s %s", n,
-			 ctime_nonl(&revisions[present]->date),
+			 cvstime2rfc3339(revisions[present]->date),
 			 revisions[present]->file ? " " : "D" );
 		if (revisions[present]->file)
 		    dump_number_file(stderr,
@@ -638,7 +638,7 @@ rev_branch_merge(rev_ref **branches, int nbranch,
 		 */
 		first = prev->dirs[0]->files[0];
 		fprintf(stderr, "\tbranch(%3d): %s  ", n,
-			 ctime_nonl(&first->u.date));
+			 cvstime2rfc3339(first->u.date));
 		dump_number_file(stderr,
 				  first->file_name,
 				  &first->number);
