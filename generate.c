@@ -109,14 +109,16 @@ static uchar *in_get_line(editbuffer_t *eb)
     return ptr;
 }
 
-static uchar * in_buffer_loc(editbuffer_t *eb)
+static uchar * in_buffer_loc(const editbuffer_t *const eb)
 {
 	return(Ginbuf(eb)->ptr);
 }
 
-static void in_buffer_init(editbuffer_t *eb, uchar *text, int bypass_initial)
+static void in_buffer_init(editbuffer_t *eb, 
+			   const uchar * const text, 
+			   int bypass_initial)
 {
-    Ginbuf(eb)->ptr = Ginbuf(eb)->buffer = text;
+    Ginbuf(eb)->ptr = Ginbuf(eb)->buffer = (uchar *)text;
     Ginbuf(eb)->read_count=0;
     if (bypass_initial && *Ginbuf(eb)->ptr++ != SDELIM)
 	fatal_error("Illegal buffer, missing @ %s", text);
@@ -143,23 +145,23 @@ static void out_buffer_enlarge(editbuffer_t *eb)
     eb->Goutbuf->ptr = eb->Goutbuf->text + ptroffset;
 }
 
-static unsigned long  out_buffer_count(editbuffer_t *eb)
+static unsigned long  out_buffer_count(const editbuffer_t *const eb)
 {
     return(unsigned long) (eb->Goutbuf->ptr - eb->Goutbuf->text);
 }
 
-static char *out_buffer_text(editbuffer_t *eb)
+static char *out_buffer_text(const editbuffer_t *const eb)
 {
     return eb->Goutbuf->text;
 }
 
-static void out_buffer_cleanup(editbuffer_t *eb)
+static void out_buffer_cleanup(const editbuffer_t *eb)
 {
     free(eb->Goutbuf->text);
     free(eb->Goutbuf);
 }
 
-inline static void out_putc(editbuffer_t *eb, int c)
+inline static void out_putc(editbuffer_t *eb, const int c)
 {
     *eb->Goutbuf->ptr++ = c;
     if (eb->Goutbuf->ptr >= eb->Goutbuf->end_of_text)
@@ -196,14 +198,14 @@ static void out_awrite(editbuffer_t *eb, char const *s, size_t len)
 	out_putc(eb, *s++);
 }
 
-static bool latin1_alpha(int c)
+static bool latin1_alpha(const int c)
 {
     if (c >= 192 && c != 215 && c != 247 ) return true;
     if ((c >= 97 && c < 123) || (c >= 65 && c < 91)) return true;
     return false;
 }
 
-static int latin1_whitespace(uchar c)
+static int latin1_whitespace(const uchar c)
 {
     if (c == 32 || (c >= 8 && c <= 13 && c != 10)) return true;
     return false;
@@ -222,7 +224,7 @@ static enum expand_mode expand_override(char const *s)
     return EXPANDKK;
 }
 
-static char const *basefilename(char const *p)
+static char const *basefilename(const char const *p)
 {
     char const *b = p, *q = p;
     for (;;)
@@ -232,8 +234,8 @@ static char const *basefilename(char const *p)
 	}
 }
 
-/* Convert relative RCS filename to absolute path */
 static char const * getfullRCSname(editbuffer_t *eb)
+/* Convert relative RCS filename to absolute path */
 {
     char *wdbuf = NULL;
     int wdbuflen = 0;
@@ -283,7 +285,7 @@ static char const * getfullRCSname(editbuffer_t *eb)
     return eb->Gabspath;
 }
 
-static enum markers trymatch(char const *string)
+static enum markers trymatch(char const * const string)
 /* Check if string starts with a keyword followed by a KDELIM or VDELIM */
 {
     int j;
@@ -869,7 +871,7 @@ static void snapshotedit(editbuffer_t *eb)
 	snapshotline(eb, *p++);
 }
 
-static void enter_branch(editbuffer_t *eb, node_t *node)
+static void enter_branch(editbuffer_t *eb, const node_t *const node)
 {
     uchar **p = xmalloc(sizeof(uchar *) * eb->stack[eb->depth].linemax, "enter branch");
 	memcpy(p, eb->stack[eb->depth].line, sizeof(uchar *) * eb->stack[eb->depth].linemax);
@@ -926,7 +928,7 @@ void generate_files(cvs_file *cvs,
 	    free(eb->stack[eb->depth].line);
 	    if (!eb->depth)
 		goto Done;
-	    node = eb->stack[eb->depth--].next_branch;
+	    node = (node_t *)eb->stack[eb->depth--].next_branch;
 	    if (node) {
 		enter_branch(eb, node);
 		break;
