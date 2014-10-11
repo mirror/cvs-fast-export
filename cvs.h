@@ -93,9 +93,9 @@ typedef enum _rbtree_color {
 typedef struct _rbtree_node {
     const void		*key;
     void		*value;
-    struct _rbtree_node	*__restrict__ parent;
-    struct _rbtree_node	*__restrict__ left;
-    struct _rbtree_node	*__restrict__ right;
+    struct _rbtree_node	*restrict parent;
+    struct _rbtree_node	*restrict left;
+    struct _rbtree_node	*restrict right;
     rbtree_color	color;
 } rbtree_node;
 
@@ -151,9 +151,9 @@ typedef struct _cvs_branch {
 typedef struct _cvs_version {
     /* metadata of a delta within a CVS file */
     struct _cvs_version	*next;
-    const char		*__restrict__ author;
-    const char		*__restrict__ state;
-    const char		*__restrict__ commitid;
+    const char		*restrict author;
+    const char		*restrict state;
+    const char		*restrict commitid;
     cvs_branch		*branches;
     node_t		*node;
     cvs_number		number;
@@ -334,9 +334,9 @@ typedef struct _bloom {
 typedef struct _cvs_commit {
     /* a CVS revision */
     struct _cvs_commit	*parent;
-    const char		*__restrict__ log;
-    const char		*__restrict__ author;
-    const char		*__restrict__ commitid;
+    const char		*restrict log;
+    const char		*restrict author;
+    const char		*restrict commitid;
     cvstime_t		date;
     serial_t            serial;
     branchcount_t	refcount;
@@ -350,9 +350,9 @@ typedef struct _cvs_commit {
 typedef struct _git_commit {
     /* a gitspace changeset */
     struct _git_commit	*parent;
-    const char		*__restrict__ log;
-    const char		*__restrict__ author;
-    const char		*__restrict__ commitid;
+    const char		*restrict log;
+    const char		*restrict author;
+    const char		*restrict commitid;
     cvstime_t		date;
     serial_t            serial;
     branchcount_t	refcount;
@@ -390,8 +390,8 @@ typedef struct _rev_file_list {
 } rev_file_list;
 
 typedef struct _rev_diff {
-    rev_file_list	*__restrict__ del;
-    rev_file_list	*__restrict__ add;
+    rev_file_list	*restrict del;
+    rev_file_list	*restrict add;
     int			ndel;
     int			nadd;
 } rev_diff;

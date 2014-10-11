@@ -41,6 +41,9 @@ CPPFLAGS += -DTHREADS
 # Conditions in use of mmap for reading CVS masters
 CPPFLAGS += -DUSE_MMAP
 
+# Uncomment this if your compiler doesm't support C99 restrict qualifier
+#CPPFLAGS=-Drestrict=""
+
 # To enable profiling, uncomment the following line
 # Note: the profiler gets confused if you don't also turn off -O flags.
 #CFLAGS += -pg
