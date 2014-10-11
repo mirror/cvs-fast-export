@@ -221,7 +221,7 @@ void export_blob(node_t *node, void *buf, const size_t len)
 #endif
 }
 
-static void drop_path_component(char *string, const char *drop)
+static void drop_path_component(char *string, const char *const drop)
 {
     char *c;
     int  m;
@@ -234,7 +234,7 @@ static void drop_path_component(char *string, const char *drop)
     }
 }
 
-static char *export_filename(rev_file *file, const bool ignoreconv)
+static char *export_filename(const rev_file *file, const bool ignoreconv)
 {
     static char name[PATH_MAX];
     const char *file_name = file->file_name;
@@ -466,7 +466,7 @@ static void compute_parent_links(const git_commit *commit)
 }
 
 #ifdef ORDERDEBUG
-static void dump_file(rev_file *rev_file, FILE *fp)
+static void dump_file(const rev_file *rev_file, FILE *fp)
 {
     char buf[CVS_MAX_REV_LEN + 1];
     fprintf(fp, "   file name: %s %s\n", rev_file->file_name, 
@@ -725,7 +725,7 @@ static void export_commit(git_commit *commit,
 #undef OP_CHUNK
 }
 
-static int export_ncommit(rev_list *rl)
+static int export_ncommit(const rev_list *rl)
 /* return a count of converted commits */
 {
     rev_ref	*h;
