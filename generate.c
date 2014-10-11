@@ -110,7 +110,7 @@ static uchar *in_get_line(editbuffer_t *eb)
     return ptr;
 }
 
-static uchar * in_buffer_loc(const editbuffer_t *const eb)
+static const uchar *in_buffer_loc(const editbuffer_t *const eb)
 {
 	return(Ginbuf(eb)->ptr);
 }
@@ -186,14 +186,13 @@ static void out_printf(editbuffer_t *eb, const char *fmt, ...)
     }
 }
 
-static int out_fputs(editbuffer_t *eb, const char *s)
+static void out_fputs(editbuffer_t *eb, const char *s)
 {
     while (*s)
 	out_putc(eb, *s++);
-    return 0;
 }
 
-static void out_awrite(editbuffer_t *eb, char const *s, size_t len)
+static void out_awrite(editbuffer_t *eb, const char *s, size_t len)
 {
     while (len--)
 	out_putc(eb, *s++);
@@ -208,15 +207,14 @@ static bool latin1_alpha(const int c)
 
 static int latin1_whitespace(const uchar c)
 {
-    if (c == ' ' || (c >= '\b' && c <= '\r' && c != '\n')) return true;
-    return false;
+    return (c == ' ' || (c >= '\b' && c <= '\r' && c != '\n'));
 }
 
 static enum expand_mode expand_override(char const *s)
 {
     if (s != NULL)
     {
-	char * const expand_names[] = {"kv", "kvl", "k", "v", "o", "b"};
+	char *const expand_names[] = {"kv", "kvl", "k", "v", "o", "b"};
 	int i;
 	for (i=0; i < 6; ++i)
 	    if (strcmp(s,expand_names[i]) == 0)
@@ -491,7 +489,7 @@ static void keyreplace(editbuffer_t *eb, enum markers marker)
 
     if (marker == Log) {
 	char const *xxp;
-	uchar *kdelim_ptr = NULL;
+	const uchar *kdelim_ptr = NULL;
 	int c;
 	size_t cs, cw, ls;
 	/*
