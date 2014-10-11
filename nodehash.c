@@ -6,7 +6,7 @@
 
 #include "cvs.h"
 
-static node_t *hash_number(nodehash_t *context, cvs_number *n)
+static node_t *hash_number(nodehash_t *context, const cvs_number *const n)
 /* look up the node associated with a specified CVS release number */
 {
     cvs_number key = *n;
@@ -39,7 +39,8 @@ static node_t *hash_number(nodehash_t *context, cvs_number *n)
     return p;
 }
 
-static node_t *find_parent(nodehash_t *context, const cvs_number *n, const int depth)
+static node_t *find_parent(nodehash_t *context,
+			   const cvs_number *const n, const int depth)
 /* find the parent node of the specified prefix of a release number */
 {
     cvs_number key = *n;
@@ -172,7 +173,7 @@ static void try_pair(nodehash_t *context, node_t *a, node_t *b)
 }
 
 void build_branches(nodehash_t *context)
-/* set head_node global and build branch links in the node list */ 
+/* build branch links in the node list */ 
 {
     if (context->nentries == 0)
 	return;
