@@ -212,21 +212,20 @@ typedef struct _editbuffer {
     struct in_buffer_type in_buffer_store;
     enum expand_mode Gexpand;
     /*
-     * Gline contains pointers to the lines in the currently edit buffer
+     * Gline contains pointers to the lines in the current edit buffer
      * It is a 0-origin array that represents Glinemax-Ggapsize lines.
      * Gline[0 .. Ggap-1] and Gline[Ggap+Ggapsize .. Glinemax-1] hold
      * pointers to lines.  Gline[Ggap .. Ggap+Ggapsize-1] contains garbage.
      * Any @s in lines are duplicated.
      * Lines are terminated by \n, or(for a last partial line only) by single @.
      */
-    int depth;
-    struct {
+    struct frame {
 	node_t *next_branch;
 	node_t *node;
 	unsigned char *node_text;
 	unsigned char **line;
 	size_t gap, gapsize, linemax;
-    } stack[CVS_MAX_DEPTH/2];
+    } stack[CVS_MAX_DEPTH/2], *current;
 #ifdef USE_MMAP
     /* A recently used list of mmapped files */
     struct text_map {
@@ -237,11 +236,11 @@ typedef struct _editbuffer {
 #endif /* USE_MMAP */
 } editbuffer_t;
 
-#define Gline(eb) eb->stack[eb->depth].line
-#define Ggap(eb) eb->stack[eb->depth].gap
-#define Ggapsize(eb) eb->stack[eb->depth].gapsize
-#define Glinemax(eb) eb->stack[eb->depth].linemax
-#define Gnode_text(eb) eb->stack[eb->depth].node_text
+#define Gline(eb) eb->current->line
+#define Ggap(eb) eb->current->gap
+#define Ggapsize(eb) eb->current->gapsize
+#define Glinemax(eb) eb->current->linemax
+#define Gnode_text(eb) eb->current->node_text
 #define Ginbuf(eb) (&eb->in_buffer_store)
 
 typedef struct {

@@ -877,12 +877,12 @@ static void snapshotedit(editbuffer_t *eb)
 
 static void enter_branch(editbuffer_t *eb, const node_t *const node)
 {
-    uchar **p = xmalloc(sizeof(uchar *) * eb->stack[eb->depth].linemax, "enter branch");
-	memcpy(p, eb->stack[eb->depth].line, sizeof(uchar *) * eb->stack[eb->depth].linemax);
-	eb->stack[eb->depth + 1] = eb->stack[eb->depth];
-	eb->stack[eb->depth + 1].next_branch = node->sib;
-	eb->stack[eb->depth + 1].line = p;
-	eb->depth++;
+    uchar **p = xmalloc(sizeof(uchar *) * eb->current->linemax, "enter branch");
+	memcpy(p, eb->current->line, sizeof(uchar *) * eb->current->linemax);
+	++eb->current;
+	eb->current[0] = eb->current[-1];
+	eb->current->next_branch = node->sib;
+	eb->current->line = p;
 }
 
 void generate_files(cvs_file *cvs,
@@ -900,7 +900,7 @@ void generate_files(cvs_file *cvs,
     eb->Gkvlen = 0;
 
     node_t *node = cvs->nodehash.head_node;
-    eb->depth = 0;
+    eb->current = eb->stack;
     eb->Gfilename = cvs->master_name;
     if (enable_keyword_expansion)
 	eb->Gexpand = expand_override(cvs->expand);
@@ -926,21 +926,22 @@ void generate_files(cvs_file *cvs,
 	    enter_branch(eb, node);
 	    goto Next;
 	}
-	while ((node = eb->stack[eb->depth].node->to) == NULL) {
-	    unload_text(eb, &eb->stack[eb->depth].node->patch->text,
-	                eb->stack[eb->depth].node_text);
-	    free(eb->stack[eb->depth].line);
-	    if (!eb->depth)
+	while ((node = eb->current->node->to) == NULL) {
+	    unload_text(eb, &eb->current->node->patch->text,
+	                eb->current->node_text);
+	    free(eb->current->line);
+	    if (eb->current == eb->stack)
 		goto Done;
-	    node = (node_t *)eb->stack[eb->depth--].next_branch;
+	    node = (node_t *)eb->current->next_branch;
+	    --eb->current;
 	    if (node) {
 		enter_branch(eb, node);
 		break;
 	    }
 	}
     Next:
-	eb->stack[eb->depth].node = node;
-	eb->stack[eb->depth].node_text = load_text(eb, &node->patch->text);
+	eb->current->node = node;
+	eb->current->node_text = load_text(eb, &node->patch->text);
 	process_delta(eb, node, EDIT);
     }
 Done:
