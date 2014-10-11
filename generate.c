@@ -36,6 +36,7 @@
 #include "cvs.h"
 
 typedef unsigned char uchar;
+
 struct alloclist {
     void* alloc;
     struct alloclist *nextalloc;
@@ -116,7 +117,7 @@ static uchar * in_buffer_loc(const editbuffer_t *const eb)
 
 static void in_buffer_init(editbuffer_t *eb, 
 			   const uchar * const text, 
-			   int bypass_initial)
+			   const int bypass_initial)
 {
     Ginbuf(eb)->ptr = Ginbuf(eb)->buffer = (uchar *)text;
     Ginbuf(eb)->read_count=0;
@@ -285,7 +286,7 @@ static char const * getfullRCSname(editbuffer_t *eb)
     return eb->Gabspath;
 }
 
-static enum markers trymatch(char const * const string)
+static enum markers trymatch(char const *const string)
 /* Check if string starts with a keyword followed by a KDELIM or VDELIM */
 {
     int j;
@@ -308,7 +309,7 @@ static enum markers trymatch(char const * const string)
     return(Nomatch);
 }
 
-static void insertline(editbuffer_t *eb, unsigned long n, uchar * l)
+static void insertline(editbuffer_t *eb, const unsigned long n, uchar * l)
 /* Before line N, insert line L.  N is 0-origin.  */
 {
     if (n > Glinemax(eb) - Ggapsize(eb))
@@ -331,7 +332,8 @@ static void insertline(editbuffer_t *eb, unsigned long n, uchar * l)
     Ggapsize(eb)--;
 }
 
-static void deletelines(editbuffer_t *eb, unsigned long n, unsigned long nlines)
+static void deletelines(editbuffer_t *eb, 
+			const unsigned long n, const unsigned long nlines)
 /* Delete lines N through N+NLINES-1.  N is 0-origin.  */
 {
     unsigned long l = n + nlines;
@@ -803,7 +805,9 @@ unload_all_text(void)
 }
 #endif /* !USE_MMAP */
 
-static void process_delta(editbuffer_t *eb, node_t *node, enum stringwork func)
+static void process_delta(editbuffer_t *eb, 
+			  const node_t *const node, 
+			  const enum stringwork func)
 {
     long editline = 0, linecnt = 0, adjust = 0;
     int editor_command;
@@ -884,7 +888,7 @@ static void enter_branch(editbuffer_t *eb, const node_t *const node)
 void generate_files(cvs_file *cvs,
 		    bool enable_keyword_expansion,
 		    void(*hook)(node_t *node, void *buf, size_t len))
-/* export all the revision states of a CVS/RS master through a hook */
+/* export all the revision states of a CVS/RCS master through a hook */
 {
     /* this must become local to the CVS file */
     editbuffer_t *eb = &cvs->editbuffer;
@@ -907,7 +911,7 @@ void generate_files(cvs_file *cvs,
     eb->stack[0].node = node;
     eb->stack[0].node_text = load_text(eb, &node->patch->text);
     process_delta(eb, node, ENTER);
-    while (1) {
+    for (;;) {
 	if (node->file) {
 	    out_buffer_init(eb);
 	    if (eb->Gexpand < EXPANDKO)
