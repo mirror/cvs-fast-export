@@ -39,8 +39,6 @@ free_author_map(void)
 
 	while ((a = *bucket)) {
 	    *bucket = a->next;
-	    free(a->full);
-	    free(a->email);
 	    free(a);
 	}
     }
@@ -102,7 +100,7 @@ load_author_map(const char *filename)
         while (angle > full && angle[-1] == ' ')
 	    angle--;
 	*angle = '\0';
-	a->full = strdup(full);
+	a->full = atom(full);
 	angle = strchr(email, '>');
 	if (!angle) {
 	    announce("\"%s\", line %d: malformed email address '%s\n",
@@ -112,7 +110,7 @@ load_author_map(const char *filename)
 	    return false;
 	}
 	*angle = '\0';
-	a->email = strdup(email);
+	a->email = atom(email);
 	a->timezone = NULL;
 	if (*++angle) {
 	    while (isspace((unsigned char)*angle))

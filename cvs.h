@@ -399,8 +399,8 @@ typedef struct _rev_diff {
 typedef struct _cvs_author {
     struct _cvs_author	*next;
     const char		*name;
-    char		*full;
-    char		*email;
+    const char		*full;
+    const char		*email;
     const char		*timezone;
 } cvs_author;
 
