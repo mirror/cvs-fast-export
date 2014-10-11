@@ -151,10 +151,10 @@ typedef struct _cvs_branch {
 typedef struct _cvs_version {
     /* metadata of a delta within a CVS file */
     struct _cvs_version	*next;
-    const char		*author;
-    const char		*state;
+    const char		*__restrict__ author;
+    const char		*__restrict__ state;
+    const char		*__restrict__ commitid;
     cvs_branch		*branches;
-    const char		*commitid;
     node_t		*node;
     cvs_number		number;
     cvstime_t		date;
@@ -334,9 +334,9 @@ typedef struct _bloom {
 typedef struct _cvs_commit {
     /* a CVS revision */
     struct _cvs_commit	*parent;
-    const char		*log;
-    const char		*author;
-    const char		*commitid;
+    const char		*__restrict__ log;
+    const char		*__restrict__ author;
+    const char		*__restrict__ commitid;
     cvstime_t		date;
     serial_t            serial;
     branchcount_t	refcount;
@@ -350,9 +350,9 @@ typedef struct _cvs_commit {
 typedef struct _git_commit {
     /* a gitspace changeset */
     struct _git_commit	*parent;
-    const char		*log;
-    const char		*author;
-    const char		*commitid;
+    const char		*__restrict__ log;
+    const char		*__restrict__ author;
+    const char		*__restrict__ commitid;
     cvstime_t		date;
     serial_t            serial;
     branchcount_t	refcount;
@@ -369,8 +369,8 @@ typedef struct _git_commit {
 typedef struct _rev_ref {
     /* a reference to a branch head */
     struct _rev_ref	*next;
-    cvs_commit		*commit;
     struct _rev_ref	*parent;	/* link into tree */
+    cvs_commit		*commit;
     const char		*ref_name;
     cvs_number		number;
     unsigned		depth:7;	/* depth in branching tree (1 is trunk) */
@@ -390,8 +390,8 @@ typedef struct _rev_file_list {
 } rev_file_list;
 
 typedef struct _rev_diff {
-    rev_file_list	*del;
-    rev_file_list	*add;
+    rev_file_list	*__restrict__ del;
+    rev_file_list	*__restrict__ add;
     int			ndel;
     int			nadd;
 } rev_diff;
