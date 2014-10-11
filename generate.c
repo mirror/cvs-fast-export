@@ -208,7 +208,7 @@ static bool latin1_alpha(const int c)
 
 static int latin1_whitespace(const uchar c)
 {
-    if (c == 32 || (c >= 8 && c <= 13 && c != 10)) return true;
+    if (c == ' ' || (c >= '\b' && c <= '\r' && c != '\n')) return true;
     return false;
 }
 
