@@ -29,26 +29,6 @@ int commit_time_window = 300;
 bool progress = false;
 ssize_t striplen = -1;
 
-static int
-strcommonendingwith(const char *a, char *b, const char endc)
-/* return the length of the common prefix of strings a and b ending with endc */
-{
-    int c = 0;
-    int d = 0;
-    while (*a == *b) {
-	if (!*a) {
-	    break;
- 	}
-	a++;
-	b++;
-	c++;
-	if (*a == endc) {
-	    d = c + 1;
-	}
-    }
-    return d;
-}
-
 static int get_int_substr(const char * str, const regmatch_t * p)
 {
     char buff[256];
