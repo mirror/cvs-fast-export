@@ -289,32 +289,26 @@ static char *export_filename(const rev_file *file, const bool ignoreconv)
     return name;
 }
 
+static int unlink_cb(const char *fpath, 
+		     const struct stat *sb, int typeflag, struct FTW *ftwbuf)
+{
+    int rv = remove(fpath);
+
+    if (rv)
+        perror(fpath);
+
+    return rv;
+}
+
 void export_wrap(void)
 /* clean up after export, removing the blob storage */
 {
-    char path[PATH_MAX];
-    int len;
-
     (void) puts("done");
 #if !defined(__GNUC__) && defined(THREADS)
     pthread_mutex_destroy(&seqno_mutex);
 #endif /* !defined(__GNUC__) && defined(THREADS) */
 
-    /* Remove blob files and directories in the order
-     * they were created. */
-    while (seqno) {
-        blobfile(seqno, false, path);
-        (void) unlink(path);
-        len = strlen(path);
-        if (len > 3 && path[len - 3] == '/'
-                    && path[len - 2] == '='
-                    && path[len - 1] == '1')
-	{
-            path[len - 3] = '\0';
-            (void) rmdir(path);
-        }
-        seqno--;
-    }
+    nftw(blobdir, unlink_cb, 64, FTW_DEPTH | FTW_PHYS);
 }
 
 static const char *utc_offset_timestamp(const time_t *timep, const char *tz)
