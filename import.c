@@ -31,12 +31,19 @@
  * the entire CVS history of a collection.
  */
 
+#define DEBUG_THREAD
+
+typedef struct _rev_filename {
+    volatile struct _rev_filename	*next;
+    const char			*file;
+} rev_filename;
+
 /*
  * Ugh...least painful way to make some stuff that isn't thread-local
  * visible.
  */
 static volatile int load_current_file;
-static volatile bool wakeup;
+static volatile rev_filename   *fn_head = NULL, **fn_tail = &fn_head, *fn;
 static volatile rev_list *head = NULL, **tail = &head;
 static volatile cvstime_t skew_vulnerable;
 static volatile unsigned int total_revisions;
@@ -114,12 +121,6 @@ strcommonendingwith(const char *a, const char *b, char endc)
     return d;
 }
 
-typedef struct _rev_filename {
-    struct _rev_filename	*next;
-    const char			*file;
-} rev_filename;
-
-
 #ifdef THREADS
 /*
  * A simple multithread scheduler to avoid stalling on I/O waits.
@@ -144,14 +145,9 @@ typedef struct _rev_filename {
  * and potentially very large master files into memory.
  */
 
-struct worker {
-    pthread_t	    thread;
-    pthread_mutex_t mutex;
-    const char	    *filename;
-};
-
 static pthread_mutex_t revlist_mutex = PTHREAD_MUTEX_INITIALIZER;
-static struct worker *workers;
+static pthread_mutex_t enqueue_mutex = PTHREAD_MUTEX_INITIALIZER;
+static pthread_t *workers;
 
 #ifdef DEBUG_THREAD
 static pthread_mutex_t announce_mutex = PTHREAD_MUTEX_INITIALIZER;
@@ -176,41 +172,58 @@ static void thread_announce(char const *format,...)
 #endif /* DEBUG_THREAD */
 
 static void *thread_monitor(void *arg)
-/* do a master analysis, to be run inside a thread */
+/* run forever popping master off the queue and analyzing them */
 {
     rev_list *rl;
-    struct worker *slot = (struct worker *)arg;
+    pthread_t *slot = (pthread_t *)arg;
     analysis_t out;
-    thread_announce("slot %ld: %s begins\n", 
-		    slot - workers, slot->filename);
-    rl = rev_list_file(slot->filename, &out);
-#ifdef THREADS
-    if (threads > 1)
+    bool keepgoing = true;
+
+    for (;;)
+    {
+	const char *filename;
+
+	/* pop a master off the queue, terminating if none left */
+	pthread_mutex_unlock(&enqueue_mutex);
+	if (fn_head == NULL)
+	    keepgoing = false;
+	else
+	{
+	    fn = fn_head;
+	    fn_head = fn_head->next;
+	    filename = fn->file;
+	    free((rev_filename *)fn);
+	}
+	pthread_mutex_unlock(&enqueue_mutex);
+	if (!keepgoing)
+	    pthread_exit(NULL);
+
+	/* process it */
+	thread_announce("slot %ld: %s begins\n", 
+			slot - workers, filename);
+	rl = rev_list_file(filename, &out);
 	pthread_mutex_lock(&progress_mutex);
-#endif /* THREADS */
-    progress_jump(load_current_file+1);
-#ifdef THREADS
-    if (threads > 1)
+	progress_jump(load_current_file+1);
 	pthread_mutex_unlock(&progress_mutex);
-#endif /* THREADS */
-    pthread_mutex_lock(&revlist_mutex);
-    ++load_current_file;
-    *tail = rl;
-    total_revisions += out.total_revisions;
-    if (out.skew_vulnerable > skew_vulnerable)
-	skew_vulnerable = out.skew_vulnerable;
-    tail = (volatile rev_list **)&rl->next;
-    pthread_mutex_unlock(&revlist_mutex);
-    pthread_mutex_unlock(&slot->mutex);
-    thread_announce("slot %ld: %s done (%d of %d)\n", 
-		    slot - workers, slot->filename,
-		    load_current_file, total_files);
-    /* signal the main thread that this slot is free */
-    pthread_mutex_lock(&wakeup_mutex);
-    wakeup = true;
-    pthread_cond_signal(&wakeup_cond);
-    pthread_mutex_unlock(&wakeup_mutex);
-    pthread_exit(NULL);
+
+	/* pass it to the next stage */
+	pthread_mutex_lock(&revlist_mutex);
+	*tail = rl;
+	total_revisions += out.total_revisions;
+	if (out.skew_vulnerable > skew_vulnerable)
+	    skew_vulnerable = out.skew_vulnerable;
+	tail = (volatile rev_list **)&rl->next;
+	pthread_mutex_unlock(&revlist_mutex);
+	thread_announce("slot %ld: %s done (%d of %d)\n", 
+			slot - workers, filename,
+			load_current_file+1, total_files);
+
+	/* signal a completion to the main thread  */
+	pthread_mutex_lock(&wakeup_mutex);
+	++load_current_file;
+	pthread_cond_signal(&wakeup_cond);
+	pthread_mutex_unlock(&wakeup_mutex);
+    }
 }
 #endif /* THREADS */
 
@@ -222,7 +235,6 @@ rev_list *analyze_masters(int argc, char *argv[],
 			  stats_t *stats)
 /* main entry point; collect and parse CVS masters */
 {
-    rev_filename    *fn_head = NULL, **fn_tail = &fn_head, *fn;
     char	    name[10240];
     const char      *last = NULL;
     char	    *file;
@@ -233,10 +245,10 @@ rev_list *analyze_masters(int argc, char *argv[],
     pthread_attr_t  attr;
     int i;
 
-    workers = (struct worker *)xcalloc(threads, sizeof(struct worker), __func__);
-    for (i = 0; i < threads; i++) {
-	pthread_mutex_init(&workers[i].mutex, NULL);
-    }
+    pthread_cond_init (&wakeup_cond, NULL);
+    /* Initialize and set thread detached attribute */
+    pthread_attr_init(&attr);
+    pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_JOINABLE);
 #endif /* THREADS */
 
     stats->textsize = stats->filecount = 0;
@@ -274,7 +286,7 @@ rev_list *analyze_masters(int argc, char *argv[],
 
 	fn = xcalloc(1, sizeof(rev_filename), "filename gathering");
 	*fn_tail = fn;
-	fn_tail = &fn->next;
+	fn_tail = (volatile rev_filename **)&fn->next;
 	if (striplen > 0 && last != NULL) {
 	    c = strcommonendingwith(file, last, '/');
 	    if (c < striplen)
@@ -311,50 +323,34 @@ rev_list *analyze_masters(int argc, char *argv[],
      * CVS branch heads (rev_refs), each one of which points at a list
      * of CVS commit structures (cvs_commit).
      */
-
 #ifdef THREADS
-    pthread_cond_init (&wakeup_cond, NULL);
-    /* Initialize and set thread detached attribute */
-    pthread_attr_init(&attr);
-    pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_JOINABLE);
-#endif /* THREADS */
-
-    progress_begin("Analyzing masters...", total_files);
-    while (fn_head) {
-	fn = fn_head;
-	fn_head = fn_head->next;
-#ifdef THREADS
-	if (threads > 1) {
-	    for (;;) {
-		for (i = 0; i < threads; i++) {
-		    if (pthread_mutex_trylock(&workers[i].mutex) == 0) {
-			workers[i].filename = fn->file;
-			j = pthread_create(&workers[i].thread, 
-					   &attr, thread_monitor, 
-					   (void *)&workers[i]);
-			if (j == 0) {
-			    goto dispatched;
-			} else {
-			    announce("analysis thread creation failed!\n");
-			    exit(1);
-			}
-		    }
-		}
-
-		/* wait to receive signal */
-		pthread_mutex_lock(&wakeup_mutex);
-		while (!wakeup)
-		    pthread_cond_wait(&wakeup_cond, &wakeup_mutex);
-		wakeup = false;
-		pthread_mutex_unlock(&wakeup_mutex);
-	    }
-	dispatched:
-	    ;
+    if (threads > 1)
+    {
+	workers = (pthread_t *)xcalloc(threads, sizeof(pthread_t), __func__);
+	for (i = 0; i < threads; i++) {
+	    pthread_create(&workers[i], &attr, 
+			   thread_monitor, (void *)&workers[i]);
 	}
-	else
+	
+	pthread_mutex_lock(&wakeup_mutex);
+	while (load_current_file < total_files)
+	    pthread_cond_wait(&wakeup_cond, &wakeup_mutex);
+	pthread_mutex_unlock(&wakeup_mutex);
+
+#ifdef THREADS
+	pthread_mutex_destroy(&wakeup_mutex);
+	pthread_mutex_destroy(&enqueue_mutex);
+	pthread_mutex_destroy(&revlist_mutex);
 #endif /* THREADS */
-	{
+    }
+    else
+#endif /* THREADS */
+    {
+	progress_begin("Analyzing masters...", total_files);
+	while (fn_head) {
 	    rev_list *rl;
+	    fn = fn_head;
+	    fn_head = fn_head->next;
 	    if (verbose)
 		announce("processing %s\n", fn->file);
 	    rl = rev_list_file(fn->file, &out);
@@ -363,20 +359,11 @@ rev_list *analyze_masters(int argc, char *argv[],
 	    tail = (volatile rev_list **)&rl->next;
 	    total_revisions += out.total_revisions;
 	    if (out.skew_vulnerable > skew_vulnerable)
-		skew_vulnerable = out.skew_vulnerable;
+		    skew_vulnerable = out.skew_vulnerable;
+	    free((void *)fn);
 	}
-	free(fn);
+	progress_end("done, %d total revisions", total_revisions);
     }
-    progress_end("done, %d total revisions", total_revisions);
-
-#ifdef THREADS
-    /* wait on all threads still running before continuing */
-    for (i = 0; i < threads; i++)
-	pthread_join(workers[i].thread, NULL);
-    pthread_mutex_destroy(&revlist_mutex);
-    for (i = 0; i < threads; i++)
-	pthread_mutex_destroy(&workers[i].mutex);
-#endif /* THREADS */
 
     stats->errcount = err;
     stats->total_revisions = total_revisions;
