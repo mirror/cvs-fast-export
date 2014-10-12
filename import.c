@@ -31,8 +31,6 @@
  * the entire CVS history of a collection.
  */
 
-#define DEBUG_THREAD
-
 typedef struct _rev_filename {
     volatile struct _rev_filename	*next;
     const char			*file;
@@ -143,33 +141,10 @@ static pthread_mutex_t revlist_mutex = PTHREAD_MUTEX_INITIALIZER;
 static pthread_mutex_t enqueue_mutex = PTHREAD_MUTEX_INITIALIZER;
 static pthread_t *workers;
 
-#ifdef DEBUG_THREAD
-static pthread_mutex_t announce_mutex = PTHREAD_MUTEX_INITIALIZER;
-
-static void thread_announce(char const *format,...)
-{
-    if (verbose) {
-	va_list args;
-
-	pthread_mutex_lock(&announce_mutex);
-	fprintf(stderr, "threading: ");
-	va_start(args, format);
-	vfprintf(stderr, format, args);
-	va_end(args);
-	pthread_mutex_unlock(&announce_mutex);
-    }
-}
-#else
-static void thread_announce(char const *format,...)
-{
-}
-#endif /* DEBUG_THREAD */
-
 static void *thread_monitor(void *arg)
 /* run forever popping master off the queue and analyzing them */
 {
     rev_list *rl;
-    pthread_t *slot = (pthread_t *)arg;
     analysis_t out;
     bool keepgoing = true;
 
@@ -193,8 +168,6 @@ static void *thread_monitor(void *arg)
 	    pthread_exit(NULL);
 
 	/* process it */
-	thread_announce("slot %ld: %s begins\n", 
-			slot - workers, filename);
 	rl = rev_list_file(filename, &out);
 
 	/* pass it to the next stage */
@@ -206,9 +179,6 @@ static void *thread_monitor(void *arg)
 	    skew_vulnerable = out.skew_vulnerable;
 	tail = (volatile rev_list **)&rl->next;
 	pthread_mutex_unlock(&revlist_mutex);
-	thread_announce("slot %ld: %s done (%d of %d)\n", 
-			slot - workers, filename,
-			load_current_file+1, total_files);
     }
 }
 #endif /* THREADS */
