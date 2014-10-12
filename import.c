@@ -123,7 +123,7 @@ static void *worker(void *arg)
 /* consume masters off the queue */
 {
     rev_list *rl;
-    analysis_t out;
+    analysis_t out = {0, 0};
     bool keepgoing = true;
 
     for (;;)
