@@ -16,6 +16,8 @@
  *  59 Temple Place, Suite 330, Boston, MA 02111-1307 USA.
  */
 #define _XOPEN_SOURCE 700
+#define _BSD_SOURCE
+
 #include <limits.h>
 #include <assert.h>
 #include <stdlib.h>
@@ -624,11 +626,11 @@ static void export_commit(git_commit *commit,
 		    int c;
 		    printf("blob\nmark :%d\n", mark);
 #ifndef ZLIB
-		    while ((c = fgetc(rfp)) != EOF)
+		    while ((c = fgetc_unlocked(rfp)) != EOF)
 #else
 		    while ((c = gzgetc(rfp)) != EOF)
 #endif
-			putchar(c);
+			putchar_unlocked(c);
 		    (void) unlink(fn);
 		    markmap[op2->serial].emitted = true;
 #ifndef ZLIB
