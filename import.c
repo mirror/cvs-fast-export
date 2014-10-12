@@ -172,7 +172,7 @@ static void *thread_monitor(void *arg)
 
 	/* pass it to the next stage */
 	pthread_mutex_lock(&revlist_mutex);
-	progress_jump(load_current_file+1);
+	progress_jump(++load_current_file);
 	*tail = rl;
 	total_revisions += out.total_revisions;
 	if (out.skew_vulnerable > skew_vulnerable)
