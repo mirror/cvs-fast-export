@@ -327,7 +327,7 @@ rev_list *analyze_masters(int argc, char *argv[],
     if (threads > 1)
     {
 	progress_begin("Analyzing masters with %d threads...", 
-		       threads, total_files);
+		       total_files);
 	workers = (pthread_t *)xcalloc(threads, sizeof(pthread_t), __func__);
 	for (i = 0; i < threads; i++) {
 	    pthread_create(&workers[i], &attr, 
@@ -339,11 +339,9 @@ rev_list *analyze_masters(int argc, char *argv[],
 	    pthread_cond_wait(&wakeup_cond, &wakeup_mutex);
 	pthread_mutex_unlock(&wakeup_mutex);
 
-#ifdef THREADS
 	pthread_mutex_destroy(&wakeup_mutex);
 	pthread_mutex_destroy(&enqueue_mutex);
 	pthread_mutex_destroy(&revlist_mutex);
-#endif /* THREADS */
     }
     else
 #endif /* THREADS */
