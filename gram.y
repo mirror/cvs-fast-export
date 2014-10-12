@@ -88,7 +88,7 @@ file		: headers revisions desc patches
 		  {
 			/* The description text (if any) is only used
 			 * for empty log messages in the 'patch' production */
-		  	free(cvsfile->description);
+		      free((void *)cvsfile->description);
 		  	cvsfile->description = NULL;
 		  }
 		;

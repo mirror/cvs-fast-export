@@ -251,15 +251,15 @@ typedef struct {
     cvs_version		*versions;
     cvs_patch		*patches;
     const char 		*expand;
-    char		*description;
+    const char		*description;
     cvs_number		head;
     cvs_number		branch;
-    mode_t		mode;
-    serial_t		nversions;
     nodehash_t		nodehash;
     editbuffer_t	editbuffer;
     cvstime_t           skew_vulnerable;
-    unsigned int        total_revisions;
+    serial_t            total_revisions;
+    serial_t		nversions;
+    mode_t		mode;
 } cvs_file;
 
 typedef struct _rev_file {
