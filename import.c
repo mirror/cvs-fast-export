@@ -54,7 +54,6 @@ static bool generate, enable_keyword_expansion, verbose;
 
 #ifdef THREADS
 static pthread_mutex_t progress_mutex = PTHREAD_MUTEX_INITIALIZER;
-static pthread_mutex_t wakeup_mutex = PTHREAD_MUTEX_INITIALIZER;
 static pthread_cond_t wakeup_cond;
 #endif /* THREADS */
 
@@ -184,7 +183,7 @@ static void *thread_monitor(void *arg)
 	const char *filename;
 
 	/* pop a master off the queue, terminating if none left */
-	pthread_mutex_unlock(&enqueue_mutex);
+	pthread_mutex_lock(&enqueue_mutex);
 	if (fn_head == NULL)
 	    keepgoing = false;
 	else
@@ -217,12 +216,6 @@ static void *thread_monitor(void *arg)
 	thread_announce("slot %ld: %s done (%d of %d)\n", 
 			slot - workers, filename,
 			load_current_file+1, total_files);
-
-	/* signal a completion to the main thread  */
-	pthread_mutex_lock(&wakeup_mutex);
-	++load_current_file;
-	pthread_cond_signal(&wakeup_cond);
-	pthread_mutex_unlock(&wakeup_mutex);
     }
 }
 #endif /* THREADS */
@@ -246,7 +239,7 @@ rev_list *analyze_masters(int argc, char *argv[],
     int i;
 
     pthread_cond_init (&wakeup_cond, NULL);
-    /* Initialize and set thread detached attribute */
+    /* Initialize and reinforce default thread non-detached attribute */
     pthread_attr_init(&attr);
     pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_JOINABLE);
 #endif /* THREADS */
@@ -333,13 +326,12 @@ rev_list *analyze_masters(int argc, char *argv[],
 	    pthread_create(&workers[i], &attr, 
 			   thread_monitor, (void *)&workers[i]);
 	}
-	
-	pthread_mutex_lock(&wakeup_mutex);
-	while (load_current_file < total_files)
-	    pthread_cond_wait(&wakeup_cond, &wakeup_mutex);
-	pthread_mutex_unlock(&wakeup_mutex);
 
-	pthread_mutex_destroy(&wakeup_mutex);
+        /* Wait for all the threads to die off. */
+	for (i = 0; i < threads; i++) {
+          pthread_join(workers[i], NULL);
+	}
+        
 	pthread_mutex_destroy(&enqueue_mutex);
 	pthread_mutex_destroy(&revlist_mutex);
     }
