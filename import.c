@@ -50,6 +50,12 @@ static volatile int err;
 static int total_files;
 static bool generate, enable_keyword_expansion, verbose;
 
+#ifdef THREADS
+static pthread_mutex_t revlist_mutex = PTHREAD_MUTEX_INITIALIZER;
+static pthread_mutex_t enqueue_mutex = PTHREAD_MUTEX_INITIALIZER;
+static pthread_t *workers;
+#endif /* THREADS */
+
 typedef struct _analysis {
     cvstime_t skew_vulnerable;
     unsigned int total_revisions;
@@ -112,35 +118,6 @@ strcommonendingwith(const char *a, const char *b, char endc)
     }
     return d;
 }
-
-#ifdef THREADS
-/*
- * A simple multithread scheduler to avoid stalling on I/O waits.
- *
- * Without threading, analysis of all CVS masters is stalled during
- * I/O waits.  The biggest non-IO bottleneck in the code is assembling
- * deltas into blobs. This lends itself to parallelization because at
- * this stage of analysis the mater files are all separate universes
- * (and will remain that way until branch merging).
- *
- * Instead of running the analyses seqentially, the threaded version
- * repeatedly tries to send each master to the worker pool until it
- * succeeds.  If all slots in the pool have active threads, it waits
- * for some worker thread to finish to retry the dispatch loop.
- *
- * After all files have been dispatched, any remainihg worker threads
- * are joined, so execution of thwe main program waits until thery're
- * all done.
- *
- * Beware of setting the worker pool size too high, the program's working set
- * can get large due to mapping the delta sequences from entire 
- * and potentially very large master files into memory.
- */
-
-static pthread_mutex_t revlist_mutex = PTHREAD_MUTEX_INITIALIZER;
-static pthread_mutex_t enqueue_mutex = PTHREAD_MUTEX_INITIALIZER;
-static pthread_t *workers;
-#endif /* THREADS */
 
 static void *worker(void *arg)
 /* consume masters off the queue */
