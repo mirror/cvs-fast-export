@@ -124,7 +124,9 @@ void export_init(void)
 	fatal_error("temp dir creation failed\n");
 }
 
-static char *blobfile(const int serial, const bool create, char *path)
+static char *blobfile(const char *basename,
+		      const int serial,
+		      const bool create, char *path)
 /* Random-access location of the blob corresponding to the specified serial */
 {
     int m;
@@ -173,52 +175,6 @@ static char *blobfile(const int serial, const bool create, char *path)
     (void)fprintf(stderr, "<- ...returned path for %d = %s\n", serial, path);
 #endif /* FDEBUG */
     return path;
-}
-
-void export_blob(node_t *node, void *buf, const size_t len)
-/* save the blob where it will be available for random access */
-{
-    char path[PATH_MAX];
-    size_t extralen = 0;
-#ifndef ZLIB
-    FILE *wfp;
-#else
-    gzFile wfp;
-#endif
-
-    if (strcmp(node->file->file_name + striplen, ".cvsignore,v") == 0) {
-	extralen = sizeof(CVS_IGNORES) - 1;
-    }
-    
-    node->file->serial = seqno_next();
-    blobfile(node->file->serial, true, path);
-#ifndef ZLIB
-    wfp = fopen(path, "w");
-#else
-    /*
-     * Blobs are written compressed.  This costs a little compression time,
-     * but we get it back in reduced disk seeks.
-     */
-    errno = 0;
-    wfp = gzopen(path, "w");
-#endif
-    if (wfp == NULL)
-	fatal_error("blobfile open of %s: %s (%d)", path, strerror(errno), errno);
-#ifndef ZLIB
-    fprintf(wfp, "data %zd\n", len + extralen);
-    if (extralen > 0)
-	fwrite(CVS_IGNORES, extralen, sizeof(char), wfp);
-    fwrite(buf, len, sizeof(char), wfp);
-    fputc('\n', wfp);
-    (void)fclose(wfp);
-#else
-    gzprintf(wfp, "data %zd\n", len + extralen);
-    if (extralen > 0)
-	gzwrite(CVS_IGNORES, extralen, sizeof(char), wfp);
-    gzwrite(wfp, buf, len);
-    gzputc(wfp, '\n');
-    (void)gzclose(wfp);
-#endif
 }
 
 static void drop_path_component(char *string, const char *const drop)
@@ -287,6 +243,53 @@ static char *export_filename(const rev_file *file, const bool ignoreconv)
     len = p - name;
 
     return name;
+}
+
+void export_blob(node_t *node, void *buf, const size_t len)
+/* save the blob where it will be available for random access */
+{
+    char path[PATH_MAX];
+    size_t extralen = 0;
+#ifndef ZLIB
+    FILE *wfp;
+#else
+    gzFile wfp;
+#endif
+
+    if (strcmp(node->file->file_name + striplen, ".cvsignore,v") == 0) {
+	extralen = sizeof(CVS_IGNORES) - 1;
+    }
+
+    node->file->serial = seqno_next();
+    blobfile(export_filename(node->file, false), 
+	     node->file->serial, true, path);
+#ifndef ZLIB
+    wfp = fopen(path, "w");
+#else
+    /*
+     * Blobs are written compressed.  This costs a little compression time,
+     * but we get it back in reduced disk seeks.
+     */
+    errno = 0;
+    wfp = gzopen(path, "w");
+#endif
+    if (wfp == NULL)
+	fatal_error("blobfile open of %s: %s (%d)", path, strerror(errno), errno);
+#ifndef ZLIB
+    fprintf(wfp, "data %zd\n", len + extralen);
+    if (extralen > 0)
+	fwrite(CVS_IGNORES, extralen, sizeof(char), wfp);
+    fwrite(buf, len, sizeof(char), wfp);
+    fputc('\n', wfp);
+    (void)fclose(wfp);
+#else
+    gzprintf(wfp, "data %zd\n", len + extralen);
+    if (extralen > 0)
+	gzwrite(CVS_IGNORES, extralen, sizeof(char), wfp);
+    gzwrite(wfp, buf, len);
+    gzputc(wfp, '\n');
+    (void)gzclose(wfp);
+#endif
 }
 
 static int unlink_cb(const char *fpath, 
@@ -610,7 +613,7 @@ static void export_commit(git_commit *commit,
 	    markmap[op2->serial].external = ++mark;
 	    if (report) {
 		char path[PATH_MAX];
-		char *fn = blobfile(op2->serial, false, path);
+		char *fn = blobfile(op2->path, op2->serial, false, path);
 #ifndef ZLIB
 		FILE *rfp = fopen(fn, "r");
 #else
