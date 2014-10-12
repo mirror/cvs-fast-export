@@ -52,11 +52,6 @@ static volatile int err;
 static int total_files;
 static bool generate, enable_keyword_expansion, verbose;
 
-#ifdef THREADS
-static pthread_mutex_t progress_mutex = PTHREAD_MUTEX_INITIALIZER;
-static pthread_cond_t wakeup_cond;
-#endif /* THREADS */
-
 typedef struct _analysis {
     cvstime_t skew_vulnerable;
     unsigned int total_revisions;
@@ -201,12 +196,10 @@ static void *thread_monitor(void *arg)
 	thread_announce("slot %ld: %s begins\n", 
 			slot - workers, filename);
 	rl = rev_list_file(filename, &out);
-	pthread_mutex_lock(&progress_mutex);
-	progress_jump(load_current_file+1);
-	pthread_mutex_unlock(&progress_mutex);
 
 	/* pass it to the next stage */
 	pthread_mutex_lock(&revlist_mutex);
+	progress_jump(load_current_file+1);
 	*tail = rl;
 	total_revisions += out.total_revisions;
 	if (out.skew_vulnerable > skew_vulnerable)
@@ -228,7 +221,7 @@ rev_list *analyze_masters(int argc, char *argv[],
 			  stats_t *stats)
 /* main entry point; collect and parse CVS masters */
 {
-    char	    name[10240];
+    char	    name[PATH_MAX];
     const char      *last = NULL;
     char	    *file;
     int		    j = 1;
@@ -238,7 +231,6 @@ rev_list *analyze_masters(int argc, char *argv[],
     pthread_attr_t  attr;
     int i;
 
-    pthread_cond_init (&wakeup_cond, NULL);
     /* Initialize and reinforce default thread non-detached attribute */
     pthread_attr_init(&attr);
     pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_JOINABLE);
@@ -316,11 +308,15 @@ rev_list *analyze_masters(int argc, char *argv[],
      * CVS branch heads (rev_refs), each one of which points at a list
      * of CVS commit structures (cvs_commit).
      */
+    if (threads > 1)
+	snprintf(name, sizeof(name), 
+		 "Analyzing masters with %d threads...", threads);
+    else
+	strcpy(name, "Analyzing masters...");
+    progress_begin(name, total_files);
 #ifdef THREADS
     if (threads > 1)
     {
-	progress_begin("Analyzing masters with %d threads...", 
-		       total_files);
 	workers = (pthread_t *)xcalloc(threads, sizeof(pthread_t), __func__);
 	for (i = 0; i < threads; i++) {
 	    pthread_create(&workers[i], &attr, 
@@ -338,7 +334,6 @@ rev_list *analyze_masters(int argc, char *argv[],
     else
 #endif /* THREADS */
     {
-	progress_begin("Analyzing masters...", total_files);
 	while (fn_head) {
 	    rev_list *rl;
 	    fn = fn_head;
