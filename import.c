@@ -326,6 +326,8 @@ rev_list *analyze_masters(int argc, char *argv[],
 #ifdef THREADS
     if (threads > 1)
     {
+	progress_begin("Analyzing masters with %d threads...", 
+		       threads, total_files);
 	workers = (pthread_t *)xcalloc(threads, sizeof(pthread_t), __func__);
 	for (i = 0; i < threads; i++) {
 	    pthread_create(&workers[i], &attr, 
@@ -362,8 +364,8 @@ rev_list *analyze_masters(int argc, char *argv[],
 		    skew_vulnerable = out.skew_vulnerable;
 	    free((void *)fn);
 	}
-	progress_end("done, %d total revisions", total_revisions);
     }
+    progress_end("done, %d total revisions", total_revisions);
 
     stats->errcount = err;
     stats->total_revisions = total_revisions;
