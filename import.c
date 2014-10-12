@@ -229,7 +229,6 @@ rev_list *analyze_masters(int argc, char *argv[],
     analysis_t      out;
 #ifdef THREADS
     pthread_attr_t  attr;
-    int i;
 
     /* Initialize and reinforce default thread non-detached attribute */
     pthread_attr_init(&attr);
@@ -317,6 +316,8 @@ rev_list *analyze_masters(int argc, char *argv[],
 #ifdef THREADS
     if (threads > 1)
     {
+	int i;
+
 	workers = (pthread_t *)xcalloc(threads, sizeof(pthread_t), __func__);
 	for (i = 0; i < threads; i++) {
 	    pthread_create(&workers[i], &attr, 
