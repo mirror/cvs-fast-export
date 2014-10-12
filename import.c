@@ -140,9 +140,10 @@ strcommonendingwith(const char *a, const char *b, char endc)
 static pthread_mutex_t revlist_mutex = PTHREAD_MUTEX_INITIALIZER;
 static pthread_mutex_t enqueue_mutex = PTHREAD_MUTEX_INITIALIZER;
 static pthread_t *workers;
+#endif /* THREADS */
 
-static void *thread_monitor(void *arg)
-/* run forever popping master off the queue and analyzing them */
+static void *worker(void *arg)
+/* consume masters off the queue */
 {
     rev_list *rl;
     analysis_t out;
@@ -153,7 +154,10 @@ static void *thread_monitor(void *arg)
 	const char *filename;
 
 	/* pop a master off the queue, terminating if none left */
-	pthread_mutex_lock(&enqueue_mutex);
+#ifdef THREADS
+	if (threads > 1)
+	    pthread_mutex_lock(&enqueue_mutex);
+#endif /* THREADS */
 	if (fn_head == NULL)
 	    keepgoing = false;
 	else
@@ -163,25 +167,33 @@ static void *thread_monitor(void *arg)
 	    filename = fn->file;
 	    free((rev_filename *)fn);
 	}
-	pthread_mutex_unlock(&enqueue_mutex);
+#ifdef THREADS
+	if (threads > 1)
+	    pthread_mutex_unlock(&enqueue_mutex);
+#endif /* THREADS */
 	if (!keepgoing)
-	    pthread_exit(NULL);
+	    return(NULL);
 
 	/* process it */
 	rl = rev_list_file(filename, &out);
 
 	/* pass it to the next stage */
-	pthread_mutex_lock(&revlist_mutex);
+#ifdef THREADS
+	if (threads > 1)
+	    pthread_mutex_lock(&revlist_mutex);
+#endif /* THREADS */
 	progress_jump(++load_current_file);
 	*tail = rl;
 	total_revisions += out.total_revisions;
 	if (out.skew_vulnerable > skew_vulnerable)
 	    skew_vulnerable = out.skew_vulnerable;
 	tail = (volatile rev_list **)&rl->next;
-	pthread_mutex_unlock(&revlist_mutex);
+#ifdef THREADS
+	if (threads > 1)
+	    pthread_mutex_unlock(&revlist_mutex);
+#endif /* THREADS */
     }
 }
-#endif /* THREADS */
 
 rev_list *analyze_masters(int argc, char *argv[], 
 			  const bool promiscuous,
@@ -196,7 +208,6 @@ rev_list *analyze_masters(int argc, char *argv[],
     char	    *file;
     int		    j = 1;
     int		    c;
-    analysis_t      out;
 #ifdef THREADS
     pthread_attr_t  attr;
 
@@ -289,38 +300,19 @@ rev_list *analyze_masters(int argc, char *argv[],
 	int i;
 
 	workers = (pthread_t *)xcalloc(threads, sizeof(pthread_t), __func__);
-	for (i = 0; i < threads; i++) {
-	    pthread_create(&workers[i], &attr, 
-			   thread_monitor, (void *)&workers[i]);
-	}
+	for (i = 0; i < threads; i++)
+	    pthread_create(&workers[i], &attr, worker, NULL);
 
         /* Wait for all the threads to die off. */
-	for (i = 0; i < threads; i++) {
+	for (i = 0; i < threads; i++)
           pthread_join(workers[i], NULL);
-	}
         
 	pthread_mutex_destroy(&enqueue_mutex);
 	pthread_mutex_destroy(&revlist_mutex);
     }
     else
 #endif /* THREADS */
-    {
-	while (fn_head) {
-	    rev_list *rl;
-	    fn = fn_head;
-	    fn_head = fn_head->next;
-	    if (verbose)
-		announce("processing %s\n", fn->file);
-	    rl = rev_list_file(fn->file, &out);
-	    progress_jump(++load_current_file);
-	    *tail = rl;
-	    tail = (volatile rev_list **)&rl->next;
-	    total_revisions += out.total_revisions;
-	    if (out.skew_vulnerable > skew_vulnerable)
-		    skew_vulnerable = out.skew_vulnerable;
-	    free((void *)fn);
-	}
-    }
+	worker(NULL);
     progress_end("done, %d total revisions", total_revisions);
 
     stats->errcount = err;
