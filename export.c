@@ -179,70 +179,15 @@ static char *blobfile(const char *basename,
     return path;
 }
 
-static void drop_path_component(char *string, const char *const drop)
-{
-    char *c;
-    int  m;
-    m = strlen(drop);
-    while ((c = strstr(string, drop)) &&
-	   (c == string || c[-1] == '/'))
-    {
-	int l = strlen(c);
-	memmove(c, c + m, l - m + 1);
-    }
-}
-
-static char *export_filename(const rev_file *file, const bool ignoreconv)
+static char *export_filename(const char *rectified)
 {
     static char name[PATH_MAX];
-    const char *file_name = file->file_name;
-    unsigned len;
-    const char *s, *snext;
-    char *p;
-    
-    /*
-     * This function is another hot spot.
-     * All the path modifications are now made as the result
-     * string is constructed.
-     */
-    p = name;
-    s = file_name + striplen;
-    while (*s) {
-	for (snext = s; *snext; snext++)
-	    if (*snext == '/') {
-	        ++snext;
-		/* assert(*snext != '\0'); */
-	        break;
-	    }
-	len = snext - s;
-	/* special processing for final components */
-	if (*snext == '\0') {
-	    /* trim trailing ,v */
-	    if (len > 2 && s[len - 2] == ',' && s[len - 1] == 'v')
-	        len -= 2;
-	    /* convert foo/.cvsignore to foo/.gitignore */
-	    if (ignoreconv && len == 10 && memcmp(s, ".cvsignore", len) == 0)
-	    {
-	        s = ".gitignore";
-	        /* len = 10; */
-	    }
-	} else { /* s[len-1] == '/' */
-	    /* drop some path components */
-	    if (len == sizeof "Attic" && memcmp(s, "Attic/", len) == 0)
-	        goto skip;
-	    if (len == sizeof "RCS" && memcmp(s, "RCS/", len) == 0)
-		goto skip;
-	}
-	/* copy the path component */
-	if (p + len >= name + sizeof name)
-	    fatal_error("File name %s\n too long\n", file_name);
-	memcpy(p, s, len);
-	p += len;
-    skip:
-	s = snext;
-    }
-    *p = '\0';
-    len = p - name;
+    size_t rlen = strlen(rectified);
+
+    strncpy(name, rectified, sizeof(name)-1);
+
+    if (rlen >= 10 && strcmp(name + rlen - 10, ".cvsignore") == 0)
+	strcpy(name + rlen - 10, ".gitignore");
 
     return name;
 }
@@ -258,13 +203,12 @@ void export_blob(node_t *node, void *buf, const size_t len)
     gzFile wfp;
 #endif
 
-    if (strcmp(node->file->file_name + striplen, ".cvsignore,v") == 0) {
+    if (strcmp(node->file->file_name, ".cvsignore") == 0) {
 	extralen = sizeof(CVS_IGNORES) - 1;
     }
 
     node->file->serial = seqno_next();
-    blobfile(export_filename(node->file, false), 
-	     node->file->serial, true, path);
+    blobfile(node->file->file_name, node->file->serial, true, path);
 #ifndef ZLIB
     wfp = fopen(path, "w");
 #else
@@ -535,7 +479,7 @@ static void export_commit(git_commit *commit,
 	    char *stripped;
 	    bool present, changed;
 	    f = dir->files[j];
-	    stripped = export_filename(f, true);
+	    stripped = export_filename(f->file_name);
 	    present = false;
 	    changed = false;
 	    if (commit->parent) {
@@ -564,7 +508,7 @@ static void export_commit(git_commit *commit,
 
 		if (revmap != NULL || reposurgeon) {
 		    char fr[BUFSIZ];
-		    stringify_revision(export_filename(f, false), 
+		    stringify_revision(f->file_name, 
 				  " ", &f->number, fr, sizeof fr);
 		    if (reposurgeon)
 		    {
@@ -592,7 +536,7 @@ static void export_commit(git_commit *commit,
 		present = (f->u.other != NULL);
 		if (!present) {
 		    op->op = 'D';
-		    op->path = atom(export_filename(f, true));
+		    op->path = atom(export_filename(f->file_name));
 		    op++;
 		    if (op == operations + noperations)
 		    {
