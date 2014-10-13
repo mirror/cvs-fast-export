@@ -61,6 +61,49 @@ typedef struct _analysis {
     unsigned int total_revisions;
 } analysis_t;
 
+static char *rectify_name(const char *raw, char *rectified, size_t rectlen)
+/* from master name to the name humans thought of the file by */
+{
+    unsigned len;
+    const char *s, *snext;
+    char *p;
+
+    p = rectified;
+    s = raw + striplen;
+    while (*s) {
+	for (snext = s; *snext; snext++)
+	    if (*snext == '/') {
+	        ++snext;
+		/* assert(*snext != '\0'); */
+	        break;
+	    }
+	len = snext - s;
+	/* special processing for final components */
+	if (*snext == '\0') {
+	    /* trim trailing ,v */
+	    if (len > 2 && s[len - 2] == ',' && s[len - 1] == 'v')
+	        len -= 2;
+	} else { /* s[len-1] == '/' */
+	    /* drop some path components */
+	    if (len == sizeof "Attic" && memcmp(s, "Attic/", len) == 0)
+	        goto skip;
+	    if (len == sizeof "RCS" && memcmp(s, "RCS/", len) == 0)
+		goto skip;
+	}
+	/* copy the path component */
+	if (p + len >= rectified + rectlen)
+	    fatal_error("File name %s\n too long\n", raw);
+	memcpy(p, s, len);
+	p += len;
+    skip:
+	s = snext;
+    }
+    *p = '\0';
+    len = p - rectified;
+
+    return rectified;
+}
+
 static rev_list *
 rev_list_file(const char *name, analysis_t *out) 
 {
@@ -69,6 +112,7 @@ rev_list_file(const char *name, analysis_t *out)
     yyscan_t scanner;
     FILE *in;
     cvs_file *cvs;
+    char rectified[PATH_MAX];
 
     in = fopen(name, "r");
     if (!in) {
@@ -82,6 +126,7 @@ rev_list_file(const char *name, analysis_t *out)
 
     cvs = xcalloc(1, sizeof(cvs_file), __func__);
     cvs->master_name = name;
+    cvs->export_name = atom(rectify_name(name, rectified, sizeof(rectified)));
     cvs->mode = buf.st_mode;
 
     yylex_init(&scanner);

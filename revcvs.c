@@ -61,49 +61,6 @@ static void drop_path_component(char *string, const char *const drop)
     }
 }
 
-static char *rectify_name(const char *raw, char *rectified, size_t rectlen)
-/* from master name to the name humans thought of the file by */
-{
-    unsigned len;
-    const char *s, *snext;
-    char *p;
-
-    p = rectified;
-    s = raw + striplen;
-    while (*s) {
-	for (snext = s; *snext; snext++)
-	    if (*snext == '/') {
-	        ++snext;
-		/* assert(*snext != '\0'); */
-	        break;
-	    }
-	len = snext - s;
-	/* special processing for final components */
-	if (*snext == '\0') {
-	    /* trim trailing ,v */
-	    if (len > 2 && s[len - 2] == ',' && s[len - 1] == 'v')
-	        len -= 2;
-	} else { /* s[len-1] == '/' */
-	    /* drop some path components */
-	    if (len == sizeof "Attic" && memcmp(s, "Attic/", len) == 0)
-	        goto skip;
-	    if (len == sizeof "RCS" && memcmp(s, "RCS/", len) == 0)
-		goto skip;
-	}
-	/* copy the path component */
-	if (p + len >= rectified + rectlen)
-	    fatal_error("File name %s\n too long\n", raw);
-	memcpy(p, s, len);
-	p += len;
-    skip:
-	s = snext;
-    }
-    *p = '\0';
-    len = p - rectified;
-
-    return rectified;
-}
-
 static cvs_commit *
 rev_branch_cvs(cvs_file *cvs, const cvs_number *branch)
 /* build a list of commit objects representing a branch from deltas on it */
@@ -112,15 +69,6 @@ rev_branch_cvs(cvs_file *cvs, const cvs_number *branch)
     cvs_commit	*head = NULL;
     cvs_commit	*c, *p, *gc;
     node_t	*node;
-    char rectified[PATH_MAX];
-    const char *rn;
-
-    /*
-     * Doing this transformation early allows us to do it only
-     * a relatively few times - once per master - rather than having
-     * to do it lot more times in the export stage.
-     */
-    rn = atom(rectify_name(cvs->master_name, rectified, sizeof(rectified)));
 
     n = *branch;
     n.n[n.c-1] = -1;
@@ -140,7 +88,7 @@ rev_branch_cvs(cvs_file *cvs, const cvs_number *branch)
 	    c->log = p->log;
 	 c->dead = v->dead;
 	/* leave this around so the branch merging stuff can find numbers */
-	 c->file = rev_file_rev(rn, &v->number, v->date);
+	 c->file = rev_file_rev(cvs->export_name, &v->number, v->date);
 	if (!v->dead) {
 	    node->file = c->file;
 	    c->file->mode = cvs->mode;

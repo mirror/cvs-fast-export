@@ -246,6 +246,7 @@ typedef struct _editbuffer {
 typedef struct {
     /* this represents the entire metadata content of a CVS master file */
     const char		*master_name;
+    const char		*export_name;
     cvs_symbol		*symbols;
     rbtree_node		*symbols_by_name;
     cvs_version		*versions;
