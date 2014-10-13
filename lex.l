@@ -40,6 +40,10 @@ fast_export_sanitize(yyscan_t scanner, cvs_file *cvs);
 YY_DECL;
 %}
 %option reentrant bison-bridge
+%option warn nodefault
+%option noyyget_extra noyyget_leng noyyset_lineno
+%option noyyget_out noyyset_out noyyget_lval noyyset_lval
+%option noyyget_lloc noyyset_lloc noyyget_debug noyyset_debug
 
 %s CONTENT SKIP COMMIT PERM REVISION FNAME SKIPTOSEMI AUTHORSS
 %%
