@@ -19,6 +19,9 @@
 #include "cvs.h"
 #include "gram.h"
     
+int yyget_column (yyscan_t);
+void yyset_column(int, yyscan_t);
+
 static char *
 parse_data(yyscan_t scanner);
 static void

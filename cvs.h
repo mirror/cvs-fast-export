@@ -726,9 +726,6 @@ void progress_end(const char * /*format*/, ...) _printflike(1, 2);
 
 typedef void *yyscan_t;
 
-int yyget_column (yyscan_t);
-void yyset_column(int, yyscan_t);
-
 /* FIXME: remove once the Bison bug requiring this is fixed */
 #define YY_DECL int yylex \
 	(YYSTYPE * yylval_param , yyscan_t yyscanner, cvs_file *cvs)
