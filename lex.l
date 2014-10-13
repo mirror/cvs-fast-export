@@ -42,6 +42,7 @@ YY_DECL;
 %}
 %option reentrant bison-bridge
 %option warn nodefault
+%option pointer
 %option noyywrap noyyget_extra noyyget_leng noyyset_lineno
 %option noyyget_out noyyset_out noyyget_lval noyyset_lval
 %option noyyget_lloc noyyset_lloc noyyget_debug noyyset_debug
