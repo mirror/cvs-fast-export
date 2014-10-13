@@ -125,7 +125,6 @@ void save_status_end(const struct timespec *start_time)
     }
 }
 
-
 void export_init(void)
 {
     char *tmp = getenv("TMPDIR");
@@ -135,6 +134,18 @@ void export_init(void)
     snprintf(blobdir, sizeof(blobdir), "%s/cvs-fast-export-XXXXXX", tmp);
     if (mkdtemp(blobdir) == NULL)
 	fatal_error("temp dir creation failed\n");
+}
+
+static char *export_filename(const char *rectified, char *path)
+{
+    size_t rlen = strlen(rectified);
+
+    strncpy(path, rectified, PATH_MAX-1);
+
+    if (rlen >= 10 && strcmp(path + rlen - 10, ".cvsignore") == 0)
+	strcpy(path + rlen - 10, ".gitignore");
+
+    return path;
 }
 
 static char *blobfile(const char *basename,
@@ -185,22 +196,10 @@ static char *blobfile(const char *basename,
     }
 #undef FANOUT
 #ifdef FDEBUG
-    (void)fprintf(stderr, "<- ...returned path for %d = %s\n", serial, path);
+    (void)fprintf(stderr, "<- ...returned path for %s %d = %s\n",
+		  basename, serial, path);
 #endif /* FDEBUG */
     return path;
-}
-
-static char *export_filename(const char *rectified)
-{
-    static char name[PATH_MAX];
-    size_t rlen = strlen(rectified);
-
-    strncpy(name, rectified, sizeof(name)-1);
-
-    if (rlen >= 10 && strcmp(name + rlen - 10, ".cvsignore") == 0)
-	strcpy(name + rlen - 10, ".gitignore");
-
-    return name;
 }
 
 void export_blob(node_t *node, void *buf, const size_t len)
@@ -489,8 +488,9 @@ static void export_commit(git_commit *commit,
 	for (j = 0; j < dir->nfiles; j++) {
 	    char *stripped;
 	    bool present, changed;
+	    char converted[PATH_MAX];
 	    f = dir->files[j];
-	    stripped = export_filename(f->file_name);
+	    stripped = export_filename(f->file_name, converted);
 	    present = false;
 	    changed = false;
 	    if (commit->parent) {
@@ -546,8 +546,9 @@ static void export_commit(git_commit *commit,
 		f = dir->files[j];
 		present = (f->u.other != NULL);
 		if (!present) {
+		    char converted[PATH_MAX];
 		    op->op = 'D';
-		    op->path = atom(export_filename(f->file_name));
+		    op->path = atom(export_filename(f->file_name, converted));
 		    op++;
 		    if (op == operations + noperations)
 		    {
