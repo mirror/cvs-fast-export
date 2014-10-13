@@ -218,10 +218,7 @@ static void *worker(void *arg)
 }
 
 rev_list *analyze_masters(int argc, char *argv[], 
-			  const bool promiscuous,
-			  const bool arg_enable_keyword_expansion, 
-			  const bool arg_generate,
-			  const bool arg_verbose,
+			  options_t *analyzer, 
 			  stats_t *stats)
 /* main entry point; collect and parse CVS masters */
 {
@@ -263,7 +260,7 @@ rev_list *analyze_masters(int argc, char *argv[],
 	    continue;
 	else if (S_ISDIR(stb.st_mode) != 0)
 	    continue;
-	else if (!promiscuous)
+	else if (!analyzer->promiscuous)
 	{
 	    char *end = file + strlen(file);
 	    if (end - file < 2 || end[-1] != 'v' || end[-2] != ',')
@@ -299,9 +296,9 @@ rev_list *analyze_masters(int argc, char *argv[],
 
     /* things that must be visible to inner functions */
     load_current_file = 0;
-    enable_keyword_expansion = arg_enable_keyword_expansion;
-    generate = arg_generate;
-    verbose = arg_verbose;
+    enable_keyword_expansion = analyzer->enable_keyword_expansion;
+    generate = analyzer->generate;
+    verbose = analyzer->verbose;
     /*
      * Analyze the files for CVS revision structure.
      *

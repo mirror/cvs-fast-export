@@ -29,6 +29,8 @@ int commit_time_window = 300;
 bool progress = false;
 ssize_t striplen = -1;
 
+static options_t analyzer;
+
 static int get_int_substr(const char * str, const regmatch_t * p)
 {
     char buff[256];
@@ -153,7 +155,6 @@ main(int argc, char **argv)
 
     rev_list	    *rl, *head;
     time_t          fromtime = 0;
-    int             verbose = 0;
     bool            branchorder = false;
     execution_mode  exec_mode = ExecuteExport;
     stats_t         stats;
@@ -162,8 +163,6 @@ main(int argc, char **argv)
     bool	    force_dates = false;
     struct timespec start_time;
     char	    *branch_prefix = "refs/heads/";
-    bool	    promiscuous = false;
-    bool	    enable_keyword_expansion = false;
 
 #if defined(__GLIBC__)
     /* 
@@ -229,10 +228,10 @@ main(int argc, char **argv)
 	    exec_mode = ExecuteGraph;
 	    break;
         case 'k':
-	    enable_keyword_expansion = true;
+	    analyzer.enable_keyword_expansion = true;
 	    break;
 	case 'v':
-	    verbose++;
+	    analyzer.verbose++;
 #ifdef YYDEBUG
 	    extern int yydebug;
 	    yydebug = 1;
@@ -296,11 +295,8 @@ main(int argc, char **argv)
 	export_init();
 
     /* build CVS structures by parsing masters; may read stdin */
-    head = analyze_masters(argc, argv,
-			   promiscuous,
-			   enable_keyword_expansion,
-			   exec_mode == ExecuteExport,
-			   verbose, &stats);
+    analyzer.generate = exec_mode == ExecuteExport;
+    head = analyze_masters(argc, argv, &analyzer, &stats);
 
     /* commit set coalescence happens here */
     rl = rev_list_merge(head);

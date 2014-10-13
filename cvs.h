@@ -491,13 +491,15 @@ void tag_commit(cvs_commit *c, const char *name, cvs_file *cvsfile);
 cvs_commit **tagged(tag_t *tag);
 void discard_tags(void);
 
+typedef struct _options {
+    bool promiscuous;
+    bool enable_keyword_expansion;
+    bool generate;
+    bool verbose;
+} options_t;
+
 rev_list *
-analyze_masters(int argc, char *argv[0], 
-		const bool promiscuous,
-		const bool enable_keyword_expansion,
-		const bool generate,
-		const bool verbose,
-		stats_t *stats);
+analyze_masters(int argc, char *argv[0], options_t *options, stats_t *stats);
 
 bool
 cvs_is_head(const cvs_number *n);
