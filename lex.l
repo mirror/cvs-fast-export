@@ -32,8 +32,9 @@ parse_data_until_newline(yyscan_t scanner);
 static void
 fast_export_sanitize(yyscan_t scanner, cvs_file *cvs);
 
+/* FIXME: this is inefficient */
 #define YY_INPUT(buf,result,max_size) { \
-    int c = getc(yyin); \
+    int c = getc(yyget_in(yyscanner)); \
     result = (c == EOF) ? YY_NULL : (buf[0] = c, 1); \
 }
     
