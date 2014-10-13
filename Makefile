@@ -21,6 +21,7 @@ GCC_WARNINGS3=-Wno-unused-function -Wno-unused-label -Wno-format-zero-length
 GCC_WARNINGS=$(GCC_WARNINGS1) $(GCC_WARNINGS2) $(GCC_WARNINGS3)
 CFLAGS=$(GCC_WARNINGS)
 CPPFLAGS += -I. -I$(srcdir)
+LIBS=-lrt
 CPPFLAGS += -DVERSION=\"$(VERSION)\"
 
 # Enable this for multithreading (experimental)
@@ -69,8 +70,10 @@ cvs-fast-export: $(OBJS)
 
 $(OBJS): cvs.h
 
+BISON ?= bison
+
 gram.h gram.c: gram.y
-	bison --defines=gram.h --output-file=gram.c $(YFLAGS) $<
+	$(BISON) --defines=gram.h --output-file=gram.c $(YFLAGS) $<
 lex.h lex.c: lex.l
 	flex $(LFLAGS) --header-file=lex.h --outfile=lex.c $<
 
