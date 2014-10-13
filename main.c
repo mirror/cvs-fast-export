@@ -27,9 +27,10 @@
 /* options */
 int commit_time_window = 300;
 bool progress = false;
-ssize_t striplen = -1;
 
-static options_t analyzer;
+static options_t analyzer = {
+    .striplen = -1,
+};
 
 static int get_int_substr(const char * str, const regmatch_t * p)
 {
@@ -260,7 +261,7 @@ main(int argc, char **argv)
 	    sprintf(branch_prefix, "refs/remotes/%s/", optarg);
 	    break;
 	case 's':
-	    striplen = strlen(optarg) + 1;
+	    analyzer.striplen = strlen(optarg) + 1;
 	    break;
 	case 'p':
 	    progress = true;

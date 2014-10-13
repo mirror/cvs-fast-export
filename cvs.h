@@ -496,6 +496,7 @@ typedef struct _options {
     bool enable_keyword_expansion;
     bool generate;
     bool verbose;
+    ssize_t striplen;
 } options_t;
 
 rev_list *
@@ -740,8 +741,6 @@ extern int commit_time_window;
 extern bool progress;
 #define STATUS stderr
 #define NO_MAX	-1
-
-extern ssize_t striplen;
 
 #ifdef THREADS
 int threads;

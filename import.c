@@ -47,7 +47,7 @@ static volatile cvstime_t skew_vulnerable;
 static volatile unsigned int total_revisions;
 static volatile int err;
 
-static int total_files;
+static int total_files, striplen;
 static bool generate, enable_keyword_expansion, verbose;
 
 #ifdef THREADS
@@ -235,6 +235,8 @@ rev_list *analyze_masters(int argc, char *argv[],
     pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_JOINABLE);
 #endif /* THREADS */
 
+    striplen = analyzer->striplen;
+
     stats->textsize = stats->filecount = 0;
     progress_begin("Reading list of files...", NO_MAX);
     for (;;)
@@ -299,6 +301,7 @@ rev_list *analyze_masters(int argc, char *argv[],
     enable_keyword_expansion = analyzer->enable_keyword_expansion;
     generate = analyzer->generate;
     verbose = analyzer->verbose;
+
     /*
      * Analyze the files for CVS revision structure.
      *
