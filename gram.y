@@ -94,10 +94,11 @@ extern YY_DECL;	/* FIXME: once the Bison bug requiring this is fixed */
 %%
 file		: headers revisions desc patches
 		  {
-			/* The description text (if any) is only used
-			 * for empty log messages in the 'patch' production */
-		      free((void *)cvsfile->description);
-		  	cvsfile->description = NULL;
+		    /* The description text (if any) is only used
+		     * for empty log messages in the 'patch' production
+                     */
+		     free((void *)cvsfile->description);
+		     cvsfile->description = NULL;
 		  }
 		;
 headers		: header headers
@@ -169,30 +170,31 @@ revtrailer	: /* empty */
 
 
 /* ignored items from CVS-NT (except hardlinks which is from late GNU CVS) */
-ignored : owner | group | deltatype | kopt | permissions | mergepoint | filename | hardlinks;
+ignored         : owner | group | deltatype | kopt | 
+                  permissions | mergepoint | filename | hardlinks;
 
 revision	: NUMBER date author state branches next revtrailer
 		  {
-			$$ = xcalloc (1, sizeof (cvs_version),
-					"gram.y::revision");
-			$$->number = $1;
-			$$->date = $2;
-			$$->author = $3;
-			$$->state = $4;
-			$$->dead = !strcmp ($4, "dead");
-			$$->branches = $5;
-			$$->parent = $6;
-			$$->commitid = $7;
-			if ($$->commitid == NULL && cvsfile->skew_vulnerable < $$->date)
-			    cvsfile->skew_vulnerable = $$->date;
-			hash_version(&cvsfile->nodehash, $$);
-			++cvsfile->nversions;
-			
+		    $$ = xcalloc (1, sizeof (cvs_version),
+				    "gram.y::revision");
+		    $$->number = $1;
+		    $$->date = $2;
+		    $$->author = $3;
+		    $$->state = $4;
+		    $$->dead = !strcmp ($4, "dead");
+		    $$->branches = $5;
+		    $$->parent = $6;
+		    $$->commitid = $7;
+		    if ($$->commitid == NULL 
+			        && cvsfile->skew_vulnerable < $$->date)
+			cvsfile->skew_vulnerable = $$->date;
+		    hash_version(&cvsfile->nodehash, $$);
+		    ++cvsfile->nversions;			
 		  }
 		;
 date		: DATE NUMBER SEMI
 		  {
-			$$ = lex_date (&$2, scanner, cvsfile);
+		    $$ = lex_date (&$2, scanner, cvsfile);
 		  }
 		;
 author		: AUTHOR NAME SEMI
@@ -237,53 +239,53 @@ patches		: patches patch
 patch		: NUMBER log text
 		  { $$ = xcalloc (1, sizeof (cvs_patch), "gram.y::patch");
 		    $$->number = $1;
-			if (!strcmp($2, "Initial revision\n")) {
-				/* description is available because the
-				 * desc production has already been reduced */
-				if (strlen(cvsfile->description) == 0)
-					$$->log = atom("*** empty log message ***\n");
-				else
-					$$->log = atom(cvsfile->description);
-			} else
-				$$->log = atom($2);
+		    if (!strcmp($2, "Initial revision\n")) {
+			    /* description is available because the
+			     * desc production has already been reduced */
+			    if (strlen(cvsfile->description) == 0)
+				    $$->log = atom("*** empty log message ***\n");
+			    else
+				    $$->log = atom(cvsfile->description);
+		    } else
+			    $$->log = atom($2);
 		    $$->text = $3;
 		    hash_patch(&cvsfile->nodehash, $$);
 		    free($2);
 		  }
 		;
 log		: LOG DATA
-			{ $$ = $2; }
+		  { $$ = $2; }
 		;
 text		: TEXT TEXT_DATA
-			{ $$ = $2; }
+		  { $$ = $2; }
 		;
 deltatype	: DELTATYPE NAME SEMI
-			{ $$ = $2; }
+		  { $$ = $2; }
 		;
 group		: GROUP NAME SEMI
-			{ $$ = $2; }
+		  { $$ = $2; }
 		;
 kopt		: KOPT DATA SEMI
-			{ free($2); }
+		  { free($2); }
                 | KOPT SEMI
 		;
 owner		: OWNER NAME SEMI
-			{ $$ = $2; }
+		  { $$ = $2; }
 		;
 permissions	: PERMISSIONS NAME SEMI
-			{ $$ = $2; }
+		  { $$ = $2; }
 		;
 filename	: FILENAME NAME SEMI
-			{ $$ = $2; }
+		  { $$ = $2; }
 		;
 mergepoint	: MERGEPOINT NUMBER SEMI
-			{ $$ = $2; }
+		  { $$ = $2; }
 		;
 hardlinks	: HARDLINKS strings SEMI
 		;
 
 strings		: DATA strings 
-			{ free($1); }
+		  { free($1); }
 		| /* empty*/
 		;
 %%
