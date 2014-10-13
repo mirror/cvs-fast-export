@@ -33,7 +33,7 @@
 /*
  * Blob compression with zlib is not enabled by default because, (a) in general,
  * any repository large enough to hit a disk-space limit is likely to hit
- * a core limit on metadata sooner, and(b) compression costs time.  The
+ * a core limit on metadata sooner, and (b) compression costs time.  The
  * option has been left in place for unusual circumstances and can be enabled
  * from the Makefile.
  */
@@ -136,14 +136,17 @@ void export_init(void)
 	fatal_error("temp dir creation failed\n");
 }
 
-static char *export_filename(const char *rectified, char *path)
+static char *fileop_name(const char *rectified, char *path)
 {
     size_t rlen = strlen(rectified);
 
     strncpy(path, rectified, PATH_MAX-1);
 
-    if (rlen >= 10 && strcmp(path + rlen - 10, ".cvsignore") == 0)
-	strcpy(path + rlen - 10, ".gitignore");
+    if (rlen >= 10 && strcmp(path + rlen - 10, ".cvsignore") == 0) {
+	path[rlen - 9] = 'g';
+	path[rlen - 8] = 'i';
+	path[rlen - 7] = 't';
+    }
 
     return path;
 }
@@ -490,7 +493,7 @@ static void export_commit(git_commit *commit,
 	    bool present, changed;
 	    char converted[PATH_MAX];
 	    f = dir->files[j];
-	    stripped = export_filename(f->file_name, converted);
+	    stripped = fileop_name(f->file_name, converted);
 	    present = false;
 	    changed = false;
 	    if (commit->parent) {
@@ -548,7 +551,7 @@ static void export_commit(git_commit *commit,
 		if (!present) {
 		    char converted[PATH_MAX];
 		    op->op = 'D';
-		    op->path = atom(export_filename(f->file_name, converted));
+		    op->path = atom(fileop_name(f->file_name, converted));
 		    op++;
 		    if (op == operations + noperations)
 		    {
