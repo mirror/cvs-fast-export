@@ -18,7 +18,8 @@
  */
 #include "cvs.h"
 #include "gram.h"
-    
+
+/* FIXME: lex.h should declare these */    
 int yyget_column (yyscan_t);
 void yyset_column(int, yyscan_t);
 
