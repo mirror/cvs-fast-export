@@ -42,7 +42,7 @@ YY_DECL;
 %}
 %option reentrant bison-bridge
 %option warn nodefault
-%option noyyget_extra noyyget_leng noyyset_lineno
+%option noyywrap noyyget_extra noyyget_leng noyyset_lineno
 %option noyyget_out noyyset_out noyyget_lval noyyset_lval
 %option noyyget_lloc noyyset_lloc noyyget_debug noyyset_debug
 
@@ -128,7 +128,6 @@ YY_DECL;
 					yytext[0]);
 				}
 %%
-int yywrap(yyscan_t yyscanner) { return 1; }
 
 /*
  * A variable-length buffer, allocated on the stack first
