@@ -79,7 +79,7 @@ t_regress:
 	@echo "== Pathological cases =="
 	@for pytest in $(PYTESTS); do \
 		echo -n "  $${pytest} "; grep '##' $${pytest}.py  || echo ' ## (no description)'; \
-		python $${pytest}.py 2>&1 | $(PATHSTRIP) | diff $${pytest}.err -; \
+		python $${pytest}.py 2>&1 | $(PATHSTRIP) | $(DIFF) $${pytest}.err -; \
 	done
 t_rebuild:
 	@for pytest in $(PYTESTS); do \
