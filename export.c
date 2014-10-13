@@ -623,14 +623,21 @@ static void export_commit(git_commit *commit,
 #endif
 		if (rfp)
 		{
+#ifndef ZLIB
+		    char buf[BUFSIZ];
+#else
 		    int c;
+#endif
 		    printf("blob\nmark :%d\n", mark);
 #ifndef ZLIB
-		    while ((c = fgetc_unlocked(rfp)) != EOF)
+		    while (!feof(rfp)) {
+			size_t len = fread_unlocked(buf, 1, sizeof(buf), rfp);
+			(void)fwrite_unlocked(buf, 1, len, stdout);
+		    }
 #else
 		    while ((c = gzgetc(rfp)) != EOF)
-#endif
 			putchar_unlocked(c);
+#endif
 		    (void) unlink(fn);
 		    markmap[op2->serial].emitted = true;
 #ifndef ZLIB
