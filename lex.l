@@ -48,7 +48,7 @@ YY_DECL;
 %option pointer
 %option noyywrap noyyget_extra noyyget_leng noyyset_lineno
 %option noyyget_out noyyset_out noyyget_lval noyyset_lval
-%option noyyget_lloc noyyset_lloc noyyget_debug noyyset_debug
+%option noyyget_lloc noyyset_lloc noyyset_debug
 
 %s CONTENT SKIP COMMIT PERM REVISION FNAME SKIPTOSEMI AUTHORSS
 %%
@@ -136,7 +136,10 @@ YY_DECL;
 static ssize_t custom_input(char *buf, size_t result_max, yyscan_t yyscanner)
 {
     int c = getc(yyget_in(yyscanner));
-    return (c == EOF) ? YY_NULL : (buf[0] = c, 1);
+    ssize_t res = (c == EOF) ? YY_NULL : (buf[0] = c, 1);
+    if (yydebug)
+       fprintf(stderr, "custom_input(..., %ld, ...) -> %zd\n", result_max, res);
+    return res;
 }
 
 /*
