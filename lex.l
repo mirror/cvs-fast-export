@@ -19,7 +19,7 @@
 #include "cvs.h"
 #include "gram.h"
 
-/* FIXME: lex.h should declare these */    
+/* lex.h should declare these, and does, in 2.5.39.  But didn't, in 2.5.35. */ 
 int yyget_column (yyscan_t);
 void yyset_column(int, yyscan_t);
 
