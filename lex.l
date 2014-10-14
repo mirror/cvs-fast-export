@@ -32,6 +32,17 @@ parse_data_until_newline(yyscan_t scanner);
 static void
 fast_export_sanitize(yyscan_t scanner, cvs_file *cvs);
 
+/*
+ * A relative of export.c's optimization, we can use unlocked getc
+ * in the body of the lexer, because the FILE*'s returned by yyget_in()
+ * are all private to the invoking thread.
+ */
+#ifdef __GLIBC__
+#undef  getc
+#define getc	getc_unlocked
+#endif /* __GLIBC__ */
+
+
 /* FIXME: this is inefficient */
 #define YY_INPUT(buf,result,max_size) { \
     int c = getc(yyget_in(yyscanner)); \
