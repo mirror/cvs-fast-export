@@ -263,17 +263,23 @@ typedef struct {
     mode_t		mode;
 } cvs_file;
 
+
+typedef struct _rev_master {
+    /* information shared by all revisions of a master */
+    const char		*name;
+    mode_t		mode;
+} rev_master;
+
 typedef struct _rev_file {
     /* a CVS file revision state (composed from delta in a master) */
     struct _rev_file	*link;
-    const char		*file_name;
+    rev_master          *master;
     cvs_number		number;
     union {
 	cvstime_t	date;
 	struct _rev_file *other;
     } u;
     serial_t            serial;
-    mode_t		mode;
 } rev_file;
 
 typedef struct _rev_dir {
@@ -612,7 +618,7 @@ rev_ref *
 rev_branch_of_commit(const rev_list *rl, const cvs_commit *commit);
 
 rev_file *
-rev_file_rev(const char *name, const cvs_number *n, const cvstime_t date);
+rev_file_rev(rev_master *, const cvs_number *n, const cvstime_t date);
 
 void
 rev_file_free(rev_file *f);

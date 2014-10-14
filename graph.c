@@ -81,23 +81,23 @@ static void dot_commit_graph(git_commit *c, const rev_ref *branch)
 	rev_file_list   *fl;
 
 	for (fl = diff->add; fl; fl = fl->next) {
-	    if (!rev_file_list_has_filename(diff->del, fl->file->file_name)) {
+	    if (!rev_file_list_has_filename(diff->del, fl->file->master->name)) {
 		printf("+");
-		dump_number(fl->file->file_name, &fl->file->number);
+		dump_number(fl->file->master->name, &fl->file->number);
 		printf("\\n");
 	    }
 	}
 	for (fl = diff->add; fl; fl = fl->next) {
-	    if (rev_file_list_has_filename(diff->del, fl->file->file_name)) {
+	    if (rev_file_list_has_filename(diff->del, fl->file->master->name)) {
 		printf("|");
-		dump_number(fl->file->file_name, &fl->file->number);
+		dump_number(fl->file->master->name, &fl->file->number);
 		printf("\\n");
 	    }
 	}
 	for (fl = diff->del; fl; fl = fl->next) {
-	    if (!rev_file_list_has_filename(diff->add, fl->file->file_name)) {
+	    if (!rev_file_list_has_filename(diff->add, fl->file->master->name)) {
 		printf("-");
-		dump_number(fl->file->file_name, &fl->file->number);
+		dump_number(fl->file->master->name, &fl->file->number);
 		printf("\\n");
 	    }
 	}
@@ -108,7 +108,7 @@ static void dot_commit_graph(git_commit *c, const rev_ref *branch)
 	    rev_dir *dir = c->dirs[i];
 	    for (j = 0; j < dir->nfiles; j++) {
 		 f = dir->files[j];
-		 dump_number(f->file_name, &f->number);
+		 dump_number(f->master->name, &f->number);
 		 printf("\\n");
 	    }
 	}

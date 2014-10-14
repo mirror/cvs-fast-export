@@ -69,7 +69,10 @@ rev_branch_cvs(cvs_file *cvs, const cvs_number *branch)
     cvs_commit	*head = NULL;
     cvs_commit	*c, *p, *gc;
     node_t	*node;
+    /* FIXME: these aren't garbage-collected */
+    rev_master  *master = xcalloc(1,sizeof(rev_master), "master construction");
 
+    master->name = cvs->export_name;
     n = *branch;
     n.n[n.c-1] = -1;
     for (node = cvs_find_version(cvs, &n); node; node = node->next) {
@@ -88,10 +91,9 @@ rev_branch_cvs(cvs_file *cvs, const cvs_number *branch)
 	    c->log = p->log;
 	 c->dead = v->dead;
 	/* leave this around so the branch merging stuff can find numbers */
-	 c->file = rev_file_rev(cvs->export_name, &v->number, v->date);
+	 c->file = rev_file_rev(master, &v->number, v->date);
 	if (!v->dead) {
 	    node->file = c->file;
-	    c->file->mode = cvs->mode;
 	}
 	c->parent = head;
 	head = c;

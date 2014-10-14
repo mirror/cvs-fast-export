@@ -142,8 +142,8 @@ static int compare_rev_file(const void *a, const void *b)
 {
     rev_file **ap = (rev_file **)a;
     rev_file **bp = (rev_file **)b;
-    const char *af = (*ap)->file_name;
-    const char *bf = (*bp)->file_name;
+    const char *af = (*ap)->master->name;
+    const char *bf = (*bp)->master->name;
 
 #ifdef ORDERDEBUG
     fprintf(stderr, "Comparing %s with %s\n", af, bf);
@@ -212,7 +212,7 @@ rev_pack_files(rev_file **files, int nfiles, int *ndr)
 	rev_file **s;
 
 	for (s = files; s < files + nfiles; s++)
-	    fprintf(stderr, "rev_file: %s\n", (*s)->file_name);
+	    fprintf(stderr, "rev_file: %s\n", (*s)->master->name);
     }
 #endif /* ORDERDEBUG */
 
@@ -227,14 +227,14 @@ rev_pack_files(rev_file **files, int nfiles, int *ndr)
 
     /* pull out directories */
     for (i = 0; i < nfiles; i++) {
-	if (!dir || strncmp(files[i]->file_name, dir, dirlen) != 0)
+	if (!dir || strncmp(files[i]->master->name, dir, dirlen) != 0)
 	{
 	    if (i > start) {
 		rd = rev_pack_dir(files + start, i - start);
 		rds_put(nds++, rd);
 	    }
 	    start = i;
-	    dir = files[i]->file_name;
+	    dir = files[i]->master->name;
 	    slash = strrchr(dir, '/');
 	    if (slash)
 		dirlen = slash - dir;

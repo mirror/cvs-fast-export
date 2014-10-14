@@ -205,12 +205,12 @@ void export_blob(node_t *node, void *buf, const size_t len)
     gzFile wfp;
 #endif
 
-    if (strcmp(node->file->file_name, ".cvsignore") == 0) {
+    if (strcmp(node->file->master->name, ".cvsignore") == 0) {
 	extralen = sizeof(CVS_IGNORES) - 1;
     }
 
     node->file->serial = seqno_next();
-    blobfile(node->file->file_name, node->file->serial, true, path);
+    blobfile(node->file->master->name, node->file->serial, true, path);
 #ifndef ZLIB
     wfp = fopen(path, "w");
 #else
@@ -402,7 +402,7 @@ static void compute_parent_links(const git_commit *commit)
     file_iter_start(&parent_iter, parent);
     while ((cf = file_iter_next(&commit_iter))) {
 	file_iter it;
-	const bloom_t *bloom = atom_bloom(cf->file_name);
+	const bloom_t *bloom = atom_bloom(cf->master->name);
 	unsigned k;
 
 	for (k = 0; k < BLOOMLENGTH; ++k) {
@@ -416,7 +416,7 @@ static void compute_parent_links(const git_commit *commit)
 	 * last successful match */
 	it = parent_iter;
 	while ((pf = file_iter_next(&it))) {
-	    if (cf->file_name == pf->file_name) {
+	    if (cf->master->name == pf->master->name) {
 		cf->u.other = pf;
 		pf->u.other = cf;
 		if (--maxmatch == 0)
@@ -434,7 +434,7 @@ static void compute_parent_links(const git_commit *commit)
 static void dump_file(const rev_file *rev_file, FILE *fp)
 {
     char buf[CVS_MAX_REV_LEN + 1];
-    fprintf(fp, "   file name: %s %s\n", rev_file->file_name, 
+    fprintf(fp, "   file name: %s %s\n", rev_file->master->name, 
 	    cvs_number_string(&rev_file->number, buf, sizeof(buf)));
  }
 
@@ -502,7 +502,7 @@ static void export_commit(git_commit *commit,
 	    bool present, changed;
 	    char converted[PATH_MAX];
 	    f = dir->files[j];
-	    stripped = fileop_name(f->file_name, converted);
+	    stripped = fileop_name(f->master->name, converted);
 	    present = false;
 	    changed = false;
 	    if (commit->parent) {
@@ -513,7 +513,7 @@ static void export_commit(git_commit *commit,
 
 		op->op = 'M';
 		// git fast-import only supports 644 and 755 file modes
-		if (f->mode & 0100)
+		if (f->master->mode & 0100)
 		    op->mode = 0755;
 		else
 		    op->mode = 0644;
@@ -531,7 +531,7 @@ static void export_commit(git_commit *commit,
 
 		if (revmap != NULL || reposurgeon) {
 		    char fr[BUFSIZ];
-		    stringify_revision(f->file_name, 
+		    stringify_revision(f->master->name, 
 				  " ", &f->number, fr, sizeof fr);
 		    if (reposurgeon)
 		    {
@@ -560,7 +560,7 @@ static void export_commit(git_commit *commit,
 		if (!present) {
 		    char converted[PATH_MAX];
 		    op->op = 'D';
-		    op->path = atom(fileop_name(f->file_name, converted));
+		    op->path = atom(fileop_name(f->master->name, converted));
 		    op++;
 		    if (op == operations + noperations)
 		    {

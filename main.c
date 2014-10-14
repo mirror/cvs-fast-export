@@ -124,6 +124,7 @@ static void print_sizes(void)
     printf("sizeof(long)          = %zu\n", sizeof(long));
     printf("sizeof(int)           = %zu\n", sizeof(int));
     printf("sizeof(short)         = %zu\n", sizeof(short));
+    printf("sizeof(mode_t)        = %zu\n", sizeof(mode_t));
     printf("sizeof(cvstime_t)     = %zu\n", sizeof(cvstime_t));
     printf("sizeof(time_t)        = %zu\n", sizeof(time_t));
     printf("sizeof(cvs_number)    = %zu\n", sizeof(cvs_number));
@@ -133,6 +134,7 @@ static void print_sizes(void)
     printf("sizeof(cvs_version)   = %zu\n", sizeof(cvs_version));
     printf("sizeof(cvs_patch)     = %zu\n", sizeof(cvs_patch));
     printf("sizeof(cvs_file)      = %zu\n", sizeof(cvs_file));
+    printf("sizeof(rev_master)    = %zu\n", sizeof(rev_master));
     printf("sizeof(rev_file)      = %zu\n", sizeof(rev_file));
     printf("sizeof(rev_dir)       = %zu\n", sizeof(rev_dir));
     printf("sizeof(bloom_t)       = %zu\n", sizeof(bloom_t));

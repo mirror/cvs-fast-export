@@ -319,7 +319,7 @@ git_commit_build(cvs_commit **revisions, cvs_commit *leader, const int nrevision
 	memset(&commit->bloom, ~0, sizeof commit->bloom);
 	for (d = commit->dirs; d < commit->dirs + commit->ndirs; d++) {
 	    for (f = (*d)->files; f < (*d)->files + (*d)->nfiles; f++) {
-		const bloom_t *b = atom_bloom((*f)->file_name);
+		const bloom_t *b = atom_bloom((*f)->master->name);
 		BLOOM_OP(&commit->bloom, &commit->bloom, & ~, b);
 	    }
 	}
@@ -494,7 +494,7 @@ rev_branch_merge(rev_ref **branches, int nbranch,
 	    continue;
 	if (c->file)
 	    announce("warning - %s too late date through branch %s\n",
-		     c->file->file_name, branch->ref_name);
+		     c->file->master->name, branch->ref_name);
 	revisions[n] = NULL;
     }
     /*
@@ -607,7 +607,7 @@ rev_branch_merge(rev_ref **branches, int nbranch,
 		{
 		    /* FIXME: what does this mean? */
 		    announce("warning - file %s appears after branch %s date\n",
-			     revisions[present]->file->file_name, branch->ref_name);
+			     revisions[present]->file->master->name, branch->ref_name);
 		    continue;
 		}
 		break;
@@ -626,7 +626,7 @@ rev_branch_merge(rev_ref **branches, int nbranch,
 			 revisions[present]->file ? " " : "D" );
 		if (revisions[present]->file)
 		    dump_number_file(stderr,
-				      revisions[present]->file->file_name,
+				      revisions[present]->file->master->name,
 				      &revisions[present]->file->number);
 		fprintf(stderr, "\n");
 		/*
@@ -640,7 +640,7 @@ rev_branch_merge(rev_ref **branches, int nbranch,
 		fprintf(stderr, "\tbranch(%3d): %s  ", n,
 			 cvstime2rfc3339(first->u.date));
 		dump_number_file(stderr,
-				  first->file_name,
+				  first->master->name,
 				  &first->number);
 		fprintf(stderr, "\n");
 	    }
@@ -793,7 +793,7 @@ rev_list_merge(rev_list *head)
 	    fputs("rev_ref: ", stderr);
 	    dump_number_file(stderr, lh->name, &lh->number);
 	    fputc('\n', stderr);
-	    fprintf(stderr, "commit first file: %s\n", commit->file->file_name);
+	    fprintf(stderr, "commit first file: %s\n", commit->file->master->name);
 	}
     }
 #endif /* ORDERDEBUG */
@@ -855,8 +855,8 @@ static rev_file *rev_files;
 static void
 rev_file_mark_for_free(rev_file *f)
 {
-    if (f->file_name) {
-	f->file_name = NULL;
+    if (f->master->name) {
+	f->master->name = NULL;
 	f->link = rev_files;
 	rev_files = f;
     }
@@ -876,11 +876,11 @@ rev_file_free_marked(void)
 }
 
 rev_file *
-rev_file_rev(const char *name, const cvs_number *n, cvstime_t date)
+rev_file_rev(rev_master *master, const cvs_number *n, cvstime_t date)
 {
     rev_file	*f = xcalloc(1, sizeof(rev_file), "allocating file rev");
 
-    f->file_name = name;
+    f->master = master;
     f->number = *n;
     f->u.date = date;
     return f;
@@ -978,7 +978,7 @@ bool
 rev_file_list_has_filename(const rev_file_list *fl, const char *name)
 {
     for (; fl; fl = fl->next)
-	if (fl->file->file_name == name)
+	if (fl->file->master->name == name)
 	    return true;
     return false;
 }
