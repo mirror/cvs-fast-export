@@ -1,6 +1,3 @@
-reset refs/tags/samplebranch_root
-from :2
-
 from refs/heads/samplebranch^0
 
 blob

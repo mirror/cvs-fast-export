@@ -842,7 +842,7 @@ bool export_commits(rev_list *rl,
 				  true, revmap, reposurgeon, force_dates);
 		    progress_step();
 		    for (t = all_tags; t; t = t->next)
-			if (t->commit == history[i])
+			if (t->commit == history[i] && display_date(history[i], markmap[history[i]->serial].external) > fromtime)
 			    printf("reset refs/tags/%s\nfrom :%d\n\n", t->name, markmap[history[i]->serial].external);
 		}
 
@@ -950,7 +950,7 @@ bool export_commits(rev_list *rl,
 	    export_commit(hp->commit, branch_prefix, hp->head->ref_name,
 			  report, revmap, reposurgeon, force_dates);
 	    for (t = all_tags; t; t = t->next)
-		if (t->commit == hp->commit)
+		if (t->commit == hp->commit && display_date(hp->commit, markmap[hp->commit->serial].external) > fromtime)
 		    printf("reset refs/tags/%s\nfrom :%d\n\n", t->name, markmap[hp->commit->serial].external);
 	}
 
@@ -958,10 +958,11 @@ bool export_commits(rev_list *rl,
     }
 
     for (h = rl->heads; h; h = h->next) {
-	printf("reset %s%s\nfrom :%d\n\n", 
-	       branch_prefix, 
-	       h->ref_name, 
-	       markmap[h->commit->serial].external);
+	if (display_date(h->commit, markmap[h->commit->serial].external) > fromtime)
+	    printf("reset %s%s\nfrom :%d\n\n",
+		   branch_prefix,
+		   h->ref_name,
+		   markmap[h->commit->serial].external);
     }
     free(markmap);
 

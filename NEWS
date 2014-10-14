@@ -1,5 +1,8 @@
 		cvs-fast-export project news
 
+Repository head:
+    When incremental dumping, suppress tags associated with old commits.
+
 1.20: 2014-10-08
     Files not ending with ,v are now ignored unless the new -P option is on.
     New -t option for parallelizing analysis on multicore systems.
