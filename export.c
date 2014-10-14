@@ -51,11 +51,7 @@
  * comparisons with other tools as easy as possible.
  */
 
-struct mark {
-    serial_t external;
-    bool emitted;
-};
-static struct mark *markmap;
+static serial_t *markmap;
 static serial_t mark;
 static volatile int seqno;
 static char blobdir[PATH_MAX];
@@ -317,7 +313,7 @@ static const char *utc_offset_timestamp(const time_t *timep, const char *tz)
 struct fileop {
     char op;
     mode_t mode;
-    serial_t serial;
+    rev_file *rev;
     const char *path;
 };
 
@@ -451,7 +447,7 @@ static void dump_commit(const git_commit *commit, FILE *fp)
 {
     int i;
     fprintf(fp, "commit %p seq %d mark %d nfiles: %d, ndirs = %d\n", 
-	    commit, commit->serial, markmap[commit->serial].external, commit->nfiles, commit->ndirs);
+	    commit, commit->serial, markmap[commit->serial], commit->nfiles, commit->ndirs);
     for (i = 0; i < commit->ndirs; i++)
 	dump_dir(commit->dirs[i], fp);
 }
@@ -501,7 +497,7 @@ static void export_commit(git_commit *commit,
 	    char *stripped;
 	    bool present, changed;
 	    char converted[PATH_MAX];
-	    f = dir->files[j];
+	    op->rev = f = dir->files[j];
 	    stripped = fileop_name(f->master->name, converted);
 	    present = false;
 	    changed = false;
@@ -517,7 +513,6 @@ static void export_commit(git_commit *commit,
 		    op->mode = 0755;
 		else
 		    op->mode = 0644;
-		op->serial = f->serial;
 		op->path = atom(stripped);
 		op++;
 		if (op == operations + noperations)
@@ -578,12 +573,12 @@ static void export_commit(git_commit *commit,
 
     for (op2 = operations; op2 < op; op2++)
     {
-	if (op2->op == 'M' && !markmap[op2->serial].emitted)
+	if (op2->op == 'M' && !op2->rev->emitted)
 	{
-	    markmap[op2->serial].external = ++mark;
+	    markmap[op2->rev->serial] = ++mark;
 	    if (report) {
 		char path[PATH_MAX];
-		char *fn = blobfile(op2->path, op2->serial, false, path);
+		char *fn = blobfile(op2->path, op2->rev->serial, false, path);
 #ifndef ZLIB
 		FILE *rfp = fopen(fn, "r");
 #else
@@ -607,7 +602,7 @@ static void export_commit(git_commit *commit,
 			putchar(c);
 #endif
 		    (void) unlink(fn);
-		    markmap[op2->serial].emitted = true;
+		    op2->rev->emitted = true;
 #ifndef ZLIB
 		    (void)fclose(rfp);
 #else
@@ -635,7 +630,7 @@ static void export_commit(git_commit *commit,
     if (report)
 	printf("commit %s%s\n", branch_prefix, branch);
     commit->serial = ++seqno;
-    here = markmap[commit->serial].external = ++mark;
+    here = markmap[commit->serial] = ++mark;
 #ifdef ORDERDEBUG2
     /* can't move before mark is updated */
     dump_commit(commit, stderr);
@@ -651,7 +646,7 @@ static void export_commit(git_commit *commit,
 	printf("committer %s <%s> %s\n", full, email, ts);
 	printf("data %zd\n%s\n", strlen(commit->log), commit->log);
 	if (commit->parent)
-	    printf("from :%d\n", markmap[commit->parent->serial].external);
+	    printf("from :%d\n", markmap[commit->parent->serial]);
 
 	for (op2 = operations; op2 < op; op2++)
 	{
@@ -659,7 +654,7 @@ static void export_commit(git_commit *commit,
 	    if (op2->op == 'M')
 		printf("M 100%o :%d %s\n", 
 		       op2->mode, 
-		       markmap[op2->serial].external, 
+		       markmap[op2->rev->serial], 
 		       op2->path);
 	    if (op2->op == 'D')
 		printf("D %s\n", op2->path);
@@ -799,8 +794,8 @@ bool export_commits(rev_list *rl,
 
     export_total_commits = export_ncommit(rl);
     /* the +1 is because mark indices are 1-origin, slot 0 always empty */
-    extent = sizeof(struct mark) * (seqno + export_total_commits + 1);
-    markmap = (struct mark *)xmalloc(extent, "markmap allocation");
+    extent = sizeof(serial_t) * (seqno + export_total_commits + 1);
+    markmap = (serial_t *)xmalloc(extent, "markmap allocation");
     memset(markmap, '\0', extent);
     if (revision_map != 0)
 	revmap = fopen(revision_map, "w");
@@ -842,8 +837,8 @@ bool export_commits(rev_list *rl,
 				  true, revmap, reposurgeon, force_dates);
 		    progress_step();
 		    for (t = all_tags; t; t = t->next)
-			if (t->commit == history[i] && display_date(history[i], markmap[history[i]->serial].external) > fromtime)
-			    printf("reset refs/tags/%s\nfrom :%d\n\n", t->name, markmap[history[i]->serial].external);
+			if (t->commit == history[i] && display_date(history[i], markmap[history[i]->serial]) > fromtime)
+			    printf("reset refs/tags/%s\nfrom :%d\n\n", t->name, markmap[history[i]->serial]);
 		}
 
 		free(history);
@@ -937,7 +932,7 @@ bool export_commits(rev_list *rl,
 		    report = false;
 		} else if (!hp->realized) {
 		    struct commit_seq *lp;
-		    if (hp->commit->parent != NULL && display_date(hp->commit->parent, markmap[hp->commit->parent->serial].external) < fromtime)
+		    if (hp->commit->parent != NULL && display_date(hp->commit->parent, markmap[hp->commit->parent->serial]) < fromtime)
 			(void)printf("from %s%s^0\n\n", branch_prefix, hp->head->ref_name);
 		    for (lp = hp; lp < history + export_total_commits; lp++) {
 			if (lp->head == hp->head) {
@@ -950,19 +945,19 @@ bool export_commits(rev_list *rl,
 	    export_commit(hp->commit, branch_prefix, hp->head->ref_name,
 			  report, revmap, reposurgeon, force_dates);
 	    for (t = all_tags; t; t = t->next)
-		if (t->commit == hp->commit && display_date(hp->commit, markmap[hp->commit->serial].external) > fromtime)
-		    printf("reset refs/tags/%s\nfrom :%d\n\n", t->name, markmap[hp->commit->serial].external);
+		if (t->commit == hp->commit && display_date(hp->commit, markmap[hp->commit->serial]) > fromtime)
+		    printf("reset refs/tags/%s\nfrom :%d\n\n", t->name, markmap[hp->commit->serial]);
 	}
 
 	free(history);
     }
 
     for (h = rl->heads; h; h = h->next) {
-	if (display_date(h->commit, markmap[h->commit->serial].external) > fromtime)
+	if (display_date(h->commit, markmap[h->commit->serial]) > fromtime)
 	    printf("reset %s%s\nfrom :%d\n\n",
 		   branch_prefix,
 		   h->ref_name,
-		   markmap[h->commit->serial].external);
+		   markmap[h->commit->serial]);
     }
     free(markmap);
 

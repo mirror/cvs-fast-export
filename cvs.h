@@ -280,6 +280,7 @@ typedef struct _rev_file {
 	struct _rev_file *other;
     } u;
     serial_t            serial;
+    flag                emitted;
 } rev_file;
 
 typedef struct _rev_dir {
