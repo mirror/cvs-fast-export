@@ -29,7 +29,7 @@ CFLAGS += -pthread
 CPPFLAGS += -DTHREADS
 
 # To enable debugging of the Yacc grammar, uncomment the following line
-#CPPFLAGS += -DYYDEBUG=1
+CPPFLAGS += -DYYDEBUG=1
 # To enable debugging of blob export, uncomment the following line
 #CPPFLAGS += -DFDEBUG=1
 # To enable assertions of red black trees, uncomment the following line

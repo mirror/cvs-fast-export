@@ -1,0 +1,269 @@
+blob
+mark :1
+data 46
+The quick brown fox jumped over the lazy dog.
+
+commit refs/heads/master
+mark :2
+committer foo <foo> 1200 +0000
+data 24
+This is a sample commit
+
+M 100644 :1 README
+M 100644 inline .gitignore
+data 198
+# CVS default ignores begin
+tags
+TAGS
+.make.state
+.nse_depinfo
+*~
+#*
+.#*
+,*
+_$*
+*$
+*.old
+*.bak
+*.BAK
+*.orig
+*.rej
+.del-*
+*.a
+*.olb
+*.o
+*.obj
+*.so
+*.exe
+*.Z
+*.elc
+*.ln
+core
+# CVS default ignores end
+
+
+blob
+mark :3
+data 70
+Now is the time for all good men to come to the aid of their country.
+
+commit refs/heads/master
+mark :4
+committer foo <foo> 2400 +0000
+data 30
+This is another sample commit
+
+from :2
+M 100644 :3 README
+
+blob
+mark :5
+data 54
+This is a doomed file.  Its destiny is to be deleted.
+
+commit refs/heads/master
+mark :6
+committer foo <foo> 3600 +0000
+data 21
+Create a doomed file
+
+from :4
+M 100644 :5 doomed
+
+blob
+mark :7
+data 63
+The world will little note, nor long remember what we say here
+
+commit refs/heads/master
+mark :8
+committer foo <foo> 4800 +0000
+data 20
+Add a spacer commit
+
+from :6
+M 100644 :7 doomed
+
+reset refs/tags/foo
+from :8
+
+blob
+mark :9
+data 204
+# CVS default ignores begin
+tags
+TAGS
+.make.state
+.nse_depinfo
+*~
+#*
+.#*
+,*
+_$*
+*$
+*.old
+*.bak
+*.BAK
+*.orig
+*.rej
+.del-*
+*.a
+*.olb
+*.o
+*.obj
+*.so
+*.exe
+*.Z
+*.elc
+*.ln
+core
+# CVS default ignores end
+*.pyc
+
+commit refs/heads/master
+mark :10
+committer foo <foo> 6000 +0000
+data 60
+Check that .cvsignore -> .gitignore name translation works.
+
+from :8
+M 100644 :9 .gitignore
+
+blob
+mark :11
+data 208
+# CVS default ignores begin
+tags
+TAGS
+.make.state
+.nse_depinfo
+*~
+#*
+.#*
+,*
+_$*
+*$
+*.old
+*.bak
+*.BAK
+*.orig
+*.rej
+.del-*
+*.a
+*.olb
+*.o
+*.obj
+*.so
+*.exe
+*.Z
+*.elc
+*.ln
+core
+# CVS default ignores end
+*.pyc
+*.o
+
+commit refs/heads/master
+mark :12
+committer foo <foo> 7200 +0000
+data 79
+Check that .cvsignore -> .gitignore name translation works on updates as well.
+
+from :10
+M 100644 :11 .gitignore
+
+blob
+mark :13
+data 44
+And now for something completely different.
+
+commit refs/heads/master
+mark :14
+committer foo <foo> 8400 +0000
+data 38
+The obligatory Monty Python reference
+
+from :12
+M 100644 :13 README
+
+commit refs/heads/master
+mark :15
+committer foo <foo> 9000 +0000
+data 21
+Testing file removal
+
+from :14
+D doomed
+
+blob
+mark :16
+data 58
+The file 'doomed' should not be visible at this revision.
+
+commit refs/heads/master
+mark :17
+committer foo <foo> 10200 +0000
+data 36
+Only README should be visible here.
+
+from :15
+M 100644 :16 README
+
+blob
+mark :18
+data 63
+This is a superflous file, a sanity check for branch creation.
+
+commit refs/heads/master
+mark :19
+committer foo <foo> 11400 +0000
+data 52
+Should not generate an extra fileop after branching
+
+from :17
+M 100644 :18 superfluous
+
+reset refs/tags/random
+from :19
+
+reset refs/tags/samplebranch_root
+from :19
+
+blob
+mark :20
+data 38
+This is alternate content for README.
+
+commit refs/heads/samplebranch
+mark :21
+committer foo <foo> 12600 +0000
+data 34
+Do we get branch detection right?
+
+from :19
+M 100644 :20 README
+
+blob
+mark :22
+data 30
+I'm back in the saddle again.
+
+commit refs/heads/master
+mark :23
+committer foo <foo> 13800 +0000
+data 44
+This commit should alter the master branch.
+
+from :19
+M 100644 :22 README
+
+reset refs/tags/illegal
+from :23
+
+reset refs/heads/master
+from :23
+
+reset refs/heads/samplebranch
+from :21
+
+done
