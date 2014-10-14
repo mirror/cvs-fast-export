@@ -31,15 +31,12 @@ static char *
 parse_data_until_newline(yyscan_t scanner);
 static void
 fast_export_sanitize(yyscan_t scanner, cvs_file *cvs);
-static ssize_t
-custom_input(char *, size_t, yyscan_t);
 
-/*
- * FIXME: I don't understand why this is necessary.
- * The stock YY_INPUT gets EOF handling wrong for some unknown reason.
- */
-#define YY_INPUT(buf,result,max_size) result = custom_input(buf, max_size, yyscanner);
-
+/* FIXME: this is inefficient */
+#define YY_INPUT(buf,result,max_size) { \
+    int c = getc(yyget_in(yyscanner)); \
+    result = (c == EOF) ? YY_NULL : (buf[0] = c, 1); \
+}
     
 YY_DECL;
 %}
@@ -48,7 +45,7 @@ YY_DECL;
 %option pointer
 %option noyywrap noyyget_extra noyyget_leng noyyset_lineno
 %option noyyget_out noyyset_out noyyget_lval noyyset_lval
-%option noyyget_lloc noyyset_lloc noyyset_debug
+%option noyyget_lloc noyyset_lloc noyyget_debug noyyset_debug
 
 %s CONTENT SKIP COMMIT PERM REVISION FNAME SKIPTOSEMI AUTHORSS
 %%
@@ -132,15 +129,6 @@ YY_DECL;
 					yytext[0]);
 				}
 %%
-
-static ssize_t custom_input(char *buf, size_t result_max, yyscan_t yyscanner)
-{
-    int c = getc(yyget_in(yyscanner));
-    ssize_t res = (c == EOF) ? YY_NULL : (buf[0] = c, 1);
-    if (yydebug)
-       fprintf(stderr, "custom_input(..., %ld, ...) -> %zd\n", result_max, res);
-    return res;
-}
 
 /*
  * A variable-length buffer, allocated on the stack first
