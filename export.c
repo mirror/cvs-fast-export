@@ -142,7 +142,7 @@ static char *fileop_name(const char *rectified, char *path)
 
 static char *blobfile(const char *basename,
 		      const int serial,
-		      const bool create, char *path)
+		      const bool create, char *path, size_t path_size)
 /* Random-access location of the blob corresponding to the specified serial */
 {
     int m;
@@ -161,7 +161,7 @@ static char *blobfile(const char *basename,
     {
 	int digit = m % FANOUT;
 	if ((m = (m - digit) / FANOUT) == 0) {
-	    (void)snprintf(path + strlen(path), sizeof(path) - strlen(path),
+	    (void)snprintf(path + strlen(path), path_size - strlen(path),
 			   "/=%x", digit);
 #ifdef FDEBUG
 	    (void)fprintf(stderr, "path: %s\n", path);
@@ -210,7 +210,7 @@ void export_blob(node_t *node, void *buf, const size_t len)
     }
 
     node->file->serial = seqno_next();
-    blobfile(node->file->file_name, node->file->serial, true, path);
+    blobfile(node->file->file_name, node->file->serial, true, path, PATH_MAX);
 #ifndef ZLIB
     wfp = fopen(path, "w");
 #else
@@ -583,7 +583,7 @@ static void export_commit(git_commit *commit,
 	    markmap[op2->serial].external = ++mark;
 	    if (report) {
 		char path[PATH_MAX];
-		char *fn = blobfile(op2->path, op2->serial, false, path);
+		char *fn = blobfile(op2->path, op2->serial, false, path, PATH_MAX);
 #ifndef ZLIB
 		FILE *rfp = fopen(fn, "r");
 #else
