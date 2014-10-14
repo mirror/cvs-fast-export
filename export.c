@@ -789,14 +789,13 @@ bool export_commits(rev_list *rl,
     tag_t *t;
     git_commit *c;
     int n;
-    size_t extent;
     FILE *revmap = NULL;
 
     export_total_commits = export_ncommit(rl);
     /* the +1 is because mark indices are 1-origin, slot 0 always empty */
-    extent = sizeof(serial_t) * (seqno + export_total_commits + 1);
-    markmap = (serial_t *)xmalloc(extent, "markmap allocation");
-    memset(markmap, '\0', extent);
+    markmap = (serial_t *)xcalloc(sizeof(serial_t),
+				  seqno + export_total_commits + 1,
+				  "markmap allocation");
     if (revision_map != 0)
 	revmap = fopen(revision_map, "w");
 
