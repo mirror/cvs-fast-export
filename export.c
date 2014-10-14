@@ -157,7 +157,7 @@ static char *blobfile(const char *basename,
     {
 	int digit = m % FANOUT;
 	if ((m = (m - digit) / FANOUT) == 0) {
-	    (void)snprintf(path + strlen(path), sizeof(path) - strlen(path),
+	    (void)snprintf(path + strlen(path), PATH_MAX - strlen(path),
 			   "/=%x", digit);
 #ifdef FDEBUG
 	    (void)fprintf(stderr, "path: %s\n", path);
@@ -166,7 +166,7 @@ static char *blobfile(const char *basename,
 	}
 	else
 	{
-	    (void)snprintf(path + strlen(path), sizeof(path) - strlen(path),
+	    (void)snprintf(path + strlen(path), PATH_MAX - strlen(path),
 			   "/%x", digit);
 	    /* coverity[toctou] */
 #ifdef FDEBUG
