@@ -2,13 +2,14 @@
 
 Repository head:
     When incremental dumping, suppress tags associated with old commits.
+    Major performance improvements.
 
 1.20: 2014-10-08
     Files not ending with ,v are now ignored unless the new -P option is on.
     New -t option for parallelizing analysis on multicore systems.
 
 1.19: 2014-10-04
-    Dramatic speedups in some bottlneck functions.
+    Dramatic speedups in some bottleneck functions.
 
 1.18: 2014-10-02
     A bug in the regression tests was fixed by slowing down calls to CVS.
