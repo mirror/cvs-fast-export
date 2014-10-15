@@ -6,6 +6,16 @@
 
 #include "cvs.h"
 
+inline static int hash_bucket(const cvs_number key)
+{
+    int i, hashval;
+
+    for (i = 0, hashval = 0; i < key.c - 1; i++)
+	hashval += key.n[i];
+    hashval = (hashval * 256 + key.n[key.c - 1]) % NODE_HASH_SIZE;
+    return hashval;
+}
+
 static node_t *hash_number(nodehash_t *context, const cvs_number *const n)
 /* look up the node associated with a specified CVS release number */
 {
@@ -20,9 +30,7 @@ static node_t *hash_number(nodehash_t *context, const cvs_number *const n)
     }
     if (key.c & 1)
 	key.n[key.c] = 0;
-    for (i = 0, hash = 0; i < key.c - 1; i++)
-	hash += key.n[i];
-    hash = (hash * 256 + key.n[key.c - 1]) % NODE_HASH_SIZE;
+    hash = hash_bucket(key);
     for (p = context->table[hash]; p; p = p->hash_next) {
 	if (p->number.c != key.c)
 	    continue;
@@ -49,9 +57,7 @@ static node_t *find_parent(nodehash_t *context,
     int i;
 
     key.c -= depth;
-    for (i = 0, hash = 0; i < key.c - 1; i++)
-	hash += key.n[i];
-    hash = (hash * 256 + key.n[key.c - 1]) % NODE_HASH_SIZE;
+    hash = hash_bucket(key);
     for (p = context->table[hash]; p; p = p->hash_next) {
 	if (p->number.c != key.c)
 	    continue;
@@ -164,7 +170,7 @@ static void try_pair(nodehash_t *context, node_t *a, node_t *b)
 	context->head_node = a;
     }
     if ((b->number.c & 1) == 0) {
-	b->starts = 1;
+	b->starts = true;
 	/* can the code below ever be needed? */
 	node_t *p = find_parent(context, &b->number, 1);
 	if (p)
