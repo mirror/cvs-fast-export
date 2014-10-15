@@ -38,7 +38,7 @@
  * (Note: for reasons not explained at the source page, hash is 
  * initialized to 5381 before the djb2 mixing begins.)
  */
-#define DJB2(hash, new)	hash = ((hash << 5) + hash) + new
+#define DJB2(hash, new)	hash = (((hash << 5) + hash) + new)
 /*
  * SDBM: this algorithm was created for sdbm (a public-domain
  * reimplementation of ndbm) database library. it was found to do well
@@ -52,7 +52,7 @@
  * of the algorithms used in berkeley db (see sleepycat) and
  * elsewhere.
  */
-#define SDBM(hash, new)	hash = new + (hash << 6) + (hash << 16) - hash
+#define SDBM(hash, new)	hash = (new + (hash << 6) + (hash << 16) - hash)
 
 #define HASHMIX1(hash, new)	hash += new
 #define HASHMIX2(hash, new)	hash = ((hash << 8) + new)
@@ -63,8 +63,8 @@ inline static int hash_bucket(const cvs_number key)
 
     for (i = 0, hashval = 0; i < key.c - 1; i++)
 	HASHMIX1(hashval, key.n[i]);
-    HASHMIX2(hashval, key.n[key.c - 1]) % NODE_HASH_SIZE;
-    return hashval;
+    HASHMIX2(hashval, key.n[key.c - 1]);
+    return hashval % NODE_HASH_SIZE;
 }
 
 static node_t *hash_number(nodehash_t *context, const cvs_number *const n)
