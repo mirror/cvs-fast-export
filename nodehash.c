@@ -53,9 +53,14 @@
  * elsewhere.
  */
 #define SDBM(hash, new)	hash = (new + (hash << 6) + (hash << 16) - hash)
+/*
+ * We choose SDBM because it seems less likely to have corner cases
+ * on large components, and we change Keith's second mixer in case
+ * the most rapidly varying component goes above 256.
+ */
 
-#define HASHMIX1(hash, new)	hash += new
-#define HASHMIX2(hash, new)	hash = ((hash << 8) + new)
+#define HASHMIX1(hash, new)	SDBM(hash, new)
+#define HASHMIX2(hash, new)	hash = ((hash << 10) + new)
 
 inline static unsigned int hash_bucket(const cvs_number key)
 {
