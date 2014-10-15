@@ -328,11 +328,11 @@ main(int argc, char **argv)
 	announce("no commitids before %s.\n", cvstime2rfc3339(udate));
     }
     if (rl)
-	rev_list_free(rl, 0);
+	rev_list_free(rl, false);
     while (head) {
 	rl = head;
 	head = head->next;
-	rev_list_free(rl, 1);
+	rev_list_free(rl, true);
     }
     discard_atoms();
     discard_tags();

@@ -256,7 +256,6 @@ typedef struct {
     nodehash_t		nodehash;
     editbuffer_t	editbuffer;
     cvstime_t           skew_vulnerable;
-    serial_t            total_revisions;
     serial_t		nversions;
     mode_t		mode;
 } cvs_file;

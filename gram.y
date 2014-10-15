@@ -156,7 +156,7 @@ name		: NAME
 		  }
 		;
 revisions	: revisions revision
-		  { *$1 = $2; $$ = &$2->next; cvsfile->total_revisions++; }
+		  { *$1 = $2; $$ = &$2->next;}
 		|
 		  { $$ = &cvsfile->versions; }
 		;

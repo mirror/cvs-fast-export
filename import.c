@@ -138,7 +138,7 @@ rev_list_file(const char *name, analysis_t *out)
     rl = rev_list_cvs(cvs);
     if (generate)
 	generate_files(cvs, enable_keyword_expansion, export_blob);
-    out->total_revisions = cvs->total_revisions;
+    out->total_revisions = cvs->nversions;
     out->skew_vulnerable = cvs->skew_vulnerable;
     cvs_file_free(cvs);
     return rl;
