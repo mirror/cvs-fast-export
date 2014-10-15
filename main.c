@@ -159,16 +159,12 @@ main(int argc, char **argv)
     } execution_mode;
 
     rev_list	    *rl;
-    time_t          fromtime = 0;
-    bool            branchorder = false;
     execution_mode  exec_mode = ExecuteExport;
     forest_t        forest;
-    char	    *revision_map = NULL;
-    bool	    reposurgeon = false;
-    bool	    force_dates = false;
     bool            enable_keyword_expansion = false;
-    struct timespec start_time;
-    char	    *branch_prefix = "refs/heads/";
+    export_options_t export = {
+	.branch_prefix = "refs/heads/",
+    };
 
 #if defined(__GLIBC__)
     /* 
@@ -179,7 +175,7 @@ main(int argc, char **argv)
      */
     mallopt(M_TOP_PAD,16*1024*1024); /* grab memory in 16MB chunks */
 #endif /* __GLIBC__ */
-    clock_gettime(CLOCK_REALTIME, &start_time);
+    clock_gettime(CLOCK_REALTIME, &export.start_time);
 
     /* force times using mktime to be interpreted in UTC */
     setenv("TZ", "UTC", 1);
@@ -253,26 +249,26 @@ main(int argc, char **argv)
 	    load_author_map(optarg);
 	    break;
 	case 'R':
-	    revision_map = optarg;
+	    export.revision_map = optarg;
 	    break;
 	case 'r':
-	    reposurgeon = true;
+	    export.reposurgeon = true;
 	    break;
 	case 'T':
-	    force_dates = true;
+	    export.force_dates = true;
 	    break;
 	case 'e':
-	    branch_prefix = (char*) xmalloc(strlen(optarg) + 15, __func__);
-	    sprintf(branch_prefix, "refs/remotes/%s/", optarg);
+	    export.branch_prefix = (char*)xmalloc(strlen(optarg)+15, __func__);
+	    sprintf(export.branch_prefix, "refs/remotes/%s/", optarg);
 	    break;
 	case 's':
 	    analyzer.striplen = strlen(optarg) + 1;
 	    break;
 	case 'p':
-	    progress = true;
+	    export.progress = true;
 	    break;
 	case 'i':
-	    fromtime = convert_date(optarg);
+	    export.fromtime = convert_date(optarg);
 	    break;
 	case 't':
 #ifdef THREADS
@@ -282,7 +278,7 @@ main(int argc, char **argv)
 #endif
 	    break;
 	case 'B':
-	    branchorder = true;
+	    export.branchorder = true;
 	    break;
 	case 'S':
 	    print_sizes();
@@ -329,14 +325,12 @@ main(int argc, char **argv)
 		progress_jump(++recount);
 	    }
 	    progress_end("done");
-	    export_commits(rl, branch_prefix,
-			   fromtime, revision_map, reposurgeon,
-			   force_dates, branchorder, progress);
-	    save_status_end(&start_time);
+	    export_commits(rl, &export);
+	    save_status_end(&export.start_time);
 	    break;
 	}
     }
-    if (forest.skew_vulnerable > 0 && forest.filecount > 1 && !force_dates) {
+    if (forest.skew_vulnerable > 0 && forest.filecount > 1 && !export.force_dates) {
 	time_t udate = forest.skew_vulnerable;
 	announce("no commitids before %s.\n", cvstime2rfc3339(udate));
     }

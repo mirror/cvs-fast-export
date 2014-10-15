@@ -508,6 +508,17 @@ typedef struct _options {
     ssize_t striplen;
 } options_t;
 
+typedef struct _export_options {
+    struct timespec start_time;
+    char *branch_prefix; 
+    time_t fromtime;
+    char *revision_map;
+    bool reposurgeon;
+    bool force_dates;
+    bool branchorder;
+    bool progress;
+} export_options_t;
+    
 void
 analyze_masters(int argc, char *argv[0], options_t *options, forest_t *forest);
 
@@ -650,10 +661,7 @@ void
 export_init(void);
 
 bool
-export_commits(rev_list *rl, const char *branch_prefix, 
-	       time_t fromtime, const char *revision_map,
-	       bool reposurgeon, bool force_dates, bool branchorder,
-	       bool progress);
+export_commits(rev_list *rl, export_options_t *opts);
 
 void
 export_wrap(void);

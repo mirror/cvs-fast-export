@@ -308,7 +308,7 @@ static int fileop_sort(const void *a, const void *b)
     return path_deep_compare(oa->path, ob->path);
 }
 
-#define display_date(c, m)	(force_dates ? ((m) * commit_time_window * 2) : ((c)->date + RCS_EPOCH))
+#define display_date(c, m, f)	(f ? ((m) * commit_time_window * 2) : ((c)->date + RCS_EPOCH))
 
 /*
  * An iterator structure over the sorted files in a git_commit
@@ -617,7 +617,7 @@ static void export_commit(git_commit *commit,
     if (report) {
 	static bool need_ignores = true;
 	const char *ts;
-	ct = display_date(commit, mark);
+	ct = display_date(commit, mark, force_dates);
 	ts = utc_offset_timestamp(&ct, timezone);
 	//printf("author %s <%s> %s\n", full, email, ts);
 	printf("committer %s <%s> %s\n", full, email, ts);
@@ -752,14 +752,7 @@ static int sort_by_date(const void *ap, const void *bp)
     }
 }
 
-bool export_commits(rev_list *rl, 
-		    const char *branch_prefix,
-		    const time_t fromtime,
-		    const char *revision_map,
-		    const bool reposurgeon,
-		    const bool force_dates,
-		    const bool branchorder, 
-		    const bool progress)
+bool export_commits(rev_list *rl, export_options_t *opts)
 /* export a revision list as a git fast-import stream in canonical order */
 {
     rev_ref *h;
@@ -773,12 +766,12 @@ bool export_commits(rev_list *rl,
     markmap = (serial_t *)xcalloc(sizeof(serial_t),
 				  seqno + export_total_commits + 1,
 				  "markmap allocation");
-    if (revision_map != 0)
-	revmap = fopen(revision_map, "w");
+    if (opts->revision_map != 0)
+	revmap = fopen(opts->revision_map, "w");
 
     progress_begin("Save: ", export_total_commits);
 
-    if (branchorder) {
+    if (opts->branchorder) {
 	/*
 	 * Dump by branch order, not by commit date.  Slightly faster and
 	 * less memory-intensive, but (a) incremental dump won't work, and
@@ -809,11 +802,11 @@ bool export_commits(rev_list *rl,
 		 * commits, along with any matching tags.
 		 */
 		for (i=n-1; i>=0; i--) {
-		    export_commit(history[i], branch_prefix, h->ref_name, 
-				  true, revmap, reposurgeon, force_dates);
+		    export_commit(history[i], opts->branch_prefix, h->ref_name, 
+				  true, revmap, opts->reposurgeon, opts->force_dates);
 		    progress_step();
 		    for (t = all_tags; t; t = t->next)
-			if (t->commit == history[i] && display_date(history[i], markmap[history[i]->serial]) > fromtime)
+			if (t->commit == history[i] && display_date(history[i], markmap[history[i]->serial], opts->force_dates) > opts->fromtime)
 			    printf("reset refs/tags/%s\nfrom :%d\n\n", t->name, markmap[history[i]->serial]);
 		}
 
@@ -903,13 +896,13 @@ bool export_commits(rev_list *rl,
 #endif /* ORDERDEBUG2 */
 	for (hp = history; hp < history + export_total_commits; hp++) {
 	    bool report = true;
-	    if (fromtime > 0) {
-		if (fromtime >= display_date(hp->commit, mark+1)) {
+	    if (opts->fromtime > 0) {
+		if (opts->fromtime >= display_date(hp->commit, mark+1, opts->force_dates)) {
 		    report = false;
 		} else if (!hp->realized) {
 		    struct commit_seq *lp;
-		    if (hp->commit->parent != NULL && display_date(hp->commit->parent, markmap[hp->commit->parent->serial]) < fromtime)
-			(void)printf("from %s%s^0\n\n", branch_prefix, hp->head->ref_name);
+		    if (hp->commit->parent != NULL && display_date(hp->commit->parent, markmap[hp->commit->parent->serial], opts->force_dates) < opts->fromtime)
+			(void)printf("from %s%s^0\n\n", opts->branch_prefix, hp->head->ref_name);
 		    for (lp = hp; lp < history + export_total_commits; lp++) {
 			if (lp->head == hp->head) {
 			    lp->realized = true;
@@ -918,10 +911,10 @@ bool export_commits(rev_list *rl,
 		}
 	    }
 	    progress_jump(hp - history);
-	    export_commit(hp->commit, branch_prefix, hp->head->ref_name,
-			  report, revmap, reposurgeon, force_dates);
+	    export_commit(hp->commit, opts->branch_prefix, hp->head->ref_name,
+			  report, revmap, opts->reposurgeon, opts->force_dates);
 	    for (t = all_tags; t; t = t->next)
-		if (t->commit == hp->commit && display_date(hp->commit, markmap[hp->commit->serial]) > fromtime)
+		if (t->commit == hp->commit && display_date(hp->commit, markmap[hp->commit->serial], opts->force_dates) > opts->fromtime)
 		    printf("reset refs/tags/%s\nfrom :%d\n\n", t->name, markmap[hp->commit->serial]);
 	}
 
@@ -929,9 +922,9 @@ bool export_commits(rev_list *rl,
     }
 
     for (h = rl->heads; h; h = h->next) {
-	if (display_date(h->commit, markmap[h->commit->serial]) > fromtime)
+	if (display_date(h->commit, markmap[h->commit->serial], opts->force_dates) > opts->fromtime)
 	    printf("reset %s%s\nfrom :%d\n\n",
-		   branch_prefix,
+		   opts->branch_prefix,
 		   h->ref_name,
 		   markmap[h->commit->serial]);
     }
