@@ -502,11 +502,11 @@ void tag_commit(cvs_commit *c, const char *name, cvs_file *cvsfile);
 cvs_commit **tagged(tag_t *tag);
 void discard_tags(void);
 
-typedef struct _options {
+typedef struct _import_options {
     bool promiscuous;
     bool verbose;
     ssize_t striplen;
-} options_t;
+} import_options_t;
 
 typedef struct _export_options {
     struct timespec start_time;
@@ -518,9 +518,9 @@ typedef struct _export_options {
     bool branchorder;
     bool progress;
 } export_options_t;
-    
+
 void
-analyze_masters(int argc, char *argv[0], options_t *options, forest_t *forest);
+analyze_masters(int argc, char *argv[0], import_options_t *options, forest_t *forest);
 
 bool
 cvs_is_head(const cvs_number *n);

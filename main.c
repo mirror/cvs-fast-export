@@ -28,7 +28,7 @@
 int commit_time_window = 300;
 bool progress = false;
 
-static options_t analyzer = {
+static import_options_t analyzer = {
     .striplen = -1,
 };
 

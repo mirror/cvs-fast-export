@@ -220,7 +220,7 @@ static void *worker(void *arg)
 }
 
 void analyze_masters(int argc, char *argv[], 
-			  options_t *analyzer, 
+			  import_options_t *analyzer, 
 			  forest_t *forest)
 /* main entry point; collect and parse CVS masters */
 {
