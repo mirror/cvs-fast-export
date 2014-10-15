@@ -6,13 +6,32 @@
 
 #include "cvs.h"
 
+/*
+ * The choice of these mixing functions can have a major effect on 
+ * lookup speed. There are two things to note about CVS numbers that
+ * are relevant. One is that that they're not strings; the component
+ * numbers are not limited to 0..255, though it would be highly odd
+ * for anything but the rightmost part to achieve that high a value.
+ * The other is that they're not uniformly distributed; low component 
+ * values will be far more common than high ones and most of the variation
+ * will be towards the right-hand end.
+ *
+ * This is Keith's original pair of mixers.  The second one tries to
+ * weight the hash to ve more senstive to the right-hand end, but
+ * implicitly assumes that values there above 255 will be rare. The
+ * first one has poor distribution properties and the sole
+ * merit of being a fast operation.
+ */
+#define HASHMIX1(old, new)	old += new
+#define HASHMIX2(old, new)	old = ((old << 8) + new)
+
 inline static int hash_bucket(const cvs_number key)
 {
     int i, hashval;
 
     for (i = 0, hashval = 0; i < key.c - 1; i++)
-	hashval += key.n[i];
-    hashval = (hashval * 256 + key.n[key.c - 1]) % NODE_HASH_SIZE;
+	HASHMIX1(hashval, key.n[i]);
+    HASHMIX2(hashval, key.n[key.c - 1]) % NODE_HASH_SIZE;
     return hashval;
 }
 
