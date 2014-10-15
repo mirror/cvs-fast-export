@@ -712,23 +712,15 @@ uncache_exit:
 static uchar *
 load_text(editbuffer_t *eb, const cvs_text *text)
 {
-    unsigned i;
     struct stat st;
     uchar *base;
     int fd;
     size_t size;
     size_t offset = (size_t)text->offset;
 
-    for (i = 0; i < NMAPS && eb->text_maps[i].filename; ++i) {
-        if (eb->text_maps[i].filename == text->filename) {
-	    base = eb->text_maps[i].base;
-	    if (i != 0) {
-	        struct text_map t = eb->text_maps[i];
-		eb->text_maps[i] = eb->text_maps[i-1];
-		eb->text_maps[i-1] = t;
-	    }
-	    return base + offset;
-	}
+    if (eb->text_map.filename == text->filename) {
+	base = eb->text_map.base;
+	return base + offset;
     }
 
     if ((fd = open(text->filename, O_RDONLY)) == -1)
@@ -746,14 +738,10 @@ load_text(editbuffer_t *eb, const cvs_text *text)
         fatal_system_error("mmap: %s %zu", text->filename, size);
     close(fd);
 
-    if (i == NMAPS) {
-        --i;
-	munmap(eb->text_maps[i].base, eb->text_maps[i].size);
-    }
-    memmove(eb->text_maps + 1, eb->text_maps, i * sizeof eb->text_maps[0]);
-    eb->text_maps[0].filename = text->filename;
-    eb->text_maps[0].base = base;
-    eb->text_maps[0].size = size;
+    munmap(eb->text_map.base, eb->text_map.size);
+    eb->text_map.filename = text->filename;
+    eb->text_map.base = base;
+    eb->text_map.size = size;
 
     return base + offset;
 }
@@ -761,12 +749,9 @@ load_text(editbuffer_t *eb, const cvs_text *text)
 static void
 unload_all_text(editbuffer_t *eb)
 {
-    unsigned i;
-    for (i = 0; i <NMAPS; i++) {
-        if (eb->text_maps[i].filename) {
-	    munmap(eb->text_maps[i].base, eb->text_maps[i].size);
-	    eb->text_maps[i].filename = NULL;
-	}
+    if (eb->text_map.filename) {
+	munmap(eb->text_map.base, eb->text_map.size);
+	eb->text_map.filename = NULL;
     }
 }
 

@@ -198,8 +198,6 @@ enum expand_mode {EXPANDKKV,	/* default form, $<key>: <value>$ */
 		  EXPANDKB,	/* old-value with no EOL normalization */
 		};
 
-#define NMAPS 4
-
 typedef struct _editbuffer {
     const char *Glog;
     int Gkvlen;
@@ -232,7 +230,7 @@ typedef struct _editbuffer {
 	const char *filename;
 	unsigned char *base;
 	size_t size;
-    } text_maps[NMAPS];
+    } text_map;
 #endif /* USE_MMAP */
 } editbuffer_t;
 
