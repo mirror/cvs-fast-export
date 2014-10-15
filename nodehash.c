@@ -57,9 +57,10 @@
 #define HASHMIX1(hash, new)	hash += new
 #define HASHMIX2(hash, new)	hash = ((hash << 8) + new)
 
-inline static int hash_bucket(const cvs_number key)
+inline static unsigned int hash_bucket(const cvs_number key)
 {
-    int i, hashval;
+    int i;
+    unsigned long hashval;
 
     for (i = 0, hashval = 0; i < key.c - 1; i++)
 	HASHMIX1(hashval, key.n[i]);
@@ -72,7 +73,7 @@ static node_t *hash_number(nodehash_t *context, const cvs_number *const n)
 {
     cvs_number key = *n;
     node_t *p;
-    int hash;
+    unsigned int hash;
     int i;
 
     if (key.c > 2 && !key.n[key.c - 2]) {
@@ -104,7 +105,7 @@ static node_t *find_parent(nodehash_t *context,
 {
     cvs_number key = *n;
     node_t *p;
-    int hash;
+    unsigned int hash;
     int i;
 
     key.c -= depth;
