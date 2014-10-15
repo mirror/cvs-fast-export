@@ -26,9 +26,6 @@
 #include <sys/resource.h>
 #include <ftw.h>
 #include <time.h>
-#ifdef THREADS
-#include <pthread.h>
-#endif /* THREADS */
 
 /*
  * Blob compression with zlib is not enabled by default because, (a) in general,
@@ -73,25 +70,11 @@ static serial_t mark;
 static volatile int seqno;
 static char blobdir[PATH_MAX];
 static serial_t export_total_commits;
-#if !defined(__GNUC__) && defined(THREADS)
-static pthread_mutex_t seqno_mutex = PTHREAD_MUTEX_INITIALIZER;
-#endif /* !defined(__GNUC__) && defined(THREADS) */
 
 static int seqno_next(void)
 /* Returns next sequence number, starting with 1 */
 {
-#ifndef THREADS
     ++seqno;
-#elif __GNUC__
-    /* the sexy lockless method... */
-    __sync_fetch_and_add(&seqno, 1);
-#else
-    if (threads > 1)
-	pthread_mutex_lock(&seqno_mutex);
-    ++seqno;
-    if (threads > 1)
-	pthread_mutex_unlock(&seqno_mutex);
-#endif /* THREADS */
 
     if (seqno >= MAX_SERIAL_T)
 	fatal_error("snapshot sequence number too large, widen serial_t");
@@ -268,9 +251,6 @@ void export_wrap(void)
 /* clean up after export, removing the blob storage */
 {
     (void) fputs("done\n", stdout);
-#if !defined(__GNUC__) && defined(THREADS)
-    pthread_mutex_destroy(&seqno_mutex);
-#endif /* !defined(__GNUC__) && defined(THREADS) */
 
     nftw(blobdir, unlink_cb, 64, FTW_DEPTH | FTW_PHYS);
 }
