@@ -26,7 +26,7 @@ cvs_find_version(const cvs_file *cvs, const cvs_number *number)
     cvs_version *cv;
     cvs_version	*nv = NULL;
 
-    for (cv = cvs->versions; cv; cv = cv->next) {
+    for (cv = cvs->gen.versions; cv; cv = cv->next) {
 	if (cvs_same_branch(number, &cv->number) &&
 	    cvs_number_compare(&cv->number, number) > 0 &&
 	    (!nv || cvs_number_compare(&nv->number, &cv->number) > 0))
@@ -85,17 +85,19 @@ cvs_patch_free(cvs_patch *patch)
 }
 
 void
+generator_free(generator_t *gen)
+{
+    cvs_version_free(gen->versions);
+    cvs_patch_free(gen->patches);
+    clean_hash(&gen->nodehash);
+}
+
+void
 cvs_file_free(cvs_file *cvs)
 /* discard a file object and its storage */
 {
     cvs_symbol_free(cvs->symbols);
     rbtree_free(cvs->symbols_by_name);
-#ifdef __FUTURE__ 
-    /* FIXME: these should be feeed when the generators are */
-    cvs_version_free(cvs->versions);
-    cvs_patch_free(cvs->patches);
-    clean_hash(&cvs->gen.nodehash);
-#endif 
     free(cvs);
 }
 

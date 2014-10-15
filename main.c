@@ -325,6 +325,7 @@ main(int argc, char **argv)
 		generate_files(gp, 
 			       enable_keyword_expansion, 
 			       export_blob);
+		generator_free(gp);
 		progress_jump(++recount);
 	    }
 	    progress_end("done");

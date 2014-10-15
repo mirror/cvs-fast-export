@@ -335,7 +335,7 @@ rev_list_graft_branches(rev_list *rl, cvs_file *cvs)
 	     * Note that in the presense of vendor branches, the
 	     * branch location may actually be out on that vendor branch
 	     */
-	    for (cv = cvs->versions; cv; cv = cv->next) {
+	    for (cv = cvs->gen.versions; cv; cv = cv->next) {
 		for (cb = cv->branches; cb; cb = cb->next) {
 		    if (cvs_number_compare(&cb->number,
 					    &c->file->number) == 0)
@@ -699,7 +699,7 @@ rev_list_cvs(cvs_file *cvs)
     /*
      * Locate first revision on trunk branch
      */
-    for (cv = cvs->versions; cv; cv = cv->next) {
+    for (cv = cvs->gen.versions; cv; cv = cv->next) {
 	if (cvs_is_trunk(&cv->number) &&
 	    (!ctrunk || cvs_number_compare(&cv->number,
 					    &ctrunk->number) < 0))
@@ -729,7 +729,7 @@ rev_list_cvs(cvs_file *cvs)
     printf("building branches for %s\n", cvs->name);
 #endif
     
-    for (cv = cvs->versions; cv; cv = cv->next) {
+    for (cv = cvs->gen.versions; cv; cv = cv->next) {
 	for (cb = cv->branches; cb; cb = cb->next)
 	{
 	    branch = rev_branch_cvs(cvs, &cb->number);

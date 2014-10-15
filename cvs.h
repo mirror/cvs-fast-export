@@ -245,6 +245,8 @@ typedef struct _generator {
     /* isolare parts of a CVS file context required for snapshot generation */
     const char		*master_name;
     const char 		*expand;
+    cvs_version		*versions;
+    cvs_patch		*patches;
     nodehash_t		nodehash;
     editbuffer_t	editbuffer;
 } generator_t;
@@ -254,8 +256,6 @@ typedef struct {
     const char		*export_name;
     cvs_symbol		*symbols;
     rbtree_node		*symbols_by_name;
-    cvs_version		*versions;
-    cvs_patch		*patches;
     const char		*description;
     generator_t		gen;
     cvs_number		head;
@@ -552,6 +552,9 @@ cvs_is_vendor(const cvs_number *number);
 
 void
 cvs_file_free(cvs_file *cvs);
+
+void
+generator_free(generator_t *gen);
 
 char *
 cvs_number_string(const cvs_number *n, char *str, size_t maxlen);

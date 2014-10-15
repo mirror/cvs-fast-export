@@ -158,7 +158,7 @@ name		: NAME
 revisions	: revisions revision
 		  { *$1 = $2; $$ = &$2->next;}
 		|
-		  { $$ = &cvsfile->versions; }
+		  { $$ = &cvsfile->gen.versions; }
 		;
 
 revtrailer	: /* empty */
@@ -234,7 +234,7 @@ desc		: DESC DATA
 patches		: patches patch
 		  { *$1 = $2; $$ = &$2->next; }
 		|
-		  { $$ = &cvsfile->patches; }
+		  { $$ = &cvsfile->gen.patches; }
 		;
 patch		: NUMBER log text
 		  { $$ = xcalloc (1, sizeof (cvs_patch), "gram.y::patch");
