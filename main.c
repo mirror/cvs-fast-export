@@ -166,6 +166,7 @@ main(int argc, char **argv)
     char	    *revision_map = NULL;
     bool	    reposurgeon = false;
     bool	    force_dates = false;
+    bool            enable_keyword_expansion = false;
     struct timespec start_time;
     char	    *branch_prefix = "refs/heads/";
 
@@ -233,7 +234,7 @@ main(int argc, char **argv)
 	    exec_mode = ExecuteGraph;
 	    break;
         case 'k':
-	    analyzer.enable_keyword_expansion = true;
+	    enable_keyword_expansion = true;
 	    break;
 	case 'v':
 	    analyzer.verbose++;
@@ -300,7 +301,6 @@ main(int argc, char **argv)
 	export_init();
 
     /* build CVS structures by parsing masters; may read stdin */
-    analyzer.generate = exec_mode == ExecuteExport;
     analyze_masters(argc, argv, &analyzer, &forest);
 
     /* commit set coalescence happens here */
@@ -323,7 +323,7 @@ main(int argc, char **argv)
 		 gp < forest.generators + forest.filecount;
 		 gp++) {
 		generate_files(gp, 
-			       analyzer.enable_keyword_expansion, 
+			       enable_keyword_expansion, 
 			       export_blob);
 		progress_jump(++recount);
 	    }

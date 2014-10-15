@@ -504,8 +504,6 @@ void discard_tags(void);
 
 typedef struct _options {
     bool promiscuous;
-    bool enable_keyword_expansion;
-    bool generate;
     bool verbose;
     ssize_t striplen;
 } options_t;

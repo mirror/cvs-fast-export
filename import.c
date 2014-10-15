@@ -49,7 +49,7 @@ static volatile generator_t *generators;
 static volatile int err;
 
 static int total_files, striplen;
-static bool generate, enable_keyword_expansion, verbose;
+static bool verbose;
 
 #ifdef THREADS
 static pthread_mutex_t revlist_mutex = PTHREAD_MUTEX_INITIALIZER;
@@ -302,8 +302,6 @@ void analyze_masters(int argc, char *argv[],
 
     /* things that must be visible to inner functions */
     load_current_file = 0;
-    enable_keyword_expansion = analyzer->enable_keyword_expansion;
-    generate = analyzer->generate;
     verbose = analyzer->verbose;
 
     /*
