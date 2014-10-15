@@ -311,11 +311,23 @@ main(int argc, char **argv)
 
     /* report on the DAG */
     if (rl) {
+	generator_t *gp;
+	int recount = 0;
 	switch(exec_mode) {
 	case ExecuteGraph:
 	    dump_rev_graph(rl, NULL);
 	    break;
 	case ExecuteExport:
+	    progress_begin("Generating snapshots...", forest.filecount);
+	    for (gp = forest.generators; 
+		 gp < forest.generators + forest.filecount;
+		 gp++) {
+		generate_files(gp, 
+			       analyzer.enable_keyword_expansion, 
+			       export_blob);
+		progress_jump(++recount);
+	    }
+	    progress_end("done");
 	    export_commits(rl, branch_prefix,
 			   fromtime, revision_map, reposurgeon,
 			   force_dates, branchorder, progress);

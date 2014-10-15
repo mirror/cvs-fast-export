@@ -492,6 +492,7 @@ typedef struct _forest {
     off_t textsize;
     int errcount;
     rev_list *head;
+    generator_t *generators;
     cvstime_t skew_vulnerable;
     unsigned int total_revisions;
 } forest_t;

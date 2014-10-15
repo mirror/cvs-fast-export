@@ -90,9 +90,12 @@ cvs_file_free(cvs_file *cvs)
 {
     cvs_symbol_free(cvs->symbols);
     rbtree_free(cvs->symbols_by_name);
+#ifdef __FUTURE__ 
+    /* FIXME: these should be feeed when the generators are */
     cvs_version_free(cvs->versions);
     cvs_patch_free(cvs->patches);
     clean_hash(&cvs->gen.nodehash);
+#endif 
     free(cvs);
 }
 

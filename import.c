@@ -45,6 +45,7 @@ static volatile rev_filename   *fn_head = NULL, **fn_tail = &fn_head, *fn;
 static volatile rev_list *head = NULL, **tail = &head;
 static volatile cvstime_t skew_vulnerable;
 static volatile unsigned int total_revisions;
+static volatile generator_t *generators;
 static volatile int err;
 
 static int total_files, striplen;
@@ -59,6 +60,7 @@ static pthread_t *workers;
 typedef struct _analysis {
     cvstime_t skew_vulnerable;
     unsigned int total_revisions;
+    generator_t generator;
 } analysis_t;
 
 static char *rectify_name(const char *raw, char *rectified, size_t rectlen)
@@ -136,10 +138,9 @@ rev_list_file(const char *name, analysis_t *out)
 
     fclose(in);
     rl = rev_list_cvs(cvs);
-    if (generate)
-	generate_files(&cvs->gen, enable_keyword_expansion, export_blob);
     out->total_revisions = cvs->nversions;
     out->skew_vulnerable = cvs->skew_vulnerable;
+    out->generator = cvs->gen;
     cvs_file_free(cvs);
     return rl;
 }
@@ -204,6 +205,7 @@ static void *worker(void *arg)
 	if (threads > 1)
 	    pthread_mutex_lock(&revlist_mutex);
 #endif /* THREADS */
+	generators[load_current_file] = out.generator;
 	progress_jump(++load_current_file);
 	*tail = rl;
 	total_revisions += out.total_revisions;
@@ -293,6 +295,8 @@ void analyze_masters(int argc, char *argv[],
     }
     forest->filecount = total_files;
 
+    generators = xcalloc(sizeof(generator_t), total_files, __func__);
+
     progress_end("done, %ldKB in %d files", 
 		 (long)(forest->textsize/1024), forest->filecount);
 
@@ -340,7 +344,8 @@ void analyze_masters(int argc, char *argv[],
     forest->errcount = err;
     forest->total_revisions = total_revisions;
     forest->skew_vulnerable = skew_vulnerable;
-    forest->head = head;
+    forest->head = (rev_list *)head;
+    forest->generators = (generator_t *)generators;
 }
 
 /* end */
