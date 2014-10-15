@@ -37,7 +37,7 @@ cvs_find_version(const cvs_file *cvs, const cvs_number *number)
 
 static void
 cvs_symbol_free(cvs_symbol *symbol)
-/* discard a symbol and its storage */
+/* discard all master symbols from this CVS context */
 {
     cvs_symbol	*s;
 
@@ -49,7 +49,7 @@ cvs_symbol_free(cvs_symbol *symbol)
 
 static void
 cvs_branch_free(cvs_branch *branch)
-/* discard a branch and its storage */
+/* discard all master branches from this CVS context */
 {
     cvs_branch	*b;
 
@@ -61,7 +61,7 @@ cvs_branch_free(cvs_branch *branch)
 
 static void
 cvs_version_free(cvs_version *version)
-/* discard a version and its storage */
+/* discard all master versions from this CVS context */
 {
     cvs_version	*v;
 
@@ -74,7 +74,7 @@ cvs_version_free(cvs_version *version)
 
 static void
 cvs_patch_free(cvs_patch *patch)
-/* discard a patch and its storage */
+/* discard all master patches from this CVS context */
 {
     cvs_patch	*v;
 
