@@ -873,29 +873,50 @@ static void enter_branch(editbuffer_t *eb, const node_t *const node)
 	eb->current->line = p;
 }
 
+static node_t *generate_setup(generator_t *gen, bool enable_keyword_expansion)
+{
+    if (gen->nodehash.head_node != NULL)
+    {
+	editbuffer_t *eb = &gen->editbuffer;
+
+	eb->Gkeyval = NULL;
+	eb->Gkvlen = 0;
+
+	eb->current = eb->stack;
+	eb->Gfilename = gen->master_name;
+	if (enable_keyword_expansion)
+	    eb->Gexpand = expand_override(gen->expand);
+	else
+	    eb->Gexpand = EXPANDKO;
+	eb->Gabspath = NULL;
+	Gline(eb) = NULL; Ggap(eb) = Ggapsize(eb) = Glinemax(eb) = 0;
+    }
+
+    return gen->nodehash.head_node;
+}
+
+static void generate_wrap(generator_t *gen)
+{
+    editbuffer_t *eb = &gen->editbuffer;
+
+    free(eb->Gkeyval);
+    eb->Gkeyval = NULL;
+    eb->Gkvlen = 0;
+    free(eb->Gabspath);
+    unload_all_text(eb);
+}
+
 void generate_files(generator_t *gen,
 		    bool enable_keyword_expansion,
 		    void(*hook)(node_t *node, void *buf, size_t len))
 /* export all the revision states of a CVS/RCS master through a hook */
 {
-    /* this must become local to the CVS file */
     editbuffer_t *eb = &gen->editbuffer;
+    node_t *node = generate_setup(gen, enable_keyword_expansion);
 
-    if (gen->nodehash.head_node == NULL)
+    if (node == NULL)
 	return;
 
-    eb->Gkeyval = NULL;
-    eb->Gkvlen = 0;
-
-    node_t *node = gen->nodehash.head_node;
-    eb->current = eb->stack;
-    eb->Gfilename = gen->master_name;
-    if (enable_keyword_expansion)
-	eb->Gexpand = expand_override(gen->expand);
-    else
-	eb->Gexpand = EXPANDKO;
-    eb->Gabspath = NULL;
-    Gline(eb) = NULL; Ggap(eb) = Ggapsize(eb) = Glinemax(eb) = 0;
     eb->current->node = node;
     eb->current->node_text = load_text(eb, &node->patch->text);
     process_delta(eb, node, ENTER);
@@ -933,11 +954,8 @@ void generate_files(generator_t *gen,
 	process_delta(eb, node, EDIT);
     }
 Done:
-    free(eb->Gkeyval);
-    eb->Gkeyval = NULL;
-    eb->Gkvlen = 0;
-    free(eb->Gabspath);
-    unload_all_text(eb);
+
+    generate_wrap(gen);
 }
 
 /* end */
