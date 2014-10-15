@@ -17,13 +17,45 @@
  * will be towards the right-hand end.
  *
  * This is Keith's original pair of mixers.  The second one tries to
- * weight the hash to ve more senstive to the right-hand end, but
- * implicitly assumes that values there above 255 will be rare. The
- * first one has poor distribution properties and the sole
- * merit of being a fast operation.
+ * weight the hash to be more senstive to the right-hand end, but
+ * implicitly assumes that values there above 255 will be nonexistent
+ * or rare. The first one has poor distribution properties and the
+ * sole merit of being a fast operation.
+ *
+ * 	HASHMIX1(hash, new)	hash += new
+ * 	HASHMIX2(hash, new)	hash = ((hash << 8) + new)
+ *
+ * Here are some plausible alternatives for the first mixer, from
+ * <http://www.cse.yorku.ca/~oz/hash.html>. Descriptions are from there.
+ *
+ * DJB2: this algorithm (which effectively multiplies the old hash by 33 
+ * before adding the new value) was first reported by dan bernstein
+ * many years ago in comp.lang.c. another version of this algorithm
+ * (now favored by bernstein) uses xor: hash(i) = hash(i - 1) * 33 ^
+ * str[i]; the magic of number 33 (why it works better than many other
+ * constants, prime or not) has never been adequately explained.
+ *
+ * (Note: for reasons not explained at the source page, hash is 
+ * initialized to 5381 before the djb2 mixing begins.)
  */
-#define HASHMIX1(old, new)	old += new
-#define HASHMIX2(old, new)	old = ((old << 8) + new)
+#define DJB2(hash, new)	hash = ((hash << 5) + hash) + new
+/*
+ * SDBM: this algorithm was created for sdbm (a public-domain
+ * reimplementation of ndbm) database library. it was found to do well
+ * in scrambling bits, causing better distribution of the keys and
+ * fewer splits. it also happens to be a good general hashing function
+ * with good distribution. the actual function is hash(i) = hash(i -
+ * 1) * 65599 + str[i]; what is included below is the faster version
+ * used in gawk. [there is even a faster, duff-device version] the
+ * magic constant 65599 was picked out of thin air while experimenting
+ * with different constants, and turns out to be a prime. this is one
+ * of the algorithms used in berkeley db (see sleepycat) and
+ * elsewhere.
+ */
+#define SDBM(hash, new)	hash = new + (hash << 6) + (hash << 16) - hash
+
+#define HASHMIX1(hash, new)	hash += new
+#define HASHMIX2(hash, new)	hash = ((hash << 8) + new)
 
 inline static int hash_bucket(const cvs_number key)
 {
