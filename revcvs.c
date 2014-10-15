@@ -110,7 +110,7 @@ rev_branch_cvs(cvs_file *cvs, const cvs_number *branch)
     for (c = head, gc = NULL; (p = c->parent); gc = c, c = p) {
 	if (time_compare(p->file->u.date, c->file->u.date) > 0)
 	{
-	    fprintf(stderr, "cvs-fast-export: warning - %s:", cvs->master_name);
+	    fprintf(stderr, "cvs-fast-export: warning - %s:", cvs->gen.master_name);
 	    dump_number_file(stderr, " ", &p->file->number);
 	    dump_number_file(stderr, " is newer than", &c->file->number);
 
@@ -498,7 +498,7 @@ rev_list_set_refs(rev_list *rl, cvs_file *cvsfile)
 	    h->parent = rev_list_find_branch(rl, &n);
 	    if (!h->parent && ! cvs_is_vendor(&h->number))
 		announce("warning - %s branch %s has no parent\n",
-			 cvsfile->master_name, h->ref_name);
+			 cvsfile->gen.master_name, h->ref_name);
 	}
 	if (h->parent && !h->ref_name) {
 	    char	name[1024];
@@ -511,7 +511,7 @@ rev_list_set_refs(rev_list *rl, cvs_file *cvsfile)
 	    else
 		sprintf(name, "%s-UNNAMED-BRANCH", h->parent->ref_name);
 	    announce("warning - putting %s rev %s on unnamed branch %s off %s\n",
-		     cvsfile->master_name, rev, name, h->parent->ref_name);
+		     cvsfile->gen.master_name, rev, name, h->parent->ref_name);
 	    h->ref_name = atom(name);
 	}
     }
@@ -695,7 +695,7 @@ rev_list_cvs(cvs_file *cvs)
     cvs_branch	*cb;
     cvs_version	*ctrunk = NULL;
 
-    build_branches(&cvs->nodehash);
+    build_branches(&cvs->gen.nodehash);
     /*
      * Locate first revision on trunk branch
      */

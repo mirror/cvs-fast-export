@@ -241,20 +241,25 @@ typedef struct _editbuffer {
 #define Gnode_text(eb) eb->current->node_text
 #define Ginbuf(eb) (&eb->in_buffer_store)
 
+typedef struct _generator {
+    /* isolare parts of a CVS file context required for snapshot generation */
+    const char		*master_name;
+    const char 		*expand;
+    nodehash_t		nodehash;
+    editbuffer_t	editbuffer;
+} generator_t;
+
 typedef struct {
     /* this represents the entire metadata content of a CVS master file */
-    const char		*master_name;
     const char		*export_name;
     cvs_symbol		*symbols;
     rbtree_node		*symbols_by_name;
     cvs_version		*versions;
     cvs_patch		*patches;
-    const char 		*expand;
     const char		*description;
+    generator_t		gen;
     cvs_number		head;
     cvs_number		branch;
-    nodehash_t		nodehash;
-    editbuffer_t	editbuffer;
     cvstime_t           skew_vulnerable;
     serial_t		nversions;
     mode_t		mode;
@@ -656,7 +661,7 @@ save_status_end(const struct timespec *);
 void
 free_author_map(void);
 
-void generate_files(cvs_file *cvs, 
+void generate_files(generator_t *gen, 
 		    bool enable_keyword_expansion,
 		    void (*hook)(node_t *node, void *buf, size_t len));
 

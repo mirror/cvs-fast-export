@@ -125,7 +125,7 @@ rev_list_file(const char *name, analysis_t *out)
     }
 
     cvs = xcalloc(1, sizeof(cvs_file), __func__);
-    cvs->master_name = name;
+    cvs->gen.master_name = name;
     cvs->export_name = atom(rectify_name(name, rectified, sizeof(rectified)));
     cvs->mode = buf.st_mode;
 
@@ -137,7 +137,7 @@ rev_list_file(const char *name, analysis_t *out)
     fclose(in);
     rl = rev_list_cvs(cvs);
     if (generate)
-	generate_files(cvs, enable_keyword_expansion, export_blob);
+	generate_files(&cvs->gen, enable_keyword_expansion, export_blob);
     out->total_revisions = cvs->nversions;
     out->skew_vulnerable = cvs->skew_vulnerable;
     cvs_file_free(cvs);

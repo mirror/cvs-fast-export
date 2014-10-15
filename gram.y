@@ -115,7 +115,7 @@ header		: HEAD opt_number SEMI
 		| COMMENT DATA SEMI
 		  { free($2); }
 		| EXPAND DATA SEMI
-		  { cvsfile->expand = $2; }
+		  { cvsfile->gen.expand = $2; }
 		;
 locks		: locks lock
 		|
@@ -188,7 +188,7 @@ revision	: NUMBER date author state branches next revtrailer
 		    if ($$->commitid == NULL 
 			        && cvsfile->skew_vulnerable < $$->date)
 			cvsfile->skew_vulnerable = $$->date;
-		    hash_version(&cvsfile->nodehash, $$);
+		    hash_version(&cvsfile->gen.nodehash, $$);
 		    ++cvsfile->nversions;			
 		  }
 		;
@@ -212,7 +212,7 @@ numbers		: NUMBER numbers
 				    "gram.y::numbers");
 			$$->next = $2;
 			$$->number = $1;
-			hash_branch(&cvsfile->nodehash, $$);
+			hash_branch(&cvsfile->gen.nodehash, $$);
 		  }
 		|
 		  { $$ = NULL; }
@@ -249,7 +249,7 @@ patch		: NUMBER log text
 		    } else
 			    $$->log = atom($2);
 		    $$->text = $3;
-		    hash_patch(&cvsfile->nodehash, $$);
+		    hash_patch(&cvsfile->gen.nodehash, $$);
 		    free($2);
 		  }
 		;

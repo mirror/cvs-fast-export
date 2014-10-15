@@ -60,11 +60,11 @@ void tag_commit(cvs_commit *c, const char *name, cvs_file *cvsfile)
 	pthread_mutex_lock(&tag_mutex);
 #endif /* THREADS */
     tag = find_tag(name);
-    if (tag->last == cvsfile->master_name) {
+    if (tag->last == cvsfile->gen.master_name) {
 	announce("duplicate tag %s in CVS master %s, ignoring\n",
-		 name, cvsfile->master_name);
+		 name, cvsfile->gen.master_name);
     } else {
-	tag->last = cvsfile->master_name;
+	tag->last = cvsfile->gen.master_name;
 	if (!tag->left) {
 	    chunk_t *v = xmalloc(sizeof(chunk_t), __func__);
 	    v->next = tag->commits;

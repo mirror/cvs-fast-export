@@ -873,25 +873,25 @@ static void enter_branch(editbuffer_t *eb, const node_t *const node)
 	eb->current->line = p;
 }
 
-void generate_files(cvs_file *cvs,
+void generate_files(generator_t *gen,
 		    bool enable_keyword_expansion,
 		    void(*hook)(node_t *node, void *buf, size_t len))
 /* export all the revision states of a CVS/RCS master through a hook */
 {
     /* this must become local to the CVS file */
-    editbuffer_t *eb = &cvs->editbuffer;
+    editbuffer_t *eb = &gen->editbuffer;
 
-    if (cvs->nodehash.head_node == NULL)
+    if (gen->nodehash.head_node == NULL)
 	return;
 
     eb->Gkeyval = NULL;
     eb->Gkvlen = 0;
 
-    node_t *node = cvs->nodehash.head_node;
+    node_t *node = gen->nodehash.head_node;
     eb->current = eb->stack;
-    eb->Gfilename = cvs->master_name;
+    eb->Gfilename = gen->master_name;
     if (enable_keyword_expansion)
-	eb->Gexpand = expand_override(cvs->expand);
+	eb->Gexpand = expand_override(gen->expand);
     else
 	eb->Gexpand = EXPANDKO;
     eb->Gabspath = NULL;
