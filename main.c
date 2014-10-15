@@ -133,6 +133,8 @@ static void print_sizes(void)
     printf("sizeof(cvs_branch)    = %zu\n", sizeof(cvs_branch));
     printf("sizeof(cvs_version)   = %zu\n", sizeof(cvs_version));
     printf("sizeof(cvs_patch)     = %zu\n", sizeof(cvs_patch));
+    printf("sizeof(nodehash_t)    = %zu\n", sizeof(nodehash_t));
+    printf("sizeof(editbuffer_t)  = %zu\n", sizeof(editbuffer_t));
     printf("sizeof(cvs_file)      = %zu\n", sizeof(cvs_file));
     printf("sizeof(rev_master)    = %zu\n", sizeof(rev_master));
     printf("sizeof(rev_file)      = %zu\n", sizeof(rev_file));

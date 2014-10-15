@@ -911,8 +911,8 @@ void generate_files(cvs_file *cvs,
 	eb->Gexpand = EXPANDKO;
     eb->Gabspath = NULL;
     Gline(eb) = NULL; Ggap(eb) = Ggapsize(eb) = Glinemax(eb) = 0;
-    eb->stack[0].node = node;
-    eb->stack[0].node_text = load_text(eb, &node->patch->text);
+    eb->current->node = node;
+    eb->current->node_text = load_text(eb, &node->patch->text);
     process_delta(eb, node, ENTER);
     for (;;) {
 	if (node->file) {
