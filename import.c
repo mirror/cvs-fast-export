@@ -217,9 +217,9 @@ static void *worker(void *arg)
     }
 }
 
-rev_list *analyze_masters(int argc, char *argv[], 
+void analyze_masters(int argc, char *argv[], 
 			  options_t *analyzer, 
-			  stats_t *stats)
+			  forest_t *forest)
 /* main entry point; collect and parse CVS masters */
 {
     char	    name[PATH_MAX];
@@ -237,7 +237,7 @@ rev_list *analyze_masters(int argc, char *argv[],
 
     striplen = analyzer->striplen;
 
-    stats->textsize = stats->filecount = 0;
+    forest->textsize = forest->filecount = 0;
     progress_begin("Reading list of files...", NO_MAX);
     for (;;)
     {
@@ -268,7 +268,7 @@ rev_list *analyze_masters(int argc, char *argv[],
 	    if (end - file < 2 || end[-1] != 'v' || end[-2] != ',')
 		continue;
 	}
-	stats->textsize += stb.st_size;
+	forest->textsize += stb.st_size;
 
 	fn = xcalloc(1, sizeof(rev_filename), "filename gathering");
 	*fn_tail = fn;
@@ -291,10 +291,10 @@ rev_list *analyze_masters(int argc, char *argv[],
 	if (progress && total_files % 100 == 0)
 	    progress_jump(total_files);
     }
-    stats->filecount = total_files;
+    forest->filecount = total_files;
 
     progress_end("done, %ldKB in %d files", 
-		 (long)(stats->textsize/1024), stats->filecount);
+		 (long)(forest->textsize/1024), forest->filecount);
 
     /* things that must be visible to inner functions */
     load_current_file = 0;
@@ -337,11 +337,10 @@ rev_list *analyze_masters(int argc, char *argv[],
 	worker(NULL);
     progress_end("done, %d total revisions", total_revisions);
 
-    stats->errcount = err;
-    stats->total_revisions = total_revisions;
-    stats->skew_vulnerable = skew_vulnerable;
-
-    return (rev_list *)head;
+    forest->errcount = err;
+    forest->total_revisions = total_revisions;
+    forest->skew_vulnerable = skew_vulnerable;
+    forest->head = head;
 }
 
 /* end */

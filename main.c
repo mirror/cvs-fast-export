@@ -158,11 +158,11 @@ main(int argc, char **argv)
 	ExecuteExport, ExecuteGraph,
     } execution_mode;
 
-    rev_list	    *rl, *head;
+    rev_list	    *rl;
     time_t          fromtime = 0;
     bool            branchorder = false;
     execution_mode  exec_mode = ExecuteExport;
-    stats_t         stats;
+    forest_t        forest;
     char	    *revision_map = NULL;
     bool	    reposurgeon = false;
     bool	    force_dates = false;
@@ -301,10 +301,10 @@ main(int argc, char **argv)
 
     /* build CVS structures by parsing masters; may read stdin */
     analyzer.generate = exec_mode == ExecuteExport;
-    head = analyze_masters(argc, argv, &analyzer, &stats);
+    analyze_masters(argc, argv, &analyzer, &forest);
 
     /* commit set coalescence happens here */
-    rl = rev_list_merge(head);
+    rl = rev_list_merge(forest.head);
 #ifdef ORDERDEBUG2
     dump_rev_tree(head, stderr);
 #endif /* ORDERDEBUG2 */
@@ -323,15 +323,15 @@ main(int argc, char **argv)
 	    break;
 	}
     }
-    if (stats.skew_vulnerable > 0 && stats.filecount > 1 && !force_dates) {
-	time_t udate = stats.skew_vulnerable;
+    if (forest.skew_vulnerable > 0 && forest.filecount > 1 && !force_dates) {
+	time_t udate = forest.skew_vulnerable;
 	announce("no commitids before %s.\n", cvstime2rfc3339(udate));
     }
     if (rl)
 	rev_list_free(rl, false);
-    while (head) {
-	rl = head;
-	head = head->next;
+    while (forest.head) {
+	rl = forest.head;
+	forest.head = forest.head->next;
 	rev_list_free(rl, true);
     }
     discard_atoms();
@@ -340,7 +340,7 @@ main(int argc, char **argv)
     git_commit_cleanup();
     export_wrap();
     free_author_map();
-    return stats.errcount > 0;
+    return forest.errcount > 0;
 }
 
 /* end */

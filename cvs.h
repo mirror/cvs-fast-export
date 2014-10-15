@@ -487,13 +487,14 @@ typedef struct _tag {
 	const char *last;
 } tag_t;
 
-typedef struct _stats {
+typedef struct _forest {
     int filecount;
     off_t textsize;
     int errcount;
+    rev_list *head;
     cvstime_t skew_vulnerable;
     unsigned int total_revisions;
-} stats_t;
+} forest_t;
 
 extern tag_t *all_tags;
 void tag_commit(cvs_commit *c, const char *name, cvs_file *cvsfile);
@@ -508,8 +509,8 @@ typedef struct _options {
     ssize_t striplen;
 } options_t;
 
-rev_list *
-analyze_masters(int argc, char *argv[0], options_t *options, stats_t *stats);
+void
+analyze_masters(int argc, char *argv[0], options_t *options, forest_t *forest);
 
 bool
 cvs_is_head(const cvs_number *n);
