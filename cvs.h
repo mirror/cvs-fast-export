@@ -126,7 +126,7 @@ typedef struct node {
     flag starts;
 } node_t;
 
-#define NODE_HASH_SIZE	997
+#define NODE_HASH_SIZE	97
 
 typedef struct nodehash {
     node_t *table[NODE_HASH_SIZE];
