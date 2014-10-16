@@ -267,7 +267,7 @@ main(int argc, char **argv)
 	    import_options.striplen = strlen(optarg) + 1;
 	    break;
 	case 'p':
-	    export_options.progress = true;
+	    progress = true;
 	    break;
 	case 'i':
 	    export_options.fromtime = convert_date(optarg);

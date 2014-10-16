@@ -297,8 +297,8 @@ void analyze_masters(int argc, char *argv[],
 
     generators = xcalloc(sizeof(generator_t), total_files, __func__);
 
-    progress_end("done, %ldKB in %d files", 
-		 (long)(forest->textsize/1024), forest->filecount);
+    progress_end("done, %.3fKB in %d files",
+		 (forest->textsize/1024.0), forest->filecount);
 
     /* things that must be visible to inner functions */
     load_current_file = 0;

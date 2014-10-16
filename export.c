@@ -774,8 +774,8 @@ bool export_commits(forest_t *forest, export_options_t *opts)
     int n;
     rev_list *rl = forest->head;
     generator_t *gp;
-    char *tmp = getenv("TMPDIR");
     int recount = 0;
+    char msgbuf[100];
 
     if (opts->fromtime > 0)
 	opts->reportmode = canonical;
@@ -788,6 +788,7 @@ bool export_commits(forest_t *forest, export_options_t *opts)
 
     if (opts->reportmode == canonical)
     {
+	char *tmp = getenv("TMPDIR");
 	if (tmp == NULL) 
 	    tmp = "/tmp";
 	seqno = mark = 0;
@@ -813,7 +814,12 @@ bool export_commits(forest_t *forest, export_options_t *opts)
     }
     progress_end("done");
 
-    progress_begin("Save: ", export_total_commits);
+    if (progress)
+    {
+	snprintf(msgbuf, sizeof(msgbuf), "Saving in %s order: ",
+		opts->reportmode == fast ? "fast" : "canonical");
+	progress_begin(msgbuf, export_total_commits);
+    }
 
     if (opts->reportmode == fast) {
 	/*
