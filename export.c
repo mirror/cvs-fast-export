@@ -786,12 +786,15 @@ bool export_commits(forest_t *forest, export_options_t *opts)
 	    opts->reportmode = fast;
     }
 
-    if (tmp == NULL) 
-    	tmp = "/tmp";
-    seqno = mark = 0;
-    snprintf(blobdir, sizeof(blobdir), "%s/cvs-fast-export-XXXXXX", tmp);
-    if (mkdtemp(blobdir) == NULL)
-	fatal_error("temp dir creation failed\n");
+    if (opts->reportmode == canonical)
+    {
+	if (tmp == NULL) 
+	    tmp = "/tmp";
+	seqno = mark = 0;
+	snprintf(blobdir, sizeof(blobdir), "%s/cvs-fast-export-XXXXXX", tmp);
+	if (mkdtemp(blobdir) == NULL)
+	    fatal_error("temp dir creation failed\n");
+    }
 
     progress_begin("Generating snapshots...", forest->filecount);
     for (gp = forest->generators; 
