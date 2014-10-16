@@ -907,12 +907,12 @@ static void generate_wrap(generator_t *gen)
 }
 
 void generate_files(generator_t *gen,
-		    bool enable_keyword_expansion,
-		    void(*hook)(node_t *node, void *buf, size_t len))
+		    export_options_t *opts,
+		    void(*hook)(node_t *node, void *buf, size_t len, export_options_t *opts))
 /* export all the revision states of a CVS/RCS master through a hook */
 {
     editbuffer_t *eb = &gen->editbuffer;
-    node_t *node = generate_setup(gen, enable_keyword_expansion);
+    node_t *node = generate_setup(gen, opts->enable_keyword_expansion);
 
     if (node == NULL)
 	return;
@@ -927,7 +927,7 @@ void generate_files(generator_t *gen,
 		expandedit(eb);
 	    else
 		snapshotedit(eb);
-	    hook(node, out_buffer_text(eb), out_buffer_count(eb));
+	    hook(node, out_buffer_text(eb), out_buffer_count(eb), opts);
 	    out_buffer_cleanup(eb);
 	}
 	node = node->down;

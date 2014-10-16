@@ -2,7 +2,7 @@
 
 Repository head:
     When incremental dumping, suppress tags associated with old commits.
-    Major performance improvements.
+    Major performance improvements; see also the new -F and -C options.
 
 1.20: 2014-10-08
     Files not ending with ,v are now ignored unless the new -P option is on.

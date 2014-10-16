@@ -195,10 +195,11 @@ main(int argc, char **argv)
             { "promiscuous",        0, 0, 'P' },
             { "incremental",        1, 0, 'i' },
             { "threads",	    0, 0, 't' },
-            { "branchorder",        0, 0, 'B' },	/* undocumented */
+            { "canonical",          0, 0, 'C' },
+            { "fast",               0, 0, 'F' },
 	    { "sizes",              0, 0, 'S' },	/* undocumented */
 	};
-	int c = getopt_long(argc, argv, "+hVw:grvA:R:Tke:s:pPi:t:BS", options, NULL);
+	int c = getopt_long(argc, argv, "+hVw:grvA:R:Tke:s:pPi:t:CFS", options, NULL);
 	if (c < 0)
 	    break;
 	switch(c) {
@@ -278,8 +279,11 @@ main(int argc, char **argv)
 	    announce("not built with thread support, -t option ignored.\n");
 #endif
 	    break;
-	case 'B':
-	    export_options.branchorder = true;
+	case 'C':
+	    export_options.reportmode = canonical;
+	    break;
+	case 'F':
+	    export_options.reportmode = fast;
 	    break;
 	case 'S':
 	    print_sizes();

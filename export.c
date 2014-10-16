@@ -28,6 +28,15 @@
 #include <time.h>
 
 /*
+ * Below this byte-volume threshold, default to canonical order.
+ * Above it, default to fast.  Note that this is total volume of
+ * the CVS masters - it would be better to use total snapshot volume
+ * but we don't have that at the time the check is done. This threshold is
+ * mainly present for backward compatibility and is simewhat arbitrary.
+ */
+#define SMALL_REPOSITORY	1000000
+
+/*
  * Blob compression with zlib is not enabled by default because, (a) in general,
  * any repository large enough to hit a disk-space limit is likely to hit
  * a core limit on metadata sooner, and (b) compression costs time.  The
@@ -179,8 +188,10 @@ static char *blobfile(const char *basename,
     return path;
 }
 
-static void export_blob(node_t *node, void *buf, const size_t len)
-/* save the blob where it will be available for random access */
+static void export_blob(node_t *node, 
+			void *buf, const size_t len,
+			export_options_t *opts)
+/* output the blob, or save where it will be available for random access */
 {
     char path[PATH_MAX];
     size_t extralen = 0;
@@ -195,34 +206,47 @@ static void export_blob(node_t *node, void *buf, const size_t len)
     }
 
     node->file->serial = seqno_next();
-    blobfile(node->file->master->name, node->file->serial, true, path);
+    if (opts->reportmode == fast) {
+	/* FIXME: write the mark, too */
+	fprintf(stdout, "data %zd\n", len + extralen);
+	if (extralen > 0)
+	    fwrite(CVS_IGNORES, extralen, sizeof(char), stdout);
+	fwrite(buf, len, sizeof(char), stdout);
+	fputc('\n', stdout);
+	(void)fclose(stdout);
+    }
+    else
+    {
+	blobfile(node->file->master->name, node->file->serial, true, path);
 #ifndef ZLIB
-    wfp = fopen(path, "w");
+	wfp = fopen(path, "w");
 #else
-    /*
-     * Blobs are written compressed.  This costs a little compression time,
-     * but we get it back in reduced disk seeks.
-     */
-    errno = 0;
-    wfp = gzopen(path, "w");
+	/*
+	 * Blobs are written compressed.  This costs a little compression time,
+	 * but we get it back in reduced disk seeks.
+	 */
+	errno = 0;
+	wfp = gzopen(path, "w");
 #endif
-    if (wfp == NULL)
-	fatal_error("blobfile open of %s: %s (%d)", path, strerror(errno), errno);
+	if (wfp == NULL)
+	    fatal_error("blobfile open of %s: %s (%d)", 
+			path, strerror(errno), errno);
 #ifndef ZLIB
-    fprintf(wfp, "data %zd\n", len + extralen);
-    if (extralen > 0)
-	fwrite(CVS_IGNORES, extralen, sizeof(char), wfp);
-    fwrite(buf, len, sizeof(char), wfp);
-    fputc('\n', wfp);
-    (void)fclose(wfp);
+	fprintf(wfp, "data %zd\n", len + extralen);
+	if (extralen > 0)
+	    fwrite(CVS_IGNORES, extralen, sizeof(char), wfp);
+	fwrite(buf, len, sizeof(char), wfp);
+	fputc('\n', wfp);
+	(void)fclose(wfp);
 #else
-    gzprintf(wfp, "data %zd\n", len + extralen);
-    if (extralen > 0)
-	gzwrite(CVS_IGNORES, extralen, sizeof(char), wfp);
-    gzwrite(wfp, buf, len);
-    gzputc(wfp, '\n');
-    (void)gzclose(wfp);
+	gzprintf(wfp, "data %zd\n", len + extralen);
+	if (extralen > 0)
+	    gzwrite(CVS_IGNORES, extralen, sizeof(char), wfp);
+	gzwrite(wfp, buf, len);
+	gzputc(wfp, '\n');
+	(void)gzclose(wfp);
 #endif
+    }
 }
 
 static int unlink_cb(const char *fpath, 
@@ -542,7 +566,7 @@ static void export_commit(git_commit *commit,
 	if (op2->op == 'M' && !op2->rev->emitted)
 	{
 	    markmap[op2->rev->serial] = ++mark;
-	    if (report) {
+	    if (report && opts->reportmode == canonical) {
 		char path[PATH_MAX];
 		char *fn = blobfile(op2->path, op2->rev->serial, false, path);
 #ifndef ZLIB
@@ -753,6 +777,15 @@ bool export_commits(forest_t *forest, export_options_t *opts)
     char *tmp = getenv("TMPDIR");
     int recount = 0;
 
+    if (opts->fromtime > 0)
+	opts->reportmode = canonical;
+    else if (opts->reportmode == adaptive) {
+	if (forest->textsize <= SMALL_REPOSITORY)
+	    opts->reportmode = canonical;
+        else
+	    opts->reportmode = fast;
+    }
+
     if (tmp == NULL) 
     	tmp = "/tmp";
     seqno = mark = 0;
@@ -764,9 +797,7 @@ bool export_commits(forest_t *forest, export_options_t *opts)
     for (gp = forest->generators; 
 	 gp < forest->generators + forest->filecount;
 	 gp++) {
-	generate_files(gp, 
-		       opts->enable_keyword_expansion, 
-		       export_blob);
+	generate_files(gp, opts, export_blob);
 	generator_free(gp);
 	progress_jump(++recount);
     }
@@ -779,7 +810,7 @@ bool export_commits(forest_t *forest, export_options_t *opts)
 				  "markmap allocation");
     progress_begin("Save: ", export_total_commits);
 
-    if (opts->branchorder) {
+    if (opts->reportmode == fast) {
 	/*
 	 * Dump by branch order, not by commit date.  Slightly faster and
 	 * less memory-intensive, but (a) incremental dump won't work, and
@@ -824,7 +855,7 @@ bool export_commits(forest_t *forest, export_options_t *opts)
     else 
     {
 	/*
-	 * Dump in strict git-fast-export order.
+	 * Dump in canonical (strict git-fast-export) order.
 	 *
 	 * Commits are in reverse order on per-branch lists.  The branches
 	 * have to ship in their current order, otherwise some marks may not 

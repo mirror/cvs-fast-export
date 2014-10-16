@@ -516,7 +516,7 @@ typedef struct _export_options {
     FILE *revision_map;
     bool reposurgeon;
     bool force_dates;
-    bool branchorder;
+    enum {adaptive, fast, canonical} reportmode;
     bool progress;
 } export_options_t;
 
@@ -671,8 +671,8 @@ void
 free_author_map(void);
 
 void generate_files(generator_t *gen, 
-		    bool enable_keyword_expansion,
-		    void (*hook)(node_t *node, void *buf, size_t len));
+		    export_options_t *opts,
+		    void (*hook)(node_t *node, void *buf, size_t len, export_options_t *popts));
 
 rev_dir **
 rev_pack_files(rev_file **files, int nfiles, int *ndr);
