@@ -510,6 +510,7 @@ typedef struct _import_options {
 
 typedef struct _export_options {
     struct timespec start_time;
+    bool enable_keyword_expansion;
     char *branch_prefix; 
     time_t fromtime;
     char *revision_map;
@@ -654,14 +655,11 @@ path_deep_compare(const void *a, const void *b);
 
 #define time_compare(a,b) ((long)(a) - (long)(b))
 
-void 
-export_blob(node_t *node, void *buf, size_t len);
-
 void
 export_init(void);
 
 bool
-export_commits(rev_list *rl, export_options_t *opts);
+export_commits(forest_t *forest, export_options_t *opts);
 
 void
 export_wrap(void);

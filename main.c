@@ -158,10 +158,9 @@ main(int argc, char **argv)
 	ExecuteExport, ExecuteGraph,
     } execution_mode;
 
-    rev_list	    *rl;
+    rev_list	    *premerge;
     execution_mode  exec_mode = ExecuteExport;
     forest_t        forest;
-    bool            enable_keyword_expansion = false;
     export_options_t export = {
 	.branch_prefix = "refs/heads/",
     };
@@ -230,7 +229,7 @@ main(int argc, char **argv)
 	    exec_mode = ExecuteGraph;
 	    break;
         case 'k':
-	    enable_keyword_expansion = true;
+	    export.enable_keyword_expansion = true;
 	    break;
 	case 'v':
 	    analyzer.verbose++;
@@ -293,40 +292,23 @@ main(int argc, char **argv)
     argv += optind-1;
     argc -= optind-1;
 
-    if (exec_mode == ExecuteExport)
-	export_init();
-
     /* build CVS structures by parsing masters; may read stdin */
     analyze_masters(argc, argv, &analyzer, &forest);
 
     /* commit set coalescence happens here */
-    rl = rev_list_merge(forest.head);
+    forest.head = rev_list_merge(premerge = forest.head);
 #ifdef ORDERDEBUG2
     dump_rev_tree(head, stderr);
 #endif /* ORDERDEBUG2 */
 
     /* report on the DAG */
-    if (rl) {
-	generator_t *gp;
-	int recount = 0;
+    if (forest.head) {
 	switch(exec_mode) {
 	case ExecuteGraph:
-	    dump_rev_graph(rl, NULL);
+	    dump_rev_graph(forest.head, NULL);
 	    break;
 	case ExecuteExport:
-	    progress_begin("Generating snapshots...", forest.filecount);
-	    for (gp = forest.generators; 
-		 gp < forest.generators + forest.filecount;
-		 gp++) {
-		generate_files(gp, 
-			       enable_keyword_expansion, 
-			       export_blob);
-		generator_free(gp);
-		progress_jump(++recount);
-	    }
-	    progress_end("done");
-	    export_commits(rl, &export);
-	    save_status_end(&export.start_time);
+	    export_commits(&forest, &export);
 	    break;
 	}
     }
@@ -334,11 +316,11 @@ main(int argc, char **argv)
 	time_t udate = forest.skew_vulnerable;
 	announce("no commitids before %s.\n", cvstime2rfc3339(udate));
     }
-    if (rl)
-	rev_list_free(rl, false);
-    while (forest.head) {
-	rl = forest.head;
-	forest.head = forest.head->next;
+    if (forest.head)
+	rev_list_free(forest.head, false);
+    while (premerge) {
+	rev_list  *rl = premerge;
+	premerge = premerge->next;
 	rev_list_free(rl, true);
     }
     discard_atoms();

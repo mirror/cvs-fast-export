@@ -110,17 +110,6 @@ void save_status_end(const struct timespec *start_time)
     }
 }
 
-void export_init(void)
-{
-    char *tmp = getenv("TMPDIR");
-    if (tmp == NULL) 
-    	tmp = "/tmp";
-    seqno = mark = 0;
-    snprintf(blobdir, sizeof(blobdir), "%s/cvs-fast-export-XXXXXX", tmp);
-    if (mkdtemp(blobdir) == NULL)
-	fatal_error("temp dir creation failed\n");
-}
-
 static char *fileop_name(const char *rectified, char *path)
 {
     size_t rlen = strlen(rectified);
@@ -190,7 +179,7 @@ static char *blobfile(const char *basename,
     return path;
 }
 
-void export_blob(node_t *node, void *buf, const size_t len)
+static void export_blob(node_t *node, void *buf, const size_t len)
 /* save the blob where it will be available for random access */
 {
     char path[PATH_MAX];
@@ -752,7 +741,7 @@ static int sort_by_date(const void *ap, const void *bp)
     }
 }
 
-bool export_commits(rev_list *rl, export_options_t *opts)
+bool export_commits(forest_t *forest, export_options_t *opts)
 /* export a revision list as a git fast-import stream in canonical order */
 {
     rev_ref *h;
@@ -760,6 +749,29 @@ bool export_commits(rev_list *rl, export_options_t *opts)
     git_commit *c;
     int n;
     FILE *revmap = NULL;
+    rev_list *rl = forest->head;
+    generator_t *gp;
+    char *tmp = getenv("TMPDIR");
+    int recount = 0;
+
+    if (tmp == NULL) 
+    	tmp = "/tmp";
+    seqno = mark = 0;
+    snprintf(blobdir, sizeof(blobdir), "%s/cvs-fast-export-XXXXXX", tmp);
+    if (mkdtemp(blobdir) == NULL)
+	fatal_error("temp dir creation failed\n");
+
+    progress_begin("Generating snapshots...", forest->filecount);
+    for (gp = forest->generators; 
+	 gp < forest->generators + forest->filecount;
+	 gp++) {
+	generate_files(gp, 
+		       opts->enable_keyword_expansion, 
+		       export_blob);
+	generator_free(gp);
+	progress_jump(++recount);
+    }
+    progress_end("done");
 
     export_total_commits = export_ncommit(rl);
     /* the +1 is because mark indices are 1-origin, slot 0 always empty */
@@ -934,6 +946,7 @@ bool export_commits(rev_list *rl, export_options_t *opts)
 	fclose(revmap);
 
     progress_end(NULL);
+    save_status_end(&opts->start_time);
     return true;
 }
 
