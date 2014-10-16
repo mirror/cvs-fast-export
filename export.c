@@ -195,11 +195,7 @@ static void export_blob(node_t *node,
 {
     char path[PATH_MAX];
     size_t extralen = 0;
-#ifndef ZLIB
     FILE *wfp;
-#else
-    gzFile wfp;
-#endif
 
     if (strcmp(node->file->master->name, ".cvsignore") == 0) {
 	extralen = sizeof(CVS_IGNORES) - 1;
@@ -218,6 +214,9 @@ static void export_blob(node_t *node,
     }
     else
     {
+#ifdef ZLIB
+	gzFile wfp;
+#endif
 	blobfile(node->file->master->name, node->file->serial, true, path);
 #ifndef ZLIB
 	wfp = fopen(path, "w");
