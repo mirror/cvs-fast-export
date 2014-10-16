@@ -203,8 +203,7 @@ static void export_blob(node_t *node,
 
     node->file->serial = seqno_next();
     if (opts->reportmode == fast) {
-	/* FIXME: markmap isn'tallocated at this point */
-	/* markmap[node->file->serial] = */ ++mark;
+	markmap[node->file->serial] = ++mark;
 	printf("blob\nmark :%d\n", mark);
 	fprintf(stdout, "data %zd\n", len + extralen);
 	if (extralen > 0)
@@ -565,7 +564,8 @@ static void export_commit(git_commit *commit,
     {
 	if (op2->op == 'M' && !op2->rev->emitted)
 	{
-	    markmap[op2->rev->serial] = ++mark;
+	    if (opts->reportmode == canonical)
+		markmap[op2->rev->serial] = ++mark;
 	    if (report && opts->reportmode == canonical) {
 		char path[PATH_MAX];
 		char *fn = blobfile(op2->path, op2->rev->serial, false, path);
@@ -796,6 +796,13 @@ bool export_commits(forest_t *forest, export_options_t *opts)
 	    fatal_error("temp dir creation failed\n");
     }
 
+    export_total_commits = export_ncommit(rl);
+    /* the +1 is because mark indices are 1-origin, slot 0 always empty */
+    markmap = (serial_t *)xcalloc(sizeof(serial_t),
+				  forest->total_revisions + export_total_commits + 1,
+				  "markmap allocation");
+
+    /* export_blob() touches markmap when in fast mode */
     progress_begin("Generating snapshots...", forest->filecount);
     for (gp = forest->generators; 
 	 gp < forest->generators + forest->filecount;
@@ -806,11 +813,6 @@ bool export_commits(forest_t *forest, export_options_t *opts)
     }
     progress_end("done");
 
-    export_total_commits = export_ncommit(rl);
-    /* the +1 is because mark indices are 1-origin, slot 0 always empty */
-    markmap = (serial_t *)xcalloc(sizeof(serial_t),
-				  seqno + export_total_commits + 1,
-				  "markmap allocation");
     progress_begin("Save: ", export_total_commits);
 
     if (opts->reportmode == fast) {
