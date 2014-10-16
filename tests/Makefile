@@ -72,6 +72,8 @@ i_regress: neutralize.map
 	    find $${file}.repo/$${file} -name '*,v' | sort | $(CVS_FAST_EXPORT) -T -i $(THRESHOLD) -A neutralize.map 2>&1 | $(DIFF) $${file}.inc-chk -; \
 	done
 
+# Alas, this produces false failures because of some wacky nondeterminism
+# in the git tools.
 f_regress:
 	@echo "== Fast format compatibility =="
 	@-for file in $(TESTLOADS); do \
