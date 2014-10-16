@@ -513,7 +513,7 @@ typedef struct _export_options {
     bool enable_keyword_expansion;
     char *branch_prefix; 
     time_t fromtime;
-    char *revision_map;
+    FILE *revision_map;
     bool reposurgeon;
     bool force_dates;
     bool branchorder;

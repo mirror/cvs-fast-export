@@ -422,7 +422,6 @@ static void dump_commit(const git_commit *commit, FILE *fp)
 static void export_commit(git_commit *commit,
 			  const char *branch,
 			  const bool report,
-			  FILE *revmap,
 			  const export_options_t *opts)
 /* export a commit(and the blobs it is the first to reference) */
 {
@@ -443,7 +442,7 @@ static void export_commit(git_commit *commit,
 
     if (!s_gitignore) s_gitignore = atom(".gitignore");
 
-    if (opts->reposurgeon || revmap != NULL)
+    if (opts->reposurgeon || opts->revision_map != NULL)
     {
 	revpairs = xmalloc((revpairsize = 1024), "revpair allocation");
 	revpairs[0] = '\0';
@@ -491,7 +490,7 @@ static void export_commit(git_commit *commit,
 		    op = operations + noperations - OP_CHUNK;
 		}
 
-		if (revmap != NULL || opts->reposurgeon) {
+		if (opts->revision_map != NULL || opts->reposurgeon) {
 		    char fr[BUFSIZ];
 		    stringify_revision(f->master->name, 
 				  " ", &f->number, fr, sizeof fr);
@@ -640,12 +639,12 @@ static void export_commit(git_commit *commit,
     }
     free(operations);
 
-    if (revmap) {
+    if (opts->revision_map) {
 	char *cp;
 	for (cp = revpairs; *cp; cp++) {
 	    if (*cp == '\n')
-		fprintf(revmap, " :%d", here);
-	    fputc(*cp, revmap);
+		fprintf(opts->revision_map, " :%d", here);
+	    fputc(*cp, opts->revision_map);
 	}
     }
     if (opts->reposurgeon) 
@@ -653,7 +652,7 @@ static void export_commit(git_commit *commit,
 	if (report)
 	    printf("property cvs-revision %zd %s", strlen(revpairs), revpairs);
     }
-    if (opts->reposurgeon || revmap != NULL)
+    if (opts->reposurgeon || opts->revision_map != NULL)
 	free(revpairs);
 
     if (report)
@@ -749,7 +748,6 @@ bool export_commits(forest_t *forest, export_options_t *opts)
     tag_t *t;
     git_commit *c;
     int n;
-    FILE *revmap = NULL;
     rev_list *rl = forest->head;
     generator_t *gp;
     char *tmp = getenv("TMPDIR");
@@ -779,9 +777,6 @@ bool export_commits(forest_t *forest, export_options_t *opts)
     markmap = (serial_t *)xcalloc(sizeof(serial_t),
 				  seqno + export_total_commits + 1,
 				  "markmap allocation");
-    if (opts->revision_map != 0)
-	revmap = fopen(opts->revision_map, "w");
-
     progress_begin("Save: ", export_total_commits);
 
     if (opts->branchorder) {
@@ -815,7 +810,7 @@ bool export_commits(forest_t *forest, export_options_t *opts)
 		 * commits, along with any matching tags.
 		 */
 		for (i=n-1; i>=0; i--) {
-		    export_commit(history[i], h->ref_name, true, revmap, opts);
+		    export_commit(history[i], h->ref_name, true, opts);
 		    progress_step();
 		    for (t = all_tags; t; t = t->next)
 			if (t->commit == history[i] && display_date(history[i], markmap[history[i]->serial], opts->force_dates) > opts->fromtime)
@@ -923,7 +918,7 @@ bool export_commits(forest_t *forest, export_options_t *opts)
 		}
 	    }
 	    progress_jump(hp - history);
-	    export_commit(hp->commit, hp->head->ref_name, report, revmap, opts);
+	    export_commit(hp->commit, hp->head->ref_name, report, opts);
 	    for (t = all_tags; t; t = t->next)
 		if (t->commit == hp->commit && display_date(hp->commit, markmap[hp->commit->serial], opts->force_dates) > opts->fromtime)
 		    printf("reset refs/tags/%s\nfrom :%d\n\n", t->name, markmap[hp->commit->serial]);
@@ -941,8 +936,8 @@ bool export_commits(forest_t *forest, export_options_t *opts)
     }
     free(markmap);
 
-    if (revmap != NULL)
-	fclose(revmap);
+    if (opts->revision_map != NULL)
+	fclose(opts->revision_map);
 
     progress_end(NULL);
     save_status_end(&opts->start_time);

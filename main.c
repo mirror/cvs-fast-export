@@ -248,7 +248,9 @@ main(int argc, char **argv)
 	    load_author_map(optarg);
 	    break;
 	case 'R':
-	    export_options.revision_map = optarg;
+	    export_options.revision_map = fopen(optarg, "w");
+	    if (export_options.revision_map == NULL)
+		fatal_error("cannot open %s for revision-map write", optarg);
 	    break;
 	case 'r':
 	    export_options.reposurgeon = true;
