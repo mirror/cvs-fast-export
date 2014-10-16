@@ -207,13 +207,14 @@ static void export_blob(node_t *node,
 
     node->file->serial = seqno_next();
     if (opts->reportmode == fast) {
-	/* FIXME: write the mark, too */
+	/* FIXME: markmap isn'tallocated at this point */
+	/* markmap[node->file->serial] = */ ++mark;
+	printf("blob\nmark :%d\n", mark);
 	fprintf(stdout, "data %zd\n", len + extralen);
 	if (extralen > 0)
 	    fwrite(CVS_IGNORES, extralen, sizeof(char), stdout);
 	fwrite(buf, len, sizeof(char), stdout);
 	fputc('\n', stdout);
-	(void)fclose(stdout);
     }
     else
     {
