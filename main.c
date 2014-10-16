@@ -28,7 +28,7 @@
 int commit_time_window = 300;
 bool progress = false;
 
-static import_options_t analyzer = {
+static import_options_t import_options = {
     .striplen = -1,
 };
 
@@ -161,7 +161,7 @@ main(int argc, char **argv)
     rev_list	    *premerge;
     execution_mode  exec_mode = ExecuteExport;
     forest_t        forest;
-    export_options_t export = {
+    export_options_t export_options = {
 	.branch_prefix = "refs/heads/",
     };
 
@@ -174,7 +174,7 @@ main(int argc, char **argv)
      */
     mallopt(M_TOP_PAD,16*1024*1024); /* grab memory in 16MB chunks */
 #endif /* __GLIBC__ */
-    clock_gettime(CLOCK_REALTIME, &export.start_time);
+    clock_gettime(CLOCK_REALTIME, &export_options.start_time);
 
     /* force times using mktime to be interpreted in UTC */
     setenv("TZ", "UTC", 1);
@@ -229,10 +229,10 @@ main(int argc, char **argv)
 	    exec_mode = ExecuteGraph;
 	    break;
         case 'k':
-	    export.enable_keyword_expansion = true;
+	    export_options.enable_keyword_expansion = true;
 	    break;
 	case 'v':
-	    analyzer.verbose++;
+	    import_options.verbose++;
 #ifdef YYDEBUG
 	    extern int yydebug;
 	    yydebug = 1;
@@ -248,26 +248,26 @@ main(int argc, char **argv)
 	    load_author_map(optarg);
 	    break;
 	case 'R':
-	    export.revision_map = optarg;
+	    export_options.revision_map = optarg;
 	    break;
 	case 'r':
-	    export.reposurgeon = true;
+	    export_options.reposurgeon = true;
 	    break;
 	case 'T':
-	    export.force_dates = true;
+	    export_options.force_dates = true;
 	    break;
 	case 'e':
-	    export.branch_prefix = (char*)xmalloc(strlen(optarg)+15, __func__);
-	    sprintf(export.branch_prefix, "refs/remotes/%s/", optarg);
+	    export_options.branch_prefix = (char*)xmalloc(strlen(optarg)+15, __func__);
+	    sprintf(export_options.branch_prefix, "refs/remotes/%s/", optarg);
 	    break;
 	case 's':
-	    analyzer.striplen = strlen(optarg) + 1;
+	    import_options.striplen = strlen(optarg) + 1;
 	    break;
 	case 'p':
-	    export.progress = true;
+	    export_options.progress = true;
 	    break;
 	case 'i':
-	    export.fromtime = convert_date(optarg);
+	    export_options.fromtime = convert_date(optarg);
 	    break;
 	case 't':
 #ifdef THREADS
@@ -277,7 +277,7 @@ main(int argc, char **argv)
 #endif
 	    break;
 	case 'B':
-	    export.branchorder = true;
+	    export_options.branchorder = true;
 	    break;
 	case 'S':
 	    print_sizes();
@@ -293,7 +293,7 @@ main(int argc, char **argv)
     argc -= optind-1;
 
     /* build CVS structures by parsing masters; may read stdin */
-    analyze_masters(argc, argv, &analyzer, &forest);
+    analyze_masters(argc, argv, &import_options, &forest);
 
     /* commit set coalescence happens here */
     forest.head = rev_list_merge(premerge = forest.head);
@@ -308,13 +308,9 @@ main(int argc, char **argv)
 	    dump_rev_graph(forest.head, NULL);
 	    break;
 	case ExecuteExport:
-	    export_commits(&forest, &export);
+	    export_commits(&forest, &export_options);
 	    break;
 	}
-    }
-    if (forest.skew_vulnerable > 0 && forest.filecount > 1 && !export.force_dates) {
-	time_t udate = forest.skew_vulnerable;
-	announce("no commitids before %s.\n", cvstime2rfc3339(udate));
     }
     if (forest.head)
 	rev_list_free(forest.head, false);

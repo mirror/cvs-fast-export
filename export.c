@@ -947,6 +947,11 @@ bool export_commits(forest_t *forest, export_options_t *opts)
 
     progress_end(NULL);
     save_status_end(&opts->start_time);
+
+    if (forest->skew_vulnerable > 0 && forest->filecount > 1 && !opts->force_dates) {
+	time_t udate = forest->skew_vulnerable;
+	announce("no commitids before %s.\n", cvstime2rfc3339(udate));
+    }
     return true;
 }
 
