@@ -1,0 +1,14 @@
+#!/bin/sh
+#
+# gitwash - accept a stream in fast order and canonicalize it.
+#
+rm -fr /tmp/gitwash*
+mkdir /tmp/gitwash$$
+cd /tmp/gitwash$$
+
+git init --quiet
+git fast-import --quiet
+git fast-export --all
+rm -fr /tmp/gitwash$$
+
+#end

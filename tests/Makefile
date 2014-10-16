@@ -72,6 +72,18 @@ i_regress: neutralize.map
 	    find $${file}.repo/$${file} -name '*,v' | sort | $(CVS_FAST_EXPORT) -T -i $(THRESHOLD) -A neutralize.map 2>&1 | $(DIFF) $${file}.inc-chk -; \
 	done
 
+f_regress:
+	@echo "== Fast format compatibility =="
+	@-for file in $(TESTLOADS); do \
+	    echo -n "  $${file} "; grep '##' $${file}.tst  || echo ' ## (no description)'; \
+	    make --quiet $${file}.repo; \
+	    find $${file}.repo/$${file} -name '*,v' | sort | $(CVS_FAST_EXPORT) -C -T -A neutralize.map 2>&1 | gitwash >canonical$$; \
+	    find $${file}.repo/$${file} -name '*,v' | sort | $(CVS_FAST_EXPORT) -F -T -A neutralize.map 2>&1 | gitwash >fast$$; \
+	    $(DIFF) canonical$$ fast$$; \
+	    rm canonical$$ fast$$; \
+	done
+
+
 
 PYTESTS=t9601 t9602 t9603 t9604 t9605
 PATHSTRIP = sed -e '/\/.*tests/s//tests/'
