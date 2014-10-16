@@ -15,7 +15,7 @@ CVS_FAST_EXPORT = ../cvs-fast-export $(OPTS)
 .repo.checkout:
 	$(CVS) -d :local:${PWD}/$*.repo -Q checkout $* && mv $* $*.checkout
 
-test: s_regress m_regress i_regress t_regress
+test: s_regress m_regress i_regress f_regress t_regress
 	@echo "No diff output is good news."
 
 check: test
@@ -72,11 +72,14 @@ i_regress: neutralize.map
 	    find $${file}.repo/$${file} -name '*,v' | sort | $(CVS_FAST_EXPORT) -T -i $(THRESHOLD) -A neutralize.map 2>&1 | $(DIFF) $${file}.inc-chk -; \
 	done
 
-# Alas, this produces false failures because of some wacky nondeterminism
-# in the git tools.
+# Alas, this produces false failures on branchy repos because of some
+# wacky nondeterminism in the git tools.  Thus we can only test
+# repeatably on linear ones.  There's also some wacky non-idempotency
+# in how git handles timezones.
+LINEAR = basic expand hack1 hack2 hack3 longrev twotag
 f_regress:
 	@echo "== Fast format compatibility =="
-	@-for file in $(TESTLOADS); do \
+	@-for file in $(LINEAR); do \
 	    echo -n "  $${file} "; grep '##' $${file}.tst  || echo ' ## (no description)'; \
 	    make --quiet $${file}.repo; \
 	    find $${file}.repo/$${file} -name '*,v' | sort | $(CVS_FAST_EXPORT) -C -T -A neutralize.map 2>&1 | gitwash >canonical$$; \
