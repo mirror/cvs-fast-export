@@ -311,6 +311,8 @@ main(int argc, char **argv)
 	    break;
 	case ExecuteExport:
 	    export_commits(&forest, &export_options);
+	    if (export_options.revision_map != NULL)
+		fclose(export_options.revision_map);
 	    break;
 	}
     }

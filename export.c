@@ -936,9 +936,6 @@ bool export_commits(forest_t *forest, export_options_t *opts)
     }
     free(markmap);
 
-    if (opts->revision_map != NULL)
-	fclose(opts->revision_map);
-
     progress_end(NULL);
     save_status_end(&opts->start_time);
 
