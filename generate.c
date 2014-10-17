@@ -842,16 +842,40 @@ static void expandedit(editbuffer_t *eb)
 	expandline(eb);
     }
 }
-
+/* snapshotline is mostly called on small text lines
+ * so the buffer is unlikely to get enlarged more than once
+ * and data is unlikely to drop off cachelines before the memcpy
+ */
 static void snapshotline(editbuffer_t *eb, register uchar * l)
 {
-    register int c;
+    int c;
+    struct out_buffer_type *ob = eb->Goutbuf;
+    size_t chars_read = 0;
+    uchar * start = l;
     do {
-	if ((c = *l++) == SDELIM  &&  *l++ != SDELIM)
-	    return;
-	out_putc(eb, c);
+	if ((c = *l++) == SDELIM  &&  *l++ != SDELIM) 
+	    break;
+	chars_read++;
+	if (c == SDELIM) {
+	    // @@ is a memcpy barrier as we're unescaping it
+	    while (ob->end_of_text - ob->ptr < chars_read) {
+	    	out_buffer_enlarge(eb);
+		ob = eb->Goutbuf;
+	    }
+	    memcpy(ob->ptr, start, chars_read);
+	    start = l;
+	    ob->ptr += chars_read;
+	    chars_read = 0;
+	}
     } while (c != '\n');
-
+    if (chars_read != 0) {
+	while (ob->end_of_text - ob->ptr < chars_read) {
+	    out_buffer_enlarge(eb);
+            ob = eb->Goutbuf;
+	}
+	memcpy(ob->ptr, start, chars_read);
+	ob->ptr += chars_read;
+    }
 }
 
 static void snapshotedit(editbuffer_t *eb)
