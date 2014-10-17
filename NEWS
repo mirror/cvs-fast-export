@@ -1,8 +1,8 @@
 		cvs-fast-export project news
 
-Repository head:
+1.21: 2014-10-19
     When incremental dumping, suppress tags associated with old commits.
-    Major performance improvements; see also the new -F and -C options.
+    Performance improved by x8; see also the new -F and -C options.
     New -a optio to dump a list of author IDs found in a repo.
 
 1.20: 2014-10-08
