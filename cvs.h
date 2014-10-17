@@ -517,6 +517,7 @@ typedef struct _export_options {
     bool reposurgeon;
     bool force_dates;
     enum {adaptive, fast, canonical} reportmode;
+    bool authorlist;
     bool progress;
 } export_options_t;
 
@@ -660,6 +661,9 @@ export_init(void);
 
 bool
 export_commits(forest_t *forest, export_options_t *opts);
+
+void
+export_authors(forest_t *forest);
 
 void
 export_wrap(void);

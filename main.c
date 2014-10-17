@@ -155,7 +155,7 @@ int
 main(int argc, char **argv)
 {
     typedef enum _execution_mode {
-	ExecuteExport, ExecuteGraph,
+	ExecuteExport, ExecuteGraph, ExecuteAuthors,
     } execution_mode;
 
     rev_list	    *premerge;
@@ -185,7 +185,8 @@ main(int argc, char **argv)
 	    { "version",	    0, 0, 'V' },
 	    { "verbose",	    0, 0, 'v' },
 	    { "commit-time-window", 1, 0, 'w' },
-	    { "author-map",         1, 0, 'A' },
+	    { "authormap",          1, 0, 'A' },
+	    { "authorlist",         1, 0, 'a' },
 	    { "revision-map",       1, 0, 'R' },
 	    { "reposurgeon",        0, 0, 'r' },
             { "graph",              0, 0, 'g' },
@@ -199,7 +200,7 @@ main(int argc, char **argv)
             { "fast",               0, 0, 'F' },
 	    { "sizes",              0, 0, 'S' },	/* undocumented */
 	};
-	int c = getopt_long(argc, argv, "+hVw:grvA:R:Tke:s:pPi:t:CFS", options, NULL);
+	int c = getopt_long(argc, argv, "+hVw:grvaA:R:Tke:s:pPi:t:CFS", options, NULL);
 	if (c < 0)
 	    break;
 	switch(c) {
@@ -212,6 +213,7 @@ main(int argc, char **argv)
 		   " -k                              Enable keyword expansion\n"
                    " -V --version                    Print version\n"
                    " -w --commit-time-window=WINDOW  Time window for commits(seconds)\n"
+		   " -a --authorlist                 Author map file\n"
 		   " -A --authormap                  Author map file\n"
 		   " -R --revision-map               Revision map file\n"
 		   " -r --reposurgeon                Issue cvs-revision properties\n"
@@ -244,6 +246,9 @@ main(int argc, char **argv)
 	    return 0;
 	case 'w':
 	    commit_time_window = atoi(optarg);
+	    break;
+	case 'a':
+	    exec_mode = ExecuteAuthors;
 	    break;
 	case 'A':
 	    load_author_map(optarg);
@@ -312,6 +317,9 @@ main(int argc, char **argv)
 	switch(exec_mode) {
 	case ExecuteGraph:
 	    dump_rev_graph(forest.head, NULL);
+	    break;
+	case ExecuteAuthors:
+	    export_authors(&forest);
 	    break;
 	case ExecuteExport:
 	    export_commits(&forest, &export_options);

@@ -262,8 +262,6 @@ static int unlink_cb(const char *fpath,
 void export_wrap(void)
 /* clean up after export, removing the blob storage */
 {
-    (void) fputs("done\n", stdout);
-
     nftw(blobdir, unlink_cb, 64, FTW_DEPTH | FTW_PHYS);
 }
 
@@ -765,6 +763,95 @@ static int sort_by_date(const void *ap, const void *bp)
     }
 }
 
+static struct commit_seq *canonicalize(rev_list *rl)
+/* copy/sort merged commits into git-fast-export order */
+{
+    /*
+     * Dump in canonical (strict git-fast-export) order.
+     *
+     * Commits are in reverse order on per-branch lists.  The branches
+     * have to ship in their current order, otherwise some marks may not 
+     * be resolved.
+     *
+     * Dump them all into a common array because (a) we're going to
+     * need to ship them back to front, and (b) we'd prefer to ship
+     * them in canonical order by commit date rather than ordered by
+     * branches.
+     *
+     * But there's a hitch; the branches themselves need to be dumped
+     * in forward order, otherwise not all ancestor marks will be defined.
+     * Since the branch commits need to be dumped in reverse, the easiest
+     * way to arrange this is to reverse the branches in the array, fill
+     * the array in forward order, and dump it forward order.
+     */
+    struct commit_seq *history;
+    int n;
+    int branchbase;
+    rev_ref *h;
+    git_commit *c;
+
+    history = (struct commit_seq *)xcalloc(export_total_commits, 
+					   sizeof(struct commit_seq),
+					   "export");
+#ifdef ORDERDEBUG
+    fputs("Export phase 1:\n", stderr);
+#endif /* ORDERDEBUG */
+    branchbase = 0;
+    for (h = rl->heads; h; h = h->next) {
+	if (!h->tail) {
+	    int i = 0, branchlength = 0;
+	    /* PUNNING: see the big comment in cvs.h */ 
+	    for (c = (git_commit *)h->commit; c; c = (c->tail ? NULL : c->parent))
+		branchlength++;
+	    /* PUNNING: see the big comment in cvs.h */ 
+	    for (c = (git_commit *)h->commit; c; c = (c->tail ? NULL : c->parent)) {
+		/* copy commits in reverse order into this branch's span */
+		n = branchbase + branchlength - (i + 1);
+		history[n].commit = c;
+		history[n].head = h;
+		i++;
+#ifdef ORDERDEBUG
+		fprintf(stderr, "At n = %d, i = %d\n", n, i);
+		dump_commit(c, stderr);
+#endif /* ORDERDEBUG */
+	    }
+	    branchbase += branchlength;
+	}
+    }
+
+    return history;
+}
+
+void export_authors(forest_t *forest)
+/* dump a list of author IDs in the repository */
+{
+    const char **authors;
+    int i, nauthors = 0;
+    size_t alloc;
+    authors = NULL;
+    alloc = 0;
+    export_total_commits = export_ncommit(forest->head);
+    struct commit_seq *hp, *history = canonicalize(forest->head);
+
+    for (hp = history; hp < history + export_total_commits; hp++) {
+	for (i = 0; i < nauthors; i++) {
+	    if (authors[i] == hp->commit->author)
+		goto duplicate;
+	}
+	if (nauthors >= alloc) {
+	    alloc += 1024;
+	    authors = xrealloc(authors, sizeof(char*) * alloc, "author list");
+	}
+	authors[nauthors++] = hp->commit->author;
+    duplicate:;
+    }
+
+    for (i = 0; i < nauthors; i++)
+	printf("%s\n", authors[i]);
+
+    free(authors);
+}
+
 bool export_commits(forest_t *forest, export_options_t *opts)
 /* export a revision list as a git fast-import stream in canonical order */
 {
@@ -864,57 +951,11 @@ bool export_commits(forest_t *forest, export_options_t *opts)
 	}
     }
     else 
-    {
-	/*
-	 * Dump in canonical (strict git-fast-export) order.
-	 *
-	 * Commits are in reverse order on per-branch lists.  The branches
-	 * have to ship in their current order, otherwise some marks may not 
-	 * be resolved.
-	 *
-	 * Dump them all into a common array because (a) we're going to
-	 * need to ship them back to front, and (b) we'd prefer to ship
-	 * them in canonical order by commit date rather than ordered by
-	 * branches.
-	 *
-	 * But there's a hitch; the branches themselves need to be dumped
-	 * in forward order, otherwise not all ancestor marks will be defined.
-	 * Since the branch commits need to be dumped in reverse, the easiest
-	 * way to arrange this is to reverse the branches in the array, fill
-	 * the array in forward order, and dump it forward order.
-	 */
+    {	
 	struct commit_seq *history, *hp;
 	bool sortable;
-	int branchbase;
 
-	history = (struct commit_seq *)xcalloc(export_total_commits, 
-					       sizeof(struct commit_seq),
-					       "export");
-#ifdef ORDERDEBUG
-	fputs("Export phase 1:\n", stderr);
-#endif /* ORDERDEBUG */
-	branchbase = 0;
-	for (h = rl->heads; h; h = h->next) {
-	    if (!h->tail) {
-		int i = 0, branchlength = 0;
-		/* PUNNING: see the big comment in cvs.h */ 
-		for (c = (git_commit *)h->commit; c; c = (c->tail ? NULL : c->parent))
-		    branchlength++;
-		/* PUNNING: see the big comment in cvs.h */ 
-		for (c = (git_commit *)h->commit; c; c = (c->tail ? NULL : c->parent)) {
-		    /* copy commits in reverse order into this branch's span */
-		    n = branchbase + branchlength - (i + 1);
-		    history[n].commit = c;
-		    history[n].head = h;
-		    i++;
-#ifdef ORDERDEBUG
-		    fprintf(stderr, "At n = %d, i = %d\n", n, i);
-		    dump_commit(c, stderr);
-#endif /* ORDERDEBUG */
-		}
-		branchbase += branchlength;
-	    }
-	}
+	history = canonicalize(rl);
  
 #ifdef ORDERDEBUG2
 	fputs("Export phase 2:\n", stderr);
@@ -980,6 +1021,8 @@ bool export_commits(forest_t *forest, export_options_t *opts)
 
     progress_end(NULL);
     save_status_end(&opts->start_time);
+
+    fputs("done\n", stdout);
 
     if (forest->skew_vulnerable > 0 && forest->filecount > 1 && !opts->force_dates) {
 	time_t udate = forest->skew_vulnerable;
