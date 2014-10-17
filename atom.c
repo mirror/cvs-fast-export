@@ -83,11 +83,12 @@ atom_bloom(const char *atom)
 static void
 make_bloom(crc32_t crc, bloom_t *b)
 {
-    unsigned k, bit;
+    unsigned k;
     bloomword n = crc;
 
     memset(b, 0, sizeof *b);
     for (k = 0; k < BLOOM_K; k++) {
+	unsigned bit;
         n ^= n >> 12;
         n ^= n << 25;
         n ^= n >> 27;

@@ -193,9 +193,7 @@ static void export_blob(node_t *node,
 			export_options_t *opts)
 /* output the blob, or save where it will be available for random access */
 {
-    char path[PATH_MAX];
     size_t extralen = 0;
-    FILE *wfp;
 
     if (strcmp(node->file->master->name, ".cvsignore") == 0) {
 	extralen = sizeof(CVS_IGNORES) - 1;
@@ -215,7 +213,10 @@ static void export_blob(node_t *node,
     {
 #ifdef ZLIB
 	gzFile wfp;
+#else
+	FILE *wfp;
 #endif
+	char path[PATH_MAX];
 	blobfile(node->file->master->name, node->file->serial, true, path);
 #ifndef ZLIB
 	wfp = fopen(path, "w");
@@ -745,10 +746,10 @@ static int sort_by_date(const void *ap, const void *bp)
 {
     git_commit *ac = ((struct commit_seq *)ap)->commit;
     git_commit *bc = ((struct commit_seq *)bp)->commit;
-    int cmp;
 
     /* older parents drag tied commits back in time (in effect) */ 
     for (;;) {
+	int cmp;
 	if (ac == bc)
 	    return 0;
 	cmp = compare_commit(ac, bc);
@@ -851,6 +852,7 @@ void export_authors(forest_t *forest, export_options_t *opts)
 	printf("%s\n", authors[i]);
 
     free(authors);
+    free(history);
     save_status_end(&opts->start_time);
 }
 
@@ -860,11 +862,9 @@ bool export_commits(forest_t *forest, export_options_t *opts)
     rev_ref *h;
     tag_t *t;
     git_commit *c;
-    int n;
     rev_list *rl = forest->head;
     generator_t *gp;
     int recount = 0;
-    char msgbuf[100];
 
     if (opts->fromtime > 0)
 	opts->reportmode = canonical;
@@ -905,6 +905,7 @@ bool export_commits(forest_t *forest, export_options_t *opts)
 
     if (progress)
     {
+	static char msgbuf[100];
 	snprintf(msgbuf, sizeof(msgbuf), "Saving in %s order: ",
 		opts->reportmode == fast ? "fast" : "canonical");
 	progress_begin(msgbuf, export_total_commits);
@@ -919,6 +920,7 @@ bool export_commits(forest_t *forest, export_options_t *opts)
 	 */
 	git_commit **history;
 	int alloc, i;
+	int n;
 
 	for (h = rl->heads; h; h = h->next) {
 	    if (!h->tail) {

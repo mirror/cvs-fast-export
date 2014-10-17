@@ -235,7 +235,7 @@ main(int argc, char **argv)
 	    export_options.enable_keyword_expansion = true;
 	    break;
 	case 'v':
-	    import_options.verbose++;
+	    import_options.verbose = true;
 #ifdef YYDEBUG
 	    extern int yydebug;
 	    yydebug = 1;

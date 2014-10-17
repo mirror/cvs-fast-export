@@ -69,7 +69,7 @@ rev_branch_cvs(cvs_file *cvs, const cvs_number *branch)
     cvs_commit	*head = NULL;
     cvs_commit	*c, *p, *gc;
     node_t	*node;
-    /* FIXME: these aren't garbage-collected */
+    /* FIXME: these aren't garbage-collected (see also Coverity cues) */
     rev_master  *master = xcalloc(1,sizeof(rev_master), "master construction");
 
     master->name = cvs->export_name;
@@ -100,6 +100,7 @@ rev_branch_cvs(cvs_file *cvs, const cvs_number *branch)
     }
 
     if (head == NULL)
+	/* coverity[leaked_storage] */
 	return NULL;
 
     /*
@@ -132,6 +133,7 @@ rev_branch_cvs(cvs_file *cvs, const cvs_number *branch)
 	}
     }
 
+    /* coverity[leaked_storage] */
     return head;
 }
 

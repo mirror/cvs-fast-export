@@ -120,10 +120,11 @@ PROFILE: gmon.out
 	gprof cvs-fast-export >PROFILE
 
 
-# Weird suppressions are required because of strange tricks in Bison.
+# Weird suppressions are required because of strange tricks in Bison and Flex.
 CSUPPRESSIONS = -U__UNUSED__ -UYYPARSE_PARAM -UYYTYPE_INT16 -UYYTYPE_INT8 \
-	-UYYTYPE_UINT16 -UYYTYPE_UINT8 -UYY_USER_INIT \
-	-Ushort -Usize_t -Uyytext_ptr -Uyyoverflow
+	-UYYTYPE_UINT16 -UYYTYPE_UINT8 -UYY_USER_INIT -UYY_READ_BUF_SIZE \
+	-UYY_NO_INPUT -UECHO -UYY_START_STACK_INCR -UYY_FATAL_ERROR \
+	-Ushort -Usize_t -Uyytext_ptr -Uyyoverflow -U__cplusplus
 cppcheck:
 	cppcheck -I. --template gcc --enable=all $(CSUPPRESSIONS) --suppress=unusedStructMember --suppress=unusedFunction --suppress=unreadVariable --suppress=uselessAssignmentPtrArg --suppress=missingIncludeSystem *.[ch]
 

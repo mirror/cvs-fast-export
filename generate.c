@@ -684,7 +684,6 @@ static int expandline(editbuffer_t *eb)
 		keyreplace(eb, matchresult);
 		e = 1;
 		break;
-	    beak:
 	    default:
 		out_putc(eb, c);
 		r = 0;
