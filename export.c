@@ -79,6 +79,7 @@ static serial_t mark;
 static volatile int seqno;
 static char blobdir[PATH_MAX];
 static serial_t export_total_commits;
+static off_t snapsize = 0;
 
 static int seqno_next(void)
 /* Returns next sequence number, starting with 1 */
@@ -111,8 +112,9 @@ void save_status_end(const struct timespec *start_time)
 	(void)clock_gettime(CLOCK_REALTIME, &now);
 	(void)getrusage(RUSAGE_SELF, &rusage);
 	elapsed = seconds_diff(&now, start_time);
-	fprintf(STATUS, "%d commits in %.6fs (%d commits/sec) using %ldKb.\n",
+	fprintf(STATUS, "%d commits/%.3fM text in %.6fs (%d commits/sec) using %ldKb.\n",
 		export_total_commits,
+		snapsize / 1000000.0,
 		elapsed,
 		(int)(export_total_commits / elapsed),
 		rusage.ru_maxrss);
@@ -194,6 +196,8 @@ static void export_blob(node_t *node,
 /* output the blob, or save where it will be available for random access */
 {
     size_t extralen = 0;
+
+    snapsize += len;
 
     if (strcmp(node->file->master->name, ".cvsignore") == 0) {
 	extralen = sizeof(CVS_IGNORES) - 1;
