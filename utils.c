@@ -139,12 +139,19 @@ static void _progress_print(bool /*newline*/, const char * /*format*/, va_list)
 void
 progress_begin(const char *msg, const int max)
 {
+    static char timestr[128];
+    time_t now = time(NULL);
+    struct tm	*tm = localtime(&now);
 
     if (!progress)
 	return;
-    progress_msg = (char *)msg;
     progress_max = max;
     progress_counter = 0;
+
+    (void)strftime(timestr, sizeof(timestr), "%Y-%m-%dT%H:%M:%SZ: ", tm);
+    strncat(timestr, msg, sizeof(timestr)-1);
+    progress_msg = timestr;
+
     _progress_print(false, "", _unused_va_list);
     clock_gettime(CLOCK_REALTIME, &start);
 }
@@ -152,7 +159,6 @@ progress_begin(const char *msg, const int max)
 void
 progress_step(void)
 {
-
     if (!progress)
 	return;
     progress_counter++;
@@ -162,7 +168,6 @@ progress_step(void)
 void
 progress_jump(const int count)
 {
-
     if (!progress)
 	return;
     progress_counter = count;
