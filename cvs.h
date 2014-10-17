@@ -663,7 +663,7 @@ bool
 export_commits(forest_t *forest, export_options_t *opts);
 
 void
-export_authors(forest_t *forest);
+export_authors(forest_t *forest, export_options_t *opts);
 
 void
 export_wrap(void);

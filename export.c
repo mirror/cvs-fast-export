@@ -822,7 +822,7 @@ static struct commit_seq *canonicalize(rev_list *rl)
     return history;
 }
 
-void export_authors(forest_t *forest)
+void export_authors(forest_t *forest, export_options_t *opts)
 /* dump a list of author IDs in the repository */
 {
     const char **authors;
@@ -833,6 +833,7 @@ void export_authors(forest_t *forest)
     export_total_commits = export_ncommit(forest->head);
     struct commit_seq *hp, *history = canonicalize(forest->head);
 
+    progress_begin("Finding authors...", NO_MAX);
     for (hp = history; hp < history + export_total_commits; hp++) {
 	for (i = 0; i < nauthors; i++) {
 	    if (authors[i] == hp->commit->author)
@@ -850,6 +851,7 @@ void export_authors(forest_t *forest)
 	printf("%s\n", authors[i]);
 
     free(authors);
+    save_status_end(&opts->start_time);
 }
 
 bool export_commits(forest_t *forest, export_options_t *opts)

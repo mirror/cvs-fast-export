@@ -319,7 +319,7 @@ main(int argc, char **argv)
 	    dump_rev_graph(forest.head, NULL);
 	    break;
 	case ExecuteAuthors:
-	    export_authors(&forest);
+	    export_authors(&forest, &export_options);
 	    break;
 	case ExecuteExport:
 	    export_commits(&forest, &export_options);
