@@ -847,6 +847,7 @@ void export_authors(forest_t *forest, export_options_t *opts)
 	authors[nauthors++] = hp->commit->author;
     duplicate:;
     }
+    progress_end("done");
 
     for (i = 0; i < nauthors; i++)
 	printf("%s\n", authors[i]);
