@@ -625,9 +625,6 @@ rev_list_add_head(rev_list *rl, cvs_commit *commit, const char *name, int degree
 rev_diff *
 git_commit_diff(git_commit *old, git_commit *new);
 
-bool
-rev_file_list_has_filename(const rev_file_list *fl, const char *name);
-
 void
 rev_diff_free(rev_diff *d);
 
@@ -648,17 +645,11 @@ path_deep_compare(const void *a, const void *b);
 
 #define time_compare(a,b) ((long)(a) - (long)(b))
 
-void
-export_init(void);
-
 bool
 export_commits(forest_t *forest, export_options_t *opts);
 
 void
 export_authors(forest_t *forest, export_options_t *opts);
-
-void
-export_wrap(void);
 
 void
 save_status_end(const struct timespec *);

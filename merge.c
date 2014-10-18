@@ -364,6 +364,7 @@ git_commit_locate(const rev_ref *branch, const cvs_commit *file)
 
 static rev_ref *
 rev_branch_of_commit(const rev_list *rl, const cvs_commit *commit)
+/* return the branch head that owns a specified commit */
 {
     rev_ref	*h;
     cvs_commit	*c;

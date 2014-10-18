@@ -264,12 +264,6 @@ static int unlink_cb(const char *fpath,
     return rv;
 }
 
-void export_wrap(void)
-/* clean up after export, removing the blob storage */
-{
-    nftw(blobdir, unlink_cb, 64, FTW_DEPTH | FTW_PHYS);
-}
-
 static const char *utc_offset_timestamp(const time_t *timep, const char *tz)
 {
     static char outbuf[BUFSIZ];
@@ -1032,6 +1026,8 @@ bool export_commits(forest_t *forest, export_options_t *opts)
     save_status_end(&opts->start_time);
 
     fputs("done\n", stdout);
+
+    nftw(blobdir, unlink_cb, 64, FTW_DEPTH | FTW_PHYS);
 
     if (forest->skew_vulnerable > 0 && forest->filecount > 1 && !opts->force_dates) {
 	time_t udate = forest->skew_vulnerable;

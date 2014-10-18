@@ -63,6 +63,15 @@ dot_ref_name(FILE *f, const rev_ref *ref)
     fprintf(f, "%s", ref->ref_name);
 }
 
+static bool
+rev_file_list_has_filename(const rev_file_list *fl, const char *name)
+{
+    for (; fl; fl = fl->next)
+	if (fl->file->master->name == name)
+	    return true;
+    return false;
+}
+
 static void dot_commit_graph(git_commit *c, const rev_ref *branch)
 {
     rev_file	*f;

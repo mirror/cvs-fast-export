@@ -73,15 +73,6 @@ rev_list_set_tail(rev_list *rl)
     }
 }
 
-bool
-rev_file_list_has_filename(const rev_file_list *fl, const char *name)
-{
-    for (; fl; fl = fl->next)
-	if (fl->file->master->name == name)
-	    return true;
-    return false;
-}
-
 #ifdef __UNUSED__
 bool
 rev_list_validate(rev_list *rl)
