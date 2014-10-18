@@ -63,7 +63,7 @@ LFLAGS=
 
 OBJS=gram.o lex.o rbtree.o main.o import.o dump.o cvsnumber.o \
 	cvsutil.o revdir.o revlist.o atom.o revcvs.o generate.o export.o \
-	nodehash.o tags.o authormap.o graph.o utils.o
+	nodehash.o tags.o authormap.o graph.o utils.o merge.o
 
 cvs-fast-export: $(OBJS)
 	$(CC) $(CFLAGS) $(OBJS) $(LDFLAGS) $(LIBS) -o $@

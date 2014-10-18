@@ -625,9 +625,6 @@ discard_atoms(void);
 rev_ref *
 rev_list_add_head(rev_list *rl, cvs_commit *commit, const char *name, int degree);
 
-bool
-git_commit_has_file(const git_commit *c, const rev_file *f);
-
 rev_diff *
 git_commit_diff(git_commit *old, git_commit *new);
 
@@ -636,9 +633,6 @@ rev_file_list_has_filename(const rev_file_list *fl, const char *name);
 
 void
 rev_diff_free(rev_diff *d);
-
-rev_ref *
-rev_branch_of_commit(const rev_list *rl, const cvs_commit *commit);
 
 void
 rev_file_free(rev_file *f);
