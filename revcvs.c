@@ -48,17 +48,16 @@ rev_find_cvs_revision(rev_list *rl, const cvs_number *number)
     return NULL;
 }
 
-static void drop_path_component(char *string, const char *const drop)
+static rev_file *
+rev_file_rev(rev_master *master, const cvs_number *n, cvstime_t date)
 {
-    char *c;
-    int  m;
-    m = strlen(drop);
-    while ((c = strstr(string, drop)) &&
-	   (c == string || c[-1] == '/'))
-    {
-	int l = strlen(c);
-	memmove(c, c + m, l - m + 1);
-    }
+    rev_file	*f = master->revs + master->nrevs;
+
+    f->master = master;
+    f->number = *n;
+    f->u.date = date;
+    master->nrevs++;
+    return f;
 }
 
 static cvs_commit *
