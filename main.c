@@ -329,11 +329,11 @@ main(int argc, char **argv)
 	}
     }
     if (forest.head)
-	rev_list_free(forest.head, false);
+	rev_list_free(forest.head);
     while (premerge) {
 	rev_list  *rl = premerge;
 	premerge = premerge->next;
-	rev_list_free(rl, true);
+	rev_list_free(rl);
     }
     discard_atoms();
     discard_tags();

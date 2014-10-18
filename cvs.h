@@ -274,7 +274,6 @@ typedef struct _rev_master {
 
 typedef struct _rev_file {
     /* a CVS file revision state (composed from delta in a master) */
-    struct _rev_file	*link;
     rev_master          *master;
     cvs_number		number;
     union {
@@ -466,7 +465,7 @@ rev_list *
 rev_list_merge(rev_list *lists);
 
 void
-rev_list_free(rev_list *rl, const bool free_files);
+rev_list_free(rev_list *rl);
 
 enum { Ncommits = 256 };
 

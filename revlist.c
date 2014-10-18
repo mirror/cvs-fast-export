@@ -844,37 +844,6 @@ rev_list_merge(rev_list *head)
     return rl;
 }
 
-/*
- * Icky. each file revision may be referenced many times in a single
- * tree. When freeing the tree, queue the file objects to be deleted
- * and clean them up afterwards
- */
-
-static rev_file *rev_files;
-
-static void
-rev_file_mark_for_free(rev_file *f)
-{
-    if (f->master->name) {
-	f->master->name = NULL;
-	f->link = rev_files;
-	rev_files = f;
-    }
-}
-
-static void
-rev_file_free_marked(void)
-{
-    rev_file	*f, *n;
-
-    for (f = rev_files; f; f = n)
-    {
-	n = f->link;
-	free(f);
-    }
-    rev_files = NULL;
-}
-
 rev_file *
 rev_file_rev(rev_master *master, const cvs_number *n, cvstime_t date)
 {
@@ -893,39 +862,33 @@ rev_file_free(rev_file *f)
 }
 
 static void
-rev_commit_free(cvs_commit *commit, const bool free_files)
+rev_commit_free(cvs_commit *commit)
 {
     cvs_commit	*c;
 
     while ((c = commit)) {
 	commit = c->parent;
 	if (--c->refcount == 0)
-	{
-	    if (free_files && c->file)
-		rev_file_mark_for_free(c->file);
 	    free(c);
-	}
     }
 }
 
 static void
-rev_head_free(rev_ref *head, const bool free_files)
+rev_head_free(rev_ref *head)
 {
     rev_ref	*h;
 
     while ((h = head)) {
 	head = h->next;
-	rev_commit_free(h->commit, free_files);
+	rev_commit_free(h->commit);
 	free(h);
     }
 }
 
 void
-rev_list_free(rev_list *rl, const bool free_files)
+rev_list_free(rev_list *rl)
 {
-    rev_head_free(rl->heads, free_files);
-    if (free_files)
-	rev_file_free_marked();
+    rev_head_free(rl->heads);
     free(rl);
 }
 
