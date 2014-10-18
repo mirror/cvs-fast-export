@@ -844,37 +844,6 @@ rev_list_merge(rev_list *head)
     return rl;
 }
 
-static void
-rev_commit_free(cvs_commit *commit)
-{
-    cvs_commit	*c;
-
-    while ((c = commit)) {
-	commit = c->parent;
-	if (--c->refcount == 0)
-	    free(c);
-    }
-}
-
-static void
-rev_head_free(rev_ref *head)
-{
-    rev_ref	*h;
-
-    while ((h = head)) {
-	head = h->next;
-	rev_commit_free(h->commit);
-	free(h);
-    }
-}
-
-void
-rev_list_free(rev_list *rl)
-{
-    rev_head_free(rl->heads);
-    free(rl);
-}
-
 void
 rev_list_validate(rev_list *rl)
 {

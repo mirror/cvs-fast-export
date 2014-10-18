@@ -328,13 +328,6 @@ main(int argc, char **argv)
 	    break;
 	}
     }
-    if (forest.head)
-	rev_list_free(forest.head);
-    while (premerge) {
-	rev_list  *rl = premerge;
-	premerge = premerge->next;
-	rev_list_free(rl);
-    }
     discard_atoms();
     discard_tags();
     rev_free_dirs();

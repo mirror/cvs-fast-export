@@ -271,8 +271,10 @@ typedef struct {
 typedef struct _rev_master {
     /* information shared by all revisions of a master */
     const char		*name;
-    struct _rev_file     *revs;
+    struct _rev_file    *revs;
+    struct _cvs_commit  *commits;
     serial_t		nrevs;
+    serial_t		ncommits;
     mode_t		mode;
 } rev_master;
 
@@ -467,9 +469,6 @@ rev_list_cvs(cvs_file *cvs);
 
 rev_list *
 rev_list_merge(rev_list *lists);
-
-void
-rev_list_free(rev_list *rl);
 
 enum { Ncommits = 256 };
 

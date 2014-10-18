@@ -72,7 +72,11 @@ rev_branch_cvs(cvs_file *cvs, const cvs_number *branch)
     rev_master  *master = xcalloc(1,sizeof(rev_master), "master construction");
 
     master->name = cvs->export_name;
-    master->revs = xcalloc(cvs->nversions, sizeof(rev_file), "file slab alloc");
+    master->revs = xcalloc(cvs->nversions, sizeof(rev_file), 
+			   "file slab alloc");
+    master->commits = xcalloc(cvs->nversions, sizeof(cvs_commit),
+			      "commit slab alloc");
+
     n = *branch;
     n.n[n.c-1] = -1;
     for (node = cvs_find_version(cvs, &n); node; node = node->next) {
@@ -81,7 +85,7 @@ rev_branch_cvs(cvs_file *cvs, const cvs_number *branch)
 	cvs_commit *c;
 	if (!v)
 	     continue;
-	c = xcalloc(1, sizeof(cvs_commit), "branch construction");
+	c = master->commits + master->ncommits++;
 	c->date = v->date;
 	c->commitid = v->commitid;
 	c->author = v->author;
