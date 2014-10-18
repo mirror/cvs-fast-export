@@ -158,7 +158,7 @@ cvs_commit_date_sort(cvs_commit **commits, int ncommit)
 
 static bool
 git_commit_has_file(const git_commit *c, const rev_file *f)
-/* does this commit touch a specified file? */
+/* does this commit touch a specified file revision? */
 {
     int	i, j;
 
@@ -175,7 +175,7 @@ git_commit_has_file(const git_commit *c, const rev_file *f)
 
 static bool
 commit_time_close(const cvstime_t a, const cvstime_t b)
-/* are two timestamps within the commit-coalescence window? */
+/* are two timestamps within the commit-coalescence window of each other? */
 {
     long	diff = (long)a - (long)b;
     if (diff < 0) diff = -diff;
@@ -383,23 +383,19 @@ rev_branch_of_commit(const rev_list *rl, const cvs_commit *commit)
     return NULL;
 }
 
-/*
- * Time of first commit along entire history
- */
 static cvstime_t
 cvs_commit_first_date(cvs_commit *commit)
+/* return time of first commit along entire history */
 {
     while (commit->parent)
 	commit = commit->parent;
     return commit->date;
 }
 
-/*
- * Merge a set of per-file branches into a global branch
- */
 static void
 rev_branch_merge(rev_ref **branches, int nbranch,
 		  rev_ref *branch, rev_list *rl)
+/* merge a set of per-file branches into a gitspace DAG branch */
 {
     int nlive;
     int n;
@@ -409,17 +405,28 @@ rev_branch_merge(rev_ref **branches, int nbranch,
     git_commit *commit;
     cvs_commit *latest;
     cvs_commit **p;
-    time_t start = 0;
+    time_t birth = 0;
 
+    /*
+     * It is expected that the array of input branches is all CVS branches
+     * tagged with some single branch name. The job of this code its to
+     * build the changeset sequence for the corresponding named git branch,
+     * then graft it to its parent git branch.
+     */
     nlive = 0;
     for (n = 0; n < nbranch; n++) {
 	cvs_commit *c;
 	/*
-	 * Initialize revisions to head of each branch
+	 * Initialize revisions to head of each branch (that is, the
+	 * most recent entry).
 	 */
 	c = revisions[n] = branches[n]->commit;
 	/*
-	 * Compute number of branches with remaining entries
+	 * Compute number of CVS branches that are still live - that is,
+	 * have remaining older CVS file commits for this branch. Non-live
+	 * branches are rachable by parent-of links from the named head
+	 * reference but we're past their branch point from a parent with
+	 * a different name (also in our set of heads).
 	 */
 	if (!c)
 	    continue;
@@ -428,31 +435,47 @@ rev_branch_merge(rev_ref **branches, int nbranch,
 	    continue;
 	}
 	nlive++;
+
+	/*
+	 * This code updates our notion of the start date for the branch -
+	 * that is, the date of the oldest CVS commit contributing to it.
+	 * Once we've walked all the CVS branches, 'srart' should hold
+	 * that oldest commit date.
+	 */
 	while (c && !c->tail) {
-	    if (!start || time_compare(c->date, start) < 0)
-		start = c->date;
+	    if (!birth || time_compare(c->date, birth) < 0)
+		birth = c->date;
 	    c = c->parent;
 	}
 	if (c && (c->file || c->date != c->parent->date)) {
-	    if (!start || time_compare(c->date, start) < 0)
-		start = c->date;
+	    if (!birth || time_compare(c->date, birth) < 0)
+		birth = c->date;
 	}
     }
 
+    /*
+     * This is a sanity check. If any of the commits at our CVS branch
+     * heads is older than the git branch's imputed start date,
+     * something is badly wrong.  In a sane universe with a
+     * synchronous clock this shouldn't be possible, but the CVS
+     * universe is not sane and attempts to do time ordering among
+     * branches can be confused by clock skew on the CVS clients.
+     */
     for (n = 0; n < nbranch; n++) {
 	cvs_commit *c = revisions[n];
 	if (!c->tailed)
 	    continue;
-	if (!start || time_compare(start, c->date) >= 0)
+	if (!birth || time_compare(birth, c->date) >= 0)
 	    continue;
 	if (c->file)
-	    announce("warning - %s too late date through branch %s\n",
+	    announce("warning - %s: too late date through branch %s\n",
 		     c->file->master->name, branch->ref_name);
 	revisions[n] = NULL;
     }
+
     /*
-     * Walk down branches until each one has merged with the
-     * parent branch
+     * Walk down CVS branches creating gitspace commits until each one has
+     * merged with the parent branch.
      */
     while (nlive > 0 && nbranch > 0) {
 	for (n = 0, p = revisions, latest = NULL; n < nbranch; n++) {
@@ -505,10 +528,9 @@ rev_branch_merge(rev_ref **branches, int nbranch,
 		 * If the parent is at the beginning of trunk
 		 * and it is younger than some events on our
 		 * branch, we have old CVS adding file
-		 * independently
-		 * added on another branch.
+		 * independently added on another branch.
 		 */
-		if (start && time_compare(start, to->date) < 0)
+		if (birth && time_compare(birth, to->date) < 0)
 		    goto Kill;
 		/*
 		 * XXX: we still can't be sure that it's
@@ -540,6 +562,7 @@ rev_branch_merge(rev_ref **branches, int nbranch,
 	tail = &commit->parent;
 	prev = commit;
     }
+
     /*
      * Connect to parent branch
      */
@@ -616,9 +639,11 @@ rev_branch_merge(rev_ref **branches, int nbranch,
 	} else 
 	    *tail = git_commit_build(revisions, revisions[0], nbranch);
     }
+
     for (n = 0; n < nbranch; n++)
 	if (revisions[n])
 	    revisions[n]->tailed = false;
+
     free(revisions);
     /* PUNNING: see the big comment in cvs.h */ 
     branch->commit = (cvs_commit *)head;

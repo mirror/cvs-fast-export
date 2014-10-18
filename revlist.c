@@ -45,7 +45,7 @@ rev_list_add_head(rev_list *rl, cvs_commit *commit,
 
 void
 rev_list_set_tail(rev_list *rl)
-/* set tail bits so we can walk through each conmit in a revlist exactly ince */
+/* set tail bits so we can walk through each commit in a revlist exactly once */
 {
     rev_ref	*head;
     cvs_commit	*c;
