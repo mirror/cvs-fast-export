@@ -269,6 +269,8 @@ typedef struct {
 typedef struct _rev_master {
     /* information shared by all revisions of a master */
     const char		*name;
+    struct _rev_file     *revs;
+    serial_t		nrevs;
     mode_t		mode;
 } rev_master;
 

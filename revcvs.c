@@ -73,6 +73,7 @@ rev_branch_cvs(cvs_file *cvs, const cvs_number *branch)
     rev_master  *master = xcalloc(1,sizeof(rev_master), "master construction");
 
     master->name = cvs->export_name;
+    master->revs = xcalloc(cvs->nversions, sizeof(rev_file), "file slab alloc");
     n = *branch;
     n.n[n.c-1] = -1;
     for (node = cvs_find_version(cvs, &n); node; node = node->next) {
@@ -523,6 +524,10 @@ rev_list_set_refs(rev_list *rl, cvs_file *cvsfile)
  * Dead file revisions get an extra rev_file object which may be
  * needed during branch merging. Clean those up before returning
  * the resulting rev_list
+ *
+ * (Note: This code used to dealloc individual file objects before
+ * we switched to slab allocation of these objects; it may no longer 
+ * be necessary now.)
  */
 
 static void
@@ -536,8 +541,8 @@ rev_list_free_dead_files(rev_list *rl)
 	    continue;
 	for (c = h->commit; c; c = c->parent) {
 	    if (c->dead) {
-		rev_file_free(c->file);
-		c->file = 0;
+		/* FIXME: does this matter amy more? */
+		c->file = NULL;
 	    }
 	    if (c->tail)
 		break;

@@ -847,18 +847,13 @@ rev_list_merge(rev_list *head)
 rev_file *
 rev_file_rev(rev_master *master, const cvs_number *n, cvstime_t date)
 {
-    rev_file	*f = xcalloc(1, sizeof(rev_file), "allocating file rev");
+    rev_file	*f = master->revs + master->nrevs;
 
     f->master = master;
     f->number = *n;
     f->u.date = date;
+    master->nrevs++;
     return f;
-}
-
-void
-rev_file_free(rev_file *f)
-{
-    free(f);
 }
 
 static void
