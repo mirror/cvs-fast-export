@@ -211,9 +211,9 @@ cvs_commit_match(const cvs_commit *a, const cvs_commit *b)
 static rev_file **files = NULL;
 static int	    sfiles = 0;
 
-void
+static void
 git_commit_cleanup(void)
-/* entry point -- clean up after rev list merge */
+/* clean up after rev list merge */
 {
     if (files) {
 	free(files);
@@ -791,6 +791,9 @@ rev_list_merge(rev_list *head)
     progress_end(NULL);
     progress_begin("Validate...", NO_MAX);
     rev_list_validate(rl);
+
+    git_commit_cleanup();
+
     progress_end(NULL);
     return rl;
 }
@@ -874,4 +877,4 @@ rev_diff_free(rev_diff *d)
     free(d);
 }
 
-// end
+/* end */

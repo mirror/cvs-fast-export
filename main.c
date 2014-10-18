@@ -331,7 +331,6 @@ main(int argc, char **argv)
     discard_atoms();
     discard_tags();
     rev_free_dirs();
-    git_commit_cleanup();
     export_wrap();
     free_author_map();
     return forest.errcount > 0;

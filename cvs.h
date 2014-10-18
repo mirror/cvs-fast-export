@@ -680,9 +680,6 @@ void
 rev_free_dirs(void);
     
 void
-git_commit_cleanup(void);
-
-void
 rbtree_insert(rbtree_node **root, const void *key, void *value,
               int (*compare)(const void* key1, const void* key2));
 
