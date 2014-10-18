@@ -244,7 +244,7 @@ typedef struct _editbuffer {
 typedef struct _generator {
     /* isolare parts of a CVS file context required for snapshot generation */
     const char		*master_name;
-    const char 		*expand;
+    enum expand_mode    expand;
     cvs_version		*versions;
     cvs_patch		*patches;
     nodehash_t		nodehash;
@@ -523,6 +523,8 @@ typedef struct _export_options {
 
 void
 analyze_masters(int argc, char *argv[0], import_options_t *options, forest_t *forest);
+
+enum expand_mode expand_override(char const *s);
 
 bool
 cvs_is_head(const cvs_number *n);

@@ -215,7 +215,7 @@ static int latin1_whitespace(const uchar c)
     return (c == ' ' || (c >= '\b' && c <= '\r' && c != '\n'));
 }
 
-static enum expand_mode expand_override(char const *s)
+enum expand_mode expand_override(char const *s)
 {
     if (s != NULL)
     {
@@ -884,7 +884,7 @@ static node_t *generate_setup(generator_t *gen, bool enable_keyword_expansion)
 	eb->current = eb->stack;
 	eb->Gfilename = gen->master_name;
 	if (enable_keyword_expansion)
-	    eb->Gexpand = expand_override(gen->expand);
+	    eb->Gexpand = gen->expand;
 	else
 	    eb->Gexpand = EXPANDKO;
 	eb->Gabspath = NULL;

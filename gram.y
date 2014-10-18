@@ -115,7 +115,7 @@ header		: HEAD opt_number SEMI
 		| COMMENT DATA SEMI
 		  { free($2); }
 		| EXPAND DATA SEMI
-		  { cvsfile->gen.expand = $2; }
+		{ cvsfile->gen.expand = expand_override($2); }
 		;
 locks		: locks lock
 		|
