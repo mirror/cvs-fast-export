@@ -683,7 +683,7 @@ rev_ref_set_parent(rev_list *rl, rev_ref *dest, rev_list *source)
 
 rev_list *
 rev_list_merge(rev_list *head)
-/* entry point - merge CVS revision kists to a gitspace DAG */
+/* entry point - merge CVS revision lists to a gitspace DAG */
 {
     int		count = rev_list_count(head);
     int		n; /* used only in progress messages */
@@ -694,10 +694,11 @@ rev_list_merge(rev_list *head)
     rev_ref	**refs = xcalloc(count, sizeof(rev_ref *), "list merge");
 
     /*
-     * Find all of the heads across all of the incoming trees
-     * Yes, this is currently very inefficient
+     * Find all of the heads across all of the incoming trees.
+     * Use them to create named branch hets in the output list.
+     * Yes, this is currently very inefficient.
      */
-    progress_begin("Find heads...", count);
+    progress_begin("Make DAG branch heads...", count);
     n = 0;
     for (l = head; l; l = l->next) {
 	for (lh = l->heads; lh; lh = lh->next) {
@@ -791,12 +792,13 @@ rev_list_merge(rev_list *head)
 	free(commits);
     }
     progress_end(NULL);
-    progress_begin("Validate...", NO_MAX);
-    //rev_list_validateo(rl);
+
+    //progress_begin("Validate...", NO_MAX);
+    //rev_list_validate(rl);
+    //progress_end(NULL);
 
     git_commit_cleanup();
 
-    progress_end(NULL);
     return rl;
 }
 
