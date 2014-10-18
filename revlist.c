@@ -844,18 +844,6 @@ rev_list_merge(rev_list *head)
     return rl;
 }
 
-rev_file *
-rev_file_rev(rev_master *master, const cvs_number *n, cvstime_t date)
-{
-    rev_file	*f = master->revs + master->nrevs;
-
-    f->master = master;
-    f->number = *n;
-    f->u.date = date;
-    master->nrevs++;
-    return f;
-}
-
 static void
 rev_commit_free(cvs_commit *commit)
 {

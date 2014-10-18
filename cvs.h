@@ -639,9 +639,6 @@ rev_diff_free(rev_diff *d);
 rev_ref *
 rev_branch_of_commit(const rev_list *rl, const cvs_commit *commit);
 
-rev_file *
-rev_file_rev(rev_master *, const cvs_number *n, const cvstime_t date);
-
 void
 rev_file_free(rev_file *f);
 
