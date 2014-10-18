@@ -82,4 +82,26 @@ rev_file_list_has_filename(const rev_file_list *fl, const char *name)
     return false;
 }
 
+#ifdef __UNUSED__
+bool
+rev_list_validate(rev_list *rl)
+/* entry point - validate the output */
+{
+    rev_ref	*h;
+    cvs_commit	*c;
+    for (h = rl->heads; h; h = h->next) {
+	if (h->tail)
+	    continue;
+	for (c = h->commit; c && c->parent; c = c->parent) {
+	    if (c->tail)
+		break;
+	    if (time_compare(c->date, c->parent->date) < 0)
+		return false;
+	}
+    }
+
+    return true;
+}
+#endif
+
 /* end */

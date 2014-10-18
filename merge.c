@@ -20,11 +20,13 @@
 
 /*
  * These functions analyze a CVS revlist into a changeset DAG.
+ *
+ * rev_list_merge() is the main function.
  */
 
 static rev_ref *
 rev_find_head(rev_list *rl, const char *name)
-/* find a named hesd in a revlist */
+/* find a named head in a revlist */
 {
     rev_ref	*h;
 
@@ -790,29 +792,12 @@ rev_list_merge(rev_list *head)
     }
     progress_end(NULL);
     progress_begin("Validate...", NO_MAX);
-    rev_list_validate(rl);
+    //rev_list_validateo(rl);
 
     git_commit_cleanup();
 
     progress_end(NULL);
     return rl;
-}
-
-void
-rev_list_validate(rev_list *rl)
-{
-    rev_ref	*h;
-    git_commit	*c;
-    for (h = rl->heads; h; h = h->next) {
-	if (h->tail)
-	    continue;
-	/* PUNNING: see the big comment in cvs.h */ 
-	for (c = (git_commit *)h->commit; c && c->parent; c = c->parent) {
-	    if (c->tail)
-		break;
-//	    assert(time_compare(c->date, c->parent->date) >= 0);
-	}
-    }
 }
 
 /*

@@ -752,7 +752,7 @@ rev_list_cvs(cvs_file *cvs)
     rev_list_sort_heads(rl, cvs);
     rev_list_set_tail(rl);
     rev_list_free_dead_files(rl);
-    rev_list_validate(rl);
+    //rev_list_validate(rl);
     return rl;
 }
 

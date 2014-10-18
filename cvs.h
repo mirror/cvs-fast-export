@@ -576,9 +576,6 @@ generator_free(generator_t *gen);
 char *
 cvs_number_string(const cvs_number *n, char *str, size_t maxlen);
 
-long
-time_compare(cvstime_t a, cvstime_t b);
-
 void
 dump_ref_name(FILE *f, rev_ref *ref);
 
@@ -643,7 +640,7 @@ rev_list_set_tail(rev_list *rl);
 bool
 rev_file_later(rev_file *a, rev_file *b);
 
-void
+bool
 rev_list_validate(rev_list *rl);
 
 int
