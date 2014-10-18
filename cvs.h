@@ -386,9 +386,9 @@ typedef struct _rev_ref {
     struct _rev_ref	*parent;	/* link into tree */
     cvs_commit		*commit;
     const char		*ref_name;
-    cvs_number		number;
-    unsigned		depth:7;	/* depth in branching tree (1 is trunk) */
-    unsigned		degree:7;	/* number of digits in original CVS version */
+    cvs_number		number;		/* not used in gitspace */
+    unsigned		depth:7;	/* branch depth in tree (1 is trunk) */
+    unsigned		degree:7;	/* # of digits in original CVS version */
     flag		shown:1;	/* only used in graph emission */
     flag		tail:1;
 } rev_ref;
