@@ -96,6 +96,12 @@ static node_t *hash_number(nodehash_t *context, const cvs_number *const n)
 	if (i == key.c)
 	    return p;
     }
+    /*
+     * While it looks like a good idea, an attempt at slab allocation
+     * failed miserably here.  Noted because tthe regression-test
+     * suite didn't catch it.  Attempting to convert groff did.  The
+     * problem shows as difficult-to-interpret errors under valgrind.
+     */
     p = xcalloc(1, sizeof(node_t), "hash number generation");
     p->number = key;
     p->hash_next = context->table[hash];
