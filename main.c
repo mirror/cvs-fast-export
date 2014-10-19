@@ -218,7 +218,7 @@ main(int argc, char **argv)
 		   " -k                              Enable keyword expansion\n"
                    " -V --version                    Print version\n"
                    " -w --commit-time-window=WINDOW  Time window for commits(seconds)\n"
-		   " -a --authorlist                 Author map file\n"
+		   " -a --authorlist                 Generate list for Author map file\n"
 		   " -A --authormap                  Author map file\n"
 		   " -R --revision-map               Revision map file\n"
 		   " -r --reposurgeon                Issue cvs-revision properties\n"
