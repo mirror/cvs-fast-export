@@ -439,7 +439,7 @@ static void export_commit(git_commit *commit,
 
     if (!s_gitignore) s_gitignore = atom(".gitignore");
 
-    if (opts->reposurgeon || opts->revision_map != NULL)
+    if (opts->reposurgeon || opts->revision_map != NULL || opts->embed_ids)
     {
 	revpairs = xmalloc((revpairsize = 1024), "revpair allocation");
 	revpairs[0] = '\0';
@@ -487,17 +487,20 @@ static void export_commit(git_commit *commit,
 		    op = operations + noperations - OP_CHUNK;
 		}
 
-		if (opts->revision_map != NULL || opts->reposurgeon) {
+		if (opts->revision_map != NULL || opts->reposurgeon || opts->embed_ids) {
 		    char fr[BUFSIZ];
 		    stringify_revision(f->master->name, 
 				  " ", &f->number, fr, sizeof fr);
-		    if (opts->reposurgeon)
+		    if (opts->reposurgeon || opts->embed_ids)
 		    {
-			if (strlen(revpairs) + strlen(fr) + 2 > revpairsize)
+			int xtr = opts->embed_ids?10:2;
+			if (strlen(revpairs) + strlen(fr) + xtr > revpairsize)
 			{
 			    revpairsize *= 2;
 			    revpairs = xrealloc(revpairs, revpairsize, "revpair allocation");
 			}
+			if (opts->embed_ids)
+			    strcat(revpairs, "CVS-ID: ");
 			strcat(revpairs, fr);
 			strcat(revpairs, "\n");
 		    }
@@ -608,7 +611,11 @@ static void export_commit(git_commit *commit,
 	ts = utc_offset_timestamp(&ct, timezone);
 	//printf("author %s <%s> %s\n", full, email, ts);
 	printf("committer %s <%s> %s\n", full, email, ts);
-	printf("data %zd\n%s\n", strlen(commit->log), commit->log);
+	if (!opts->embed_ids)
+	    printf("data %zd\n%s\n", strlen(commit->log), commit->log);
+	else
+	    printf("data %zd\n%s\n%s\n", strlen(commit->log) + strlen(revpairs) + 1,
+		commit->log, revpairs);
 	if (commit->parent)
 	    printf("from :%d\n", markmap[commit->parent->serial]);
 
@@ -650,7 +657,7 @@ static void export_commit(git_commit *commit,
 	if (report)
 	    printf("property cvs-revision %zd %s", strlen(revpairs), revpairs);
     }
-    if (opts->reposurgeon || opts->revision_map != NULL)
+    if (opts->reposurgeon || opts->revision_map != NULL || opts->embed_ids)
 	free(revpairs);
 
     if (report)
