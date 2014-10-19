@@ -440,7 +440,7 @@ rev_branch_merge(rev_ref **branches, int nbranch,
 	 * This code updates our notion of the start date for the
 	 * gitspace branch - that is, the date of the oldest CVS
 	 * commit contributing to it.  Once we've walked all the CVS
-	 * branches, 'srart' should hold that oldest commit date.
+	 * branches, 'start' should hold that oldest commit date.
 	 */
 	while (c && !c->tail) {
 	    if (!birth || time_compare(c->date, birth) < 0)
@@ -508,8 +508,8 @@ rev_branch_merge(rev_ref **branches, int nbranch,
 
 	/*
 	 * Step down each CVS branch in parallel.  Our goal is to land on
-	 * a cliwue of matching CVS commits that will  be made into a 
-	 * matching gitspace commit on the bext time around the loop.
+	 * a clique of matching CVS commits that will  be made into a 
+	 * matching gitspace commit on the next time around the loop.
 	 */
 	nlive = 0;
 	for (n = 0; n < nbranch; n++) {
