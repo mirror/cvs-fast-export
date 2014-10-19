@@ -62,6 +62,10 @@
 #define HASHMIX1(hash, new)	SDBM(hash, new)
 #define HASHMIX2(hash, new)	hash = ((hash << 10) + new)
 
+static nodeslab_t *slab_list = NULL;
+static serial_t slab_alloc = 0;
+static serial_t slab_entries = 0;
+
 inline static unsigned int hash_bucket(const cvs_number key)
 {
     int i;
@@ -96,17 +100,20 @@ static node_t *hash_number(nodehash_t *context, const cvs_number *const n)
 	if (i == key.c)
 	    return p;
     }
-    /*
-     * While it looks like a good idea, an attempt at slab allocation
-     * failed miserably here.  Noted because tthe regression-test
-     * suite didn't catch it.  Attempting to convert groff did.  The
-     * problem shows as difficult-to-interpret errors under valgrind.
-     */
-    p = xcalloc(1, sizeof(node_t), "hash number generation");
+
+    if (slab_entries >= slab_alloc) {
+	slab_alloc = NODE_SLAB_SIZE;
+	nodeslab_t *slab = xcalloc(1, sizeof(nodeslab_t), "node slab allocation");
+	slab->next = slab_list;
+	slab_list = slab;
+	slab_entries = 0;
+    }
+    p = &slab_list->nodes[slab_entries];
     p->number = key;
     p->hash_next = context->table[hash];
     context->table[hash] = p;
     context->nentries++;
+    slab_entries++;
     return p;
 }
 
@@ -174,19 +181,20 @@ void hash_branch(nodehash_t *context, cvs_branch *b)
     b->node = hash_number(context, &b->number);
 }
 
+void free_slab_list() {
+    nodeslab_t *t, *s = slab_list;
+    while(s) {
+	t = s->next;
+	free(s);
+	s = t;
+    };
+    slab_alloc = 0;
+    slab_entries = 0;
+    slab_list = NULL;
+}
 void clean_hash(nodehash_t *context)
 /* discard the node list */
 {
-    int i;
-    for (i = 0; i < NODE_HASH_SIZE; i++) {
-	node_t *p = context->table[i];
-	context->table[i] = NULL;
-	while (p) {
-	    node_t *q = p->hash_next;
-	    free(p);
-	    p = q;
-	}
-    }
     context->nentries = 0;
     context->head_node = NULL;
 }
@@ -247,7 +255,10 @@ void build_branches(nodehash_t *context)
     if (context->nentries == 0)
 	return;
 
-    node_t **v = xmalloc(sizeof(node_t *) * context->nentries, __func__), **p = v;
+    /* maybe nentries should be a function */
+    serial_t nentries = context->nentries;
+
+    node_t **v = xmalloc(sizeof(node_t *) * nentries, __func__), **p = v;
     int i;
 
     for (i = 0; i < NODE_HASH_SIZE; i++) {
@@ -255,13 +266,13 @@ void build_branches(nodehash_t *context)
 	for (q = context->table[i]; q; q = q->hash_next)
 	    *p++ = q;
     }
-    qsort(v, context->nentries, sizeof(node_t *), compare);
+    qsort(v, nentries, sizeof(node_t *), compare);
     /* only trunk? */
-    if (v[context->nentries-1]->number.c == 2)
-	context->head_node = v[context->nentries-1];
-    for (p = v + context->nentries - 2 ; p >= v; p--)
+    if (v[nentries-1]->number.c == 2)
+	context->head_node = v[nentries-1];
+    for (p = v + nentries - 2 ; p >= v; p--)
 	try_pair(context, p[0], p[1]);
-    for (p = v + context->nentries - 1 ; p >= v; p--) {
+    for (p = v + nentries - 1 ; p >= v; p--) {
 	node_t *a = *p, *b = NULL;
 	if (!a->starts)
 	    continue;
