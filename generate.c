@@ -760,7 +760,7 @@ unload_text(editbuffer_t *eb, const cvs_text *text, uchar *data)
 }
 #else
 static uchar *
-load_text(const cvs_text *text)
+load_text(editbuffer_t *eb, const cvs_text *text)
 {
     FILE *f = fopen(text->filename, "rb");
     uchar *data;
@@ -781,13 +781,13 @@ load_text(const cvs_text *text)
 }
 
 static void
-unload_text(const cvs_text *text, uchar *data)
+unload_text(editbuffer_t *eb, const cvs_text *text, uchar *data)
 {
     free(data);
 }
 
 static void
-unload_all_text(void)
+unload_all_text(editbuffer_t *eb)
 {
 }
 #endif /* !USE_MMAP */
