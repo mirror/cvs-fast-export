@@ -126,12 +126,29 @@ typedef struct node {
     flag starts;
 } node_t;
 
-#define NODE_HASH_SIZE	97
+/* number of nodes to allocate in each slab
+   just less than a power of two to try and
+   make a struct nodeslab nearly fit a power of two.
+ */
+#define NODE_SLAB_SIZE 1023
+
+/* allocate memory for the hash using a linked list of slabs
+ * Keep the slab with free space at the head of the list
+ */
+typedef struct nodeslab {
+    struct nodeslab *next;
+    node_t nodes[NODE_SLAB_SIZE];
+} nodeslab_t;
+
+#define NODE_HASH_SIZE  97
 
 typedef struct nodehash {
     node_t *table[NODE_HASH_SIZE];
-    int nentries;
+    nodeslab_t *slab;
     node_t *head_node;
+    /* these only track the head slab, all others assumed full */
+    serial_t slab_entries;
+    serial_t slab_alloc;
 } nodehash_t;
 
 typedef struct _cvs_symbol {
