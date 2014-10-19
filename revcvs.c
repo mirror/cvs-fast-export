@@ -502,8 +502,8 @@ rev_list_set_refs(rev_list *rl, cvs_file *cvsfile)
 	    n = h->number;
 	    n.c -= 2;
 	    h->parent = rev_list_find_branch(rl, &n);
-	    if (!h->parent && ! cvs_is_vendor(&h->number))
-		announce("warning - %s branch %s has no parent\n",
+	    if (!h->parent && !cvs_is_vendor(&h->number))
+		announce("warning - non-vendor %s branch %s has no parent\n",
 			 cvsfile->gen.master_name, h->ref_name);
 	}
 	if (h->parent && !h->ref_name) {
