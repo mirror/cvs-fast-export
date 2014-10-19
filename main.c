@@ -336,7 +336,7 @@ main(int argc, char **argv)
     /* build CVS structures by parsing masters; may read stdin */
     analyze_masters(argc, argv, &import_options, &forest);
 
-    gather_stats("before branch merges");
+    gather_stats("after parsing");
 
     /* commit set coalescence happens here */
     forest.head = rev_list_merge(premerge = forest.head);
@@ -344,7 +344,7 @@ main(int argc, char **argv)
     dump_rev_tree(head, stderr);
 #endif /* ORDERDEBUG2 */
 
-    gather_stats("before export");
+    gather_stats("after branch merge");
 
     /* report on the DAG */
     if (forest.head) {
@@ -370,11 +370,11 @@ main(int argc, char **argv)
 	float elapsed;
 	struct checkpoint *chp;
 
-	for (chp = checkpoints; chp < checkpoints + ncheckpoints; chp++)
-	    fprintf(STATUS, "%24s:\t%.3f\t%ldKB\n",
+	for (chp = checkpoints+1; chp < checkpoints + ncheckpoints; chp++)
+	    fprintf(STATUS, "%20s:\t%.3f\t%ldKB\n",
 		   chp->legend,
 		   seconds_diff(&chp->timespec, &checkpoints[0].timespec),
-		   chp->rusage.ru_maxrss);
+		   chp->rusage.ru_maxrss - checkpoints[0].rusage.ru_maxrss);
 
 	elapsed = seconds_diff(&checkpoints[ncheckpoints-1].timespec, 
 			       &checkpoints[0].timespec);
