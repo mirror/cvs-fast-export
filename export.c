@@ -22,8 +22,6 @@
 #include <assert.h>
 #include <stdlib.h>
 #include <sys/types.h>
-#include <sys/stat.h>
-#include <sys/resource.h>
 #include <ftw.h>
 #include <time.h>
 
@@ -78,8 +76,8 @@ static serial_t *markmap;
 static serial_t mark;
 static volatile int seqno;
 static char blobdir[PATH_MAX];
-static serial_t export_total_commits;
-static off_t snapsize = 0;
+
+static export_stats_t export_stats;
 
 static int seqno_next(void)
 /* Returns next sequence number, starting with 1 */
@@ -99,27 +97,6 @@ static int seqno_next(void)
  * SCCS CVS CVS.adm RCSLOG cvslog.*
  */
 #define CVS_IGNORES "# CVS default ignores begin\ntags\nTAGS\n.make.state\n.nse_depinfo\n*~\n#*\n.#*\n,*\n_$*\n*$\n*.old\n*.bak\n*.BAK\n*.orig\n*.rej\n.del-*\n*.a\n*.olb\n*.o\n*.obj\n*.so\n*.exe\n*.Z\n*.elc\n*.ln\ncore\n# CVS default ignores end\n"
-
-void save_status_end(const struct timespec *start_time)
-{
-    if (!progress)
-	return;
-    else {
-	struct timespec now;
-	struct rusage rusage;
-	float elapsed;
-
-	(void)clock_gettime(CLOCK_REALTIME, &now);
-	(void)getrusage(RUSAGE_SELF, &rusage);
-	elapsed = seconds_diff(&now, start_time);
-	fprintf(STATUS, "%d commits/%.3fM text in %.6fs (%d commits/sec) using %ldKb.\n",
-		export_total_commits,
-		snapsize / 1000000.0,
-		elapsed,
-		(int)(export_total_commits / elapsed),
-		rusage.ru_maxrss);
-    }
-}
 
 static char *fileop_name(const char *rectified, char *path)
 {
@@ -197,7 +174,7 @@ static void export_blob(node_t *node,
 {
     size_t extralen = 0;
 
-    snapsize += len;
+    export_stats.snapsize += len;
 
     if (strcmp(node->file->master->name, ".cvsignore") == 0) {
 	extralen = sizeof(CVS_IGNORES) - 1;
@@ -789,7 +766,7 @@ static struct commit_seq *canonicalize(rev_list *rl)
     rev_ref *h;
     git_commit *c;
 
-    history = (struct commit_seq *)xcalloc(export_total_commits, 
+    history = (struct commit_seq *)xcalloc(export_stats.export_total_commits, 
 					   sizeof(struct commit_seq),
 					   "export");
 #ifdef ORDERDEBUG
@@ -829,11 +806,11 @@ void export_authors(forest_t *forest, export_options_t *opts)
     size_t alloc;
     authors = NULL;
     alloc = 0;
-    export_total_commits = export_ncommit(forest->head);
+    export_stats.export_total_commits = export_ncommit(forest->head);
     struct commit_seq *hp, *history = canonicalize(forest->head);
 
     progress_begin("Finding authors...", NO_MAX);
-    for (hp = history; hp < history + export_total_commits; hp++) {
+    for (hp = history; hp < history + export_stats.export_total_commits; hp++) {
 	for (i = 0; i < nauthors; i++) {
 	    if (authors[i] == hp->commit->author)
 		goto duplicate;
@@ -852,10 +829,10 @@ void export_authors(forest_t *forest, export_options_t *opts)
 
     free(authors);
     free(history);
-    save_status_end(&opts->start_time);
 }
 
-bool export_commits(forest_t *forest, export_options_t *opts)
+void export_commits(forest_t *forest, 
+		    export_options_t *opts, export_stats_t *stats)
 /* export a revision list as a git fast-import stream in canonical order */
 {
     rev_ref *h;
@@ -885,10 +862,10 @@ bool export_commits(forest_t *forest, export_options_t *opts)
 	    fatal_error("temp dir creation failed\n");
     }
 
-    export_total_commits = export_ncommit(rl);
+    export_stats.export_total_commits = export_ncommit(rl);
     /* the +1 is because mark indices are 1-origin, slot 0 always empty */
     markmap = (serial_t *)xcalloc(sizeof(serial_t),
-				  forest->total_revisions + export_total_commits + 1,
+				  forest->total_revisions + export_stats.export_total_commits + 1,
 				  "markmap allocation");
 
     /* export_blob() touches markmap when in fast mode */
@@ -907,7 +884,7 @@ bool export_commits(forest_t *forest, export_options_t *opts)
 	static char msgbuf[100];
 	snprintf(msgbuf, sizeof(msgbuf), "Saving in %s order: ",
 		opts->reportmode == fast ? "fast" : "canonical");
-	progress_begin(msgbuf, export_total_commits);
+	progress_begin(msgbuf, export_stats.export_total_commits);
     }
 
     if (opts->reportmode == fast) {
@@ -962,7 +939,7 @@ bool export_commits(forest_t *forest, export_options_t *opts)
  
 #ifdef ORDERDEBUG2
 	fputs("Export phase 2:\n", stderr);
-	for (hp = history; hp < history + export_total_commits; hp++)
+	for (hp = history; hp < history + export_stats.export_total_commits; hp++)
 	    dump_commit(hp->commit, stderr);
 #endif /* ORDERDEBUG2 */
 
@@ -972,7 +949,7 @@ bool export_commits(forest_t *forest, export_options_t *opts)
 	 * we'll try to ship a mark before it's defined.
 	 */
 	sortable = true;
-	for (hp = history; hp < history + export_total_commits; hp++) {
+	for (hp = history; hp < history + export_stats.export_total_commits; hp++) {
 	    if (hp->commit->parent && hp->commit->parent->date > hp->commit->date) {
 		sortable = false;
 		announce("some parent commits are younger than children.\n");
@@ -981,13 +958,13 @@ bool export_commits(forest_t *forest, export_options_t *opts)
 	}
 	if (sortable)
 	    qsort((void *)history, 
-		  export_total_commits, sizeof(struct commit_seq),
+		  export_stats.export_total_commits, sizeof(struct commit_seq),
 		  sort_by_date);
 
 #ifdef ORDERDEBUG2
 	fputs("Export phase 3:\n", stderr);
 #endif /* ORDERDEBUG2 */
-	for (hp = history; hp < history + export_total_commits; hp++) {
+	for (hp = history; hp < history + export_stats.export_total_commits; hp++) {
 	    bool report = true;
 	    if (opts->fromtime > 0) {
 		if (opts->fromtime >= display_date(hp->commit, mark+1, opts->force_dates)) {
@@ -996,7 +973,7 @@ bool export_commits(forest_t *forest, export_options_t *opts)
 		    struct commit_seq *lp;
 		    if (hp->commit->parent != NULL && display_date(hp->commit->parent, markmap[hp->commit->parent->serial], opts->force_dates) < opts->fromtime)
 			(void)printf("from %s%s^0\n\n", opts->branch_prefix, hp->head->ref_name);
-		    for (lp = hp; lp < history + export_total_commits; lp++) {
+		    for (lp = hp; lp < history + export_stats.export_total_commits; lp++) {
 			if (lp->head == hp->head) {
 			    lp->realized = true;
 			}
@@ -1023,7 +1000,6 @@ bool export_commits(forest_t *forest, export_options_t *opts)
     free(markmap);
 
     progress_end(NULL);
-    save_status_end(&opts->start_time);
 
     fputs("done\n", stdout);
 
@@ -1033,7 +1009,8 @@ bool export_commits(forest_t *forest, export_options_t *opts)
 	time_t udate = forest->skew_vulnerable;
 	announce("no commitids before %s.\n", cvstime2rfc3339(udate));
     }
-    return true;
+
+    memcpy(stats, &export_stats, sizeof(export_stats_t));
 }
 
 /* end */

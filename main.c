@@ -20,6 +20,8 @@
 #include <getopt.h>
 #include <regex.h>
 #include <time.h>
+#include <sys/stat.h>
+#include <sys/resource.h>
 #if defined(__GLIBC__)
 #include <malloc.h>
 #endif /* __GLIBC__ */
@@ -164,6 +166,7 @@ main(int argc, char **argv)
     export_options_t export_options = {
 	.branch_prefix = "refs/heads/",
     };
+    export_stats_t	export_stats;
 
 #if defined(__GLIBC__)
     /* 
@@ -175,6 +178,7 @@ main(int argc, char **argv)
     mallopt(M_TOP_PAD,16*1024*1024); /* grab memory in 16MB chunks */
 #endif /* __GLIBC__ */
     clock_gettime(CLOCK_REALTIME, &export_options.start_time);
+    memset(&export_stats, '\0', sizeof(export_stats_t));
 
     /* force times using mktime to be interpreted in UTC */
     setenv("TZ", "UTC", 1);
@@ -322,12 +326,30 @@ main(int argc, char **argv)
 	    export_authors(&forest, &export_options);
 	    break;
 	case ExecuteExport:
-	    export_commits(&forest, &export_options);
+	    export_commits(&forest, &export_options, &export_stats);
 	    if (export_options.revision_map != NULL)
 		fclose(export_options.revision_map);
 	    break;
 	}
     }
+
+    if (progress)
+    {
+	struct timespec now;
+	struct rusage rusage;
+	float elapsed;
+
+	(void)clock_gettime(CLOCK_REALTIME, &now);
+	(void)getrusage(RUSAGE_SELF, &rusage);
+	elapsed = seconds_diff(&now, &export_options.start_time);
+	fprintf(STATUS, "%ld commits/%.3fM text in %.6fs (%d commits/sec) using %ldKb.\n",
+		export_stats.export_total_commits,
+		export_stats.snapsize / 1000000.0,
+		elapsed,
+		(int)(export_stats.export_total_commits / elapsed),
+		rusage.ru_maxrss);
+    }
+
     discard_atoms();
     discard_tags();
     rev_free_dirs();

@@ -521,6 +521,11 @@ typedef struct _export_options {
     bool progress;
 } export_options_t;
 
+typedef struct _export_stats {
+    long	export_total_commits;
+    long	snapsize;
+} export_stats_t;
+
 void
 analyze_masters(int argc, char *argv[0], import_options_t *options, forest_t *forest);
 
@@ -643,14 +648,11 @@ path_deep_compare(const void *a, const void *b);
 
 #define time_compare(a,b) ((long)(a) - (long)(b))
 
-bool
-export_commits(forest_t *forest, export_options_t *opts);
+void
+export_commits(forest_t *forest, export_options_t *opts, export_stats_t *stats);
 
 void
 export_authors(forest_t *forest, export_options_t *opts);
-
-void
-save_status_end(const struct timespec *);
 
 void
 free_author_map(void);
