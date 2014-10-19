@@ -841,16 +841,58 @@ static void expandedit(editbuffer_t *eb)
 	expandline(eb);
     }
 }
-
+/*
+ * The FASTOUT code is a shameless micro-optimization
+ * addressing the fact that without it this out_putc() 
+ * loop consistenntly shows up as a severe hotspot.
+ *
+ * The author, Laurence Hygate <loz@flower.powernet.co.uk>, says:
+ * "snapshotline is mostly called on small text lines so the buffer is
+ * unlikely to get enlarged more than once and data is unlikely to
+ * drop off cachelines before the memcpy"
+ */
+#define FASTOUT
 static void snapshotline(editbuffer_t *eb, register uchar * l)
 {
     register int c;
+#ifdef FASTOUT
+    struct out_buffer_type *ob = eb->Goutbuf;
+    size_t chars_read = 0;
+    uchar * start = l;
+#endif
     do {
+#ifndef FASTOUT
 	if ((c = *l++) == SDELIM  &&  *l++ != SDELIM)
 	    return;
 	out_putc(eb, c);
+#else
+	if ((c = *l++) == SDELIM  &&  *l++ != SDELIM) 
+	    break;
+	chars_read++;
+	if (c == SDELIM) {
+	    // @@ is a memcpy barrier as we're unescaping it
+	    while (ob->end_of_text - ob->ptr < chars_read) {
+	    	out_buffer_enlarge(eb);
+		ob = eb->Goutbuf;
+	    }
+	    memcpy(ob->ptr, start, chars_read);
+	    start = l;
+	    ob->ptr += chars_read;
+	    chars_read = 0;
+	}
+#endif
     } while (c != '\n');
 
+#ifdef FASTOUT
+    if (chars_read != 0) {
+	while (ob->end_of_text - ob->ptr < chars_read) {
+	    out_buffer_enlarge(eb);
+            ob = eb->Goutbuf;
+	}
+	memcpy(ob->ptr, start, chars_read);
+	ob->ptr += chars_read;
+    }
+#endif /* FASTOUT */
 }
 
 static void snapshotedit(editbuffer_t *eb)
