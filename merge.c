@@ -409,7 +409,7 @@ rev_branch_merge(rev_ref **branches, int nbranch,
 
     /*
      * It is expected that the array of input branches is all CVS branches
-     * tagged with some single branch name. The job of this code its to
+     * tagged with some single branch name. The job of this code is to
      * build the changeset sequence for the corresponding named git branch,
      * then graft it to its parent git branch.
      */
