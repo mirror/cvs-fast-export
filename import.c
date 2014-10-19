@@ -240,7 +240,7 @@ void analyze_masters(int argc, char *argv[],
     striplen = analyzer->striplen;
 
     forest->textsize = forest->filecount = 0;
-    progress_begin("Reading list of files...", NO_MAX);
+    progress_begin("Reading file list...", NO_MAX);
     for (;;)
     {
 	struct stat stb;
@@ -337,7 +337,7 @@ void analyze_masters(int argc, char *argv[],
     else
 #endif /* THREADS */
 	worker(NULL);
-    progress_end("done, %d total revisions", total_revisions);
+    progress_end("done, %d revisions", total_revisions);
 
     forest->errcount = err;
     forest->total_revisions = total_revisions;

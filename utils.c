@@ -2,14 +2,16 @@
 #include "cvs.h"
 
 static int progress_max = NO_MAX;
+static bool progress_in_progress;
 
 void fatal_system_error(char const *format,...)
 {
     va_list args;
     int errno_save = errno;
 
-    if (progress_max != NO_MAX) {
+    if (progress && progress_in_progress)
 	fputc('\n', stderr);
+    if (progress_max != NO_MAX) {
 	progress_max = NO_MAX;
     }
 
@@ -27,8 +29,9 @@ void fatal_error(char const *format,...)
 {
     va_list args;
 
-    if (progress_max != NO_MAX) {
+    if (progress && progress_in_progress)
 	fputc('\n', stderr);
+    if (progress_max != NO_MAX) {
 	progress_max = NO_MAX;
     }
 
@@ -44,8 +47,9 @@ void announce(char const *format,...)
 {
     va_list args;
 
-    if (progress_max != NO_MAX) {
+    if (progress && progress_in_progress)
 	fputc('\n', stderr);
+    if (progress_max != NO_MAX) {
 	progress_max = NO_MAX;
     }
 
@@ -147,6 +151,7 @@ progress_begin(const char *msg, const int max)
 	return;
     progress_max = max;
     progress_counter = 0;
+    progress_in_progress = true;
 
     (void)strftime(timestr, sizeof(timestr), "%Y-%m-%dT%H:%M:%SZ: ", tm);
     strncat(timestr, msg, sizeof(timestr)-1);
@@ -181,6 +186,7 @@ progress_end(const char *format, ...)
 
     if (!progress)
 	return;
+    progress_in_progress = false;
     progress_max = progress_counter; /* message will say "100%" or "done" */
     va_start(args, format);
     _progress_print(true, format, args);

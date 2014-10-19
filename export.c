@@ -999,7 +999,7 @@ void export_commits(forest_t *forest,
     }
     free(markmap);
 
-    progress_end(NULL);
+    progress_end("done");
 
     fputs("done\n", stdout);
 
