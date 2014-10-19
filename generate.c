@@ -842,9 +842,10 @@ static void expandedit(editbuffer_t *eb)
     }
 }
 /*
- * The FASTOUT code is a shameless micro-optimization
- * addressing the fact that without it this out_putc() 
- * loop consistenntly shows up as a severe hotspot.
+ * The FASTOUT code is a shameless micro-optimization addressing the
+ * fact that without it this out_putc() loop consistently shows up as
+ * a severe hotspot.  Flattening it shaves about 1.5% off wall time,
+ * which can be significant for large repositories.
  *
  * The author, Laurence Hygate <loz@flower.powernet.co.uk>, says:
  * "snapshotline is mostly called on small text lines so the buffer is
