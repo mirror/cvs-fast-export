@@ -368,15 +368,20 @@ main(int argc, char **argv)
     if (progress)
     {
 	float elapsed;
+	struct checkpoint *chp;
+
+	for (chp = checkpoints; chp < checkpoints + ncheckpoints; chp++)
+	    fprintf(STATUS, "%24s:\t%.3f\t%ldKB\n",
+		   chp->legend,
+		   seconds_diff(&chp->timespec, &checkpoints[0].timespec),
+		   chp->rusage.ru_maxrss);
 
 	elapsed = seconds_diff(&checkpoints[ncheckpoints-1].timespec, 
 			       &checkpoints[0].timespec);
-	fprintf(STATUS, "%ld commits/%.3fM text in %.6fs (%d commits/sec) using %ldKb.\n",
+	fprintf(STATUS, "%ld commits/%.3fM text at %d commits/sec.\n",
 		export_stats.export_total_commits,
 		export_stats.snapsize / 1000000.0,
-		elapsed,
-		(int)(export_stats.export_total_commits / elapsed),
-		checkpoints[ncheckpoints-1].rusage.ru_maxrss);
+		(int)(export_stats.export_total_commits / elapsed));
     }
 
     discard_atoms();
