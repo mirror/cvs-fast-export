@@ -62,6 +62,10 @@
 #define HASHMIX1(hash, new)	SDBM(hash, new)
 #define HASHMIX2(hash, new)	hash = ((hash << 10) + new)
 
+static nodeslab_t *slab_list = NULL;
+static serial_t slab_alloc = 0;
+static serial_t slab_entries = 0;
+
 inline static unsigned int hash_bucket(const cvs_number key)
 {
     int i;
@@ -97,18 +101,19 @@ static node_t *hash_number(nodehash_t *context, const cvs_number *const n)
 	    return p;
     }
 
-    if (context->slab_entries >= context->slab_alloc) {
-	context->slab_alloc = NODE_SLAB_SIZE;
+    if (slab_entries >= slab_alloc) {
+	slab_alloc = NODE_SLAB_SIZE;
 	nodeslab_t *slab = xcalloc(1, sizeof(nodeslab_t), "node slab allocation");
-	slab->next = context->slab;
-	context->slab_entries = 0;
-	context->slab = slab;
+	slab->next = slab_list;
+	slab_list = slab;
+	slab_entries = 0;
     }
-    p = &context->slab->nodes[context->slab_entries];
+    p = &slab_list->nodes[slab_entries];
     p->number = key;
     p->hash_next = context->table[hash];
     context->table[hash] = p;
-    context->slab_entries++;
+    context->nentries++;
+    slab_entries++;
     return p;
 }
 
@@ -176,18 +181,21 @@ void hash_branch(nodehash_t *context, cvs_branch *b)
     b->node = hash_number(context, &b->number);
 }
 
+void free_slab_list() {
+    nodeslab_t *t, *s = slab_list;
+    while(s) {
+	t = s->next;
+	free(s);
+	s = t;
+    };
+    slab_alloc = 0;
+    slab_entries = 0;
+    slab_list = NULL;
+}
 void clean_hash(nodehash_t *context)
 /* discard the node list */
 {
-    if (context->slab_alloc > 0) {
-	nodeslab_t *t, *s = context->slab;
-	do {
-	    t = s->next;
-	    free(s);
-	    s = t;
-	} while(s);
-    }
-    context->slab_alloc = context->slab_entries = 0;
+    context->nentries = 0;
     context->head_node = NULL;
 }
 
@@ -244,14 +252,11 @@ static void try_pair(nodehash_t *context, node_t *a, node_t *b)
 void build_branches(nodehash_t *context)
 /* build branch links in the node list */ 
 {
-    nodeslab_t *s;
-    if (context->slab_alloc == 0)
+    if (context->nentries == 0)
 	return;
 
     /* maybe nentries should be a function */
-    serial_t nentries = context->slab_entries;
-    for (s = context->slab->next; s; s = s->next)
-	nentries += NODE_SLAB_SIZE;    	
+    serial_t nentries = context->nentries;
 
     node_t **v = xmalloc(sizeof(node_t *) * nentries, __func__), **p = v;
     int i;

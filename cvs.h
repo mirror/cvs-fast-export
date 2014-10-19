@@ -126,11 +126,9 @@ typedef struct node {
     flag starts;
 } node_t;
 
-/* number of nodes to allocate in each slab
-   just less than a power of two to try and
-   make a struct nodeslab nearly fit a power of two.
- */
-#define NODE_SLAB_SIZE 1023
+/* number of nodes to allocate in each slab */
+// #define NODE_SLAB_SIZE ((65536 - sizeof(void*)) / sizeof(node_t))
+#define NODE_SLAB_SIZE 1024
 
 /* allocate memory for the hash using a linked list of slabs
  * Keep the slab with free space at the head of the list
@@ -140,15 +138,13 @@ typedef struct nodeslab {
     node_t nodes[NODE_SLAB_SIZE];
 } nodeslab_t;
 
+
 #define NODE_HASH_SIZE  97
 
 typedef struct nodehash {
     node_t *table[NODE_HASH_SIZE];
-    nodeslab_t *slab;
     node_t *head_node;
-    /* these only track the head slab, all others assumed full */
-    serial_t slab_entries;
-    serial_t slab_alloc;
+    serial_t nentries;
 } nodehash_t;
 
 typedef struct _cvs_symbol {
@@ -733,6 +729,7 @@ fatal_system_error(char const *format, ...) _printflike(1, 2) _noreturn;
 void hash_version(nodehash_t *, cvs_version *);
 void hash_patch(nodehash_t *, cvs_patch *);
 void hash_branch(nodehash_t *, cvs_branch *);
+void free_slab_list(void);
 void clean_hash(nodehash_t *);
 void build_branches(nodehash_t *);
 

@@ -877,6 +877,8 @@ void export_commits(forest_t *forest,
 	generator_free(gp);
 	progress_jump(++recount);
     }
+    // we're done with nodehash storage
+    free_slab_list();
     progress_end("done");
 
     if (progress)
