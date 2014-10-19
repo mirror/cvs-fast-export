@@ -96,14 +96,7 @@ static node_t *hash_number(nodehash_t *context, const cvs_number *const n)
 	if (i == key.c)
 	    return p;
     }
-
-    if (context->nentries >= context->alloc) {
-	context->alloc += 1024;
-	context->slab = xrealloc(context->slab,
-				 context->alloc * sizeof(node_t),
-				 "node slab allocation");
-    }
-    p = context->slab + context->nentries;
+    p = xcalloc(1, sizeof(node_t), "hash number generation");
     p->number = key;
     p->hash_next = context->table[hash];
     context->table[hash] = p;
@@ -178,8 +171,17 @@ void hash_branch(nodehash_t *context, cvs_branch *b)
 void clean_hash(nodehash_t *context)
 /* discard the node list */
 {
-    free(context->slab);
-    context->nentries = context->alloc = 0;
+    int i;
+    for (i = 0; i < NODE_HASH_SIZE; i++) {
+	node_t *p = context->table[i];
+	context->table[i] = NULL;
+	while (p) {
+	    node_t *q = p->hash_next;
+	    free(p);
+	    p = q;
+	}
+    }
+    context->nentries = 0;
     context->head_node = NULL;
 }
 
@@ -242,10 +244,6 @@ void build_branches(nodehash_t *context)
     node_t **v = xmalloc(sizeof(node_t *) * context->nentries, __func__), **p = v;
     int i;
 
-    if (context->alloc > context->nentries)
-	context->slab = xrealloc(context->slab,
-				 context->nentries * sizeof(node_t),
-				 "node slab trimming");
     for (i = 0; i < NODE_HASH_SIZE; i++) {
 	node_t *q;
 	for (q = context->table[i]; q; q = q->hash_next)

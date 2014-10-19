@@ -130,10 +130,8 @@ typedef struct node {
 
 typedef struct nodehash {
     node_t *table[NODE_HASH_SIZE];
-    node_t *slab;
+    int nentries;
     node_t *head_node;
-    serial_t nentries;
-    serial_t alloc;
 } nodehash_t;
 
 typedef struct _cvs_symbol {
