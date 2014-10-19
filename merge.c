@@ -409,7 +409,7 @@ rev_branch_merge(rev_ref **branches, int nbranch,
 
     /*
      * It is expected that the array of input branches is all CVS branches
-     * tagged with some single branch name. The job of this code its to
+     * tagged with some single branch name. The job of this code is to
      * build the changeset sequence for the corresponding named git branch,
      * then graft it to its parent git branch.
      */
@@ -424,7 +424,7 @@ rev_branch_merge(rev_ref **branches, int nbranch,
 	/*
 	 * Compute number of CVS branches that are still live - that is,
 	 * have remaining older CVS file commits for this branch. Non-live
-	 * branches are rachable by parent-of links from the named head
+	 * branches are reachable by parent-of links from the named head
 	 * reference but we're past their branch point from a parent with
 	 * a different name (also in our set of heads).
 	 */
@@ -437,10 +437,10 @@ rev_branch_merge(rev_ref **branches, int nbranch,
 	nlive++;
 
 	/*
-	 * This code updates our notion of the start date for the branch -
-	 * that is, the date of the oldest CVS commit contributing to it.
-	 * Once we've walked all the CVS branches, 'srart' should hold
-	 * that oldest commit date.
+	 * This code updates our notion of the start date for the
+	 * gitspace branch - that is, the date of the oldest CVS
+	 * commit contributing to it.  Once we've walked all the CVS
+	 * branches, 'srart' should hold that oldest commit date.
 	 */
 	while (c && !c->tail) {
 	    if (!birth || time_compare(c->date, birth) < 0)
@@ -454,12 +454,13 @@ rev_branch_merge(rev_ref **branches, int nbranch,
     }
 
     /*
-     * This is a sanity check. If any of the commits at our CVS branch
-     * heads is older than the git branch's imputed start date,
-     * something is badly wrong.  In a sane universe with a
-     * synchronous clock this shouldn't be possible, but the CVS
-     * universe is not sane and attempts to do time ordering among
-     * branches can be confused by clock skew on the CVS clients.
+     * This is a sanity check done just once for each gitspace
+     * branch. If any of the commits at our CVS branch heads is older
+     * than the git branch's imputed start date, something is badly
+     * wrong.  In a sane universe with a synchronous clock this
+     * shouldn't be possible, but the CVS universe is not sane and
+     * attempts to do time ordering among branches can be confused by
+     * clock skew on the CVS clients.
      */
     for (n = 0; n < nbranch; n++) {
 	cvs_commit *c = revisions[n];
@@ -474,11 +475,19 @@ rev_branch_merge(rev_ref **branches, int nbranch,
     }
 
     /*
-     * Walk down CVS branches creating gitspace commits until each one has
-     * merged with the parent branch.
+     * Walk down CVS branches creating gitspace commits until each CVS
+     * branch has merged with its parent.
      */
     while (nlive > 0 && nbranch > 0) {
+	/*
+	 * Gather the next set of CVS commits down the branch and
+	 * figure out which (non-tailed) one of them is latest in
+	 * time.  It will be the leader for the git commit build.
+	 */
 	for (n = 0, p = revisions, latest = NULL; n < nbranch; n++) {
+	    /*
+	     * Squeeze null commit pointers out of the current set.
+	     */
 	    cvs_commit *rev = revisions[n];
 	    if (!rev)
 		continue;
@@ -492,12 +501,15 @@ rev_branch_merge(rev_ref **branches, int nbranch,
 	nbranch = p - revisions;
 
 	/*
-	 * Construct current commit
+	 * Construct current commit from the set of CVS commits 
+	 * accumulated the last time around the loop.
 	 */
 	commit = git_commit_build(revisions, latest, nbranch);
 
 	/*
-	 * Step each branch
+	 * Step down each CVS branch in parallel.  Our goal is to land on
+	 * a cliwue of matching CVS commits that will  be made into a 
+	 * matching gitspace commit on the bext time around the loop.
 	 */
 	nlive = 0;
 	for (n = 0; n < nbranch; n++) {
@@ -513,7 +525,10 @@ rev_branch_merge(rev_ref **branches, int nbranch,
 		continue;
 	    }
 	    to = c->parent;
-	    /* starts here? */
+	    /* 
+	     * CVS branch starts here?  If so, drop it out of
+	     * the revision set and keep going.
+	     */
 	    if (!to)
 		goto Kill;
 
@@ -552,6 +567,12 @@ rev_branch_merge(rev_ref **branches, int nbranch,
 		    goto Kill;
 		nlive++;
 	    }
+
+	    /*
+	     * Commit is either not tailed or passed all the special-case
+	     * tests for tailed commits. Leave it in the set for the next
+	     * changeset construction.
+	     */
 	    revisions[n] = to;
 	    continue;
 	Kill:
@@ -564,14 +585,14 @@ rev_branch_merge(rev_ref **branches, int nbranch,
     }
 
     /*
-     * Connect to parent branch
+     * Gitspace branch construction is done. Now connect it to its
+     * parent branch.
      */
     nbranch = cvs_commit_date_sort(revisions, nbranch);
     if (nbranch && branch->parent )
     {
 	int	present;
 
-//	present = 0;
 	for (present = 0; present < nbranch; present++)
 	    if (revisions[present]->file) {
 		/*
