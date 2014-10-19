@@ -153,6 +153,30 @@ static void print_sizes(void)
     printf("sizeof(Tag)           = %zu\n", sizeof(tag_t));
 }
 
+struct checkpoint {
+    const char *legend;
+    struct timespec timespec;
+    struct rusage rusage;
+};
+
+static struct checkpoint checkpoints[5];
+static int ncheckpoints;
+
+static void gather_stats(const char *legend)
+/* gather resource usage statistics */
+{
+    if (ncheckpoints >= sizeof(checkpoints)/sizeof(struct checkpoint)) {
+	fprintf(stderr, "cvs-fast-export: ran out of statistics slots %s",
+		legend);
+	return;
+    }
+
+    checkpoints[ncheckpoints].legend = legend;
+    (void)clock_gettime(CLOCK_REALTIME, &checkpoints[ncheckpoints].timespec);
+    (void)getrusage(RUSAGE_SELF, &checkpoints[ncheckpoints].rusage);
+    ncheckpoints++;
+}
+
 int
 main(int argc, char **argv)
 {
@@ -307,14 +331,20 @@ main(int argc, char **argv)
     argv += optind-1;
     argc -= optind-1;
 
+    gather_stats("before parsing");
+
     /* build CVS structures by parsing masters; may read stdin */
     analyze_masters(argc, argv, &import_options, &forest);
+
+    gather_stats("before branch merges");
 
     /* commit set coalescence happens here */
     forest.head = rev_list_merge(premerge = forest.head);
 #ifdef ORDERDEBUG2
     dump_rev_tree(head, stderr);
 #endif /* ORDERDEBUG2 */
+
+    gather_stats("before export");
 
     /* report on the DAG */
     if (forest.head) {
@@ -333,21 +363,20 @@ main(int argc, char **argv)
 	}
     }
 
+    gather_stats("total");
+
     if (progress)
     {
-	struct timespec now;
-	struct rusage rusage;
 	float elapsed;
 
-	(void)clock_gettime(CLOCK_REALTIME, &now);
-	(void)getrusage(RUSAGE_SELF, &rusage);
-	elapsed = seconds_diff(&now, &export_options.start_time);
+	elapsed = seconds_diff(&checkpoints[ncheckpoints-1].timespec, 
+			       &checkpoints[0].timespec);
 	fprintf(STATUS, "%ld commits/%.3fM text in %.6fs (%d commits/sec) using %ldKb.\n",
 		export_stats.export_total_commits,
 		export_stats.snapsize / 1000000.0,
 		elapsed,
 		(int)(export_stats.export_total_commits / elapsed),
-		rusage.ru_maxrss);
+		checkpoints[ncheckpoints-1].rusage.ru_maxrss);
     }
 
     discard_atoms();
