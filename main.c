@@ -225,9 +225,10 @@ main(int argc, char **argv)
             { "threads",	    0, 0, 't' },
             { "canonical",          0, 0, 'C' },
             { "fast",               0, 0, 'F' },
+            { "embed-id",           0, 0, 'E' },
 	    { "sizes",              0, 0, 'S' },	/* undocumented */
 	};
-	int c = getopt_long(argc, argv, "+hVw:grvaA:R:Tke:s:pPi:t:CFS", options, NULL);
+	int c = getopt_long(argc, argv, "+hVw:grvaA:R:Tke:s:pPi:t:CFSE", options, NULL);
 	if (c < 0)
 	    break;
 	switch(c) {
@@ -252,6 +253,7 @@ main(int argc, char **argv)
 		   " -v --verbose                    Show verbose progress messages\n"
 		   " -i --incremental TIME           Incremental dump beginning after specified RFC3339-format time.\n"
 		   " -t --threads N                  Use threaded scheduler for CVS master analyses.\n"
+		   " -E --embed-id                   Embed CVS revisions in the commit messages.\n"
 		   "\n"
 		   "Example: find | cvs-fast-export\n");
 	    return 0;
@@ -287,6 +289,9 @@ main(int argc, char **argv)
 	    break;
 	case 'r':
 	    export_options.reposurgeon = true;
+	    break;
+	case 'E':
+	    export_options.embed_ids = true;
 	    break;
 	case 'T':
 	    export_options.force_dates = true;
@@ -324,6 +329,11 @@ main(int argc, char **argv)
 	    announce("try `%s --help' for more information.\n", argv[0]);
 	    return 1;
 	}
+    }
+
+    if (export_options.reposurgeon) {
+	if (export_options.embed_ids)
+	    fatal_error("The options --reposurgeon and --embed-id cannot be combined.\n");
     }
 
     argv[optind-1] = argv[0];

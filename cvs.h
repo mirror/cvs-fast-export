@@ -515,6 +515,7 @@ typedef struct _export_options {
     time_t fromtime;
     FILE *revision_map;
     bool reposurgeon;
+    bool embed_ids;
     bool force_dates;
     enum {adaptive, fast, canonical} reportmode;
     bool authorlist;
