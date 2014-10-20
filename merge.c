@@ -263,7 +263,11 @@ git_commit_build(cvs_commit **revisions, cvs_commit *leader, const int nrevision
 
     memcpy(commit->dirs, rds, (commit->ndirs = nds) * sizeof(rev_dir *));
 
-    /* Prepare the inverse bloom set for this commit */
+    /* 
+     * Prepare the inverse Bloom set for this commit.
+     * This is used in the export code to flatten out what would
+     * oterwise we a severe hotspot.
+     */
     {
 	rev_dir * const *d;
 	rev_file * const *f;
@@ -805,7 +809,8 @@ rev_list_merge(rev_list *head)
     progress_begin("Merge common branches...", count);
     for (h = rl->heads; h; h = h->next) {
 	/*
-	 * Locate branch in every tree
+	 * For this imputed gitspace branch, locate the corresponding
+	 * set of CVS branches from every master.
 	 */
 	int nref = 0;
 	for (l = head; l; l = l->next) {
@@ -814,12 +819,18 @@ rev_list_merge(rev_list *head)
 		refs[nref++] = lh;
 	}
 	if (nref)
+	    /* 
+	     * Merge those branches into a signgle gitspace branch
+	     * and add that to the output revlist on rl.
+	     */
 	    rev_branch_merge(refs, nref, h, rl);
 	progress_step();
     }
     progress_end(NULL);
     /*
-     * Compute 'tail' values
+     * Compute 'tail' values.  These allow us to recognize branch joins
+     * so we can write efficient traversals that walk branches without
+     * wandering on to their parent branches.
      */
     progress_begin("Compute tail values...", NO_MAX);
     rev_list_set_tail(rl);
@@ -827,7 +838,9 @@ rev_list_merge(rev_list *head)
 
     free(refs);
     /*
-     * Find tag locations
+     * Find tag locations.  The goal is to associate each tag object 
+     * (which normally corresponds to a clique of named tags, one per master)
+     * with the right gitspace commit.
      */
     progress_begin("Find tag locations...", NO_MAX);
     for (t = all_tags; t; t = t->next) {

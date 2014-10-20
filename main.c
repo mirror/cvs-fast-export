@@ -166,8 +166,7 @@ static void gather_stats(const char *legend)
 /* gather resource usage statistics */
 {
     if (ncheckpoints >= sizeof(checkpoints)/sizeof(struct checkpoint)) {
-	fprintf(stderr, "cvs-fast-export: ran out of statistics slots %s",
-		legend);
+	announce("cran out of statistics slots %s", legend);
 	return;
     }
 
