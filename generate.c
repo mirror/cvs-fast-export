@@ -225,7 +225,7 @@ enum expand_mode expand_override(char const *s)
 	    if (strcmp(s,expand_names[i]) == 0)
 		return(enum expand_mode) i;
     }
-    return EXPANDKK;
+    return EXPANDKO;
 }
 
 static char const *basefilename(const char const *p)
@@ -929,7 +929,7 @@ static node_t *generate_setup(generator_t *gen, bool enable_keyword_expansion)
 	if (enable_keyword_expansion)
 	    eb->Gexpand = gen->expand;
 	else
-	    eb->Gexpand = EXPANDKO;
+	    eb->Gexpand = EXPANDKK;
 	eb->Gabspath = NULL;
 	Gline(eb) = NULL; Ggap(eb) = Ggapsize(eb) = Glinemax(eb) = 0;
     }

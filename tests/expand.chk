@@ -1,7 +1,7 @@
 blob
 mark :1
-data 33
-$Revision$ should expand to 1.1.
+data 60
+$Revision: 1.1 $ should expand to something with 1.1 in it.
 
 commit refs/heads/master
 mark :2
@@ -44,8 +44,8 @@ core
 
 blob
 mark :3
-data 33
-$Revision$ should expand to 1.2.
+data 60
+$Revision: 1.2 $ should expand to something with 1.2 in it.
 
 commit refs/heads/master
 mark :4
@@ -58,8 +58,8 @@ M 100644 :3 README
 
 blob
 mark :5
-data 33
-$Revision$ should expand to 1.3.
+data 59
+$Revision: 1.3 $ should expand to someting with 1.3 in it.
 
 commit refs/heads/master
 mark :6
