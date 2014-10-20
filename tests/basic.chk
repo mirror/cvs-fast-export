@@ -41,6 +41,7 @@ _$*
 core
 # CVS default ignores end
 
+property cvs-revision 11 README 1.1
 
 reset refs/heads/master
 from :2

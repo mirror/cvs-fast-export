@@ -41,6 +41,7 @@ _$*
 core
 # CVS default ignores end
 
+property cvs-revision 11 README 1.1
 
 reset refs/tags/branch1_root
 from :2
@@ -57,6 +58,7 @@ Updated for branch1
 
 from :2
 M 100644 :3 README
+property cvs-revision 15 README 1.1.2.1
 
 reset refs/tags/branch2_root
 from :4
@@ -73,6 +75,7 @@ Updated for branch2
 
 from :4
 M 100644 :5 README
+property cvs-revision 19 README 1.1.2.1.2.1
 
 reset refs/tags/branch3_root
 from :6
@@ -89,6 +92,7 @@ Updated for branch3
 
 from :6
 M 100644 :7 README
+property cvs-revision 23 README 1.1.2.1.2.1.2.1
 
 reset refs/tags/branch4_root
 from :8
@@ -105,6 +109,7 @@ Updated for branch4
 
 from :8
 M 100644 :9 README
+property cvs-revision 27 README 1.1.2.1.2.1.2.1.2.1
 
 reset refs/tags/branch5_root
 from :10
@@ -121,6 +126,7 @@ Updated for branch5
 
 from :10
 M 100644 :11 README
+property cvs-revision 31 README 1.1.2.1.2.1.2.1.2.1.2.1
 
 reset refs/tags/branch6_root
 from :12
@@ -137,6 +143,7 @@ Updated for branch6
 
 from :12
 M 100644 :13 README
+property cvs-revision 35 README 1.1.2.1.2.1.2.1.2.1.2.1.2.1
 
 reset refs/tags/branch7_root
 from :14
@@ -153,6 +160,7 @@ Updated for branch7
 
 from :14
 M 100644 :15 README
+property cvs-revision 39 README 1.1.2.1.2.1.2.1.2.1.2.1.2.1.2.1
 
 reset refs/tags/branch8_root
 from :16
@@ -169,6 +177,7 @@ Updated for branch8
 
 from :16
 M 100644 :17 README
+property cvs-revision 43 README 1.1.2.1.2.1.2.1.2.1.2.1.2.1.2.1.2.1
 
 reset refs/tags/branch9_root
 from :18
@@ -185,6 +194,7 @@ Updated for branch9
 
 from :18
 M 100644 :19 README
+property cvs-revision 47 README 1.1.2.1.2.1.2.1.2.1.2.1.2.1.2.1.2.1.2.1
 
 reset refs/tags/branch10_root
 from :20
@@ -201,6 +211,7 @@ Updated for branch10
 
 from :20
 M 100644 :21 README
+property cvs-revision 51 README 1.1.2.1.2.1.2.1.2.1.2.1.2.1.2.1.2.1.2.1.2.1
 
 reset refs/heads/master
 from :2

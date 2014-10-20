@@ -41,6 +41,7 @@ _$*
 core
 # CVS default ignores end
 
+property cvs-revision 11 README 1.1
 
 blob
 mark :3
@@ -55,6 +56,7 @@ Should not generate an extra fileop after branching
 
 from :2
 M 100644 :3 superfluous
+property cvs-revision 16 superfluous 1.1
 
 reset refs/tags/samplebranch_root
 from :4
@@ -72,6 +74,7 @@ This file should not appear on the daughter branch
 
 from :4
 M 100644 :5 feedyourhead
+property cvs-revision 17 feedyourhead 1.1
 
 reset refs/heads/master
 from :6

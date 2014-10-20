@@ -41,6 +41,7 @@ _$*
 core
 # CVS default ignores end
 
+property cvs-revision 11 README 1.1
 
 reset refs/tags/samplebranch_root
 from :2
@@ -58,6 +59,7 @@ This is another sample commit
 
 from :2
 M 100644 :3 README
+property cvs-revision 15 README 1.1.2.1
 
 blob
 mark :5
@@ -72,6 +74,7 @@ The obligatory Monty Python reference
 
 from :2
 M 100644 :5 README
+property cvs-revision 11 README 1.2
 
 blob
 mark :7
@@ -86,6 +89,7 @@ We will put the dump theshold before this commit.
 
 from :4
 M 100644 :7 README
+property cvs-revision 15 README 1.1.2.2
 
 blob
 mark :9
@@ -100,6 +104,7 @@ This commit should alter the master branch.
 
 from :6
 M 100644 :9 README
+property cvs-revision 11 README 1.3
 
 reset refs/heads/master
 from :10

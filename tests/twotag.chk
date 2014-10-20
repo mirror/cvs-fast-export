@@ -47,6 +47,8 @@ _$*
 core
 # CVS default ignores end
 
+property cvs-revision 30 tweedledee 1.1
+tweedledum 1.1
 
 blob
 mark :4
@@ -67,6 +69,8 @@ An example second checkin
 from :3
 M 100644 :4 tweedledee
 M 100644 :5 tweedledum
+property cvs-revision 30 tweedledee 1.2
+tweedledum 1.2
 
 reset refs/tags/FUBAR
 from :6

@@ -47,6 +47,8 @@ _$*
 core
 # CVS default ignores end
 
+property cvs-revision 20 bar.c 1.1
+foo.c 1.1
 
 blob
 mark :4
@@ -61,6 +63,7 @@ Second commit
 
 from :3
 M 100644 :4 bar.c
+property cvs-revision 10 bar.c 1.2
 
 blob
 mark :6
@@ -81,6 +84,8 @@ Third commit
 from :5
 M 100644 :6 bar.c
 M 100644 :7 foo.c
+property cvs-revision 20 bar.c 1.3
+foo.c 1.2
 
 reset refs/tags/alternate_root
 from :8
@@ -98,6 +103,7 @@ Fourth commit
 
 from :8
 M 100644 :9 foo.c
+property cvs-revision 14 foo.c 1.2.2.1
 
 blob
 mark :11
@@ -118,6 +124,8 @@ Fifth commit
 from :10
 M 100644 :11 bar.c
 M 100644 :12 foo.c
+property cvs-revision 28 bar.c 1.3.2.1
+foo.c 1.2.2.2
 
 reset refs/heads/master
 from :8

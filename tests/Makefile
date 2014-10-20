@@ -29,7 +29,7 @@ neutralize.map:
 	@echo "$${USER} = foo <foo> -0500" >neutralize.map
 
 TESTLOADS := $(shell ls -1 *.tst | sed '/.tst/s///')
-TESTOPTS = -k -T -A neutralize.map
+TESTOPTS = -k -T -A neutralize.map --reposurgeon
 s_rebuild: neutralize.map
 	@-for file in $(TESTLOADS); do \
 	    echo "Remaking $${file}.chk"; \

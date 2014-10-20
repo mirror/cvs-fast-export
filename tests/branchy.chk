@@ -41,6 +41,7 @@ _$*
 core
 # CVS default ignores end
 
+property cvs-revision 11 README 1.1
 
 blob
 mark :3
@@ -55,6 +56,7 @@ This is another sample commit
 
 from :2
 M 100644 :3 README
+property cvs-revision 11 README 1.2
 
 blob
 mark :5
@@ -69,6 +71,7 @@ Create a doomed file
 
 from :4
 M 100644 :5 doomed
+property cvs-revision 11 doomed 1.1
 
 blob
 mark :7
@@ -83,6 +86,7 @@ Add a spacer commit
 
 from :6
 M 100644 :7 doomed
+property cvs-revision 11 doomed 1.2
 
 reset refs/tags/foo
 from :8
@@ -128,6 +132,7 @@ Check that .cvsignore -> .gitignore name translation works.
 
 from :8
 M 100644 :9 .gitignore
+property cvs-revision 15 .cvsignore 1.1
 
 blob
 mark :11
@@ -171,6 +176,7 @@ Check that .cvsignore -> .gitignore name translation works on updates as well.
 
 from :10
 M 100644 :11 .gitignore
+property cvs-revision 15 .cvsignore 1.2
 
 blob
 mark :13
@@ -185,6 +191,7 @@ The obligatory Monty Python reference
 
 from :12
 M 100644 :13 README
+property cvs-revision 11 README 1.3
 
 commit refs/heads/master
 mark :15
@@ -208,6 +215,7 @@ Only README should be visible here.
 
 from :15
 M 100644 :16 README
+property cvs-revision 11 README 1.4
 
 blob
 mark :18
@@ -222,6 +230,7 @@ Should not generate an extra fileop after branching
 
 from :17
 M 100644 :18 superfluous
+property cvs-revision 16 superfluous 1.1
 
 reset refs/tags/random
 from :19
@@ -242,6 +251,7 @@ Do we get branch detection right?
 
 from :19
 M 100644 :20 README
+property cvs-revision 15 README 1.4.2.1
 
 blob
 mark :22
@@ -256,6 +266,7 @@ This commit should alter the master branch.
 
 from :19
 M 100644 :22 README
+property cvs-revision 11 README 1.5
 
 reset refs/tags/illegal
 from :23
