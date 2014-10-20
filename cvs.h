@@ -196,6 +196,7 @@ enum expand_mode {EXPANDKKV,	/* default form, $<key>: <value>$ */
 		  EXPANDKV,	/* value-only expansion, $<value>$ */
 		  EXPANDKO,	/* old-value expansion */
 		  EXPANDKB,	/* old-value with no EOL normalization */
+		  EXPANDUNSPEC,	/* Not specified on command line */
 		};
 
 typedef struct _editbuffer {
@@ -510,7 +511,7 @@ typedef struct _import_options {
 
 typedef struct _export_options {
     struct timespec start_time;
-    bool enable_keyword_expansion;
+    enum expand_mode id_token_expand;
     char *branch_prefix; 
     time_t fromtime;
     FILE *revision_map;

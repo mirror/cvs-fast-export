@@ -128,6 +128,7 @@ rev_list_file(const char *name, analysis_t *out)
 
     cvs = xcalloc(1, sizeof(cvs_file), __func__);
     cvs->gen.master_name = name;
+    cvs->gen.expand = EXPANDUNSPEC;
     cvs->export_name = atom(rectify_name(name, rectified, sizeof(rectified)));
     cvs->mode = buf.st_mode;
 
