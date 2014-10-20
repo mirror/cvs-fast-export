@@ -491,7 +491,7 @@ static void export_commit(git_commit *commit,
 		    char fr[BUFSIZ];
 		    stringify_revision(f->master->name, 
 				  " ", &f->number, fr, sizeof fr);
-		    if (opts->reposurgeon)
+		    if (opts->reposurgeon || opts->revision_map)
 		    {
 			if (strlen(revpairs) + strlen(fr) + 2 > revpairsize)
 			{
