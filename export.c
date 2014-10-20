@@ -634,24 +634,26 @@ static void export_commit(git_commit *commit,
 	    printf("M 100644 inline .gitignore\ndata %zd\n%s\n",
 		   sizeof(CVS_IGNORES)-1, CVS_IGNORES);
 	}
+	if (revpairs != NULL && strlen(revpairs) > 0)
+	{
+	    if (opts->revision_map) {
+		char *cp;
+		for (cp = revpairs; *cp; cp++) {
+		    if (*cp == '\n')
+			fprintf(opts->revision_map, " :%d", here);
+		    fputc(*cp, opts->revision_map);
+		}
+	    }
+	    if (opts->reposurgeon)
+	    {
+		if (report)
+		    printf("property cvs-revision %zd %s", strlen(revpairs), revpairs);
+	    }
+	}
+	if (opts->reposurgeon || opts->revision_map != NULL)
+	    free(revpairs);
     }
     free(operations);
-
-    if (opts->revision_map) {
-	char *cp;
-	for (cp = revpairs; *cp; cp++) {
-	    if (*cp == '\n')
-		fprintf(opts->revision_map, " :%d", here);
-	    fputc(*cp, opts->revision_map);
-	}
-    }
-    if (opts->reposurgeon) 
-    {
-	if (report)
-	    printf("property cvs-revision %zd %s", strlen(revpairs), revpairs);
-    }
-    if (opts->reposurgeon || opts->revision_map != NULL)
-	free(revpairs);
 
     if (report)
 	printf("\n");
