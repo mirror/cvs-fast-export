@@ -165,6 +165,7 @@ main(int argc, char **argv)
     forest_t        forest;
     export_options_t export_options = {
 	.branch_prefix = "refs/heads/",
+	.id_token_expand =  EXPANDUNSPEC,
     };
     export_stats_t	export_stats;
 
@@ -194,6 +195,7 @@ main(int argc, char **argv)
 	    { "revision-map",       1, 0, 'R' },
 	    { "reposurgeon",        0, 0, 'r' },
             { "graph",              0, 0, 'g' },
+            { "expand",             2, 0, 'k' },
             { "remote",             1, 0, 'e' },
             { "strip",              1, 0, 's' },
             { "progress",           0, 0, 'p' },
@@ -238,7 +240,10 @@ main(int argc, char **argv)
 	    exec_mode = ExecuteGraph;
 	    break;
         case 'k':
-	    export_options.enable_keyword_expansion = true;
+	    if (optarg == NULL)
+		export_options.id_token_expand = EXPANDKKV;
+	    else
+		export_options.id_token_expand = expand_override(optarg);
 	    break;
 	case 'v':
 	    import_options.verbose = true;

@@ -915,7 +915,7 @@ static void enter_branch(editbuffer_t *eb, const node_t *const node)
 	eb->current->line = p;
 }
 
-static node_t *generate_setup(generator_t *gen, bool enable_keyword_expansion)
+static node_t *generate_setup(generator_t *gen, enum expand_mode id_token_expand)
 {
     if (gen->nodehash.head_node != NULL)
     {
@@ -926,8 +926,10 @@ static node_t *generate_setup(generator_t *gen, bool enable_keyword_expansion)
 
 	eb->current = eb->stack;
 	eb->Gfilename = gen->master_name;
-	if (enable_keyword_expansion)
+	if (gen->expand != EXPANDUNSPEC)
 	    eb->Gexpand = gen->expand;
+	else if (id_token_expand != EXPANDUNSPEC)
+	    eb->Gexpand = id_token_expand;
 	else
 	    eb->Gexpand = EXPANDKO;
 	eb->Gabspath = NULL;
@@ -954,7 +956,7 @@ void generate_files(generator_t *gen,
 /* export all the revision states of a CVS/RCS master through a hook */
 {
     editbuffer_t *eb = &gen->editbuffer;
-    node_t *node = generate_setup(gen, opts->enable_keyword_expansion);
+    node_t *node = generate_setup(gen, opts->id_token_expand);
 
     if (node == NULL)
 	return;
