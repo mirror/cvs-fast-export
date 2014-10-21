@@ -1,6 +1,6 @@
 		cvs-fast-export project news
 
-Repository head:
+1.22: 2014-10-21
     New --embed-id and --expand options by Robert deBath.
 
 1.21: 2014-10-19
