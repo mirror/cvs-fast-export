@@ -1,5 +1,8 @@
 		cvs-fast-export project news
 
+Repository head:
+    New --embed-id and --expand options by Robert deBath.
+
 1.21: 2014-10-19
     When incremental dumping, suppress tags associated with old commits.
     Performance improved by x8; see also the new -F and -C options.
