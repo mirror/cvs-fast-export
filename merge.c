@@ -26,7 +26,7 @@
 
 static rev_ref *
 rev_find_head(rev_list *rl, const char *name)
-/* find a named head in a revlist */
+/* find a named head in a revlist (corresponding to a single CVS master) */
 {
     rev_ref	*h;
 
@@ -88,7 +88,7 @@ rev_ref_tsort(rev_ref *refs, rev_list *head)
 
 static int
 rev_list_count(const rev_list *head)
-/* count entries in a rev_list */
+/* count all heads in the rev_list corresponding to a digested CVS repo */
 {
     int	count = 0;
     while (head) {
