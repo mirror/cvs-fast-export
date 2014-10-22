@@ -931,7 +931,7 @@ static node_t *generate_setup(generator_t *gen, enum expand_mode id_token_expand
 	else if (id_token_expand != EXPANDUNSPEC)
 	    eb->Gexpand = id_token_expand;
 	else
-	    eb->Gexpand = EXPANDKK;
+	    eb->Gexpand = EXPANDKO;
 	eb->Gabspath = NULL;
 	Gline(eb) = NULL; Ggap(eb) = Ggapsize(eb) = Glinemax(eb) = 0;
     }
