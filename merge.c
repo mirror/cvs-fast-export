@@ -768,7 +768,6 @@ rev_list_merge(rev_list *head)
      * Sort by degree so that finding branch points always works
      */
     progress_begin("Sorting...", count);
-//    rl->heads = rev_ref_sel_sort(rl->heads);
     rl->heads = rev_ref_tsort(rl->heads, head);
     if (!rl->heads) {
 	free(refs);
