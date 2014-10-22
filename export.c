@@ -26,15 +26,6 @@
 #include <time.h>
 
 /*
- * Below this byte-volume threshold, default to canonical order.
- * Above it, default to fast.  Note that this is total volume of
- * the CVS masters - it would be better to use total snapshot volume
- * but we don't have that at the time the check is done. This threshold is
- * mainly present for backward compatibility and is simewhat arbitrary.
- */
-#define SMALL_REPOSITORY	1000000
-
-/*
  * Blob compression with zlib is not enabled by default because, (a) in general,
  * any repository large enough to hit a disk-space limit is likely to hit
  * a core limit on metadata sooner, and (b) compression costs time.  The
@@ -63,6 +54,15 @@
 #define fputc   fputc_unlocked
 #define feof    feof_unlocked
 #endif /* __GLIBC__ */
+
+/*
+ * Below this byte-volume threshold, default to canonical order.
+ * Above it, default to fast.  Note that this is total volume of
+ * the CVS masters - it would be better to use total snapshot volume
+ * but we don't have that at the time the check is done. This threshold is
+ * mainly present for backward compatibility and is somewhat arbitrary.
+ */
+#define SMALL_REPOSITORY	1000000
 
 /*
  * This code is somewhat complex because the natural order of operations
