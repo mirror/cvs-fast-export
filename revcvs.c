@@ -115,9 +115,9 @@ rev_branch_cvs(cvs_file *cvs, const cvs_number *branch)
     for (c = head, gc = NULL; (p = c->parent); gc = c, c = p) {
 	if (time_compare(p->file->u.date, c->file->u.date) > 0)
 	{
-	    fprintf(stderr, "cvs-fast-export: warning - %s:", cvs->gen.master_name);
-	    dump_number_file(stderr, " ", &p->file->number);
-	    dump_number_file(stderr, " is newer than", &c->file->number);
+	    warn("warning - %s:", cvs->gen.master_name);
+	    dump_number_file(LOGFILE, " ", &p->file->number);
+	    dump_number_file(LOGFILE, " is newer than", &c->file->number);
 
 	    /* Try to catch an odd one out, such as a commit with the
 	     * clock set wrong.  Dont push back all commits for that,
@@ -125,15 +125,15 @@ rev_branch_cvs(cvs_file *cvs, const cvs_number *branch)
 	     * parent. */
 	    if (gc && time_compare(p->file->u.date, gc->file->u.date) <= 0)
 	    {
-	      dump_number_file(stderr, ", adjusting", &c->file->number);
+	      dump_number_file(LOGFILE, ", adjusting", &c->file->number);
 	      c->file->u.date = p->file->u.date;
 	      c->date = p->date;
 	    } else {
-	      dump_number_file(stderr, ", adjusting", &c->file->number);
+	      dump_number_file(LOGFILE, ", adjusting", &c->file->number);
 	      p->file->u.date = c->file->u.date;
 	      p->date = c->date;
 	    }
-	    fprintf(stderr, "\n");
+	    fprintf(LOGFILE, "\n");
 	}
     }
 
@@ -361,7 +361,7 @@ rev_list_graft_branches(rev_list *rl, cvs_file *cvs)
 			if (cvs_is_vendor(&cb->number)) {
 			    cvs_number	v_n;
 			    cvs_commit	*v_c, *n_v_c;
-			    fprintf(stderr, "Found merge into vendor branch\n");
+			    warn("Found merge into vendor branch\n");
 			    v_n = cb->number;
 			    v_c = NULL;
 			    /*
@@ -380,12 +380,12 @@ rev_list_graft_branches(rev_list *rl, cvs_file *cvs)
 			    }
 			    if (v_c)
 			    {
-				fprintf(stderr, "%s: rewrite branch", cvs->name);
-				dump_number_file(stderr, " branch point",
+				warn("%s: rewrite branch", cvs->name);
+				dump_number_file(LOGFILE, " branch point",
 						  &v_c->file->number);
-				dump_number_file(stderr, " branch version",
+				dump_number_file(LOGFILE, " branch version",
 						  &c->file->number);
-				fprintf(stderr, "\n");
+				fprintf(LOGFILE, "\n");
 				c->parent = v_c;
 			    }
 			}
@@ -503,7 +503,7 @@ rev_list_set_refs(rev_list *rl, cvs_file *cvsfile)
 	    n.c -= 2;
 	    h->parent = rev_list_find_branch(rl, &n);
 	    if (!h->parent && !cvs_is_vendor(&h->number))
-		announce("warning - non-vendor %s branch %s has no parent\n",
+		warn("warning - non-vendor %s branch %s has no parent\n",
 			 cvsfile->gen.master_name, h->ref_name);
 	}
 	if (h->parent && !h->ref_name) {
@@ -516,8 +516,8 @@ rev_list_set_refs(rev_list *rl, cvs_file *cvsfile)
 			h->commit->commitid);
 	    else
 		sprintf(name, "%s-UNNAMED-BRANCH", h->parent->ref_name);
-	    announce("warning - putting %s rev %s on unnamed branch %s off %s\n",
-		     cvsfile->gen.master_name, rev, name, h->parent->ref_name);
+	    warn("warning - putting %s rev %s on unnamed branch %s off %s\n",
+		cvsfile->gen.master_name, rev, name, h->parent->ref_name);
 	    h->ref_name = atom(name);
 	}
     }
@@ -731,7 +731,7 @@ rev_list_cvs(cvs_file *cvs)
 	t->number = trunk_number;
     }
     else
-	announce("warning - no master branch generated\n");
+	warn("warning - no master branch generated\n");
     /*
      * Search for other branches
      */

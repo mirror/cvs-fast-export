@@ -29,6 +29,7 @@
 /* options */
 int commit_time_window = 300;
 bool progress = false;
+FILE *LOGFILE;
 
 static import_options_t import_options = {
     .striplen = -1,
@@ -207,12 +208,15 @@ main(int argc, char **argv)
     /* force times using mktime to be interpreted in UTC */
     setenv("TZ", "UTC", 1);
 
+    LOGFILE = stderr;
+
     while (1) {
 	static const struct option options[] = {
 	    { "help",		    0, 0, 'h' },
 	    { "version",	    0, 0, 'V' },
 	    { "verbose",	    0, 0, 'v' },
 	    { "commit-time-window", 1, 0, 'w' },
+	    { "log",                1, 0, 'l' },
 	    { "authormap",          1, 0, 'A' },
 	    { "authorlist",         1, 0, 'a' },
 	    { "revision-map",       1, 0, 'R' },
@@ -230,7 +234,7 @@ main(int argc, char **argv)
             { "embed-id",           0, 0, 'E' },
 	    { "sizes",              0, 0, 'S' },	/* undocumented */
 	};
-	int c = getopt_long(argc, argv, "+hVw:grvaA:R:Tke:s:pPi:t:CFSE", options, NULL);
+	int c = getopt_long(argc, argv, "+hVw:l:grvaA:R:Tke:s:pPi:t:CFSE", options, NULL);
 	if (c < 0)
 	    break;
 	switch(c) {
@@ -281,6 +285,10 @@ main(int argc, char **argv)
 	case 'w':
 	    assert(optarg);
 	    commit_time_window = atoi(optarg);
+	    break;
+	case 'l':
+	    assert(optarg);
+	    LOGFILE = fopen(optarg, "w");
 	    break;
 	case 'a':
 	    exec_mode = ExecuteAuthors;
@@ -403,6 +411,12 @@ main(int argc, char **argv)
 		export_stats.export_total_commits,
 		export_stats.snapsize / 1000000.0,
 		(int)(export_stats.export_total_commits / elapsed));
+    }
+
+    if (LOGFILE != stderr) {
+	if (warncount > 0)
+	    fprintf(STATUS, "cvs-fast-export: %d warning(s).\n", warncount);
+	fclose(LOGFILE);
     }
 
     discard_atoms();

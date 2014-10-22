@@ -79,7 +79,7 @@ rev_ref_tsort(rev_ref *refs, rev_list *head)
 	}
 	*prev = r->next;
 	*done_tail = r;
-//	fprintf(stderr, "\t%s\n", r->name);
+//	fprintf(1stderr, "\t%s\n", r->name);
 	r->next = NULL;
 	done_tail = &r->next;
     }
@@ -473,7 +473,7 @@ rev_branch_merge(rev_ref **branches, int nbranch,
 	if (!birth || time_compare(birth, c->date) >= 0)
 	    continue;
 	if (c->file)
-	    announce("warning - %s: too late date through branch %s\n",
+	    warn("warning - %s: too late date through branch %s\n",
 		     c->file->master->name, branch->ref_name);
 	revisions[n] = NULL;
     }
@@ -607,7 +607,7 @@ rev_branch_merge(rev_ref **branches, int nbranch,
 		    revisions[present]->date == cvs_commit_first_date(revisions[present]))
 		{
 		    /* FIXME: what does this mean? */
-		    announce("warning - file %s appears after branch %s date\n",
+		    warn("file %s appears after branch %s date\n",
 			     revisions[present]->file->master->name, branch->ref_name);
 		    continue;
 		}
@@ -620,16 +620,16 @@ rev_branch_merge(rev_ref **branches, int nbranch,
 	{
 	    if (prev && time_compare((*tail)->date, prev->date) > 0) {
 		rev_file *first;
-		announce("warning - branch point %s -> %s later than branch\n",
+		warn("warning - branch point %s -> %s later than branch\n",
 			 branch->ref_name, branch->parent->ref_name);
-		fprintf(stderr, "\ttrunk(%3d):  %s %s", n,
+		warn("\ttrunk(%3d):  %s %s", n,
 			 cvstime2rfc3339(revisions[present]->date),
 			 revisions[present]->file ? " " : "D" );
 		if (revisions[present]->file)
-		    dump_number_file(stderr,
+		    dump_number_file(LOGFILE,
 				      revisions[present]->file->master->name,
 				      &revisions[present]->file->number);
-		fprintf(stderr, "\n");
+		warn("\n");
 		/*
 		 * The file part of the error message could be spurious for
 		 * a multi-file commit, alas.  It wasn't any better back when
@@ -638,25 +638,25 @@ rev_branch_merge(rev_ref **branches, int nbranch,
 		 * commit is the right one for purposes of this message.
 		 */
 		first = prev->dirs[0]->files[0];
-		fprintf(stderr, "\tbranch(%3d): %s  ", n,
+		fprintf(LOGFILE, "\tbranch(%3d): %s  ", n,
 			 cvstime2rfc3339(first->u.date));
-		dump_number_file(stderr,
+		dump_number_file(LOGFILE,
 				  first->master->name,
 				  &first->number);
-		fprintf(stderr, "\n");
+		fprintf(LOGFILE, "\n");
 	    }
 	} else if ((*tail = git_commit_locate_date(branch->parent,
 						    revisions[present]->date)))
-	    announce("warning - branch point %s -> %s matched by date\n",
+	    warn("warning - branch point %s -> %s matched by date\n",
 		     branch->ref_name, branch->parent->ref_name);
 	else {
 	    rev_ref	*lost;
-	    fprintf(stderr, "Error: branch point %s -> %s not found.",
-		    branch->ref_name, branch->parent->ref_name);
+	    warn("error - branch point %s -> %s not found.",
+		branch->ref_name, branch->parent->ref_name);
 
 	    if ((lost = rev_branch_of_commit(rl, revisions[present])))
-		fprintf(stderr, " Possible match on %s.", lost->ref_name);
-	    fprintf(stderr, "\n");
+		warn(" Possible match on %s.", lost->ref_name);
+	    fprintf(LOGFILE, "\n");
 	}
 	if (*tail) {
 	    if (prev)

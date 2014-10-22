@@ -710,6 +710,9 @@ void
 announce(char const *format,...) _printflike(1, 2);
 
 void
+warn(char const *format,...) _printflike(1, 2);
+
+void
 fatal_error(char const *format, ...) _printflike(1, 2) _noreturn;
 
 void
@@ -736,11 +739,15 @@ void progress_end(const char * /*format*/, ...) _printflike(1, 2);
 #define YY_DECL int yylex \
 	(YYSTYPE * yylval_param , yyscan_t yyscanner, cvs_file *cvs)
 
+
+extern unsigned int warncount;
+
 /*
  * Global options
  */
 
 extern int commit_time_window;
+extern FILE *LOGFILE;
 
 extern bool progress;
 #define STATUS stderr

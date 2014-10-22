@@ -1,6 +1,8 @@
 #include <stdlib.h>
 #include "cvs.h"
 
+unsigned int warncount;
+
 static int progress_max = NO_MAX;
 static bool progress_in_progress;
 
@@ -57,6 +59,24 @@ void announce(char const *format,...)
     va_start(args, format);
     vfprintf(stderr, format, args);
     va_end(args);
+}
+
+void warn(char const *format,...)
+{
+    va_list args;
+
+    if (LOGFILE == stderr && progress && progress_in_progress)
+	fputc('\n', LOGFILE);
+    if (progress_max != NO_MAX) {
+	progress_max = NO_MAX;
+    }
+
+    fprintf(LOGFILE, "cvs-fast-export: ");
+    va_start(args, format);
+    vfprintf(LOGFILE, format, args);
+    va_end(args);
+
+    warncount++;
 }
 
 #if _POSIX_C_SOURCE >= 200112L || _XOPEN_SOURCE >= 600
