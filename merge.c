@@ -746,7 +746,7 @@ rev_list_merge(rev_list *head)
 
     /*
      * Find all of the heads across all of the incoming trees.
-     * Use them to create named branch hets in the output list.
+     * Use them to initialize named branch heads in the output list.
      * Yes, this is currently very inefficient.
      */
     progress_begin("Make DAG branch heads...", count);
