@@ -10,7 +10,7 @@ The quick brown fox jumped over the lazy dog.
 
 commit refs/heads/master
 mark :3
-committer foo <foo> 1800 +0000
+committer foo <foo> 101800 +0000
 data 13
 First commit
 
@@ -57,7 +57,7 @@ The world will little note, nor long remember...
 
 commit refs/heads/master
 mark :5
-committer foo <foo> 3000 +0000
+committer foo <foo> 103000 +0000
 data 14
 Second commit
 
@@ -77,7 +77,7 @@ And now for something completely different.
 
 commit refs/heads/master
 mark :8
-committer foo <foo> 4800 +0000
+committer foo <foo> 104800 +0000
 data 13
 Third commit
 
@@ -97,7 +97,7 @@ Ceci n'est pas un sourcefile.
 
 commit refs/heads/alternate
 mark :10
-committer foo <foo> 6000 +0000
+committer foo <foo> 106000 +0000
 data 14
 Fourth commit
 
@@ -117,7 +117,7 @@ Twas brillig, and the slithy toves...
 
 commit refs/heads/alternate
 mark :13
-committer foo <foo> 7800 +0000
+committer foo <foo> 107800 +0000
 data 13
 Fifth commit
 

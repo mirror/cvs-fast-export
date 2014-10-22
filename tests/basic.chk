@@ -5,7 +5,7 @@ The quick brown fox jumped over the lazy dog.
 
 commit refs/heads/master
 mark :2
-committer foo <foo> 1200 +0000
+committer foo <foo> 101200 +0000
 data 24
 This is a sample commit
 

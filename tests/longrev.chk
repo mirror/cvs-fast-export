@@ -5,7 +5,7 @@ A test of multiple tags.
 
 commit refs/heads/master
 mark :2
-committer foo <foo> 1200 +0000
+committer foo <foo> 101200 +0000
 data 26
 *** empty log message ***
 
@@ -52,7 +52,7 @@ data 7
 branch1
 commit refs/heads/branch1
 mark :4
-committer foo <foo> 2400 +0000
+committer foo <foo> 102400 +0000
 data 20
 Updated for branch1
 
@@ -69,7 +69,7 @@ data 7
 branch2
 commit refs/heads/branch2
 mark :6
-committer foo <foo> 3600 +0000
+committer foo <foo> 103600 +0000
 data 20
 Updated for branch2
 
@@ -86,7 +86,7 @@ data 7
 branch3
 commit refs/heads/branch3
 mark :8
-committer foo <foo> 4800 +0000
+committer foo <foo> 104800 +0000
 data 20
 Updated for branch3
 
@@ -103,7 +103,7 @@ data 7
 branch4
 commit refs/heads/branch4
 mark :10
-committer foo <foo> 6000 +0000
+committer foo <foo> 106000 +0000
 data 20
 Updated for branch4
 
@@ -120,7 +120,7 @@ data 7
 branch5
 commit refs/heads/branch5
 mark :12
-committer foo <foo> 7200 +0000
+committer foo <foo> 107200 +0000
 data 20
 Updated for branch5
 
@@ -137,7 +137,7 @@ data 7
 branch6
 commit refs/heads/branch6
 mark :14
-committer foo <foo> 8400 +0000
+committer foo <foo> 108400 +0000
 data 20
 Updated for branch6
 
@@ -154,7 +154,7 @@ data 7
 branch7
 commit refs/heads/branch7
 mark :16
-committer foo <foo> 9600 +0000
+committer foo <foo> 109600 +0000
 data 20
 Updated for branch7
 
@@ -171,7 +171,7 @@ data 7
 branch8
 commit refs/heads/branch8
 mark :18
-committer foo <foo> 10800 +0000
+committer foo <foo> 110800 +0000
 data 20
 Updated for branch8
 
@@ -188,7 +188,7 @@ data 7
 branch9
 commit refs/heads/branch9
 mark :20
-committer foo <foo> 12000 +0000
+committer foo <foo> 112000 +0000
 data 20
 Updated for branch9
 
@@ -205,7 +205,7 @@ data 8
 branch10
 commit refs/heads/branch10
 mark :22
-committer foo <foo> 13200 +0000
+committer foo <foo> 113200 +0000
 data 21
 Updated for branch10
 

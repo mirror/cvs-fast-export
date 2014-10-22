@@ -10,7 +10,7 @@ The quick brown fox jumped over the lazy dog.
 
 commit refs/heads/master
 mark :3
-committer foo <foo> 1800 +0000
+committer foo <foo> 101800 +0000
 data 25
 An example first checkin
 
@@ -62,7 +62,7 @@ Portez ce vieux whisky au juge blond qui fume.
 
 commit refs/heads/master
 mark :6
-committer foo <foo> 3600 +0000
+committer foo <foo> 103600 +0000
 data 26
 An example second checkin
 

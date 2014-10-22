@@ -294,7 +294,11 @@ static int fileop_sort(const void *a, const void *b)
     return path_deep_compare(oa->path, ob->path);
 }
 
-#define display_date(c, m, f)	(f ? ((m) * commit_time_window * 2) : ((c)->date + RCS_EPOCH))
+/*
+ * The magic number 100000 avoids generating forced UTC times that might be
+ * negative in some timezone, while producing a sequence easy to read.
+ */
+#define display_date(c, m, f)	(f ? (100000 + (m) * commit_time_window * 2) : ((c)->date + RCS_EPOCH))
 
 /*
  * An iterator structure over the sorted files in a git_commit

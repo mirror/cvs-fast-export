@@ -5,7 +5,7 @@ The quick brown fox jumped over the lazy dog.
 
 commit refs/heads/master
 mark :2
-committer foo <foo> 1200 +0000
+committer foo <foo> 101200 +0000
 data 24
 This is a sample commit
 
@@ -53,7 +53,7 @@ Now is the time for all good men to come to the aid of their country.
 
 commit refs/heads/samplebranch
 mark :4
-committer foo <foo> 2400 +0000
+committer foo <foo> 102400 +0000
 data 30
 This is another sample commit
 
@@ -68,7 +68,7 @@ And now for something completely different.
 
 commit refs/heads/master
 mark :6
-committer foo <foo> 3600 +0000
+committer foo <foo> 103600 +0000
 data 38
 The obligatory Monty Python reference
 
@@ -83,7 +83,7 @@ This is random content for README.
 
 commit refs/heads/samplebranch
 mark :8
-committer foo <foo> 4800 +0000
+committer foo <foo> 104800 +0000
 data 50
 We will put the dump theshold before this commit.
 
@@ -98,7 +98,7 @@ I'm back in the saddle again.
 
 commit refs/heads/master
 mark :10
-committer foo <foo> 6000 +0000
+committer foo <foo> 106000 +0000
 data 44
 This commit should alter the master branch.
 

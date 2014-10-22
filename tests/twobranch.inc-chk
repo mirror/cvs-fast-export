@@ -1,18 +1,15 @@
-from refs/heads/samplebranch^0
-
 blob
-mark :7
-data 35
-This is random content for README.
+mark :1
+data 46
+The quick brown fox jumped over the lazy dog.
 
-commit refs/heads/samplebranch
-mark :8
-committer foo <foo> 4800 +0000
-data 50
-We will put the dump theshold before this commit.
+commit refs/heads/master
+mark :2
+committer foo <foo> 101200 +0000
+data 24
+This is a sample commit
 
-from :4
-M 100644 :7 README
+M 100644 :1 README
 M 100644 inline .gitignore
 data 198
 # CVS default ignores begin
@@ -45,7 +42,50 @@ core
 # CVS default ignores end
 
 
-from refs/heads/master^0
+reset refs/tags/samplebranch_root
+from :2
+
+blob
+mark :3
+data 70
+Now is the time for all good men to come to the aid of their country.
+
+commit refs/heads/samplebranch
+mark :4
+committer foo <foo> 102400 +0000
+data 30
+This is another sample commit
+
+from :2
+M 100644 :3 README
+
+blob
+mark :5
+data 44
+And now for something completely different.
+
+commit refs/heads/master
+mark :6
+committer foo <foo> 103600 +0000
+data 38
+The obligatory Monty Python reference
+
+from :2
+M 100644 :5 README
+
+blob
+mark :7
+data 35
+This is random content for README.
+
+commit refs/heads/samplebranch
+mark :8
+committer foo <foo> 104800 +0000
+data 50
+We will put the dump theshold before this commit.
+
+from :4
+M 100644 :7 README
 
 blob
 mark :9
@@ -54,7 +94,7 @@ I'm back in the saddle again.
 
 commit refs/heads/master
 mark :10
-committer foo <foo> 6000 +0000
+committer foo <foo> 106000 +0000
 data 44
 This commit should alter the master branch.
 
