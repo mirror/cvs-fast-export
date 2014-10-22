@@ -765,7 +765,7 @@ rev_list_merge(rev_list *head)
     progress_jump(n);
     progress_end(NULL);
     /*
-     * Sort by degree so that finding branch points always works
+     * Sort by degree so that finding branch points always works.
      */
     progress_begin("Sorting...", count);
     rl->heads = rev_ref_tsort(rl->heads, head);
@@ -775,11 +775,18 @@ rev_list_merge(rev_list *head)
 	return NULL;
     }
     progress_end(NULL);
-//    for (h = rl->heads; h; h = h->next)
-//	fprintf(stderr, "head %s(%d)\n",
-//		 h->name, h->degree);
+#ifdef __UNUSED__
     /*
-     * Find branch parent relationships
+     * This code displaya the result of the branch toposort.
+     * The "master" branch should always be at the front
+     * of the list.
+     */
+    for (h = rl->heads; h; h = h->next)
+	fprintf(stderr, "head %s(%d)\n",
+		 h->ref_name, h->degree);
+#endif /* __UNUSED__ */
+    /*
+     * Find branch parent relationships.
      */
     progress_begin("Find branch parent relationships...", count);
     for (h = rl->heads; h; h = h->next) {
