@@ -279,15 +279,18 @@ main(int argc, char **argv)
 	    printf("%s: version " VERSION "\n", argv[0]);
 	    return 0;
 	case 'w':
+	    assert(optarg);
 	    commit_time_window = atoi(optarg);
 	    break;
 	case 'a':
 	    exec_mode = ExecuteAuthors;
 	    break;
 	case 'A':
+	    assert(optarg);
 	    load_author_map(optarg);
 	    break;
 	case 'R':
+	    assert(optarg);
 	    export_options.revision_map = fopen(optarg, "w");
 	    if (export_options.revision_map == NULL)
 		fatal_error("cannot open %s for revision-map write", optarg);
@@ -302,20 +305,24 @@ main(int argc, char **argv)
 	    export_options.force_dates = true;
 	    break;
 	case 'e':
+	    assert(optarg);
 	    export_options.branch_prefix = (char*)xmalloc(strlen(optarg)+15, __func__);
 	    sprintf(export_options.branch_prefix, "refs/remotes/%s/", optarg);
 	    break;
 	case 's':
+	    assert(optarg);
 	    import_options.striplen = strlen(optarg) + 1;
 	    break;
 	case 'p':
 	    progress = true;
 	    break;
 	case 'i':
+	    assert(optarg);
 	    export_options.fromtime = convert_date(optarg);
 	    break;
 	case 't':
 #ifdef THREADS
+	    assert(optarg);
 	    threads = atoi(optarg);
 #else
 	    announce("not built with thread support, -t option ignored.\n");

@@ -654,9 +654,8 @@ static void export_commit(git_commit *commit,
 		    printf("property cvs-revision %zd %s", strlen(revpairs), revpairs);
 	    }
 	}
-	if (opts->reposurgeon || opts->revision_map != NULL || opts->embed_ids)
-	    free(revpairs);
     }
+    free(revpairs);
     free(operations);
 
     if (report)
