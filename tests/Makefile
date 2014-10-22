@@ -83,8 +83,8 @@ f_regress:
 	@-for file in $(LINEAR); do \
 	    echo -n "  $${file} "; grep '##' $${file}.tst  || echo ' ## (no description)'; \
 	    make --quiet $${file}.repo; \
-	    find $${file}.repo/$${file} -name '*,v' | sort | $(CVS_FAST_EXPORT) -C -T -A neutralize.map 2>&1 | gitwash >canonical$$; \
-	    find $${file}.repo/$${file} -name '*,v' | sort | $(CVS_FAST_EXPORT) -F -T -A neutralize.map 2>&1 | gitwash >fast$$; \
+	    find $${file}.repo/$${file} -name '*,v' | sort | $(CVS_FAST_EXPORT) -C -T -A neutralize.map 2>&1 | ./gitwash >canonical$$; \
+	    find $${file}.repo/$${file} -name '*,v' | sort | $(CVS_FAST_EXPORT) -F -T -A neutralize.map 2>&1 | ./gitwash >fast$$; \
 	    $(DIFF) canonical$$ fast$$; \
 	    rm canonical$$ fast$$; \
 	done
