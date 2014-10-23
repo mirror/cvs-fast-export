@@ -340,8 +340,8 @@ typedef struct _cvs_commit {
     unsigned		tail:1;
     unsigned		tailed:1;
     unsigned		dead:1;
-    bool                emitted:1;
     /* CVS-only members begin here */
+    bool                emitted:1;
     rev_master          *master;
     struct _cvs_commit  *other;
     cvs_number		number;
@@ -358,7 +358,7 @@ typedef struct _git_commit {
     branchcount_t	refcount;
     unsigned		tail:1;
     unsigned		tailed:1;
-    unsigned		dead:1;		/* not actually used in gitspace */
+    unsigned		dead:1;
     /* gitspace-only members begin here */
     short		nfiles;
     short		ndirs;
