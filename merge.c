@@ -146,8 +146,7 @@ static int
 cvs_commit_date_sort(cvs_commit **commits, int ncommit)
 /* sort CVS commits by date */
 {
-    qsort(commits, ncommit, sizeof(cvs_commit *),
-	   cvs_commit_date_compare);
+    qsort(commits, ncommit, sizeof(cvs_commit *), cvs_commit_date_compare);
     /*
      * Trim off NULL entries
      */
@@ -399,7 +398,7 @@ cvs_commit_first_date(cvs_commit *commit)
 static void
 rev_branch_merge(rev_ref **branches, int nbranch,
 		  rev_ref *branch, rev_list *rl)
-/* merge a set of per-file branches into a gitspace DAG branch */
+/* merge a set of per-CVS-master branches into a gitspace DAG branch */
 {
     int nlive;
     int n;
@@ -590,14 +589,16 @@ rev_branch_merge(rev_ref **branches, int nbranch,
 
     /*
      * Gitspace branch construction is done. Now connect it to its
-     * parent branch.
+     * parent branch.  The CVS commits referenced in the revisions
+     * array are for the oldest commit on the branch (the last clique
+     * to be collected in the previous phase).
      */
     nbranch = cvs_commit_date_sort(revisions, nbranch);
     if (nbranch && branch->parent )
     {
 	int	present;
 
-	for (present = 0; present < nbranch; present++)
+	for (present = 0; present < nbranch; present++) {
 	    if (!revisions[present]->dead) {
 		/*
 		 * Skip files which appear in the repository after
@@ -613,6 +614,7 @@ rev_branch_merge(rev_ref **branches, int nbranch,
 		}
 		break;
 	    }
+	}
 	if (present == nbranch)
 	    *tail = NULL;
 	else if ((*tail = git_commit_locate_one(branch->parent,
@@ -624,7 +626,7 @@ rev_branch_merge(rev_ref **branches, int nbranch,
 			 branch->ref_name, branch->parent->ref_name);
 		warn("\ttrunk(%3d):  %s %s", n,
 			 cvstime2rfc3339(revisions[present]->date),
-			 !revisions[present]->dead ? " " : "D" );
+			 revisions[present]->dead ? "D" : " " );
 		if (!revisions[present]->dead)
 		    dump_number_file(LOGFILE,
 				      revisions[present]->master->name,
@@ -637,8 +639,8 @@ rev_branch_merge(rev_ref **branches, int nbranch,
 		 * problem is that we can't actually know which CVS file
 		 * commit is the right one for purposes of this message.
 		 */
-		fprintf(LOGFILE, "\tbranch(%3d): %s  ", n,
-			 cvstime2rfc3339(prev->date));
+		fprintf(LOGFILE, "\tbranch(%3d): %s  ",
+			n, cvstime2rfc3339(prev->date));
 		first = prev->dirs[0]->files[0];
 		dump_number_file(LOGFILE,
 				  first->master->name,
