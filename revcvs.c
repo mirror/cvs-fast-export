@@ -56,7 +56,6 @@ rev_branch_cvs(cvs_file *cvs, const cvs_number *branch)
     cvs_commit	*head = NULL;
     cvs_commit	*c, *p, *gc;
     node_t	*node;
-    /* FIXME: these aren't garbage-collected (see also Coverity cues) */
     rev_master  *master = xcalloc(1,sizeof(rev_master), "master construction");
 
     master->name = cvs->export_name;
@@ -102,7 +101,8 @@ rev_branch_cvs(cvs_file *cvs, const cvs_number *branch)
     /*
      * Make sure the dates along the branch are well ordered. As we
      * want to preserve current data, push previous versions back to
-     * align with newer revisions.
+     * align with newer revisions. (The branch is being traversed
+     * in reverse order. p = parent, c = child, gc = grandchild.)
      */
     for (c = head, gc = NULL; (p = c->parent); gc = c, c = p) {
 	if (time_compare(p->file->u.date, c->file->u.date) > 0)
@@ -112,7 +112,7 @@ rev_branch_cvs(cvs_file *cvs, const cvs_number *branch)
 	    dump_number_file(LOGFILE, " is newer than", &c->file->number);
 
 	    /* Try to catch an odd one out, such as a commit with the
-	     * clock set wrong.  Dont push back all commits for that,
+	     * clock set wrong.  Don't push back all commits for that,
 	     * just fix up the current commit instead of the
 	     * parent. */
 	    if (gc && time_compare(p->file->u.date, gc->file->u.date) <= 0)
@@ -594,7 +594,7 @@ rev_ref_compare(cvs_file *cvs, const rev_ref *r1, const rev_ref *r2)
 
 static void
 rev_list_sort_heads(rev_list *rl, cvs_file *cvs)
-/* sort branch heads so they are in symbol-compare order */
+/* sort branch heads so parents are always before children; trunk first. */
 {
     rev_ref *p = rl->heads, *q;
     rev_ref *e;

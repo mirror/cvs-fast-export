@@ -75,15 +75,20 @@ cvs_same_branch(const cvs_number *a, const cvs_number *b)
 
 int
 cvs_number_compare(const cvs_number *a, const cvs_number *b)
-/* total ordering for CVS revision numbers */
+/* total ordering for CVS revision numbers - parent always < child */
 {
     int n = min(a->c, b->c);
     int i;
 
     /*
-     * On the same branch, earlier commits sort before later ones.
+     * On the same branch, earlier commits compare before later ones.
      * On different ranches of the same degree, the earlier one
-     * sorts before the later one.
+     * compares before the later one.
+     *
+     * Note that while it isn't possible to uniquely total-order
+     * an unlabeled tree, the CVS numbers themselves give us the
+     * additional info required; they impose an arrow of creation time
+     * on the nodes.
      */
     for (i = 0; i < n; i++) {
 	if (a->n[i] < b->n[i])
