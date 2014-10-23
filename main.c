@@ -146,7 +146,7 @@ static void print_sizes(void)
     printf("sizeof(git_commit)    = %zu\n", sizeof(git_commit));
     printf("sizeof(rev_ref)       = %zu\n", sizeof(rev_ref));
     printf("sizeof(rev_list)      = %zu\n", sizeof(rev_list));
-    printf("sizeof(rev_file_list) = %zu\n", sizeof(rev_file_list));
+    printf("sizeof(cvs_commit_list) = %zu\n", sizeof(cvs_commit_list));
     printf("sizeof(rev_diff)      = %zu\n", sizeof(rev_diff));
     printf("sizeof(cvs_author)    = %zu\n", sizeof(cvs_author));
     printf("sizeof(chunk_t)       = %zu\n", sizeof(chunk_t));

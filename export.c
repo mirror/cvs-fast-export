@@ -394,11 +394,11 @@ static void compute_parent_links(const git_commit *commit)
 }
 
 #ifdef ORDERDEBUG
-static void dump_file(const rev_file *rev_file, FILE *fp)
+static void dump_file(const cvs_commit *cvs_commit, FILE *fp)
 {
     char buf[CVS_MAX_REV_LEN + 1];
-    fprintf(fp, "   file name: %s %s\n", rev_file->master->name, 
-	    cvs_number_string(&rev_file->number, buf, sizeof(buf)));
+    fprintf(fp, "   file name: %s %s\n", cvs_commit->master->name, 
+	    cvs_number_string(&cvs_commit->number, buf, sizeof(buf)));
  }
 
 static void dump_dir(const rev_dir *rev_dir, FILE *fp)

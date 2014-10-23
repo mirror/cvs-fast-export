@@ -343,8 +343,8 @@ typedef struct _cvs_commit {
     bool                emitted:1;
     /* CVS-only members begin here */
     rev_master          *master;
-    cvs_number		number;
     struct _cvs_commit  *other;
+    cvs_number		number;
 } cvs_commit;
 
 typedef struct _git_commit {
@@ -384,14 +384,14 @@ typedef struct _rev_list {
     rev_ref	*heads;
 } rev_list;
 
-typedef struct _rev_file_list {
-    struct _rev_file_list   *next;
+typedef struct _cvs_commit_list {
+    struct _cvs_commit_list   *next;
     cvs_commit		    *file;
-} rev_file_list;
+} cvs_commit_list;
 
 typedef struct _rev_diff {
-    rev_file_list	*restrict del;
-    rev_file_list	*restrict add;
+    cvs_commit_list	*restrict del;
+    cvs_commit_list	*restrict add;
     int			ndel;
     int			nadd;
 } rev_diff;

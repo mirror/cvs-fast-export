@@ -47,15 +47,15 @@ void
 dump_git_commit(const git_commit *c, FILE *fp)
 /* dump all delta/revision pairs associated with a gitspace commit */
 {
-    rev_file	*f;
+    cvs_commit	*cc;
     int		i, j;
 
     for (i = 0; i < c->ndirs; i++) {
 	rev_dir	*dir = c->dirs[i];
 	
 	for (j = 0; j < dir->nfiles; j++) {
-	    f = dir->files[j];
-	    dump_number_file(fp, f->name, &f->number);
+	    cc = dir->files[j];
+	    dump_number_file(fp, cc->name, &cc->number);
 	    printf(" ");
 	}
     }

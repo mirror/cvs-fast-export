@@ -872,12 +872,12 @@ rev_list_merge(rev_list *head)
  * Generate a list of files in uniq that aren't in common
  */
 
-static rev_file_list *
+static cvs_commit_list *
 rev_uniq_file(git_commit *uniq, git_commit *common, int *nuniqp)
 {
     int	i, j;
     int nuniq = 0;
-    rev_file_list   *head = NULL, **tail = &head, *fl;
+    cvs_commit_list   *head = NULL, **tail = &head, *fl;
     
     if (!uniq)
 	return NULL;
@@ -885,7 +885,7 @@ rev_uniq_file(git_commit *uniq, git_commit *common, int *nuniqp)
 	rev_dir	*dir = uniq->dirs[i];
 	for (j = 0; j < dir->nfiles; j++)
 	    if (!git_commit_has_file(common, dir->files[j])) {
-		fl = xcalloc(1, sizeof(rev_file_list), "rev_uniq_file");
+		fl = xcalloc(1, sizeof(cvs_commit_list), "rev_uniq_file");
 		fl->file = dir->files[j];
 		*tail = fl;
 		tail = &fl->next;
@@ -911,9 +911,9 @@ git_commit_diff(git_commit *old, git_commit *new)
 }
 
 static void
-rev_file_list_free(rev_file_list *fl)
+cvs_commit_list_free(cvs_commit_list *fl)
 {
-    rev_file_list   *next;
+    cvs_commit_list   *next;
 
     while (fl) {
 	next = fl->next;
@@ -925,8 +925,8 @@ rev_file_list_free(rev_file_list *fl)
 void
 rev_diff_free(rev_diff *d)
 {
-    rev_file_list_free(d->del);
-    rev_file_list_free(d->add);
+    cvs_commit_list_free(d->del);
+    cvs_commit_list_free(d->add);
     free(d);
 }
 

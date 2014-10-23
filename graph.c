@@ -64,7 +64,7 @@ dot_ref_name(FILE *f, const rev_ref *ref)
 }
 
 static bool
-rev_file_list_has_filename(const rev_file_list *fl, const char *name)
+cvs_commit_list_has_filename(const cvs_commit_list *fl, const char *name)
 {
     for (; fl; fl = fl->next)
 	if (fl->file->master->name == name)
@@ -87,24 +87,24 @@ static void dot_commit_graph(git_commit *c, const rev_ref *branch)
     printf("\\n");
     if (difffiles) {
 	rev_diff    *diff = git_commit_diff(c->parent, c);
-	rev_file_list   *fl;
+	cvs_commit_list   *fl;
 
 	for (fl = diff->add; fl; fl = fl->next) {
-	    if (!rev_file_list_has_filename(diff->del, fl->file->master->name)) {
+	    if (!cvs_commit_list_has_filename(diff->del, fl->file->master->name)) {
 		printf("+");
 		dump_number(fl->file->master->name, &fl->file->number);
 		printf("\\n");
 	    }
 	}
 	for (fl = diff->add; fl; fl = fl->next) {
-	    if (rev_file_list_has_filename(diff->del, fl->file->master->name)) {
+	    if (cvs_commit_list_has_filename(diff->del, fl->file->master->name)) {
 		printf("|");
 		dump_number(fl->file->master->name, &fl->file->number);
 		printf("\\n");
 	    }
 	}
 	for (fl = diff->del; fl; fl = fl->next) {
-	    if (!rev_file_list_has_filename(diff->add, fl->file->master->name)) {
+	    if (!cvs_commit_list_has_filename(diff->add, fl->file->master->name)) {
 		printf("-");
 		dump_number(fl->file->master->name, &fl->file->number);
 		printf("\\n");
