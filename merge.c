@@ -638,7 +638,7 @@ rev_branch_merge(rev_ref **branches, int nbranch,
 		 * commit is the right one for purposes of this message.
 		 */
 		fprintf(LOGFILE, "\tbranch(%3d): %s  ", n,
-			 cvstime2rfc3339(revisions[present]->date));
+			 cvstime2rfc3339(prev->date));
 		first = prev->dirs[0]->files[0];
 		dump_number_file(LOGFILE,
 				  first->master->name,
