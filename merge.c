@@ -133,11 +133,11 @@ cvs_commit_date_compare(const void *av, const void *bv)
     if (t)
 	return t;
     /*
-     * Ensure total order by ordering based on file address
+     * Ensure total order by ordering based on commit address
      */
-    if ((uintptr_t) a->file > (uintptr_t) b->file)
+    if ((uintptr_t) a->file > (uintptr_t) b)
 	return -1;
-    if ((uintptr_t) a->file < (uintptr_t) b->file)
+    if ((uintptr_t) a->file < (uintptr_t) b)
 	return 1;
     return 0;
 }
@@ -243,7 +243,7 @@ git_commit_build(cvs_commit **revisions, cvs_commit *leader, const int nrevision
 
     nfile = 0;
     for (n = 0; n < nrevisions; n++)
-	if (revisions[n] && revisions[n]->file)
+	if (revisions[n] && !revisions[n]->dead)
 	    files[nfile++] = revisions[n]->file;
     
     rds = rev_pack_files(files, nfile, &nds);
@@ -472,7 +472,7 @@ rev_branch_merge(rev_ref **branches, int nbranch,
 	    continue;
 	if (!birth || time_compare(birth, c->date) >= 0)
 	    continue;
-	if (c->file)
+	if (!c->dead)
 	    warn("warning - %s: too late date through branch %s\n",
 		     c->file->master->name, branch->ref_name);
 	revisions[n] = NULL;
@@ -524,7 +524,7 @@ rev_branch_merge(rev_ref **branches, int nbranch,
 		continue;
 	    /* not affected? */
 	    if (c != latest && !cvs_commit_match(c, latest)) {
-		if (c->parent || c->file)
+		if (c->parent || !c->dead)
 		    nlive++;
 		continue;
 	    }
@@ -541,7 +541,7 @@ rev_branch_merge(rev_ref **branches, int nbranch,
 		 * Adding file independently added on another
 		 * non-trunk branch.
 		 */
-		if (!to->parent && !to->file)
+		if (!to->parent && to->dead)
 		    goto Kill;
 		/*
 		 * If the parent is at the beginning of trunk
@@ -558,7 +558,7 @@ rev_branch_merge(rev_ref **branches, int nbranch,
 		 * our branch's creation.
 		 */
 		to->tailed = true;
-	    } else if (to->file) {
+	    } else if (!to->dead) {
 		nlive++;
 	    } else {
 		/*
@@ -598,7 +598,7 @@ rev_branch_merge(rev_ref **branches, int nbranch,
 	int	present;
 
 	for (present = 0; present < nbranch; present++)
-	    if (revisions[present]->file) {
+	    if (!revisions[present]->dead) {
 		/*
 		 * Skip files which appear in the repository after
 		 * the first commit along the branch
@@ -625,7 +625,7 @@ rev_branch_merge(rev_ref **branches, int nbranch,
 		warn("\ttrunk(%3d):  %s %s", n,
 			 cvstime2rfc3339(revisions[present]->date),
 			 revisions[present]->file ? " " : "D" );
-		if (revisions[present]->file)
+		if (!revisions[present]->dead)
 		    dump_number_file(LOGFILE,
 				      revisions[present]->file->master->name,
 				      &revisions[present]->file->number);
