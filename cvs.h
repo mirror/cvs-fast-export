@@ -111,7 +111,6 @@ typedef struct _cvs_number {
 
 struct _cvs_version;
 struct _cvs_patch;
-struct _rev_file;
 
 typedef struct node {
     struct node *hash_next;
@@ -269,26 +268,15 @@ typedef struct {
 typedef struct _rev_master {
     /* information shared by all revisions of a master */
     const char		*name;
-    struct _rev_file    *revs;
     struct _cvs_commit  *commits;
-    serial_t		nrevs;
     serial_t		ncommits;
     mode_t		mode;
 } rev_master;
 
-typedef struct _rev_file {
-    /* a CVS file revision state (composed from delta in a master) */
-    rev_master          *master;
-    cvs_number		number;
-    struct _rev_file    *other;
-    serial_t            serial;
-    flag                emitted;
-} rev_file;
-
 typedef struct _rev_dir {
     /* a directory containing a collection of file states */
     serial_t		nfiles;
-    rev_file		*files[0];
+    struct _cvs_commit	*files[0];
 } rev_dir;
 
 /*
@@ -352,8 +340,11 @@ typedef struct _cvs_commit {
     unsigned		tail:1;
     unsigned		tailed:1;
     unsigned		dead:1;
+    bool                emitted:1;
     /* CVS-only members begin here */
-    rev_file		*file;		/* first file */
+    rev_master          *master;
+    cvs_number		number;
+    struct _cvs_commit  *other;
 } cvs_commit;
 
 typedef struct _git_commit {
@@ -395,7 +386,7 @@ typedef struct _rev_list {
 
 typedef struct _rev_file_list {
     struct _rev_file_list   *next;
-    rev_file		    *file;
+    cvs_commit		    *file;
 } rev_file_list;
 
 typedef struct _rev_diff {
@@ -654,7 +645,7 @@ void generate_files(generator_t *gen,
 		    void (*hook)(node_t *node, void *buf, size_t len, export_options_t *popts));
 
 rev_dir **
-rev_pack_files(rev_file **files, int nfiles, int *ndr);
+rev_pack_files(cvs_commit **files, int nfiles, int *ndr);
 
 void
 rev_free_dirs(void);

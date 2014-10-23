@@ -140,7 +140,6 @@ static void print_sizes(void)
     printf("sizeof(editbuffer_t)  = %zu\n", sizeof(editbuffer_t));
     printf("sizeof(cvs_file)      = %zu\n", sizeof(cvs_file));
     printf("sizeof(rev_master)    = %zu\n", sizeof(rev_master));
-    printf("sizeof(rev_file)      = %zu\n", sizeof(rev_file));
     printf("sizeof(rev_dir)       = %zu\n", sizeof(rev_dir));
     printf("sizeof(bloom_t)       = %zu\n", sizeof(bloom_t));
     printf("sizeof(cvs_commit)    = %zu\n", sizeof(cvs_commit));

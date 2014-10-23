@@ -31,15 +31,13 @@ rev_find_cvs_revision(rev_list *rl, const cvs_number *number)
 {
     rev_ref	*h;
     cvs_commit	*c;
-    rev_file	*f;
 
     for (h = rl->heads; h; h = h->next) {
 	if (h->tail)
 	    continue;
 	for (c = h->commit; c; c = c->parent)
 	{
-	     f = c->file;
-	     if (cvs_number_compare(&f->number, number) == 0)
+	     if (cvs_number_compare(&c->number, number) == 0)
 		    return c;
 	     if (c->tail)
 		 break;
@@ -59,8 +57,6 @@ rev_branch_cvs(cvs_file *cvs, const cvs_number *branch)
     rev_master  *master = xcalloc(1,sizeof(rev_master), "master construction");
 
     master->name = cvs->export_name;
-    master->revs = xcalloc(cvs->nversions, sizeof(rev_file), 
-			   "file slab alloc");
     master->commits = xcalloc(cvs->nversions, sizeof(cvs_commit),
 			      "commit slab alloc");
 
@@ -82,10 +78,8 @@ rev_branch_cvs(cvs_file *cvs, const cvs_number *branch)
 	    c->log = p->log;
 	 c->dead = v->dead;
 	/* leave this around so the branch merging stuff can find numbers */
-	c->file = master->revs + master->nrevs;
-	c->file->master = master;
-	c->file->number = v->number;
-	master->nrevs++;
+	c->master = master;
+	c->number = v->number;
 	if (!v->dead) {
 	    node->commit = c;
 	}
@@ -107,8 +101,8 @@ rev_branch_cvs(cvs_file *cvs, const cvs_number *branch)
 	if (time_compare(p->date, c->date) > 0)
 	{
 	    warn("warning - %s:", cvs->gen.master_name);
-	    dump_number_file(LOGFILE, " ", &p->file->number);
-	    dump_number_file(LOGFILE, " is newer than", &c->file->number);
+	    dump_number_file(LOGFILE, " ", &p->number);
+	    dump_number_file(LOGFILE, " is newer than", &c->number);
 
 	    /* Try to catch an odd one out, such as a commit with the
 	     * clock set wrong.  Don't push back all commits for that,
@@ -116,10 +110,10 @@ rev_branch_cvs(cvs_file *cvs, const cvs_number *branch)
 	     * parent. */
 	    if (gc && time_compare(p->date, gc->date) <= 0)
 	    {
-	      dump_number_file(LOGFILE, ", adjusting", &c->file->number);
+	      dump_number_file(LOGFILE, ", adjusting", &c->number);
 	      c->date = p->date;
 	    } else {
-	      dump_number_file(LOGFILE, ", adjusting", &c->file->number);
+	      dump_number_file(LOGFILE, ", adjusting", &c->number);
 	      p->date = c->date;
 	    }
 	    fprintf(LOGFILE, "\n");
@@ -154,7 +148,7 @@ rev_list_patch_vendor_branch(rev_list *rl, cvs_file *cvs)
     trunk = rl->heads;
     for (h_p = &rl->heads; (h = *h_p);) {
 	bool delete_head = false;
-	if (h->commit && cvs_is_vendor(&h->commit->file->number))
+	if (h->commit && cvs_is_vendor(&h->commit->number))
 	{
 	    /*
 	     * Find version 1.2 on the trunk.
@@ -232,14 +226,14 @@ rev_list_patch_vendor_branch(rev_list *rl, cvs_file *cvs)
 		    char	name[PATH_MAX];
 		    cvs_number	branch;
 
-		    branch = vlast->file->number;
+		    branch = vlast->number;
 		    branch.c--;
 		    cvs_number_string(&branch, rev, sizeof(rev));
 		    snprintf(name, sizeof(name),
 			      "import-%s", rev);
 		    vendor->ref_name = atom(name);
 		    vendor->parent = trunk;
-		    vendor->degree = vlast->file->number.c;
+		    vendor->degree = vlast->number.c;
 		}
 		for (vr = vendor->commit; vr; vr = vr->parent)
 		{
@@ -284,7 +278,7 @@ rev_list_patch_vendor_branch(rev_list *rl, cvs_file *cvs)
 #if CVSDEBUG
     fprintf(stderr, "%s spliced:\n", cvs->name);
     for (t = trunk->commit; t; t = t->parent) {
-	dump_number_file(stderr, "\t", &t->file->number);
+	dump_number_file(stderr, "\t", &t->number);
 	fprintf(stderr, "\n");
     }
 #endif
@@ -330,7 +324,7 @@ rev_list_graft_branches(rev_list *rl, cvs_file *cvs)
 	    for (cv = cvs->gen.versions; cv; cv = cv->next) {
 		for (cb = cv->branches; cb; cb = cb->next) {
 		    if (cvs_number_compare(&cb->number,
-					    &c->file->number) == 0)
+					    &c->number) == 0)
 		    {
 			c->parent = rev_find_cvs_revision(rl, &cv->number);
 			c->tail = true;
@@ -368,9 +362,9 @@ rev_list_graft_branches(rev_list *rl, cvs_file *cvs)
 			    {
 				warn("%s: rewrite branch", cvs->name);
 				dump_number_file(LOGFILE, " branch point",
-						  &v_c->file->number);
+						  &v_c->number);
 				dump_number_file(LOGFILE, " branch version",
-						  &c->file->number);
+						  &c->number);
 				fprintf(LOGFILE, "\n");
 				c->parent = v_c;
 			    }
@@ -423,7 +417,7 @@ rev_list_set_refs(rev_list *rl, cvs_file *cvsfile)
 	 */
 	if (cvs_is_head(&s->number)) {
 	    for (h = rl->heads; h; h = h->next) {
-		if (cvs_same_branch(&h->commit->file->number, &s->number))
+		if (cvs_same_branch(&h->commit->number, &s->number))
 		    break;
 	    }
 	    if (h) {
@@ -470,7 +464,7 @@ rev_list_set_refs(rev_list *rl, cvs_file *cvsfile)
 	}
 	if (!c)
 	    continue;
-	n = c->file->number;
+	n = c->number;
 	/* convert to branch form */
 	n.n[n.c-1] = n.n[n.c-2];
 	n.n[n.c-2] = 0;

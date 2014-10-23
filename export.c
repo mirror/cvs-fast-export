@@ -176,13 +176,13 @@ static void export_blob(node_t *node,
 
     export_stats.snapsize += len;
 
-    if (strcmp(node->commit->file->master->name, ".cvsignore") == 0) {
+    if (strcmp(node->commit->master->name, ".cvsignore") == 0) {
 	extralen = sizeof(CVS_IGNORES) - 1;
     }
 
-    node->commit->file->serial = seqno_next();
+    node->commit->serial = seqno_next();
     if (opts->reportmode == fast) {
-	markmap[node->commit->file->serial] = ++mark;
+	markmap[node->commit->serial] = ++mark;
 	printf("blob\nmark :%d\n", mark);
 	fprintf(stdout, "data %zd\n", len + extralen);
 	if (extralen > 0)
@@ -198,7 +198,7 @@ static void export_blob(node_t *node,
 	FILE *wfp;
 #endif
 	char path[PATH_MAX];
-	blobfile(node->commit->file->master->name, node->commit->file->serial, true, path);
+	blobfile(node->commit->master->name, node->commit->serial, true, path);
 #ifndef ZLIB
 	wfp = fopen(path, "w");
 #else
@@ -276,7 +276,7 @@ static const char *utc_offset_timestamp(const time_t *timep, const char *tz)
 struct fileop {
     char op;
     mode_t mode;
-    rev_file *rev;
+    cvs_commit *rev;
     const char *path;
 };
 
@@ -306,11 +306,11 @@ static int fileop_sort(const void *a, const void *b)
 typedef struct _file_iter {
     rev_dir * const *dir;
     rev_dir * const *dirmax;
-    rev_file **file;
-    rev_file **filemax;
+    cvs_commit **file;
+    cvs_commit **filemax;
 } file_iter;
 
-static rev_file *
+static cvs_commit *
 file_iter_next(file_iter *pos) {
     if (pos->dir == pos->dirmax)
         return NULL;
@@ -342,7 +342,7 @@ static void compute_parent_links(const git_commit *commit)
 {
     const git_commit *parent = commit->parent;
     file_iter commit_iter, parent_iter;
-    rev_file *cf, *pf;
+    cvs_commit *cf, *pf;
     unsigned nparent, ncommit, maxmatch;
 
     ncommit = 0;
@@ -434,7 +434,7 @@ static void export_commit(git_commit *commit,
     char *revpairs = NULL;
     size_t revpairsize = 0;
     time_t ct;
-    rev_file	*f;
+    cvs_commit	*cc;
     int		i, j;
     struct fileop *operations, *op, *op2;
     int noperations;
@@ -464,19 +464,19 @@ static void export_commit(git_commit *commit,
 	    char *stripped;
 	    bool present, changed;
 	    char converted[PATH_MAX];
-	    op->rev = f = dir->files[j];
-	    stripped = fileop_name(f->master->name, converted);
+	    op->rev = cc = dir->files[j];
+	    stripped = fileop_name(cc->master->name, converted);
 	    present = false;
 	    changed = false;
 	    if (commit->parent) {
-		present = (f->other != NULL);
-		changed = present && (f->serial != f->other->serial);
+		present = (cc->other != NULL);
+		changed = present && (cc->serial != cc->other->serial);
 	    }
 	    if (!present || changed) {
 
 		op->op = 'M';
 		// git fast-import only supports 644 and 755 file modes
-		if (f->master->mode & 0100)
+		if (cc->master->mode & 0100)
 		    op->mode = 0755;
 		else
 		    op->mode = 0644;
@@ -494,8 +494,8 @@ static void export_commit(git_commit *commit,
 		if (opts->revision_map != NULL || opts->reposurgeon || opts->embed_ids) {
 		    char fr[BUFSIZ];
 		    int xtr = opts->embed_ids?10:2;
-		    stringify_revision(f->master->name, 
-				  " ", &f->number, fr, sizeof fr);
+		    stringify_revision(cc->master->name, 
+				  " ", &cc->number, fr, sizeof fr);
 		    if (strlen(revpairs) + strlen(fr) + xtr > revpairsize)
 		    {
 			revpairsize *= 2;
@@ -517,12 +517,12 @@ static void export_commit(git_commit *commit,
 
 	    for (j = 0; j < dir->nfiles; j++) {
 		bool present;
-		f = dir->files[j];
-		present = (f->other != NULL);
+		cc = dir->files[j];
+		present = (cc->other != NULL);
 		if (!present) {
 		    char converted[PATH_MAX];
 		    op->op = 'D';
-		    op->path = atom(fileop_name(f->master->name, converted));
+		    op->path = atom(fileop_name(cc->master->name, converted));
 		    op++;
 		    if (op == operations + noperations)
 		    {

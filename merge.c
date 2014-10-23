@@ -157,7 +157,7 @@ cvs_commit_date_sort(cvs_commit **commits, int ncommit)
 }
 
 static bool
-git_commit_has_file(const git_commit *c, const rev_file *f)
+git_commit_has_file(const git_commit *c, const cvs_commit *f)
 /* does this commit touch a specified file revision? */
 {
     int	i, j;
@@ -210,7 +210,7 @@ cvs_commit_match(const cvs_commit *a, const cvs_commit *b)
  * by only doing one when more memory needs to be grabbed than the 
  * previous commit build used.
  */
-static rev_file **files = NULL;
+static cvs_commit **files = NULL;
 static int	    sfiles = 0;
 
 static void
@@ -239,12 +239,12 @@ git_commit_build(cvs_commit **revisions, cvs_commit *leader, const int nrevision
     }
     if (!files)
 	/* coverity[sizecheck] Coverity has a bug here */
-	files = xmalloc((sfiles = nrevisions) * sizeof(rev_file *), __func__);
+	files = xmalloc((sfiles = nrevisions) * sizeof(cvs_commit *), __func__);
 
     nfile = 0;
     for (n = 0; n < nrevisions; n++)
 	if (revisions[n] && !revisions[n]->dead)
-	    files[nfile++] = revisions[n]->file;
+	    files[nfile++] = revisions[n];
     
     rds = rev_pack_files(files, nfile, &nds);
         
@@ -270,7 +270,7 @@ git_commit_build(cvs_commit **revisions, cvs_commit *leader, const int nrevision
      */
     {
 	rev_dir * const *d;
-	rev_file * const *f;
+	cvs_commit * const *f;
 
 	memset(&commit->bloom, ~0, sizeof commit->bloom);
 	for (d = commit->dirs; d < commit->dirs + commit->ndirs; d++) {
@@ -474,7 +474,7 @@ rev_branch_merge(rev_ref **branches, int nbranch,
 	    continue;
 	if (!c->dead)
 	    warn("warning - %s: too late date through branch %s\n",
-		     c->file->master->name, branch->ref_name);
+		     c->master->name, branch->ref_name);
 	revisions[n] = NULL;
     }
 
@@ -608,7 +608,7 @@ rev_branch_merge(rev_ref **branches, int nbranch,
 		{
 		    /* FIXME: what does this mean? */
 		    warn("file %s appears after branch %s date\n",
-			     revisions[present]->file->master->name, branch->ref_name);
+			     revisions[present]->master->name, branch->ref_name);
 		    continue;
 		}
 		break;
@@ -619,16 +619,16 @@ rev_branch_merge(rev_ref **branches, int nbranch,
 						 revisions[present])))
 	{
 	    if (prev && time_compare((*tail)->date, prev->date) > 0) {
-		rev_file *first;
+		cvs_commit *first;
 		warn("warning - branch point %s -> %s later than branch\n",
 			 branch->ref_name, branch->parent->ref_name);
 		warn("\ttrunk(%3d):  %s %s", n,
 			 cvstime2rfc3339(revisions[present]->date),
-			 revisions[present]->file ? " " : "D" );
+			 !revisions[present]->dead ? " " : "D" );
 		if (!revisions[present]->dead)
 		    dump_number_file(LOGFILE,
-				      revisions[present]->file->master->name,
-				      &revisions[present]->file->number);
+				      revisions[present]->master->name,
+				      &revisions[present]->number);
 		warn("\n");
 		/*
 		 * The file part of the error message could be spurious for

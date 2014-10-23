@@ -33,7 +33,7 @@ typedef struct _rev_dir_hash {
 static rev_dir_hash	*buckets[REV_DIR_HASH];
 
 static 
-unsigned long hash_files(rev_file **files, const int nfiles)
+unsigned long hash_files(cvs_commit **files, const int nfiles)
 /* hash a file list so we can recognize it cheaply */
 {
     unsigned long   h = 0;
@@ -45,7 +45,7 @@ unsigned long hash_files(rev_file **files, const int nfiles)
 }
 
 static rev_dir *
-rev_pack_dir(rev_file **files, const int nfiles)
+rev_pack_dir(cvs_commit **files, const int nfiles)
 /* pack a collection of file revisions for space efficiency */
 {
     unsigned long   hash = hash_files(files, nfiles);
@@ -55,18 +55,18 @@ rev_pack_dir(rev_file **files, const int nfiles)
     /* avoid packing a file list if we've done it before */ 
     for (h = *bucket; h; h = h->next) {
 	if (h->hash == hash && h->dir.nfiles == nfiles &&
-	    !memcmp(files, h->dir.files, nfiles * sizeof(rev_file *)))
+	    !memcmp(files, h->dir.files, nfiles * sizeof(cvs_commit *)))
 	{
 	    return &h->dir;
 	}
     }
-    h = xmalloc(sizeof(rev_dir_hash) + nfiles * sizeof(rev_file *),
+    h = xmalloc(sizeof(rev_dir_hash) + nfiles * sizeof(cvs_commit *),
 		 __func__);
     h->next = *bucket;
     *bucket = h;
     h->hash = hash;
     h->dir.nfiles = nfiles;
-    memcpy(h->dir.files, files, nfiles * sizeof(rev_file *));
+    memcpy(h->dir.files, files, nfiles * sizeof(cvs_commit *));
     return &h->dir;
 }
 
@@ -138,10 +138,10 @@ int path_deep_compare(const void *a, const void *b)
     return compar;
 }
 
-static int compare_rev_file(const void *a, const void *b)
+static int compare_cvs_commit(const void *a, const void *b)
 {
-    rev_file **ap = (rev_file **)a;
-    rev_file **bp = (rev_file **)b;
+    cvs_commit **ap = (cvs_commit **)a;
+    cvs_commit **bp = (cvs_commit **)b;
     const char *af = (*ap)->master->name;
     const char *bf = (*bp)->master->name;
 
@@ -196,7 +196,7 @@ rev_free_dirs(void)
 }
 
 rev_dir **
-rev_pack_files(rev_file **files, int nfiles, int *ndr)
+rev_pack_files(cvs_commit **files, int nfiles, int *ndr)
 {
     const char *dir = 0;
     char    *slash;
@@ -209,10 +209,10 @@ rev_pack_files(rev_file **files, int nfiles, int *ndr)
 #ifdef ORDERDEBUG
     fputs("Packing:\n", stderr);
     {
-	rev_file **s;
+	cvs_commit **s;
 
 	for (s = files; s < files + nfiles; s++)
-	    fprintf(stderr, "rev_file: %s\n", (*s)->master->name);
+	    fprintf(stderr, "cvs_commit: %s\n", (*s)->master->name);
     }
 #endif /* ORDERDEBUG */
 
@@ -223,7 +223,7 @@ rev_pack_files(rev_file **files, int nfiles, int *ndr)
      * space-saving effect out of the next step.  This reduces
      * working-set size at the expense of the sort runtime.
      */
-    qsort(files, nfiles, sizeof(rev_file *), compare_rev_file);
+    qsort(files, nfiles, sizeof(cvs_commit *), compare_cvs_commit);
 
     /* pull out directories */
     for (i = 0; i < nfiles; i++) {

@@ -74,7 +74,7 @@ rev_file_list_has_filename(const rev_file_list *fl, const char *name)
 
 static void dot_commit_graph(git_commit *c, const rev_ref *branch)
 {
-    rev_file	*f;
+    cvs_commit	*f;
 
     printf("\"");
     if (branch)
