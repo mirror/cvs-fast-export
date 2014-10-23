@@ -667,7 +667,7 @@ static void export_commit(git_commit *commit,
 #undef OP_CHUNK
 }
 
-static int export_ncommit(const rev_list *rl)
+static int export_ncommit(const git_repo *rl)
 /* return a count of converted commits */
 {
     rev_ref	*h;
@@ -748,7 +748,7 @@ static int sort_by_date(const void *ap, const void *bp)
     }
 }
 
-static struct commit_seq *canonicalize(rev_list *rl)
+static struct commit_seq *canonicalize(git_repo *rl)
 /* copy/sort merged commits into git-fast-export order */
 {
     /*
@@ -847,7 +847,7 @@ void export_commits(forest_t *forest,
     rev_ref *h;
     tag_t *t;
     git_commit *c;
-    rev_list *rl = forest->head;
+    git_repo *rl = forest->head;
     generator_t *gp;
     int recount = 0;
 

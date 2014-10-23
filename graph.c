@@ -135,7 +135,7 @@ static void dot_tag_name(FILE *f, const tag_t *tag)
     fprintf(f, "%s", tag->name);
 }
 
-static rev_ref *dump_find_branch(rev_list *rl, const git_commit *commit)
+static rev_ref *dump_find_branch(git_repo *rl, const git_commit *commit)
 {
     rev_ref	*h;
     git_commit	*c;
@@ -156,7 +156,7 @@ static rev_ref *dump_find_branch(rev_list *rl, const git_commit *commit)
     return NULL;
 }
 
-static void dot_refs(rev_list *rl, rev_ref *refs, 
+static void dot_refs(git_repo *rl, rev_ref *refs, 
 		     const char *title, const char *shape)
 {
     rev_ref	*r, *o;
@@ -220,7 +220,7 @@ static void dot_refs(rev_list *rl, rev_ref *refs,
 	r->shown = false;
 }
 
-static void dot_tags(rev_list *rl, const char *title, const char *shape)
+static void dot_tags(git_repo *rl, const char *title, const char *shape)
 {
     tag_t	*r;
     int n;
@@ -281,7 +281,7 @@ static void dot_tags(rev_list *rl, const char *title, const char *shape)
 
 #define dump_get_rev_parent(c) ((c)->parent)
 
-static void dot_rev_graph_nodes(rev_list *rl, const char *title)
+static void dot_rev_graph_nodes(git_repo *rl, const char *title)
 {
     rev_ref	*h;
     git_commit	*c, *p;
@@ -326,7 +326,7 @@ static void dot_rev_graph_end(void)
 }
 
 void
-dump_rev_graph(rev_list *rl, const char *title)
+dump_rev_graph(git_repo *rl, const char *title)
 /* dump a DOT graph representation of a apecified revlist */
 {
     dot_rev_graph_begin();

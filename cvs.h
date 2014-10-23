@@ -384,6 +384,20 @@ typedef struct _rev_list {
     rev_ref	*heads;
 } rev_list;
 
+/*
+ * These are created only as an attempt to make the code more readable.
+ * The problem they address is that a rev_list pointer can have 
+ * different semantics depending on whether code is going to iterate
+ * through its next pointer or its heads, and what stage of the program
+ * we're in.  This makes functions with undifferentiated rev_list arguments
+ * hard to read.  The convention we use is that a rev_list variable, member
+ * or formal argument can accept any of these, but we try to be more 
+ * specific in order to express the domain of a function.
+ */
+typedef rev_list cvs_master;	/* represents a single CVS master */
+typedef rev_list cvs_repo;	/* represents a CVS master collection */
+typedef rev_list git_repo;	/* represents a gitspace DAG */
+
 typedef struct _cvs_commit_list {
     struct _cvs_commit_list   *next;
     cvs_commit		    *file;
@@ -450,11 +464,11 @@ lex_number(const char *);
 cvstime_t
 lex_date(cvs_number *n, void *, cvs_file *cvs);
 
-rev_list *
+cvs_master *
 rev_list_cvs(cvs_file *cvs);
 
-rev_list *
-rev_list_merge(rev_list *lists);
+git_repo *
+rev_list_merge(cvs_repo *masters);
 
 enum { Ncommits = 256 };
 
@@ -591,16 +605,7 @@ void
 dump_rev_head(rev_ref *h, FILE *);
 
 void
-dump_rev_list(rev_list *rl, FILE *);
-
-void
-dump_splits(rev_list *rl);
-
-void
-dump_rev_graph(rev_list *rl, const char *title);
-
-void
-dump_rev_tree(rev_list *rl, FILE *);
+dump_rev_graph(git_repo *rl, const char *title);
 
 const char *
 atom(const char *string);

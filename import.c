@@ -27,7 +27,7 @@
 #include "lex.h"
 
 /*
- * CVS master analysis.  Grinds out a revlist structure represnting
+ * CVS master analysis.  Grinds out a cvs_repo list represnting
  * the entire CVS history of a collection.
  */
 
@@ -42,7 +42,7 @@ typedef struct _rev_filename {
  */
 static volatile int load_current_file;
 static volatile rev_filename   *fn_head = NULL, **fn_tail = &fn_head, *fn;
-static volatile rev_list *head = NULL, **tail = &head;
+static volatile cvs_master *head = NULL, **tail = &head;
 static volatile cvstime_t skew_vulnerable;
 static volatile unsigned int total_revisions;
 static volatile generator_t *generators;
@@ -106,10 +106,10 @@ static char *rectify_name(const char *raw, char *rectified, size_t rectlen)
     return rectified;
 }
 
-static rev_list *
+static cvs_master *
 rev_list_file(const char *name, analysis_t *out) 
 {
-    rev_list	*rl;
+    cvs_master	*rl;
     struct stat	buf;
     yyscan_t scanner;
     FILE *in;
@@ -169,7 +169,7 @@ strcommonendingwith(const char *a, const char *b, char endc)
 static void *worker(void *arg)
 /* consume masters off the queue */
 {
-    rev_list *rl;
+    cvs_master *rl;
     analysis_t out = {0, 0};
     bool keepgoing = true;
 
@@ -212,7 +212,7 @@ static void *worker(void *arg)
 	total_revisions += out.total_revisions;
 	if (out.skew_vulnerable > skew_vulnerable)
 	    skew_vulnerable = out.skew_vulnerable;
-	tail = (volatile rev_list **)&rl->next;
+	tail = (volatile cvs_master **)&rl->next;
 #ifdef THREADS
 	if (threads > 1)
 	    pthread_mutex_unlock(&revlist_mutex);

@@ -183,7 +183,7 @@ main(int argc, char **argv)
 	ExecuteExport, ExecuteGraph, ExecuteAuthors,
     } execution_mode;
 
-    rev_list	    *premerge;
+    cvs_repo  *premerge;
     execution_mode  exec_mode = ExecuteExport;
     forest_t        forest;
     export_options_t export_options = {
@@ -368,9 +368,6 @@ main(int argc, char **argv)
 
     /* commit set coalescence happens here */
     forest.head = rev_list_merge(premerge = forest.head);
-#ifdef ORDERDEBUG2
-    dump_rev_tree(head, stderr);
-#endif /* ORDERDEBUG2 */
 
     gather_stats("after branch merge");
 

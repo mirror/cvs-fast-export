@@ -26,7 +26,7 @@
 
 static rev_ref *
 rev_find_head(rev_list *rl, const char *name)
-/* find a named head in a revlist (corresponding to a single CVS master) */
+/* find a named head in a revlist */
 {
     rev_ref	*h;
 
@@ -47,7 +47,7 @@ rev_ref_find_name(rev_ref *h, const char *name)
 }
 
 static bool
-rev_ref_is_ready(const char *name, rev_list *source, rev_ref *ready)
+rev_ref_is_ready(const char *name, cvs_master *source, rev_ref *ready)
 {
     for (; source; source = source->next) {
 	rev_ref *head = rev_find_head(source, name);
@@ -60,7 +60,7 @@ rev_ref_is_ready(const char *name, rev_list *source, rev_ref *ready)
 }
 
 static rev_ref *
-rev_ref_tsort(rev_ref *refs, rev_list *head)
+rev_ref_tsort(rev_ref *refs, cvs_repo *head)
 {
     rev_ref *done = NULL;
     rev_ref **done_tail = &done;
@@ -87,8 +87,8 @@ rev_ref_tsort(rev_ref *refs, rev_list *head)
 }
 
 static int
-rev_list_count(const rev_list *head)
-/* count all heads in the rev_list corresponding to a digested CVS repo */
+rev_list_count(const cvs_repo *head)
+/* count all heads in the linked list corresponding to a digested CVS repo */
 {
     int	count = 0;
     while (head) {
@@ -366,13 +366,13 @@ git_commit_locate(const rev_ref *branch, const cvs_commit *file)
 }
 
 static rev_ref *
-rev_branch_of_commit(const rev_list *rl, const cvs_commit *commit)
-/* return the branch head that owns a specified commit */
+rev_branch_of_commit(const git_repo *gl, const cvs_commit *commit)
+/* return the gitspace branch head that owns a specified CVS commit */
 {
     rev_ref	*h;
     cvs_commit	*c;
 
-    for (h = rl->heads; h; h = h->next)
+    for (h = gl->heads; h; h = h->next)
     {
 	if (h->tail)
 	    continue;
@@ -397,7 +397,7 @@ cvs_commit_first_date(cvs_commit *commit)
 
 static void
 rev_branch_merge(rev_ref **branches, int nbranch,
-		  rev_ref *branch, rev_list *rl)
+		  rev_ref *branch, git_repo *gl)
 /* merge a set of per-CVS-master branches into a gitspace DAG branch */
 {
     int nlive;
@@ -656,7 +656,7 @@ rev_branch_merge(rev_ref **branches, int nbranch,
 	    warn("error - branch point %s -> %s not found.",
 		branch->ref_name, branch->parent->ref_name);
 
-	    if ((lost = rev_branch_of_commit(rl, revisions[present])))
+	    if ((lost = rev_branch_of_commit(gl, revisions[present])))
 		warn(" Possible match on %s.", lost->ref_name);
 	    fprintf(LOGFILE, "\n");
 	}
@@ -680,11 +680,11 @@ rev_branch_merge(rev_ref **branches, int nbranch,
  * Locate position in tree corresponding to specific tag
  */
 static void
-rev_tag_search(tag_t *tag, cvs_commit **revisions, rev_list *rl)
+rev_tag_search(tag_t *tag, cvs_commit **revisions, git_repo *gl)
 {
     cvs_commit_date_sort(revisions, tag->count);
     /* tag gets parented with branch of most recent matching commit */
-    tag->parent = rev_branch_of_commit(rl, revisions[0]);
+    tag->parent = rev_branch_of_commit(gl, revisions[0]);
     if (tag->parent)
 	tag->commit = git_commit_locate(tag->parent, revisions[0]);
     if (!tag->commit) {
@@ -704,9 +704,9 @@ rev_tag_search(tag_t *tag, cvs_commit **revisions, rev_list *rl)
 }
 
 static void
-rev_ref_set_parent(rev_list *rl, rev_ref *dest, rev_list *source)
+rev_ref_set_parent(git_repo *gl, rev_ref *dest, cvs_repo *source)
 {
-    rev_list	*s;
+    cvs_master	*s;
     rev_ref	*p;
     rev_ref	*max;
 
@@ -721,9 +721,9 @@ rev_ref_set_parent(rev_list *rl, rev_ref *dest, rev_list *source)
 	    continue;
 	if (!sh->parent)
 	    continue;
-	p = rev_find_head(rl, sh->parent->ref_name);
+	p = rev_find_head(gl, sh->parent->ref_name);
 	assert(p);
-	rev_ref_set_parent(rl, p, source);
+	rev_ref_set_parent(gl, p, source);
 	if (!max || p->depth > max->depth)
 	    max = p;
     }
@@ -734,14 +734,14 @@ rev_ref_set_parent(rev_list *rl, rev_ref *dest, rev_list *source)
 	dest->depth = 1;
 }
 
-rev_list *
-rev_list_merge(rev_list *head)
+git_repo *
+rev_list_merge(cvs_repo *head)
 /* entry point - merge CVS revision lists to a gitspace DAG */
 {
     int		count = rev_list_count(head);
     int		n; /* used only in progress messages */
-    rev_list	*rl = xcalloc(1, sizeof(rev_list), "list merge");
-    rev_list	*l;
+    git_repo	*gl = xcalloc(1, sizeof(git_repo), "list merge");
+    cvs_master	*l;
     rev_ref	*lh, *h;
     tag_t	*t;
     rev_ref	**refs = xcalloc(count, sizeof(rev_ref *), "list merge");
@@ -755,9 +755,9 @@ rev_list_merge(rev_list *head)
     n = 0;
     for (l = head; l; l = l->next) {
 	for (lh = l->heads; lh; lh = lh->next) {
-	    h = rev_find_head(rl, lh->ref_name);
+	    h = rev_find_head(gl, lh->ref_name);
 	    if (!h)
-		rev_list_add_head(rl, NULL, lh->ref_name, lh->degree);
+		rev_list_add_head(gl, NULL, lh->ref_name, lh->degree);
 	    else if (lh->degree > h->degree)
 		h->degree = lh->degree;
 	}
@@ -770,8 +770,8 @@ rev_list_merge(rev_list *head)
      * Sort by degree so that finding branch points always works.
      */
     progress_begin("Sorting...", count);
-    rl->heads = rev_ref_tsort(rl->heads, head);
-    if (!rl->heads) {
+    gl->heads = rev_ref_tsort(gl->heads, head);
+    if (!gl->heads) {
 	free(refs);
 	/* coverity[leaked_storage] */
 	return NULL;
@@ -783,7 +783,7 @@ rev_list_merge(rev_list *head)
      * The "master" branch should always be at the front
      * of the list.
      */
-    for (h = rl->heads; h; h = h->next)
+    for (h = gl->heads; h; h = h->next)
 	fprintf(stderr, "head %s(%d)\n",
 		 h->ref_name, h->degree);
 #endif /* __UNUSED__ */
@@ -791,8 +791,8 @@ rev_list_merge(rev_list *head)
      * Find branch parent relationships.
      */
     progress_begin("Find branch parent relationships...", count);
-    for (h = rl->heads; h; h = h->next) {
-	rev_ref_set_parent(rl, h, head);
+    for (h = gl->heads; h; h = h->next) {
+	rev_ref_set_parent(gl, h, head);
 //	dump_ref_name(stderr, h);
 //	fprintf(stderr, "\n");
     }
@@ -815,7 +815,7 @@ rev_list_merge(rev_list *head)
      * Merge common branches
      */
     progress_begin("Merge common branches...", count);
-    for (h = rl->heads; h; h = h->next) {
+    for (h = gl->heads; h; h = h->next) {
 	/*
 	 * For this imputed gitspace branch, locate the corresponding
 	 * set of CVS branches from every master.
@@ -829,9 +829,9 @@ rev_list_merge(rev_list *head)
 	if (nref)
 	    /* 
 	     * Merge those branches into a signgle gitspace branch
-	     * and add that to the output revlist on rl.
+	     * and add that to the output revlist on gl.
 	     */
-	    rev_branch_merge(refs, nref, h, rl);
+	    rev_branch_merge(refs, nref, h, gl);
 	progress_step();
     }
     progress_end(NULL);
@@ -841,7 +841,7 @@ rev_list_merge(rev_list *head)
      * wandering on to their parent branches.
      */
     progress_begin("Compute tail values...", NO_MAX);
-    rev_list_set_tail(rl);
+    rev_list_set_tail(gl);
     progress_end(NULL);
 
     free(refs);
@@ -854,7 +854,7 @@ rev_list_merge(rev_list *head)
     for (t = all_tags; t; t = t->next) {
 	cvs_commit **commits = tagged(t);
 	if (commits)
-	    rev_tag_search(t, commits, rl);
+	    rev_tag_search(t, commits, gl);
 	else
 	    announce("internal error - lost tag %s\n", t->name);
 	free(commits);
@@ -862,12 +862,12 @@ rev_list_merge(rev_list *head)
     progress_end(NULL);
 
     //progress_begin("Validate...", NO_MAX);
-    //rev_list_validate(rl);
+    //rev_list_validate(gl);
     //progress_end(NULL);
 
     git_commit_cleanup();
 
-    return rl;
+    return gl;
 }
 
 /*

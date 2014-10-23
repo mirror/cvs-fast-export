@@ -17,7 +17,7 @@
  */
 
 /*
- * Build one in-core rev_list corresponding to a single CVS
+ * Build one in-core linked list corresponding to a single CVS
  * master.  Just one entry point, rev_list_cvs(), which takes the
  * structure built by the grammar parse of the master as its single
  * argument.
@@ -26,7 +26,7 @@
 #include "cvs.h"
 
 static cvs_commit *
-rev_find_cvs_revision(rev_list *rl, const cvs_number *number)
+rev_find_cvs_revision(cvs_master *rl, const cvs_number *number)
 /* given a single-file revlist tree, locate the specific version number */
 {
     rev_ref	*h;
@@ -136,7 +136,7 @@ rev_branch_cvs(cvs_file *cvs, const cvs_number *branch)
  * branches together as if they were the same
  */
 static void
-rev_list_patch_vendor_branch(rev_list *rl, cvs_file *cvs)
+rev_list_patch_vendor_branch(cvs_master *rl, cvs_file *cvs)
 {
     rev_ref	*trunk = NULL;
     rev_ref	*vendor = NULL;
@@ -285,7 +285,7 @@ rev_list_patch_vendor_branch(rev_list *rl, cvs_file *cvs)
 }
 
 static void
-rev_list_graft_branches(rev_list *rl, cvs_file *cvs)
+rev_list_graft_branches(cvs_master *rl, cvs_file *cvs)
 /* turn disconnected branches into a tree by grafting roots to parents */ 
 {
     rev_ref	*h;
@@ -379,7 +379,7 @@ rev_list_graft_branches(rev_list *rl, cvs_file *cvs)
 }
 
 static rev_ref *
-rev_list_find_branch(rev_list *rl, const cvs_number *number)
+rev_list_find_branch(cvs_master *rl, const cvs_number *number)
 /* look up a revision reference in a revlist by symbol */
 {
     cvs_number	n;
@@ -404,7 +404,7 @@ rev_list_find_branch(rev_list *rl, const cvs_number *number)
 }
 
 static void
-rev_list_set_refs(rev_list *rl, cvs_file *cvsfile)
+rev_list_set_refs(cvs_master *rl, cvs_file *cvsfile)
 /* create head references or tags for each symbol in the CVS master */
 {
     rev_ref	*h;
@@ -551,7 +551,7 @@ rev_ref_compare(cvs_file *cvs, const rev_ref *r1, const rev_ref *r2)
 }
 
 static void
-rev_list_sort_heads(rev_list *rl, cvs_file *cvs)
+rev_list_sort_heads(cvs_master *rl, cvs_file *cvs)
 /* sort branch heads so parents are always before children; trunk first. */
 {
     rev_ref *p = rl->heads, *q;
@@ -643,11 +643,11 @@ rev_list_sort_heads(rev_list *rl, cvs_file *cvs)
 #endif
 }
 
-rev_list *
+cvs_repo *
 rev_list_cvs(cvs_file *cvs)
-/* return a rev_list capturing the CVS master file structure */ 
+/* return a linked list capturing the CVS master file structure */ 
 {
-    rev_list	*rl = xcalloc(1, sizeof(rev_list), "rev_list_cvs");
+    cvs_master	*rl = xcalloc(1, sizeof(cvs_master), "rev_list_cvs");
     cvs_number	trunk_number;
     cvs_commit	*trunk; 
     cvs_commit	*branch;
