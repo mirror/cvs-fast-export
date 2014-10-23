@@ -630,13 +630,7 @@ void
 rev_diff_free(rev_diff *d);
 
 void
-rev_file_free(rev_file *f);
-
-void
 rev_list_set_tail(rev_list *rl);
-
-bool
-rev_file_later(rev_file *a, rev_file *b);
 
 bool
 rev_list_validate(rev_list *rl);
