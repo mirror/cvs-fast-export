@@ -281,10 +281,7 @@ typedef struct _rev_file {
     /* a CVS file revision state (composed from delta in a master) */
     rev_master          *master;
     cvs_number		number;
-    union {
-	cvstime_t	date;
-	struct _rev_file *other;
-    } u;
+    struct _rev_file    *other;
     serial_t            serial;
     flag                emitted;
 } rev_file;

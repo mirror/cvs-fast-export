@@ -135,9 +135,9 @@ cvs_commit_date_compare(const void *av, const void *bv)
     /*
      * Ensure total order by ordering based on commit address
      */
-    if ((uintptr_t) a->file > (uintptr_t) b)
+    if ((uintptr_t) a > (uintptr_t) b)
 	return -1;
-    if ((uintptr_t) a->file < (uintptr_t) b)
+    if ((uintptr_t) a < (uintptr_t) b)
 	return 1;
     return 0;
 }
@@ -451,7 +451,7 @@ rev_branch_merge(rev_ref **branches, int nbranch,
 		birth = c->date;
 	    c = c->parent;
 	}
-	if (c && (c->file || c->date != c->parent->date)) {
+	if (c && (!c->dead || c->date != c->parent->date)) {
 	    if (!birth || time_compare(c->date, birth) < 0)
 		birth = c->date;
 	}
@@ -637,9 +637,9 @@ rev_branch_merge(rev_ref **branches, int nbranch,
 		 * problem is that we can't actually know which CVS file
 		 * commit is the right one for purposes of this message.
 		 */
-		first = prev->dirs[0]->files[0];
 		fprintf(LOGFILE, "\tbranch(%3d): %s  ", n,
-			 cvstime2rfc3339(first->u.date));
+			 cvstime2rfc3339(revisions[present]->date));
+		first = prev->dirs[0]->files[0];
 		dump_number_file(LOGFILE,
 				  first->master->name,
 				  &first->number);

@@ -85,7 +85,6 @@ rev_branch_cvs(cvs_file *cvs, const cvs_number *branch)
 	c->file = master->revs + master->nrevs;
 	c->file->master = master;
 	c->file->number = v->number;
-	c->file->u.date = v->date;
 	master->nrevs++;
 	if (!v->dead) {
 	    node->file = c->file;
@@ -105,7 +104,7 @@ rev_branch_cvs(cvs_file *cvs, const cvs_number *branch)
      * in reverse order. p = parent, c = child, gc = grandchild.)
      */
     for (c = head, gc = NULL; (p = c->parent); gc = c, c = p) {
-	if (time_compare(p->file->u.date, c->file->u.date) > 0)
+	if (time_compare(p->date, c->date) > 0)
 	{
 	    warn("warning - %s:", cvs->gen.master_name);
 	    dump_number_file(LOGFILE, " ", &p->file->number);
@@ -115,14 +114,12 @@ rev_branch_cvs(cvs_file *cvs, const cvs_number *branch)
 	     * clock set wrong.  Don't push back all commits for that,
 	     * just fix up the current commit instead of the
 	     * parent. */
-	    if (gc && time_compare(p->file->u.date, gc->file->u.date) <= 0)
+	    if (gc && time_compare(p->date, gc->date) <= 0)
 	    {
 	      dump_number_file(LOGFILE, ", adjusting", &c->file->number);
-	      c->file->u.date = p->file->u.date;
 	      c->date = p->date;
 	    } else {
 	      dump_number_file(LOGFILE, ", adjusting", &c->file->number);
-	      p->file->u.date = c->file->u.date;
 	      p->date = c->date;
 	    }
 	    fprintf(LOGFILE, "\n");
@@ -180,8 +177,7 @@ rev_list_patch_vendor_branch(rev_list *rl, cvs_file *cvs)
 	    while ((t = *tp))
 	    {
 		if (!t->parent || 
-		    time_compare(vlast->file->u.date,
-				  t->parent->file->u.date) >= 0)
+		    time_compare(vlast->date, t->parent->date) >= 0)
 		{
 		    break;
 		}
@@ -194,8 +190,7 @@ rev_list_patch_vendor_branch(rev_list *rl, cvs_file *cvs)
 		 * of the vendor branch, paste them together and
 		 * nuke the vendor branch
 		 */
-		if (time_compare(vlast->file->u.date,
-				  t->file->u.date) >= 0)
+		if (time_compare(vlast->date, t->date) >= 0)
 		{
 		    delete_head = true;
 		}
@@ -261,8 +256,7 @@ rev_list_patch_vendor_branch(rev_list *rl, cvs_file *cvs)
 	     */
 	    while (t && v)
 	    {
-		if (time_compare(v->file->u.date,
-				  t->file->u.date) >= 0)
+		if (time_compare(v->date, t->date) >= 0)
 		{
 		    *tp = v;
 		    tp = &v->parent;

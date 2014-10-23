@@ -349,14 +349,14 @@ static void compute_parent_links(const git_commit *commit)
     file_iter_start(&commit_iter, commit);
     while ((cf = file_iter_next(&commit_iter))) {
 	++ncommit;
-        cf->u.other = NULL;
+        cf->other = NULL;
     }
 
     nparent = 0;
     file_iter_start(&parent_iter, parent);
     while ((pf = file_iter_next(&parent_iter))) {
 	++nparent;
-        pf->u.other = NULL;
+        pf->other = NULL;
     }
 
     maxmatch = (nparent < ncommit) ? nparent : ncommit;
@@ -380,8 +380,8 @@ static void compute_parent_links(const git_commit *commit)
 	it = parent_iter;
 	while ((pf = file_iter_next(&it))) {
 	    if (cf->master->name == pf->master->name) {
-		cf->u.other = pf;
-		pf->u.other = cf;
+		cf->other = pf;
+		pf->other = cf;
 		if (--maxmatch == 0)
 		    return;
 		parent_iter = it;
@@ -469,8 +469,8 @@ static void export_commit(git_commit *commit,
 	    present = false;
 	    changed = false;
 	    if (commit->parent) {
-		present = (f->u.other != NULL);
-		changed = present && (f->serial != f->u.other->serial);
+		present = (f->other != NULL);
+		changed = present && (f->serial != f->other->serial);
 	    }
 	    if (!present || changed) {
 
@@ -518,7 +518,7 @@ static void export_commit(git_commit *commit,
 	    for (j = 0; j < dir->nfiles; j++) {
 		bool present;
 		f = dir->files[j];
-		present = (f->u.other != NULL);
+		present = (f->other != NULL);
 		if (!present) {
 		    char converted[PATH_MAX];
 		    op->op = 'D';
