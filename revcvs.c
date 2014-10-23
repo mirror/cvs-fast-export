@@ -48,18 +48,6 @@ rev_find_cvs_revision(rev_list *rl, const cvs_number *number)
     return NULL;
 }
 
-static rev_file *
-rev_file_rev(rev_master *master, const cvs_number *n, cvstime_t date)
-{
-    rev_file	*f = master->revs + master->nrevs;
-
-    f->master = master;
-    f->number = *n;
-    f->u.date = date;
-    master->nrevs++;
-    return f;
-}
-
 static cvs_commit *
 rev_branch_cvs(cvs_file *cvs, const cvs_number *branch)
 /* build a list of commit objects representing a branch from deltas on it */
@@ -95,7 +83,11 @@ rev_branch_cvs(cvs_file *cvs, const cvs_number *branch)
 	    c->log = p->log;
 	 c->dead = v->dead;
 	/* leave this around so the branch merging stuff can find numbers */
-	 c->file = rev_file_rev(master, &v->number, v->date);
+	c->file = master->revs + master->nrevs;
+	c->file->master = master;
+	c->file->number = v->number;
+	c->file->u.date = v->date;
+	master->nrevs++;
 	if (!v->dead) {
 	    node->file = c->file;
 	}
