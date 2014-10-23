@@ -117,7 +117,7 @@ typedef struct node {
     struct node *hash_next;
     struct _cvs_version *version;
     struct _cvs_patch *patch;
-    struct _rev_file *file;
+    struct _cvs_commit *commit;
     struct node *next;
     struct node *to;
     struct node *down;
@@ -265,7 +265,6 @@ typedef struct {
     serial_t		nversions;
     mode_t		mode;
 } cvs_file;
-
 
 typedef struct _rev_master {
     /* information shared by all revisions of a master */

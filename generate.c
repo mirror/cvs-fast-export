@@ -965,7 +965,7 @@ void generate_files(generator_t *gen,
     eb->current->node_text = load_text(eb, &node->patch->text);
     process_delta(eb, node, ENTER);
     for (;;) {
-	if (node->file) {
+	if (node->commit != NULL && !node->commit->dead) {
 	    out_buffer_init(eb);
 	    if (eb->Gexpand < EXPANDKO)
 		expandedit(eb);

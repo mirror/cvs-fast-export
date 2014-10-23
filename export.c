@@ -176,13 +176,13 @@ static void export_blob(node_t *node,
 
     export_stats.snapsize += len;
 
-    if (strcmp(node->file->master->name, ".cvsignore") == 0) {
+    if (strcmp(node->commit->file->master->name, ".cvsignore") == 0) {
 	extralen = sizeof(CVS_IGNORES) - 1;
     }
 
-    node->file->serial = seqno_next();
+    node->commit->file->serial = seqno_next();
     if (opts->reportmode == fast) {
-	markmap[node->file->serial] = ++mark;
+	markmap[node->commit->file->serial] = ++mark;
 	printf("blob\nmark :%d\n", mark);
 	fprintf(stdout, "data %zd\n", len + extralen);
 	if (extralen > 0)
@@ -198,7 +198,7 @@ static void export_blob(node_t *node,
 	FILE *wfp;
 #endif
 	char path[PATH_MAX];
-	blobfile(node->file->master->name, node->file->serial, true, path);
+	blobfile(node->commit->file->master->name, node->commit->file->serial, true, path);
 #ifndef ZLIB
 	wfp = fopen(path, "w");
 #else

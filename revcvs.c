@@ -87,7 +87,7 @@ rev_branch_cvs(cvs_file *cvs, const cvs_number *branch)
 	c->file->number = v->number;
 	master->nrevs++;
 	if (!v->dead) {
-	    node->file = c->file;
+	    node->commit = c;
 	}
 	c->parent = head;
 	head = c;
@@ -509,36 +509,6 @@ rev_list_set_refs(rev_list *rl, cvs_file *cvsfile)
     }
 }
 
-/*
- * Dead file revisions get an extra rev_file object which may be
- * needed during branch merging. Clean those up before returning
- * the resulting rev_list
- *
- * (Note: This code used to dealloc individual file objects before
- * we switched to slab allocation of these objects; it may no longer 
- * be necessary now.)
- */
-
-static void
-rev_list_free_dead_files(rev_list *rl)
-{
-    rev_ref	*h;
-    cvs_commit	*c;
-
-    for (h = rl->heads; h; h = h->next) {
-	if (h->tail)
-	    continue;
-	for (c = h->commit; c; c = c->parent) {
-	    if (c->dead) {
-		/* FIXME: does this matter amy more? */
-		c->file = NULL;
-	    }
-	    if (c->tail)
-		break;
-	}
-    }
-}
-
 static int
 cvs_symbol_name_compare(const void *x, const void *y)
 /* compare function used for red-black tree lookup */
@@ -737,7 +707,6 @@ rev_list_cvs(cvs_file *cvs)
     rev_list_set_refs(rl, cvs);
     rev_list_sort_heads(rl, cvs);
     rev_list_set_tail(rl);
-    rev_list_free_dead_files(rl);
     //rev_list_validate(rl);
     return rl;
 }
