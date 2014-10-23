@@ -80,16 +80,27 @@ cvs_number_compare(const cvs_number *a, const cvs_number *b)
     int n = min(a->c, b->c);
     int i;
 
+    /*
+     * On the same branch, earlier commits sort before later ones.
+     * On different ranches of the same degree, the earlier one
+     * sorts before the later one.
+     */
     for (i = 0; i < n; i++) {
 	if (a->n[i] < b->n[i])
 	    return -1;
 	if (a->n[i] > b->n[i])
 	    return 1;
     }
+    /*
+     * Branch root commits sort before any commit on their branch.
+     */
     if (a->c < b->c)
 	return -1;
     if (a->c > b->c)
 	return 1;
+    /*
+     * Can happen only if the CVS numbers are equal.
+     */
     return 0;
 }
 
