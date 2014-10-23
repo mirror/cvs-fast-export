@@ -109,7 +109,7 @@ static char *rectify_name(const char *raw, char *rectified, size_t rectlen)
 static cvs_master *
 rev_list_file(const char *name, analysis_t *out) 
 {
-    cvs_master	*rl;
+    cvs_master	*cm;
     struct stat	buf;
     yyscan_t scanner;
     FILE *in;
@@ -138,12 +138,12 @@ rev_list_file(const char *name, analysis_t *out)
     yylex_destroy(scanner);
 
     fclose(in);
-    rl = rev_list_cvs(cvs);
+    cm = cvs_master_digest(cvs);
     out->total_revisions = cvs->nversions;
     out->skew_vulnerable = cvs->skew_vulnerable;
     out->generator = cvs->gen;
     cvs_file_free(cvs);
-    return rl;
+    return cm;
 }
 
 static int
@@ -169,7 +169,7 @@ strcommonendingwith(const char *a, const char *b, char endc)
 static void *worker(void *arg)
 /* consume masters off the queue */
 {
-    cvs_master *rl;
+    cvs_master *cm;
     analysis_t out = {0, 0};
     bool keepgoing = true;
 
@@ -199,7 +199,7 @@ static void *worker(void *arg)
 	    return(NULL);
 
 	/* process it */
-	rl = rev_list_file(filename, &out);
+	cm = rev_list_file(filename, &out);
 
 	/* pass it to the next stage */
 #ifdef THREADS
@@ -208,11 +208,11 @@ static void *worker(void *arg)
 #endif /* THREADS */
 	generators[load_current_file] = out.generator;
 	progress_jump(++load_current_file);
-	*tail = rl;
+	*tail = cm;
 	total_revisions += out.total_revisions;
 	if (out.skew_vulnerable > skew_vulnerable)
 	    skew_vulnerable = out.skew_vulnerable;
-	tail = (volatile cvs_master **)&rl->next;
+	tail = (volatile cvs_master **)&cm->next;
 #ifdef THREADS
 	if (threads > 1)
 	    pthread_mutex_unlock(&revlist_mutex);

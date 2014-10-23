@@ -18,7 +18,7 @@
 
 /*
  * Build one in-core linked list corresponding to a single CVS
- * master.  Just one entry point, rev_list_cvs(), which takes the
+ * master.  Just one entry point, cvs_master_digest(), which takes the
  * structure built by the grammar parse of the master as its single
  * argument.
  */
@@ -26,13 +26,13 @@
 #include "cvs.h"
 
 static cvs_commit *
-rev_find_cvs_revision(cvs_master *rl, const cvs_number *number)
+cvs_master_find_revision(cvs_master *cm, const cvs_number *number)
 /* given a single-file revlist tree, locate the specific version number */
 {
     rev_ref	*h;
     cvs_commit	*c;
 
-    for (h = rl->heads; h; h = h->next) {
+    for (h = cm->heads; h; h = h->next) {
 	if (h->tail)
 	    continue;
 	for (c = h->commit; c; c = c->parent)
@@ -47,7 +47,7 @@ rev_find_cvs_revision(cvs_master *rl, const cvs_number *number)
 }
 
 static cvs_commit *
-rev_branch_cvs(cvs_file *cvs, const cvs_number *branch)
+cvs_master_branch_build(cvs_file *cvs, const cvs_number *branch)
 /* build a list of commit objects representing a branch from deltas on it */
 {
     cvs_number	n;
@@ -136,7 +136,7 @@ rev_branch_cvs(cvs_file *cvs, const cvs_number *branch)
  * branches together as if they were the same
  */
 static void
-rev_list_patch_vendor_branch(cvs_master *rl, cvs_file *cvs)
+cvs_master_patch_vendor_branch(cvs_master *cm, cvs_file *cvs)
 {
     rev_ref	*trunk = NULL;
     rev_ref	*vendor = NULL;
@@ -145,8 +145,8 @@ rev_list_patch_vendor_branch(cvs_master *rl, cvs_file *cvs)
     cvs_commit	*vlast;
     rev_ref	**h_p;
 
-    trunk = rl->heads;
-    for (h_p = &rl->heads; (h = *h_p);) {
+    trunk = cm->heads;
+    for (h_p = &cm->heads; (h = *h_p);) {
 	bool delete_head = false;
 	if (h->commit && cvs_is_vendor(&h->commit->number))
 	{
@@ -285,7 +285,7 @@ rev_list_patch_vendor_branch(cvs_master *rl, cvs_file *cvs)
 }
 
 static void
-rev_list_graft_branches(cvs_master *rl, cvs_file *cvs)
+cvs_master_graft_branches(cvs_master *cm, cvs_file *cvs)
 /* turn disconnected branches into a tree by grafting roots to parents */ 
 {
     rev_ref	*h;
@@ -296,14 +296,14 @@ rev_list_graft_branches(cvs_master *rl, cvs_file *cvs)
     /*
      * Glue branches together
      */
-    for (h = rl->heads; h; h = h->next) {
+    for (h = cm->heads; h; h = h->next) {
 	/*
 	 * skip master branch; it "can't" join
 	 * any other branches and it may well end with a vendor
 	 * branch revision of the file, which will then create
 	 * a loop back to the recorded branch point
 	 */
-        if (h == rl->heads)
+        if (h == cm->heads)
 	    continue;
 	if (h->tail)
 	    continue;
@@ -326,7 +326,7 @@ rev_list_graft_branches(cvs_master *rl, cvs_file *cvs)
 		    if (cvs_number_compare(&cb->number,
 					    &c->number) == 0)
 		    {
-			c->parent = rev_find_cvs_revision(rl, &cv->number);
+			c->parent = cvs_master_find_revision(cm, &cv->number);
 			c->tail = true;
 			break;
 		    }
@@ -347,7 +347,7 @@ rev_list_graft_branches(cvs_master *rl, cvs_file *cvs)
 			    /*
 			     * Walk to head of vendor branch
 			     */
-			    while ((n_v_c = rev_find_cvs_revision(rl, &v_n)))
+			    while ((n_v_c = cvs_master_find_revision(cm, &v_n)))
 			    {
 				/*
 				 * Stop if we reach a date after the
@@ -379,7 +379,7 @@ rev_list_graft_branches(cvs_master *rl, cvs_file *cvs)
 }
 
 static rev_ref *
-rev_list_find_branch(cvs_master *rl, const cvs_number *number)
+cvs_master_find_branch(cvs_master *cm, const cvs_number *number)
 /* look up a revision reference in a revlist by symbol */
 {
     cvs_number	n;
@@ -391,7 +391,7 @@ rev_list_find_branch(cvs_master *rl, const cvs_number *number)
     h = NULL;
     while (n.c >= 2)
     {
-	for (h = rl->heads; h; h = h->next) {
+	for (h = cm->heads; h; h = h->next) {
 	    if (cvs_same_branch(&h->number, &n)) {
 		break;
 	    }
@@ -404,7 +404,7 @@ rev_list_find_branch(cvs_master *rl, const cvs_number *number)
 }
 
 static void
-rev_list_set_refs(cvs_master *rl, cvs_file *cvsfile)
+cvs_master_set_refs(cvs_master *cm, cvs_file *cvsfile)
 /* create head references or tags for each symbol in the CVS master */
 {
     rev_ref	*h;
@@ -416,7 +416,7 @@ rev_list_set_refs(cvs_master *rl, cvs_file *cvsfile)
 	 * Locate a symbolic name for this head
 	 */
 	if (cvs_is_head(&s->number)) {
-	    for (h = rl->heads; h; h = h->next) {
+	    for (h = cm->heads; h; h = h->next) {
 		if (cvs_same_branch(&h->commit->number, &s->number))
 		    break;
 	    }
@@ -425,7 +425,7 @@ rev_list_set_refs(cvs_master *rl, cvs_file *cvsfile)
 		    h->ref_name = s->symbol_name;
 		    h->degree = cvs_number_degree(&s->number);
 		} else
-		    h = rev_list_add_head(rl, h->commit, s->symbol_name,
+		    h = rev_list_add_head(cm, h->commit, s->symbol_name,
 					   cvs_number_degree(&s->number));
 	    } else {
 		cvs_number	n;
@@ -433,18 +433,18 @@ rev_list_set_refs(cvs_master *rl, cvs_file *cvsfile)
 		n = s->number;
 		while (n.c >= 4) {
 		    n.c -= 2;
-		    c = rev_find_cvs_revision(rl, &n);
+		    c = cvs_master_find_revision(cm, &n);
 		    if (c)
 			break;
 		}
 		if (c)
-		    h = rev_list_add_head(rl, c, s->symbol_name,
+		    h = rev_list_add_head(cm, c, s->symbol_name,
 					   cvs_number_degree(&s->number));
 	    }
 	    if (h)
 		h->number = s->number;
 	} else {
-	    c = rev_find_cvs_revision(rl, &s->number);
+	    c = cvs_master_find_revision(cm, &s->number);
 	    if (c)
 		tag_commit(c, s->symbol_name, cvsfile);
 	}
@@ -452,7 +452,7 @@ rev_list_set_refs(cvs_master *rl, cvs_file *cvsfile)
     /*
      * Fix up unnamed heads
      */
-    for (h = rl->heads; h; h = h->next) {
+    for (h = cm->heads; h; h = h->next) {
 	cvs_number	n;
 	cvs_commit	*c;
 
@@ -475,13 +475,13 @@ rev_list_set_refs(cvs_master *rl, cvs_file *cvsfile)
     /*
      * Link heads together in a tree
      */
-    for (h = rl->heads; h; h = h->next) {
+    for (h = cm->heads; h; h = h->next) {
 	cvs_number	n;
 
 	if (h->number.c >= 4) {
 	    n = h->number;
 	    n.c -= 2;
-	    h->parent = rev_list_find_branch(rl, &n);
+	    h->parent = cvs_master_find_branch(cm, &n);
 	    if (!h->parent && !cvs_is_vendor(&h->number))
 		warn("warning - non-vendor %s branch %s has no parent\n",
 			 cvsfile->gen.master_name, h->ref_name);
@@ -551,10 +551,10 @@ rev_ref_compare(cvs_file *cvs, const rev_ref *r1, const rev_ref *r2)
 }
 
 static void
-rev_list_sort_heads(cvs_master *rl, cvs_file *cvs)
+cvs_master_sort_heads(cvs_master *cm, cvs_file *cvs)
 /* sort branch heads so parents are always before children; trunk first. */
 {
-    rev_ref *p = rl->heads, *q;
+    rev_ref *p = cm->heads, *q;
     rev_ref *e;
     rev_ref *l = NULL, *lastl = NULL;
     int k = 1;
@@ -630,12 +630,12 @@ rev_list_sort_heads(cvs_master *rl, cvs_file *cvs)
 	k = 2*k;
     }
 
-    rl->heads = l;
+    cm->heads = l;
 #if DEBUG
     fprintf(stderr, "Sorted heads for %s\n", cvs->name);
-    for (e = rl->heads; e;) {
+    for (e = cm->heads; e;) {
 	fprintf(stderr, "\t");
-	//rev_list_dump_ref_parents(stderr, e->parent);
+	//cvs_master_dump_ref_parents(stderr, e->parent);
 	dump_number_file(stderr, e->name, &e->number);
 	fprintf(stderr, "\n");
 	e = e->next;
@@ -644,10 +644,10 @@ rev_list_sort_heads(cvs_master *rl, cvs_file *cvs)
 }
 
 cvs_repo *
-rev_list_cvs(cvs_file *cvs)
+cvs_master_digest(cvs_file *cvs)
 /* return a linked list capturing the CVS master file structure */ 
 {
-    cvs_master	*rl = xcalloc(1, sizeof(cvs_master), "rev_list_cvs");
+    cvs_master	*cm = xcalloc(1, sizeof(cvs_master), "cvs_master_digest");
     cvs_number	trunk_number;
     cvs_commit	*trunk; 
     cvs_commit	*branch;
@@ -674,10 +674,10 @@ rev_list_cvs(cvs_file *cvs)
 	trunk_number = ctrunk->number;
     else
 	trunk_number = lex_number("1.1");
-    trunk = rev_branch_cvs(cvs, &trunk_number);
+    trunk = cvs_master_branch_build(cvs, &trunk_number);
     if (trunk) {
 	rev_ref	*t;
-	t = rev_list_add_head(rl, trunk, atom("master"), 2);
+	t = rev_list_add_head(cm, trunk, atom("master"), 2);
 	t->number = trunk_number;
     }
     else
@@ -692,17 +692,17 @@ rev_list_cvs(cvs_file *cvs)
     for (cv = cvs->gen.versions; cv; cv = cv->next) {
 	for (cb = cv->branches; cb; cb = cb->next)
 	{
-	    branch = rev_branch_cvs(cvs, &cb->number);
-	    rev_list_add_head(rl, branch, NULL, 0);
+	    branch = cvs_master_branch_build(cvs, &cb->number);
+	    rev_list_add_head(cm, branch, NULL, 0);
 	}
     }
-    rev_list_patch_vendor_branch(rl, cvs);
-    rev_list_graft_branches(rl, cvs);
-    rev_list_set_refs(rl, cvs);
-    rev_list_sort_heads(rl, cvs);
-    rev_list_set_tail(rl);
-    //rev_list_validate(rl);
-    return rl;
+    cvs_master_patch_vendor_branch(cm, cvs);
+    cvs_master_graft_branches(cm, cvs);
+    cvs_master_set_refs(cm, cvs);
+    cvs_master_sort_heads(cm, cvs);
+    rev_list_set_tail(cm);
+    //rev_list_validate(cm);
+    return cm;
 }
 
 // end

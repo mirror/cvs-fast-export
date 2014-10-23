@@ -465,7 +465,7 @@ cvstime_t
 lex_date(cvs_number *n, void *, cvs_file *cvs);
 
 cvs_master *
-rev_list_cvs(cvs_file *cvs);
+cvs_master_digest(cvs_file *cvs);
 
 git_repo *
 rev_list_merge(cvs_repo *masters);
