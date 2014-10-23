@@ -1,8 +1,11 @@
 		cvs-fast-export project news
 
+Repository head:
+    New -l option for redirecting logs during long conversions.
+    Minor speedups and working-set reductions.
+
 1.22: 2014-10-21
     New --embed-id and --expand options by Robert deBath.
-    New -l option for redirecting logs during long conversions.
 
 1.21: 2014-10-19
     When incremental dumping, suppress tags associated with old commits.
