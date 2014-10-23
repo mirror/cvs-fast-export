@@ -24,7 +24,7 @@
 
 bool
 cvs_is_head(const cvs_number *n)
-/* is a specified CVS revision a branch head? */
+/* is a specified CVS revision the magic name of a branch's sticky tag? */
 {
     assert(n->c <= CVS_MAX_DEPTH); 
     return(n->c > 2 && (n->c & 1) == 0 && n->n[n->c-2] == 0);
