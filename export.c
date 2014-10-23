@@ -1012,7 +1012,8 @@ void export_commits(forest_t *forest,
 
     fputs("done\n", stdout);
 
-    nftw(blobdir, unlink_cb, 64, FTW_DEPTH | FTW_PHYS);
+    if (opts->reportmode == canonical)
+        nftw(blobdir, unlink_cb, 64, FTW_DEPTH | FTW_PHYS);
 
     if (forest->skew_vulnerable > 0 && forest->filecount > 1 && !opts->force_dates) {
 	time_t udate = forest->skew_vulnerable;
