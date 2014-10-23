@@ -735,13 +735,13 @@ rev_ref_set_parent(git_repo *gl, rev_ref *dest, cvs_repo *source)
 }
 
 git_repo *
-rev_list_merge(cvs_repo *head)
+rev_list_merge(cvs_repo *masters)
 /* entry point - merge CVS revision lists to a gitspace DAG */
 {
-    int		count = rev_list_count(head);
+    int		count = rev_list_count(masters);
     int		n; /* used only in progress messages */
     git_repo	*gl = xcalloc(1, sizeof(git_repo), "list merge");
-    cvs_master	*l;
+    cvs_master	*master;
     rev_ref	*lh, *h;
     tag_t	*t;
     rev_ref	**refs = xcalloc(count, sizeof(rev_ref *), "list merge");
@@ -753,8 +753,8 @@ rev_list_merge(cvs_repo *head)
      */
     progress_begin("Make DAG branch heads...", count);
     n = 0;
-    for (l = head; l; l = l->next) {
-	for (lh = l->heads; lh; lh = lh->next) {
+    for (master = masters; master; master = master->next) {
+	for (lh = master->heads; lh; lh = lh->next) {
 	    h = rev_find_head(gl, lh->ref_name);
 	    if (!h)
 		rev_list_add_head(gl, NULL, lh->ref_name, lh->degree);
@@ -770,7 +770,7 @@ rev_list_merge(cvs_repo *head)
      * Sort by degree so that finding branch points always works.
      */
     progress_begin("Sorting...", count);
-    gl->heads = rev_ref_tsort(gl->heads, head);
+    gl->heads = rev_ref_tsort(gl->heads, masters);
     if (!gl->heads) {
 	free(refs);
 	/* coverity[leaked_storage] */
@@ -792,7 +792,7 @@ rev_list_merge(cvs_repo *head)
      */
     progress_begin("Find branch parent relationships...", count);
     for (h = gl->heads; h; h = h->next) {
-	rev_ref_set_parent(gl, h, head);
+	rev_ref_set_parent(gl, h, masters);
 //	dump_ref_name(stderr, h);
 //	fprintf(stderr, "\n");
     }
@@ -800,8 +800,8 @@ rev_list_merge(cvs_repo *head)
 
 #ifdef ORDERDEBUG
     fputs("rev_list_merge: before common branch merge:\n", stderr);
-    for (l = head; l; l = l->next) {
-	for (lh = l->heads; lh; lh = lh->next) {
+    for (master = masters; master; master = master->next) {
+	for (lh = master->heads; lh; lh = lh->next) {
 	    cvs_commit *commit = lh->commit;
 	    fputs("rev_ref: ", stderr);
 	    dump_number_file(stderr, lh->name, &lh->number);
@@ -821,8 +821,8 @@ rev_list_merge(cvs_repo *head)
 	 * set of CVS branches from every master.
 	 */
 	int nref = 0;
-	for (l = head; l; l = l->next) {
-	    lh = rev_find_head(l, h->ref_name);
+	for (master = masters; master; master = master->next) {
+	    lh = rev_find_head(master, h->ref_name);
 	    if (lh)
 		refs[nref++] = lh;
 	}
