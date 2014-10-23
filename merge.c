@@ -47,7 +47,7 @@ rev_ref_find_name(rev_ref *h, const char *name)
 }
 
 static bool
-rev_ref_is_ready(const char *name, cvs_master *source, rev_ref *ready)
+rev_ref_is_ready(const char *name, cvs_repo *source, rev_ref *ready)
 {
     for (; source; source = source->next) {
 	rev_ref *head = rev_find_head(source, name);
@@ -60,16 +60,15 @@ rev_ref_is_ready(const char *name, cvs_master *source, rev_ref *ready)
 }
 
 static rev_ref *
-rev_ref_tsort(rev_ref *refs, cvs_repo *head)
+rev_ref_tsort(rev_ref *refs, cvs_repo *masters)
 {
     rev_ref *done = NULL;
     rev_ref **done_tail = &done;
     rev_ref *r, **prev;
 
-//    fprintf(stderr, "Tsort refs:\n");
     while (refs) {
 	for (prev = &refs; (r = *prev); prev = &(*prev)->next) {
-	    if (rev_ref_is_ready(r->ref_name, head, done)) {
+	    if (rev_ref_is_ready(r->ref_name, masters, done)) {
 		break;
 	    }
 	}
@@ -79,7 +78,6 @@ rev_ref_tsort(rev_ref *refs, cvs_repo *head)
 	}
 	*prev = r->next;
 	*done_tail = r;
-//	fprintf(1stderr, "\t%s\n", r->name);
 	r->next = NULL;
 	done_tail = &r->next;
     }
@@ -87,13 +85,13 @@ rev_ref_tsort(rev_ref *refs, cvs_repo *head)
 }
 
 static int
-rev_list_count(const cvs_repo *head)
+rev_list_count(const cvs_repo *masters)
 /* count all heads in the linked list corresponding to a digested CVS repo */
 {
     int	count = 0;
-    while (head) {
+    while (masters) {
 	count++;
-	head = head->next;
+	masters = masters->next;
     }
     return count;
 }
@@ -705,6 +703,7 @@ rev_tag_search(tag_t *tag, cvs_commit **revisions, git_repo *gl)
 
 static void
 rev_ref_set_parent(git_repo *gl, rev_ref *dest, cvs_repo *source)
+/* compute parent relationships among gitspace branches */
 {
     cvs_master	*s;
     rev_ref	*p;
@@ -727,7 +726,7 @@ rev_ref_set_parent(git_repo *gl, rev_ref *dest, cvs_repo *source)
 	if (!max || p->depth > max->depth)
 	    max = p;
     }
-    dest->parent = max;
+    dest->parent = max;	/* where the magic happens */
     if (max)
 	dest->depth = max->depth + 1;
     else
@@ -768,6 +767,8 @@ rev_list_merge(cvs_repo *masters)
     progress_end(NULL);
     /*
      * Sort by degree so that finding branch points always works.
+     * In later operations we always want to walk parent branches 
+     * before children, with trunk first.
      */
     progress_begin("Sorting...", count);
     gl->heads = rev_ref_tsort(gl->heads, masters);
@@ -779,7 +780,7 @@ rev_list_merge(cvs_repo *masters)
     progress_end(NULL);
 #ifdef __UNUSED__
     /*
-     * This code displaya the result of the branch toposort.
+     * This code displays the result of the branch toposort.
      * The "master" branch should always be at the front
      * of the list.
      */
@@ -788,14 +789,11 @@ rev_list_merge(cvs_repo *masters)
 		 h->ref_name, h->degree);
 #endif /* __UNUSED__ */
     /*
-     * Find branch parent relationships.
+     * Compute branch parent relationships.
      */
-    progress_begin("Find branch parent relationships...", count);
-    for (h = gl->heads; h; h = h->next) {
+    progress_begin("Compute branch parent relationships...", count);
+    for (h = gl->heads; h; h = h->next)
 	rev_ref_set_parent(gl, h, masters);
-//	dump_ref_name(stderr, h);
-//	fprintf(stderr, "\n");
-    }
     progress_end(NULL);
 
 #ifdef ORDERDEBUG
@@ -828,7 +826,7 @@ rev_list_merge(cvs_repo *masters)
 	}
 	if (nref)
 	    /* 
-	     * Merge those branches into a signgle gitspace branch
+	     * Merge those branches into a single gitspace branch
 	     * and add that to the output revlist on gl.
 	     */
 	    rev_branch_merge(refs, nref, h, gl);
