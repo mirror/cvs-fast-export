@@ -468,7 +468,7 @@ cvs_master *
 cvs_master_digest(cvs_file *cvs);
 
 git_repo *
-rev_list_merge(cvs_repo *masters);
+merge_to_changesets(cvs_repo *masters);
 
 enum { Ncommits = 256 };
 

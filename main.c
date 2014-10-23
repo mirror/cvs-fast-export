@@ -367,7 +367,7 @@ main(int argc, char **argv)
     gather_stats("after parsing");
 
     /* commit set coalescence happens here */
-    forest.head = rev_list_merge(premerge = forest.head);
+    forest.head = merge_to_changesets(premerge = forest.head);
 
     gather_stats("after branch merge");
 

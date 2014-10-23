@@ -21,7 +21,7 @@
 /*
  * These functions analyze a CVS revlist into a changeset DAG.
  *
- * rev_list_merge() is the main function.
+ * merge_to_changesets() is the main function.
  */
 
 static rev_ref *
@@ -85,8 +85,8 @@ rev_ref_tsort(rev_ref *refs, cvs_repo *masters)
 }
 
 static int
-rev_list_count(const cvs_repo *masters)
-/* count all heads in the linked list corresponding to a digested CVS repo */
+cvs_master_count(const cvs_repo *masters)
+/* count all digested masters in the linked list corresponding to a CVS repo */
 {
     int	count = 0;
     while (masters) {
@@ -154,8 +154,8 @@ cvs_commit_date_sort(cvs_commit **commits, int ncommit)
 }
 
 static bool
-git_commit_has_file(const git_commit *c, const cvs_commit *f)
-/* does this commit touch a specified file revision? */
+git_commit_incorporates(const git_commit *c, const cvs_commit *f)
+/* does this commit touch the file revision in a specified CVS commit? */
 {
     int	i, j;
 
@@ -171,7 +171,7 @@ git_commit_has_file(const git_commit *c, const cvs_commit *f)
 }
 
 static bool
-commit_time_close(const cvstime_t a, const cvstime_t b)
+cvs_commit_time_close(const cvstime_t a, const cvstime_t b)
 /* are two timestamps within the commit-coalescence window of each other? */
 {
     long	diff = (long)a - (long)b;
@@ -183,7 +183,7 @@ commit_time_close(const cvstime_t a, const cvstime_t b)
 
 static bool
 cvs_commit_match(const cvs_commit *a, const cvs_commit *b)
-/* are two commits eligible to be coalesced into a changeset? */
+/* are two CVS commits eligible to be coalesced into a changeset? */
 {
     /*
      * Versions of GNU CVS after 1.12 (2004) place a commitid in
@@ -193,7 +193,7 @@ cvs_commit_match(const cvs_commit *a, const cvs_commit *b)
 	return a->commitid == b->commitid;
     if (a->commitid || b->commitid)
 	return false;
-    if (!commit_time_close(a->date, b->date))
+    if (!cvs_commit_time_close(a->date, b->date))
 	return false;
     if (a->log != b->log)
 	return false;
@@ -313,6 +313,7 @@ git_commit_locate_date(const rev_ref *branch, const cvstime_t date)
 
 static git_commit *
 git_commit_locate_one(const rev_ref *branch, const cvs_commit *file)
+/* seek a gitspace commit on branch incorporating cvs_commit */
 {
     git_commit	*commit;
 
@@ -333,6 +334,7 @@ git_commit_locate_one(const rev_ref *branch, const cvs_commit *file)
 
 static git_commit *
 git_commit_locate_any(const rev_ref *branch, const cvs_commit *file)
+/* seek a gitspace commit on *any* branch incorporating cvs_commit */
 {
     git_commit	*commit;
 
@@ -345,14 +347,14 @@ git_commit_locate_any(const rev_ref *branch, const cvs_commit *file)
 }
 
 static git_commit *
-git_commit_locate(const rev_ref *branch, const cvs_commit *file)
+git_commit_locate(const rev_ref *branch, const cvs_commit *cm)
 {
     git_commit	*commit;
 
     /*
      * Check the presumed trunk first
      */
-    commit = git_commit_locate_one(branch, file);
+    commit = git_commit_locate_one(branch, cm);
     if (commit)
 	return commit;
     /*
@@ -360,11 +362,11 @@ git_commit_locate(const rev_ref *branch, const cvs_commit *file)
      */
     while (branch->parent)
 	branch = branch->parent;
-    return git_commit_locate_any(branch, file);
+    return git_commit_locate_any(branch, cm);
 }
 
 static rev_ref *
-rev_branch_of_commit(const git_repo *gl, const cvs_commit *commit)
+git_branch_of_commit(const git_repo *gl, const cvs_commit *commit)
 /* return the gitspace branch head that owns a specified CVS commit */
 {
     rev_ref	*h;
@@ -394,7 +396,7 @@ cvs_commit_first_date(cvs_commit *commit)
 }
 
 static void
-rev_branch_merge(rev_ref **branches, int nbranch,
+merge_branches(rev_ref **branches, int nbranch,
 		  rev_ref *branch, git_repo *gl)
 /* merge a set of per-CVS-master branches into a gitspace DAG branch */
 {
@@ -654,7 +656,7 @@ rev_branch_merge(rev_ref **branches, int nbranch,
 	    warn("error - branch point %s -> %s not found.",
 		branch->ref_name, branch->parent->ref_name);
 
-	    if ((lost = rev_branch_of_commit(gl, revisions[present])))
+	    if ((lost = git_branch_of_commit(gl, revisions[present])))
 		warn(" Possible match on %s.", lost->ref_name);
 	    fprintf(LOGFILE, "\n");
 	}
@@ -682,7 +684,7 @@ rev_tag_search(tag_t *tag, cvs_commit **revisions, git_repo *gl)
 {
     cvs_commit_date_sort(revisions, tag->count);
     /* tag gets parented with branch of most recent matching commit */
-    tag->parent = rev_branch_of_commit(gl, revisions[0]);
+    tag->parent = git_branch_of_commit(gl, revisions[0]);
     if (tag->parent)
 	tag->commit = git_commit_locate(tag->parent, revisions[0]);
     if (!tag->commit) {
@@ -734,10 +736,10 @@ rev_ref_set_parent(git_repo *gl, rev_ref *dest, cvs_repo *source)
 }
 
 git_repo *
-rev_list_merge(cvs_repo *masters)
+merge_to_changesets(cvs_repo *masters)
 /* entry point - merge CVS revision lists to a gitspace DAG */
 {
-    int		count = rev_list_count(masters);
+    int		count = cvs_master_count(masters);
     int		n; /* used only in progress messages */
     git_repo	*gl = xcalloc(1, sizeof(git_repo), "list merge");
     cvs_master	*master;
@@ -797,7 +799,7 @@ rev_list_merge(cvs_repo *masters)
     progress_end(NULL);
 
 #ifdef ORDERDEBUG
-    fputs("rev_list_merge: before common branch merge:\n", stderr);
+    fputs("merge_to_changesets: before common branch merge:\n", stderr);
     for (master = masters; master; master = master->next) {
 	for (lh = master->heads; lh; lh = lh->next) {
 	    cvs_commit *commit = lh->commit;
@@ -829,7 +831,7 @@ rev_list_merge(cvs_repo *masters)
 	     * Merge those branches into a single gitspace branch
 	     * and add that to the output revlist on gl.
 	     */
-	    rev_branch_merge(refs, nref, h, gl);
+	    merge_branches(refs, nref, h, gl);
 	progress_step();
     }
     progress_end(NULL);
@@ -884,7 +886,7 @@ rev_uniq_file(git_commit *uniq, git_commit *common, int *nuniqp)
     for (i = 0; i < uniq->ndirs; i++) {
 	rev_dir	*dir = uniq->dirs[i];
 	for (j = 0; j < dir->nfiles; j++)
-	    if (!git_commit_has_file(common, dir->files[j])) {
+	    if (!git_commit_incorporates(common, dir->files[j])) {
 		fl = xcalloc(1, sizeof(cvs_commit_list), "rev_uniq_file");
 		fl->file = dir->files[j];
 		*tail = fl;
