@@ -58,7 +58,7 @@ m_regress:
 	done
 
 INCREMENTAL=twobranch
-THRESHOLD=4000
+THRESHOLD=104000
 i_rebuild: neutralize.map
 	@-for file in $(INCREMENTAL); do \
 	    echo "Remaking $${file}.inc-chk"; \
