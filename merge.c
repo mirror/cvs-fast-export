@@ -736,7 +736,7 @@ rev_ref_set_parent(git_repo *gl, rev_ref *dest, cvs_repo *source)
 }
 
 git_repo *
-merge_to_changesets(cvs_repo *masters)
+merge_to_changesets(cvs_repo *masters, int verbose)
 /* entry point - merge CVS revision lists to a gitspace DAG */
 {
     int		count = cvs_master_count(masters);
@@ -780,16 +780,18 @@ merge_to_changesets(cvs_repo *masters)
 	return NULL;
     }
     progress_end(NULL);
-#ifdef __UNUSED__
-    /*
-     * This code displays the result of the branch toposort.
-     * The "master" branch should always be at the front
-     * of the list.
-     */
-    for (h = gl->heads; h; h = h->next)
-	fprintf(stderr, "head %s(%d)\n",
-		 h->ref_name, h->degree);
-#endif /* __UNUSED__ */
+
+    if (verbose) {
+	/*
+	 * Display the result of the branch toposort.
+	 * The "master" branch should always be at the front
+	 * of the list.
+	 */
+	warn("Sorted branches are:");
+	for (h = gl->heads; h; h = h->next)
+	    fprintf(LOGFILE, "head %s(%d)\n",
+		    h->ref_name, h->degree);
+    }
     /*
      * Compute branch parent relationships.
      */

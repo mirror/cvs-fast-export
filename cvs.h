@@ -469,7 +469,7 @@ cvs_master *
 cvs_master_digest(cvs_file *cvs);
 
 git_repo *
-merge_to_changesets(cvs_repo *masters);
+merge_to_changesets(cvs_repo *masters, int verbose);
 
 enum { Ncommits = 256 };
 
