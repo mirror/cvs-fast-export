@@ -5,8 +5,8 @@ import testlifter
 
 repo = testlifter.CVSRepository("hack2.repo")
 repo.init()
-repo.module("hack2")
-co = repo.checkout("hack2", "hack2.checkout")
+repo.module("module")
+co = repo.checkout("module", "hack2.checkout")
 
 co.write("foo.c", "The quick brown fox jumped over the lazy dog.\n")
 co.add("foo.c")

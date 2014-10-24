@@ -93,8 +93,8 @@ import testlifter
 
 repo = testlifter.CVSRepository("postbranch.repo")
 repo.init()
-repo.module("postbranch")
-co = repo.checkout("postbranch", "postbranch.checkout")
+repo.module("module")
+co = repo.checkout("module", "postbranch.checkout")
 
 # 1) create file "f"
 co.write("f", "random content")

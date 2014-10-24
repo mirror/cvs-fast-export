@@ -5,8 +5,8 @@ import testlifter
 
 repo = testlifter.CVSRepository("longrev.repo")
 repo.init()
-repo.module("longrev")
-co = repo.checkout("longrev", "longrev.checkout")
+repo.module("module")
+co = repo.checkout("module", "longrev.checkout")
 
 co.write("README", "A test of multiple tags.\n")
 co.add("README")

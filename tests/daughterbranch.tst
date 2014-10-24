@@ -11,8 +11,8 @@ import testlifter
 
 repo = testlifter.CVSRepository("daughterbranch.repo")
 repo.init()
-repo.module("daughterbranch")
-co = repo.checkout("daughterbranch", "daughterbranch.checkout")
+repo.module("module")
+co = repo.checkout("module", "daughterbranch.checkout")
 
 co.write("README", "The quick brown fox jumped over the lazy dog.\n")
 co.add("README")
