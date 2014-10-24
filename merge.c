@@ -282,7 +282,7 @@ git_commit_build(cvs_commit **revisions, cvs_commit *leader, const int nrevision
     fprintf(stderr, "commit_build: %p\n", commit);
 
     for (n = 0; n < nfile; n++)
-	fprintf(stderr, "%s\n", revisions[n]->file->name);
+	fprintf(stderr, "%s\n", revisions[n]->master->name);
     fputs("After packing:\n", stderr);
     for (n = 0; n < commit->ndirs; n++)
     {
@@ -290,7 +290,7 @@ git_commit_build(cvs_commit **revisions, cvs_commit *leader, const int nrevision
 	int i;
 
 	for (i = 0; i < rev_dir->nfiles; i++)
-	    fprintf(stderr, "   file name: %s\n", rev_dir->files[i]->name);
+	    fprintf(stderr, "   file name: %s\n", rev_dir->files[i]->master->name);
     }
 #endif /* ORDERDEBUG */
 
@@ -805,9 +805,9 @@ merge_to_changesets(cvs_repo *masters, int verbose)
 	for (lh = master->heads; lh; lh = lh->next) {
 	    cvs_commit *commit = lh->commit;
 	    fputs("rev_ref: ", stderr);
-	    dump_number_file(stderr, lh->name, &lh->number);
+	    dump_number_file(stderr, lh->ref_name, &lh->number);
 	    fputc('\n', stderr);
-	    fprintf(stderr, "commit first file: %s\n", commit->file->master->name);
+	    fprintf(stderr, "commit first file: %s\n", commit->master->name);
 	}
     }
 #endif /* ORDERDEBUG */
