@@ -36,6 +36,10 @@ that are git stream outputs.
 This is a specifically crafted test to see if incremental dumping of a 
 late section of a repository works.
 
+== The QED repostory ==
+
+This is a stripped down version of a repo that contains a branch cycle.
+
 == The t9600 group ==
 
 The t960[1-4] files are tests taken from the git tree for testing the
