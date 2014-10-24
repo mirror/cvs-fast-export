@@ -8,13 +8,15 @@ CVS = cvs
 DIFF = diff -u -a
 CVS_FAST_EXPORT = ../cvs-fast-export $(OPTS)
 
-.SUFFIXES: .tst .repo .checkout .dot ,v
+.SUFFIXES: .tst .repo .testrepo .checkout .dot ,v
 
 .tst.repo:
 	python $<
 .repo.checkout:
 	$(CVS) -d :local:${PWD}/$*.repo -Q checkout $* && mv $* $*.checkout
 .repo.dot:
+	find $</module -name '*,v' | $(CVS_FAST_EXPORT) -g >$*.dot
+.testrepo.dot:
 	find $</module -name '*,v' | $(CVS_FAST_EXPORT) -g >$*.dot
 ,v.dot:
 	$(CVS_FAST_EXPORT) -g $< >$*.dot

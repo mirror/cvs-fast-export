@@ -1,0 +1,6 @@
+#!/bin/sh
+#
+# visualize - visualize a specified repository or master file 
+#
+stem=`basename $1`
+make --quiet ${stem}.dot && dot <${stem}.dot -Tpng | display - && rm ${stem}.dot
