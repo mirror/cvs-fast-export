@@ -8,6 +8,8 @@ CVS = cvs
 DIFF = diff -u -a
 CVS_FAST_EXPORT = ../cvs-fast-export $(OPTS)
 
+check: test
+
 .SUFFIXES: .tst .repo .testrepo .checkout .dot ,v
 
 .tst.repo:
@@ -23,8 +25,6 @@ CVS_FAST_EXPORT = ../cvs-fast-export $(OPTS)
 
 test: s_regress m_regress i_regress f_regress t_regress
 	@echo "No diff output is good news."
-
-check: test
 
 rebuild: s_rebuild m_rebuild i_rebuild t_rebuild
 
