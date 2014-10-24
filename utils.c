@@ -3,82 +3,6 @@
 
 unsigned int warncount;
 
-static int progress_max = NO_MAX;
-static bool progress_in_progress;
-
-void fatal_system_error(char const *format,...)
-{
-    va_list args;
-    int errno_save = errno;
-
-    if (progress && progress_in_progress)
-	fputc('\n', stderr);
-    if (progress_max != NO_MAX) {
-	progress_max = NO_MAX;
-    }
-
-    fprintf(stderr, "cvs-fast-export fatal: ");
-    va_start(args, format);
-    vfprintf(stderr, format, args);
-    va_end(args);
-    fputs(": ", stderr);
-    errno = errno_save;
-    perror(NULL);
-    exit(1);
-}
-
-void fatal_error(char const *format,...)
-{
-    va_list args;
-
-    if (progress && progress_in_progress)
-	fputc('\n', stderr);
-    if (progress_max != NO_MAX) {
-	progress_max = NO_MAX;
-    }
-
-    fprintf(stderr, "cvs-fast-export fatal: ");
-    va_start(args, format);
-    vfprintf(stderr, format, args);
-    va_end(args);
-    fprintf(stderr, "\n");
-    exit(1);
-}
-
-void announce(char const *format,...)
-{
-    va_list args;
-
-    if (progress && progress_in_progress)
-	fputc('\n', stderr);
-    if (progress_max != NO_MAX) {
-	progress_max = NO_MAX;
-    }
-
-    fprintf(stderr, "cvs-fast-export: ");
-    va_start(args, format);
-    vfprintf(stderr, format, args);
-    va_end(args);
-}
-
-void warn(char const *format,...)
-{
-    va_list args;
-
-    if (LOGFILE == stderr && progress && progress_in_progress)
-	fputc('\n', LOGFILE);
-    if (progress_max != NO_MAX) {
-	progress_max = NO_MAX;
-    }
-
-    fprintf(LOGFILE, "cvs-fast-export: ");
-    va_start(args, format);
-    vfprintf(LOGFILE, format, args);
-    va_end(args);
-
-    warncount++;
-}
-
 #if _POSIX_C_SOURCE >= 200112L || _XOPEN_SOURCE >= 600
 void* xmemalign(size_t align, size_t size, char const *legend)
 {
@@ -156,6 +80,8 @@ static char *progress_msg = "";
 static int progress_counter = 0;
 static va_list _unused_va_list;
 static struct timespec start;  
+static int progress_max = NO_MAX;
+static bool progress_in_progress;
 
 static void _progress_print(bool /*newline*/, const char * /*format*/, va_list)
 	_printflike(2, 0);
@@ -186,6 +112,7 @@ progress_step(void)
 {
     if (!progress)
 	return;
+    progress_in_progress = true;
     progress_counter++;
     _progress_print(false, "", _unused_va_list);
 }
@@ -195,6 +122,7 @@ progress_jump(const int count)
 {
     if (!progress)
 	return;
+    progress_in_progress = true;
     progress_counter = count;
     _progress_print(false, "", _unused_va_list);
 }
@@ -252,6 +180,83 @@ _progress_print(bool newline, const char *format, va_list args)
 	fprintf(STATUS, "\n");
     }
     fflush(STATUS);
+}
+
+static void progress_interrupt(void)
+{
+    if (progress && progress_in_progress) {
+	fputc('\n', stderr);
+	progress_in_progress = false;
+    }
+#ifdef __UNUSED__
+    if (progress_max != NO_MAX) {
+	progress_max = NO_MAX;
+    }
+#endif /* __UNUSED__ */
+}
+
+void fatal_system_error(char const *format,...)
+{
+    va_list args;
+    int errno_save = errno;
+
+    progress_interrupt();
+    fprintf(stderr, "cvs-fast-export fatal: ");
+    va_start(args, format);
+    vfprintf(stderr, format, args);
+    va_end(args);
+    fputs(": ", stderr);
+    errno = errno_save;
+    perror(NULL);
+    exit(1);
+}
+
+void fatal_error(char const *format,...)
+{
+    va_list args;
+
+    progress_interrupt();
+    fprintf(stderr, "cvs-fast-export fatal: ");
+    va_start(args, format);
+    vfprintf(stderr, format, args);
+    va_end(args);
+    fprintf(stderr, "\n");
+    exit(1);
+}
+
+void announce(char const *format,...)
+{
+    va_list args;
+
+    progress_interrupt();
+    fprintf(stderr, "cvs-fast-export: ");
+    va_start(args, format);
+    vfprintf(stderr, format, args);
+    va_end(args);
+}
+
+void warn(char const *format,...)
+{
+    va_list args;
+
+    if (LOGFILE == stderr)
+	progress_interrupt();
+    fprintf(LOGFILE, "cvs-fast-export: ");
+    va_start(args, format);
+    vfprintf(LOGFILE, format, args);
+    va_end(args);
+
+    warncount++;
+}
+
+void debugmsg(char const *format,...)
+{
+    va_list args;
+
+    progress_interrupt();
+    va_start(args, format);
+    vfprintf(LOGFILE, format, args);
+    va_end(args);
 }
 
 // end
