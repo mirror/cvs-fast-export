@@ -49,7 +49,7 @@ static volatile generator_t *generators;
 static volatile int err;
 
 static int total_files, striplen;
-static bool verbose;
+static int verbose;
 
 #ifdef THREADS
 static pthread_mutex_t revlist_mutex = PTHREAD_MUTEX_INITIALIZER;
@@ -131,6 +131,7 @@ rev_list_file(const char *name, analysis_t *out)
     cvs->gen.expand = EXPANDUNSPEC;
     cvs->export_name = atom(rectify_name(name, rectified, sizeof(rectified)));
     cvs->mode = buf.st_mode;
+    cvs->verbose = verbose;
 
     yylex_init(&scanner);
     yyset_in(in, scanner);

@@ -272,7 +272,7 @@ main(int argc, char **argv)
 		export_options.id_token_expand = expand_override(optarg);
 	    break;
 	case 'v':
-	    import_options.verbose = true;
+	    import_options.verbose++;
 #ifdef YYDEBUG
 	    extern int yydebug;
 	    yydebug = 1;

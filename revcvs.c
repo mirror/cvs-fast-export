@@ -685,14 +685,18 @@ cvs_master_digest(cvs_file *cvs)
     /*
      * Search for other branches
      */
-#if CVSDEBUG
-    printf("building branches for %s\n", cvs->name);
-#endif
+    if (cvs->verbose)
+	warn("building branches for %s:", cvs->gen.master_name);
     
     for (cv = cvs->gen.versions; cv; cv = cv->next) {
 	for (cb = cv->branches; cb; cb = cb->next)
 	{
 	    branch = cvs_master_branch_build(cvs, &cb->number);
+	    if (cvs->verbose)
+	    {
+	        char buf[BUFSIZ];
+		warn("\t%s", cvs_number_string(&branch->number, buf, BUFSIZ));
+	    }
 	    rev_list_add_head(cm, branch, NULL, 0);
 	}
     }

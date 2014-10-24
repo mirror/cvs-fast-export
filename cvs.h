@@ -263,6 +263,7 @@ typedef struct {
     cvstime_t           skew_vulnerable;
     serial_t		nversions;
     mode_t		mode;
+    unsigned short	verbose;
 } cvs_file;
 
 typedef struct _rev_master {
@@ -506,7 +507,7 @@ void discard_tags(void);
 
 typedef struct _import_options {
     bool promiscuous;
-    bool verbose;
+    int verbose;
     ssize_t striplen;
 } import_options_t;
 
