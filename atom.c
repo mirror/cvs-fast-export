@@ -68,7 +68,9 @@ static hash_bucket_t	*buckets[HASH_SIZE];
 static pthread_mutex_t bucket_mutex = PTHREAD_MUTEX_INITIALIZER;
 #endif /* THREADS */
 
+#ifndef offsetof
 #define offsetof(T, f)  (size_t)(&((T *)0)->f)
+#endif
 #define containerof(fp, T, f) (T *)((char *)(fp) - offsetof(T, f))
 
 const bloom_t *
