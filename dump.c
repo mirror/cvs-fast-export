@@ -18,9 +18,6 @@
 
 /*
  * Dump functions for graphing and debug instrumentation.
- *
- * Warning, some of the unused code mayy have bitrotted 
- * when cvs_commit and git_commit were separated.
  */
 
 #include "cvs.h"
@@ -55,7 +52,7 @@ dump_git_commit(const git_commit *c, FILE *fp)
 	
 	for (j = 0; j < dir->nfiles; j++) {
 	    cc = dir->files[j];
-	    dump_number_file(fp, cc->name, &cc->number);
+	    dump_number_file(fp, cc->master->name, &cc->number);
 	    printf(" ");
 	}
     }
