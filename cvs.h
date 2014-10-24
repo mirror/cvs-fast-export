@@ -700,6 +700,9 @@ void
 warn(char const *format,...) _printflike(1, 2);
 
 void
+debugmsg(char const *format,...) _printflike(1, 2);
+
+void
 fatal_error(char const *format, ...) _printflike(1, 2) _noreturn;
 
 void

@@ -787,10 +787,9 @@ merge_to_changesets(cvs_repo *masters, int verbose)
 	 * The "master" branch should always be at the front
 	 * of the list.
 	 */
-	warn("Sorted branches are:");
+	debugmsg("Sorted branches are:\n");
 	for (h = gl->heads; h; h = h->next)
-	    fprintf(LOGFILE, "head %s(%d)\n",
-		    h->ref_name, h->degree);
+	    debugmsg("head %s(%d)\n", h->ref_name, h->degree);
     }
     /*
      * Compute branch parent relationships.

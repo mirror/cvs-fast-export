@@ -661,8 +661,7 @@ cvs_master_digest(cvs_file *cvs)
      */
     for (cv = cvs->gen.versions; cv; cv = cv->next) {
 	if (cvs_is_trunk(&cv->number) &&
-	    (!ctrunk || cvs_number_compare(&cv->number,
-					    &ctrunk->number) < 0))
+	    (!ctrunk || cvs_number_compare(&cv->number, &ctrunk->number) < 0))
 	{
 	    ctrunk = cv;
 	}
@@ -685,17 +684,18 @@ cvs_master_digest(cvs_file *cvs)
     /*
      * Search for other branches
      */
-    if (cvs->verbose)
-	warn("building branches for %s:", cvs->gen.master_name);
+    if (cvs->verbose > 0)
+	debugmsg("Building branches for %s:\n", cvs->gen.master_name);
     
     for (cv = cvs->gen.versions; cv; cv = cv->next) {
 	for (cb = cv->branches; cb; cb = cb->next)
 	{
 	    branch = cvs_master_branch_build(cvs, &cb->number);
-	    if (cvs->verbose)
+	    if (cvs->verbose > 0)
 	    {
 	        char buf[BUFSIZ];
-		warn("\t%s", cvs_number_string(&branch->number, buf, BUFSIZ));
+		debugmsg("\t%s\n",
+			 cvs_number_string(&branch->number, buf, BUFSIZ));
 	    }
 	    rev_list_add_head(cm, branch, NULL, 0);
 	}
@@ -705,6 +705,18 @@ cvs_master_digest(cvs_file *cvs)
     cvs_master_set_refs(cm, cvs);
     cvs_master_sort_heads(cm, cvs);
     rev_list_set_tail(cm);
+
+    if (cvs->verbose > 0) {
+	rev_ref	*lh;
+
+	debugmsg("Named heads:\n");
+	for (lh = cm->heads; lh; lh = lh->next) {
+	    char buf[BUFSIZ];
+	    debugmsg("\t%s\n",
+		     stringify_revision(lh->ref_name, " ", &lh->number, buf, BUFSIZ));
+	}
+    }
+
     //rev_list_validate(cm);
     return cm;
 }
