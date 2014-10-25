@@ -25,17 +25,6 @@
 #include <ftw.h>
 #include <time.h>
 
-/*
- * Blob compression with zlib is not enabled by default because, (a) in general,
- * any repository large enough to hit a disk-space limit is likely to hit
- * a core limit on metadata sooner, and (b) compression costs time.  The
- * option has been left in place for unusual circumstances and can be enabled
- * from the Makefile.
- */
-#ifdef ZLIB
-#include <zlib.h>
-#endif
-
 #include "cvs.h"
 
 /*
@@ -192,41 +181,21 @@ static void export_blob(node_t *node,
     }
     else
     {
-#ifdef ZLIB
-	gzFile wfp;
-#else
 	FILE *wfp;
-#endif
+
 	char path[PATH_MAX];
 	blobfile(node->commit->master->name, node->commit->serial, true, path);
-#ifndef ZLIB
 	wfp = fopen(path, "w");
-#else
-	/*
-	 * Blobs are written compressed.  This costs a little compression time,
-	 * but we get it back in reduced disk seeks.
-	 */
-	errno = 0;
-	wfp = gzopen(path, "w");
-#endif
+
 	if (wfp == NULL)
 	    fatal_error("blobfile open of %s: %s (%d)", 
 			path, strerror(errno), errno);
-#ifndef ZLIB
 	fprintf(wfp, "data %zd\n", len + extralen);
 	if (extralen > 0)
 	    fwrite(CVS_IGNORES, extralen, sizeof(char), wfp);
 	fwrite(buf, len, sizeof(char), wfp);
 	fputc('\n', wfp);
 	(void)fclose(wfp);
-#else
-	gzprintf(wfp, "data %zd\n", len + extralen);
-	if (extralen > 0)
-	    gzwrite(CVS_IGNORES, extralen, sizeof(char), wfp);
-	gzwrite(wfp, buf, len);
-	gzputc(wfp, '\n');
-	(void)gzclose(wfp);
-#endif
     }
 }
 
@@ -547,35 +516,19 @@ static void export_commit(git_commit *commit,
 	    if (report && opts->reportmode == canonical) {
 		char path[PATH_MAX];
 		char *fn = blobfile(op2->path, op2->rev->serial, false, path);
-#ifndef ZLIB
 		FILE *rfp = fopen(fn, "r");
-#else
-		gzFile rfp = gzopen(fn, "r");
-#endif
 		if (rfp)
 		{
-#ifndef ZLIB
 		    char buf[BUFSIZ];
-#else
-		    int c;
-#endif
 		    printf("blob\nmark :%d\n", mark);
-#ifndef ZLIB
+
 		    while (!feof(rfp)) {
 			size_t len = fread(buf, 1, sizeof(buf), rfp);
 			(void)fwrite(buf, 1, len, stdout);
 		    }
-#else
-		    while ((c = gzgetc(rfp)) != EOF)
-			putchar(c);
-#endif
 		    (void) unlink(fn);
 		    op2->rev->emitted = true;
-#ifndef ZLIB
 		    (void)fclose(rfp);
-#else
-		    (void)gzclose(rfp);
-#endif
 		}
 	    }
 	}

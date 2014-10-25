@@ -58,10 +58,6 @@ CFLAGS += -O3
 # CFLAGS += -g
 CFLAGS += $(EXTRA_CFLAGS)
 
-# To enable blob compression, uncomment the following:
-#CPPFLAGS += -DZLIB
-#LIBS += -lz
-
 YFLAGS=
 LFLAGS=
 
