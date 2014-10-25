@@ -16,8 +16,12 @@
  *  59 Temple Place, Suite 330, Boston, MA 02111-1307 USA.
  */
 
-#include "cvs.h"
 #include <assert.h>
+
+#ifdef REDBLACK
+#include "rbtree.h"
+#endif /* REDBLACK */
+#include "cvs.h"
 
 node_t *
 cvs_find_version(const cvs_file *cvs, const cvs_number *number)
@@ -97,7 +101,9 @@ cvs_file_free(cvs_file *cvs)
 /* discard a file object and its storage */
 {
     cvs_symbol_free(cvs->symbols);
+#ifdef REDBLACK
     rbtree_free(cvs->symbols_by_name);
+#endif /* REDBLACK */
     free(cvs);
 }
 

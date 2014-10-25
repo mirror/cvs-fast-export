@@ -32,13 +32,16 @@ CPPFLAGS += -DTHREADS
 CFLAGS += -march=native
 
 # To enable debugging of the Yacc grammar, uncomment the following line
-# CPPFLAGS += -DYYDEBUG=1
+#CPPFLAGS += -DYYDEBUG=1
 # To enable debugging of blob export, uncomment the following line
 #CPPFLAGS += -DFDEBUG=1
 # To enable assertions of red black trees, uncomment the following line
 #CPPFLAGS += -DRBDEBUG=1
 # To enable debugging of order instability issues
 #CPPFLAGS += -DORDERDEBUG=1
+
+# Use red-black trees for faster symbol lookup
+CPPFLAGS += -DREDBLACK
 
 # Conditions in use of mmap for reading CVS masters
 CPPFLAGS += -DUSE_MMAP
@@ -69,6 +72,7 @@ cvs-fast-export: $(OBJS)
 	$(CC) $(CFLAGS) $(OBJS) $(LDFLAGS) $(LIBS) -o $@
 
 $(OBJS): cvs.h
+revcvs.o cvsutils.o rbtree.o: rbtree.h
 
 BISON ?= bison
 

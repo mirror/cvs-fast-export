@@ -45,7 +45,7 @@
 #define CVS_MAX_REV_LEN		(CVS_MAX_DEPTH * (CVS_MAX_DIGITS + 1))
 
 /*
- * Typedefs following this (everything before rbtree_color) have been
+ * Typedefs following this (everything before cvsnumber) have been
  * carefully chosen to minimize working set.
  */
 
@@ -81,23 +81,6 @@ typedef uint32_t	serial_t;
 typedef uint8_t			branchcount_t;
 #define MAX_BRANCHCOUNT_T	UINT8_MAX
 
-/*
- * Structures for the red/black tree
- */
-
-typedef enum _rbtree_color {
-  RED = 0,
-  BLACK = 1,
-} rbtree_color;
-
-typedef struct _rbtree_node {
-    const void		*key;
-    void		*value;
-    struct _rbtree_node	*restrict parent;
-    struct _rbtree_node	*restrict left;
-    struct _rbtree_node	*restrict right;
-    rbtree_color	color;
-} rbtree_node;
 
 /*
  * Structures built by master file parsing begin.
@@ -255,7 +238,9 @@ typedef struct {
     /* this represents the entire metadata content of a CVS master file */
     const char		*export_name;
     cvs_symbol		*symbols;
-    rbtree_node		*symbols_by_name;
+#ifdef REDBLACK
+    struct rbtree_node	*symbols_by_name;
+#endif /* REDBLACK */
     const char		*description;
     generator_t		gen;
     cvs_number		head;
@@ -658,17 +643,6 @@ rev_pack_files(cvs_commit **files, int nfiles, int *ndr);
 
 void
 rev_free_dirs(void);
-    
-void
-rbtree_insert(rbtree_node **root, const void *key, void *value,
-              int (*compare)(const void* key1, const void* key2));
-
-rbtree_node*
-rbtree_lookup(rbtree_node *root, const void* key,
-              int (*compare)(const void* key1, const void* key2));
-
-void
-rbtree_free(rbtree_node *root);
 
 /* xnew(T) allocates aligned (packed) storage. It never returns NULL */
 #define xnew(T, legend) \

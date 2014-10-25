@@ -25,6 +25,10 @@
 
 #include "cvs.h"
 
+#ifdef REDBLACK
+#include "rbtree.h"
+#endif /* REDBLACK */ 
+
 static cvs_commit *
 cvs_master_find_revision(cvs_master *cm, const cvs_number *number)
 /* given a single-file revlist tree, locate the specific version number */
@@ -503,6 +507,7 @@ cvs_master_set_refs(cvs_master *cm, cvs_file *cvsfile)
     }
 }
 
+#ifdef REDBLACK
 static int
 cvs_symbol_name_compare(const void *x, const void *y)
 /* compare function used for red-black tree lookup */
@@ -514,12 +519,14 @@ cvs_symbol_name_compare(const void *x, const void *y)
     else
 	return 0;
 }
+#endif /* REDBLACK */
 
 static cvs_symbol *
 cvs_find_symbol(cvs_file *cvs, const char *name)
 /* return the CVS symbol corresponding to a specified name */
 {
-    rbtree_node *n, **tree;
+#ifdef REDBLACK
+    struct rbtree_node *n, **tree;
 
     tree = &cvs->symbols_by_name;
     if (!(*tree)) {
@@ -530,7 +537,14 @@ cvs_find_symbol(cvs_file *cvs, const char *name)
 
     n = rbtree_lookup(*tree, name, cvs_symbol_name_compare);
     if (n)
-	return(cvs_symbol*)n->value;
+	return(cvs_symbol*)rbtree_value(n);
+#else
+    cvs_symbol *s;
+
+    for (s = cvs->symbols; s; s = s->next)
+	if (s->symbol_name == name)
+	    return s;
+#endif /*  REDBLACK */
     return NULL;
 }
 
