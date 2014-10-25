@@ -135,7 +135,9 @@ collision:
     b = xmalloc(sizeof(hash_bucket_t) + len + 1, __func__);
     b->next = 0;
     b->crc = crc;
+#ifdef BLOOMSET
     make_bloom(crc, &b->bloom);
+#endif /* BLOOMSET */
     memcpy(b->string, string, len + 1);
     *head = b;
 #ifdef THREADS
