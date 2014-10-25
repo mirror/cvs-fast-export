@@ -4,7 +4,8 @@
  * approach is to keep a sorted hash of paths we've seen.
  * and use this aid sorting future path lists
  */
-int compare_commit_path(void *a, void *b);
+static int 
+compare_commit_path(void *a, void *b);
 
 typedef struct commit_path {
     const char *path;
@@ -19,7 +20,8 @@ typedef struct commit_path {
 } commit_path_t;
 
 
-int compare_commit_path(void *a, void *b) {
+static int 
+compare_commit_path(void *a, void *b) {
     commit_path_t *ap = (commit_path_t *)a;
     commit_path_t *bp = (commit_path_t *)b;
     const char *af = ap->path;
@@ -27,12 +29,14 @@ int compare_commit_path(void *a, void *b) {
     return path_deep_compare(af, bf);
 }
 
-/* sort an array of cvs_commits 
- * input list must have no duplicates 
+/*
+ * Sort an array of cvs_commits using memoization.
+ * Input list must have no duplicates. This code 
  * remembers previous sort order, and uses
- * this to speed up similar sorts
+ * this to speed up similar sorts.
  */
-void memo_sort(cvs_commit **files, const int nfiles) {
+void 
+memo_sort(cvs_commit **files, const int nfiles) {
     // putting it here means we can't free it
     static commit_path_t *hash_table = NULL;
     static size_t id = 0;
