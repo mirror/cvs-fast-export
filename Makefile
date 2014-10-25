@@ -40,14 +40,13 @@ CFLAGS += -march=native
 # To enable debugging of order instability issues
 #CPPFLAGS += -DORDERDEBUG=1
 
-# Use red-black trees for faster symbol lookup
-CPPFLAGS += -DREDBLACK
-
-# Conditions in use of mmap for reading CVS masters
-CPPFLAGS += -DUSE_MMAP
-
-# use path sorting with higer constant factor, but better scaling
-CPPFLAGS += -DMEMOSORT
+# Condition in various optimization hacks.  You almost certainly
+# don't want to turn any of these off; the condition symbols are
+# present more as documentation of the program structure than
+# anything else
+CPPFLAGS += -DREDBLACK # Use red-black trees for faster symbol lookup
+CPPFLAGS += -DUSE_MMAP # Use mmap for reading CVS masters
+CPPFLAGS += -DMEMOSORT # Memoized fast path sorting
 
 # First line works for GNU C.  
 # Replace with the next if your compiler doesn't support C99 restrict qualifier
@@ -73,6 +72,7 @@ cvs-fast-export: $(OBJS)
 
 $(OBJS): cvs.h
 revcvs.o cvsutils.o rbtree.o: rbtree.h
+memosort.o: uthash.h
 
 BISON ?= bison
 
