@@ -40,6 +40,9 @@ CPPFLAGS += -DTHREADS
 # Conditions in use of mmap for reading CVS masters
 CPPFLAGS += -DUSE_MMAP
 
+# use path sorting with higer constant factor, but better scaling
+CPPFLAGS += -DMEMOSORT
+
 # First line works for GNU C.  
 # Replace with the next if your compiler doesn't support C99 restrict qualifier
 CPPFLAGS+=-Drestrict=__restrict__
@@ -47,9 +50,9 @@ CPPFLAGS+=-Drestrict=__restrict__
 
 # To enable profiling, uncomment the following line
 # Note: the profiler gets confused if you don't also turn off -O flags.
-#CFLAGS += -pg
+# CFLAGS += -pg
 CFLAGS += -O3
-#CFLAGS += -g
+# CFLAGS += -g
 CFLAGS += $(EXTRA_CFLAGS)
 
 # To enable blob compression, uncomment the following:
@@ -61,7 +64,7 @@ LFLAGS=
 
 OBJS=gram.o lex.o rbtree.o main.o import.o dump.o cvsnumber.o \
 	cvsutil.o revdir.o revlist.o atom.o revcvs.o generate.o export.o \
-	nodehash.o tags.o authormap.o graph.o utils.o merge.o
+	nodehash.o tags.o authormap.o graph.o utils.o merge.o memosort.o
 
 cvs-fast-export: $(OBJS)
 	$(CC) $(CFLAGS) $(OBJS) $(LDFLAGS) $(LIBS) -o $@

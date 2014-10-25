@@ -85,7 +85,7 @@ int path_deep_compare(const void *a, const void *b)
     int compar;
 
     /* short circuit */
-    if (af == bf)
+    if (af == bf) 
         return 0;
 
     compar = strcmp(af, bf);
@@ -223,7 +223,11 @@ rev_pack_files(cvs_commit **files, int nfiles, int *ndr)
      * space-saving effect out of the next step.  This reduces
      * working-set size at the expense of the sort runtime.
      */
+#ifdef MEMOSORT
+    memo_sort(files, nfiles);
+#else
     qsort(files, nfiles, sizeof(cvs_commit *), compare_cvs_commit);
+#endif /* MEMOSORT */
 
     /* pull out directories */
     for (i = 0; i < nfiles; i++) {
