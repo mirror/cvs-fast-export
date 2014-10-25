@@ -141,7 +141,9 @@ static void print_sizes(void)
     printf("sizeof(cvs_file)      = %zu\n", sizeof(cvs_file));
     printf("sizeof(rev_master)    = %zu\n", sizeof(rev_master));
     printf("sizeof(rev_dir)       = %zu\n", sizeof(rev_dir));
+#ifdef BLOOMSET
     printf("sizeof(bloom_t)       = %zu\n", sizeof(bloom_t));
+#endif /* BLOOMSET */
     printf("sizeof(cvs_commit)    = %zu\n", sizeof(cvs_commit));
     printf("sizeof(git_commit)    = %zu\n", sizeof(git_commit));
     printf("sizeof(rev_ref)       = %zu\n", sizeof(rev_ref));

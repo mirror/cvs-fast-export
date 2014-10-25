@@ -59,7 +59,9 @@ crc32 (const char *string)
 typedef struct _hash_bucket {
     struct _hash_bucket	*next;
     crc32_t		crc;
+#ifdef BLOOMSET
     bloom_t        	bloom;
+#endif /* BLOOMSET */
     char		string[0];
 } hash_bucket_t;
 
@@ -68,6 +70,7 @@ static hash_bucket_t	*buckets[HASH_SIZE];
 static pthread_mutex_t bucket_mutex = PTHREAD_MUTEX_INITIALIZER;
 #endif /* THREADS */
 
+#ifdef BLOOMSET
 #ifndef offsetof
 #define offsetof(T, f)  (size_t)(&((T *)0)->f)
 #endif
@@ -100,7 +103,7 @@ make_bloom(crc32_t crc, bloom_t *b)
 	b->el[bit / BLOOMWIDTH] |= (bloomword)1 << (bit % BLOOMWIDTH);
     }
 }
-
+#endif /* BLOOMSET */
 
 const char *
 atom(const char *string)

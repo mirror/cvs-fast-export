@@ -260,6 +260,7 @@ git_commit_build(cvs_commit **revisions, cvs_commit *leader, const int nrevision
 
     memcpy(commit->dirs, rds, (commit->ndirs = nds) * sizeof(rev_dir *));
 
+#ifdef BLOOMSET
     /* 
      * Prepare the inverse Bloom set for this commit.
      * This is used in the export code to flatten out what would
@@ -277,6 +278,7 @@ git_commit_build(cvs_commit **revisions, cvs_commit *leader, const int nrevision
 	    }
 	}
     }
+#endif /* BLOOMSET */
     
 #ifdef ORDERDEBUG
     fprintf(stderr, "commit_build: %p\n", commit);
