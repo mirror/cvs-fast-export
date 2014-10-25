@@ -1,11 +1,12 @@
-#include "cvs.h"
-#include "uthash.h"
-/* Use the fact that we sort the same paths over and over again
+/* 
+ * Memoized sort implementation.
+ *
+ * Use the fact that we sort the same paths over and over again
  * approach is to keep a sorted hash of paths we've seen.
  * and use this aid sorting future path lists
  */
-static int 
-compare_commit_path(void *a, void *b);
+#include "cvs.h"
+#include "uthash.h"
 
 typedef struct commit_path {
     const char *path;
@@ -21,7 +22,8 @@ typedef struct commit_path {
 
 
 static int 
-compare_commit_path(void *a, void *b) {
+compare_commit_path(void *a, void *b)
+{
     commit_path_t *ap = (commit_path_t *)a;
     commit_path_t *bp = (commit_path_t *)b;
     const char *af = ap->path;
@@ -36,7 +38,8 @@ compare_commit_path(void *a, void *b) {
  * this to speed up similar sorts.
  */
 void 
-memo_sort(cvs_commit **files, const int nfiles) {
+memo_sort(cvs_commit **files, const int nfiles)
+{
     // putting it here means we can't free it
     static commit_path_t *hash_table = NULL;
     static size_t id = 0;
@@ -57,7 +60,7 @@ memo_sort(cvs_commit **files, const int nfiles) {
 	item->id = id;
 	item->commit = (*s);
     }
-    /* Only sort if we added a new path in this invokation */
+    /* Only sort if we added a new path in this invocation */
     if (needs_sort) {
 	HASH_SORT(hash_table, compare_commit_path);
     }
@@ -70,3 +73,5 @@ memo_sort(cvs_commit **files, const int nfiles) {
 
     id++;
 } 
+
+/* end */
