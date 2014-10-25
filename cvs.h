@@ -635,6 +635,9 @@ rev_list_validate(rev_list *rl);
 int
 path_deep_compare(const void *a, const void *b);
 
+void
+memo_sort(cvs_commit **files, const int nfiles);
+
 #define time_compare(a,b) ((long)(a) - (long)(b))
 
 void
