@@ -259,7 +259,6 @@ static int fileop_sort(const void *a, const void *b)
      */
     struct fileop *oa = (struct fileop *)a;
     struct fileop *ob = (struct fileop *)b;
-
     return path_deep_compare(oa->path, ob->path);
 }
 

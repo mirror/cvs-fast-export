@@ -130,6 +130,9 @@ rev_list_file(const char *name, analysis_t *out)
     cvs->gen.master_name = name;
     cvs->gen.expand = EXPANDUNSPEC;
     cvs->export_name = atom(rectify_name(name, rectified, sizeof(rectified)));
+#ifdef MEMOSORT
+    collect_path(cvs->export_name);
+#endif /*MEMOSORT */
     cvs->mode = buf.st_mode;
     cvs->verbose = verbose;
 
@@ -339,6 +342,9 @@ void analyze_masters(int argc, char *argv[],
     else
 #endif /* THREADS */
 	worker(NULL);
+#ifdef MEMOSORT
+    presort_paths();
+#endif /*MEMOSORT */
     progress_end("done, %d revisions", total_revisions);
 
     forest->errcount = err;
