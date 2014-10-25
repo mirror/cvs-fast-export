@@ -628,7 +628,16 @@ path_deep_compare(const void *a, const void *b);
 
 #ifdef MEMOSORT
 void
+collect_path(const char *path);
+
+void
+presort_paths(void);
+
+void
 memo_sort(cvs_commit **files, const int nfiles);
+
+void
+free_memo_table(void);
 #endif /* MEMOSORT */
 
 #define time_compare(a,b) ((long)(a) - (long)(b))
