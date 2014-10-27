@@ -24,7 +24,7 @@ CPPFLAGS += -I. -I$(srcdir)
 LIBS=-lrt
 CPPFLAGS += -DVERSION=\"$(VERSION)\"
 
-# Enable this for multithreading (experimental)
+# Enable this for multithreading.
 CFLAGS += -pthread
 CPPFLAGS += -DTHREADS
 
