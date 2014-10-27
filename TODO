@@ -2,9 +2,10 @@
 
 Before you try to modify this code, read hacking.asc.
 
-* Add more weird cases to the test suite.
+* The QED repo in the test directory raises a branch cycle error.
+  This may reveal a bug in the second toposort function. 
 
-* Optimize out O(n**2) operations where possible.
+* Add more weird cases to the test suite.
 
 * Issue a warning when the same tag is attached to multiple commits.
   At the moment it's just silently reported attached to the last.
