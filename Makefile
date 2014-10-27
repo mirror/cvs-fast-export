@@ -57,8 +57,8 @@ CPPFLAGS+=-Drestrict=__restrict__
 # To enable profiling, uncomment the following line
 # Note: the profiler gets confused if you don't also turn off -O flags.
 # CFLAGS += -pg
-CFLAGS += -O3
-# CFLAGS += -g
+# CFLAGS += -O3
+CFLAGS += -g
 CFLAGS += $(EXTRA_CFLAGS)
 
 YFLAGS=

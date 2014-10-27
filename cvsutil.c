@@ -23,22 +23,6 @@
 #endif /* REDBLACK */
 #include "cvs.h"
 
-node_t *
-cvs_find_version(const cvs_file *cvs, const cvs_number *number)
-/* find the file version associated with the specified CVS release number */
-{
-    cvs_version *cv;
-    cvs_version	*nv = NULL;
-
-    for (cv = cvs->gen.versions; cv; cv = cv->next) {
-	if (cvs_same_branch(number, &cv->number) &&
-	    cvs_number_compare(&cv->number, number) > 0 &&
-	    (!nv || cvs_number_compare(&nv->number, &cv->number) > 0))
-	    nv = cv;
-    }
-    return nv ? nv->node : NULL;
-}
-
 static void
 cvs_symbol_free(cvs_symbol *symbol)
 /* discard all master symbols from this CVS context */

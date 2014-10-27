@@ -241,6 +241,24 @@ static void try_pair(nodehash_t *context, node_t *a, node_t *b)
     }
 }
 
+/* entry points begin here */
+
+node_t *
+cvs_find_version(const cvs_file *cvs, const cvs_number *number)
+/* find the file version associated with the specified CVS release number */
+{
+    cvs_version *cv;
+    cvs_version	*nv = NULL;
+
+    for (cv = cvs->gen.versions; cv; cv = cv->next) {
+	if (cvs_same_branch(number, &cv->number) &&
+	    cvs_number_compare(&cv->number, number) > 0 &&
+	    (!nv || cvs_number_compare(&nv->number, &cv->number) > 0))
+	    nv = cv;
+    }
+    return nv ? nv->node : NULL;
+}
+
 void build_branches(nodehash_t *context)
 /* build branch links in the node list */ 
 {
