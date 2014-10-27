@@ -274,7 +274,7 @@ rbtree_insert(struct rbtree_node **root, const void *key, void *value,
     rbtree_insert_fixup(root, node);
 #if RBDEBUG
     rbtree_assert_properties(*root);
-#endif
+#endif /* RBDEBUG */
 }
 
 struct rbtree_node*
