@@ -826,7 +826,7 @@ void export_authors(forest_t *forest, export_options_t *opts)
 
 void export_commits(forest_t *forest, 
 		    export_options_t *opts, export_stats_t *stats)
-/* export a revision list as a git fast-import stream in canonical order */
+/* export a revision list as a git fast-import stream */
 {
     rev_ref *h;
     tag_t *t;
@@ -834,6 +834,7 @@ void export_commits(forest_t *forest,
     git_repo *rl = forest->head;
     generator_t *gp;
     int recount = 0;
+    char outbuf[BUFSIZ];
 
     if (opts->fromtime > 0)
 	opts->reportmode = canonical;
@@ -854,6 +855,9 @@ void export_commits(forest_t *forest,
 	if (mkdtemp(blobdir) == NULL)
 	    fatal_error("temp dir creation failed\n");
     }
+
+    /* an attempt to optimize output throughput */
+    setvbuf(stdout, outbuf, _IOFBF, sizeof(outbuf));
 
     export_stats.export_total_commits = export_ncommit(rl);
     /* the +1 is because mark indices are 1-origin, slot 0 always empty */
