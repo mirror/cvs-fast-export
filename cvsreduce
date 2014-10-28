@@ -2,12 +2,17 @@
 #
 # cvsreduce - skeletonize CVS master files
 #
-# Default behavior is to strip non-sticky tags, replace log text
-# with a unique string including the revision ID, and replace
-# all revisions with a different unique string containing the
-# revision ID.
+# Default behavior is to strip non-sticky tags, replace each version
+# of content with a unique string including the revision ID, and
+# replace log text with its MD5 hash in hex.
 #
-import sys, getopt
+# The intent is to discard bulky content but preserve all metadata
+# relevant to changeset merging. A collection of stripped files should
+# imply the same changeset DAG as the unstripped originals, but be
+# easier to pass around, faster to process, and not reveal potentially
+# sensitive data.
+#
+import sys, getopt, hashlib
 
 strip_tags = True
 strip_logs = True
@@ -34,6 +39,31 @@ def replace_escaped_text(input, replacement, output):
         sys.stderr.write("fatal error, @ trailer not followed by newline (%s).\n" % nxt2)
         sys.exit(1)
         
+def hash_escaped_text(input, output):
+    leader = input.read(1)
+    if leader != '@':
+        sys.stderr.write("fatal error, @ leader not where expected.\n")
+        sys.exit(1)
+    txt = ""
+    while True:
+        nxt = input.read(1)
+        if nxt == '@':
+            nxt2 = input.read(1)
+            if nxt2 == '@':
+                txt += "@"
+                continue
+            else:
+                break
+        txt += nxt
+    if nxt2 == '\n':
+        m = hashlib.md5()
+        m.update(txt)
+        output.write("@%s\n@\n" % m.hexdigest())        
+    else:
+        sys.stderr.write("fatal error, @ trailer not followed by newline (%s).\n" % nxt2)
+        sys.exit(1)
+
+
 
 def skeletonize(input, output):
     state = "ini"
@@ -53,9 +83,7 @@ def skeletonize(input, output):
             elif line.startswith("log"):
                 if strip_logs:
                     output.write(line)
-                    replace_escaped_text(input,
-                                 "log entry for %s\n" % last_version,
-                                 output)
+                    hash_escaped_text(input, output)
                     continue
             elif line.startswith("text"):
                 output.write(line)
