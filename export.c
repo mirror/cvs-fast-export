@@ -26,7 +26,7 @@
 #include <time.h>
 
 #include "cvs.h"
-
+#include "uthash.h"
 /*
  * If a program has ever invoked pthreads, the GNU C library does extra
  * checking during stdio operations even if the program no longer has
@@ -87,19 +87,36 @@ static int seqno_next(void)
  */
 #define CVS_IGNORES "# CVS default ignores begin\ntags\nTAGS\n.make.state\n.nse_depinfo\n*~\n#*\n.#*\n,*\n_$*\n*$\n*.old\n*.bak\n*.BAK\n*.orig\n*.rej\n.del-*\n*.a\n*.olb\n*.o\n*.obj\n*.so\n*.exe\n*.Z\n*.elc\n*.ln\ncore\n# CVS default ignores end\n"
 
-static char *fileop_name(const char *rectified, char *path)
+struct fileop_hash {
+    const char *key;
+    const char *value;
+    UT_hash_handle hh;
+};
+
+static const char *fileop_name(const char *rectified)
 {
-    size_t rlen = strlen(rectified);
+    static struct fileop_hash *hash = NULL;
+    struct fileop_hash *v;
 
-    strncpy(path, rectified, PATH_MAX-1);
+    HASH_FIND_PTR(hash, &rectified, v);
 
-    if (rlen >= 10 && strcmp(path + rlen - 10, ".cvsignore") == 0) {
-	path[rlen - 9] = 'g';
-	path[rlen - 8] = 'i';
-	path[rlen - 7] = 't';
+    if (v == NULL) {
+	v = xmalloc(sizeof(struct fileop_hash), __func__);
+	v->key = rectified;
+	size_t rlen = strlen(rectified);
+
+	char *path = xmalloc(PATH_MAX, __func__);
+	strncpy(path, rectified, PATH_MAX-1);
+	
+	if (rlen >= 10 && strcmp(path + rlen - 10, ".cvsignore") == 0) {
+	    path[rlen - 9] = 'g';
+	    path[rlen - 8] = 'i';
+	    path[rlen - 7] = 't';
+	}
+	v->value = atom(path);
+	HASH_ADD_PTR(hash, key, v);
     }
-
-    return path;
+    return v->value;
 }
 
 static char *blobfile(const char *basename,
@@ -431,11 +448,11 @@ static void export_commit(git_commit *commit,
 	rev_dir	*dir = commit->dirs[i];
 	
 	for (j = 0; j < dir->nfiles; j++) {
-	    char *stripped;
+	    const char *stripped;
 	    bool present, changed;
-	    char converted[PATH_MAX];
+	    
 	    op->rev = cc = dir->files[j];
-	    stripped = fileop_name(cc->master->name, converted);
+	    stripped = fileop_name(cc->master->name);
 	    present = false;
 	    changed = false;
 	    if (commit->parent) {
@@ -450,7 +467,7 @@ static void export_commit(git_commit *commit,
 		    op->mode = 0755;
 		else
 		    op->mode = 0644;
-		op->path = atom(stripped);
+		op->path = stripped;
 		op++;
 		if (op == operations + noperations)
 		{
@@ -490,9 +507,9 @@ static void export_commit(git_commit *commit,
 		cc = dir->files[j];
 		present = (cc->other != NULL);
 		if (!present) {
-		    char converted[PATH_MAX];
+
 		    op->op = 'D';
-		    op->path = atom(fileop_name(cc->master->name, converted));
+		    op->path = fileop_name(cc->master->name);
 		    op++;
 		    if (op == operations + noperations)
 		    {
