@@ -17,7 +17,7 @@
 # easier to pass around, faster to process, and not reveal potentially
 # sensitive data.
 #
-import sys, getopt, hashlib
+import os, sys, getopt, hashlib
 
 strip_tags = True
 strip_logs = True
@@ -120,17 +120,30 @@ if __name__ == '__main__':
     if not arguments:
         skeletonize(sys.stdin, sys.stdout)
         sys.exit(0)
-    elif os.isdir(arguments[0]):
+    elif not os.path.isdir(arguments[0]):
         sys.stderr.write("cvsreduce: argument must be a directory.\n")
         sys.exit(1)
 
     originals = arguments[0]
     if not outdir:
-        outdir = originals + stripped
+        outdir = originals + "-stripped"
     if os.path.exists(outdir):
         sys.stderr.write("cvsreduce: refusing to step on %s.\n" % outdir)
         sys.exit(1)
 
     # Directory traversal
+    for dirName, subdirList, fileList in os.walk(originals):
+        path_parts = list(dirName.split(os.sep))
+        path_parts.pop(0)
+        newparts = [outdir] + path_parts 
+        for i in range(len(path_parts)):
+            newdir = os.path.join(new_parts[:i+1])
+            if not os.path.exists(newdir):
+                os.mkdir(newdir)
+        for fname in fileList:
+            oldname = os.path.join(dirName, fname)
+            newpath = newparts + [fname]
+            newname = os.path.join(*newpath)
+            print('\t%s\t%s' % (oldname, newname))
 
 # end
