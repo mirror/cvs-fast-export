@@ -267,6 +267,9 @@ main(int argc, char **argv)
 	case 'g':
 	    exec_mode = ExecuteGraph;
 	    break;
+	case 'P':
+	    import_options.promiscuous = true;
+	    break;
         case 'k':
 	    if (optarg == NULL)
 		export_options.id_token_expand = EXPANDKKV;
