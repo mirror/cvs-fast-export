@@ -176,7 +176,7 @@ _progress_print(bool newline, const char *format, va_list args)
 	struct timespec end;
 
 	clock_gettime(CLOCK_REALTIME, &end);
-	fprintf(STATUS, " (%.6fsec)", seconds_diff(&end, &start));
+	fprintf(STATUS, " (%.3fsec)", seconds_diff(&end, &start));
 	fprintf(STATUS, "\n");
     }
     fflush(STATUS);
