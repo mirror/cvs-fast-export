@@ -105,7 +105,7 @@ static const char *fileop_name(const char *rectified)
 	v->key = rectified;
 	size_t rlen = strlen(rectified);
 
-	char *path = xmalloc(PATH_MAX, __func__);
+	char path[PATH_MAX];
 	strncpy(path, rectified, PATH_MAX-1);
 	
 	if (rlen >= 10 && strcmp(path + rlen - 10, ".cvsignore") == 0) {
