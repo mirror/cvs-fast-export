@@ -210,6 +210,12 @@ static int unlink_cb(const char *fpath,
     return rv;
 }
 
+static void cleanup(const export_options_t *opts)
+{
+    if (opts->reportmode == canonical)
+        nftw(blobdir, unlink_cb, 64, FTW_DEPTH | FTW_PHYS);
+}
+
 static const char *utc_offset_timestamp(const time_t *timep, const char *tz)
 {
     static char outbuf[BUFSIZ];
@@ -571,8 +577,15 @@ static void export_commit(git_commit *commit,
 	else
 	    printf("data %zd\n%s\n%s\n", strlen(commit->log) + strlen(revpairs) + 1,
 		commit->log, revpairs);
-	if (commit->parent)
-	    printf("from :%d\n", markmap[commit->parent->serial]);
+	if (commit->parent) {
+	    if (markmap[commit->parent->serial] > 0) 
+		printf("from :%d\n", markmap[commit->parent->serial]);
+	    else
+	    {
+		cleanup(opts);
+		fatal_error("child commit emitted before parent");
+	    }
+	}
 
 	for (op2 = operations; op2 < op; op2++)
 	{
@@ -966,8 +979,7 @@ void export_commits(forest_t *forest,
 
     fputs("done\n", stdout);
 
-    if (opts->reportmode == canonical)
-        nftw(blobdir, unlink_cb, 64, FTW_DEPTH | FTW_PHYS);
+    cleanup(opts);
 
     if (forest->skew_vulnerable > 0 && forest->filecount > 1 && !opts->force_dates) {
 	time_t udate = forest->skew_vulnerable;
