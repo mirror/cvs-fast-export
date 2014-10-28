@@ -2,6 +2,11 @@
 #
 # cvsreduce - skeletonize CVS master files
 #
+# Called as a filter, skeletonizes a CVS master presented on srandard input
+# and write it to standard output. If an argument is specified, it must be
+# the name of a directory containing CVS master files; in that case a
+# correspondding directory of stripped files is created.
+#
 # Default behavior is to strip non-sticky tags, replace each version
 # of content with a unique string including the revision ID, and
 # replace log text with its MD5 hash in hex.
@@ -21,7 +26,7 @@ verbose = 0
 def replace_escaped_text(input, replacement, output):
     leader = input.read(1)
     if leader != '@':
-        sys.stderr.write("fatal error, @ leader not where expected.\n")
+        sys.stderr.write("cvsreduce: fatal error, @ leader not where expected.\n")
         sys.exit(1)
     else:
         output.write('@' + replacement)
@@ -36,13 +41,13 @@ def replace_escaped_text(input, replacement, output):
     if nxt2 == '\n':
         output.write("@\n")
     else:
-        sys.stderr.write("fatal error, @ trailer not followed by newline (%s).\n" % nxt2)
+        sys.stderr.write("cvsreduce: fatal error, @ trailer not followed by newline (%s).\n" % nxt2)
         sys.exit(1)
         
 def hash_escaped_text(input, output):
     leader = input.read(1)
     if leader != '@':
-        sys.stderr.write("fatal error, @ leader not where expected.\n")
+        sys.stderr.write("cvsreduce: fatal error, @ leader not where expected.\n")
         sys.exit(1)
     txt = ""
     while True:
@@ -60,9 +65,8 @@ def hash_escaped_text(input, output):
         m.update(txt)
         output.write("@%s\n@\n" % m.hexdigest())        
     else:
-        sys.stderr.write("fatal error, @ trailer not followed by newline (%s).\n" % nxt2)
+        sys.stderr.write("cvsreduce: fatal error, @ trailer not followed by newline (%s).\n" % nxt2)
         sys.exit(1)
-
 
 
 def skeletonize(input, output):
@@ -101,15 +105,32 @@ def skeletonize(input, output):
         output.write(line)
 
 if __name__ == '__main__':
-    (opts, arguments) = getopt.getopt(sys.argv[1:], "tlv")
+    (opts, arguments) = getopt.getopt(sys.argv[1:], "tlo:v")
+    outdir = None
     for (opt, arg) in opts:
         if opt == '-t':
             strip_tags = False
-        if opt == '-l':
+        elif opt == '-l':
             strip_logs = False
-        if opt == '-v':
+        elif opt == '-o':
+            outdir = arg
+        elif opt == '-v':
             verbose += 1
 
-    skeletonize(sys.stdin, sys.stdout)
+    if not arguments:
+        skeletonize(sys.stdin, sys.stdout)
+        sys.exit(0)
+    elif os.isdir(arguments[0]):
+        sys.stderr.write("cvsreduce: argument must be a directory.\n")
+        sys.exit(1)
+
+    originals = arguments[0]
+    if not outdir:
+        outdir = originals + stripped
+    if os.path.exists(outdir):
+        sys.stderr.write("cvsreduce: refusing to step on %s.\n" % outdir)
+        sys.exit(1)
+
+    # Directory traversal
 
 # end
