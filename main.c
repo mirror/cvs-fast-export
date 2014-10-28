@@ -417,7 +417,7 @@ main(int argc, char **argv)
 
     if (LOGFILE != stderr) {
 	if (warncount > 0)
-	    fprintf(STATUS, "cvs-fast-export: %d warning(s).\n", warncount);
+	    fprintf(STATUS, "cvs-fast-export: %u warning(s).\n", warncount);
 	fclose(LOGFILE);
     }
 

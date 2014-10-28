@@ -184,13 +184,14 @@ strcommonendingwith(const char *a, const char *b, char endc)
 static cvs_master *
 sort_cvs_masters(cvs_master *list)
 {
-    cvs_master *p, *q, *elt, *tail = NULL;
+    cvs_master *p, *q, *elt;
     unsigned int k = 1, merge_count, ps, qs;
 
     if (!list)
 	return NULL;
 
     do {
+	cvs_master *tail = NULL;
 	p = list;
 	list = tail = NULL;
 	merge_count = 0;
