@@ -2,8 +2,10 @@
 #
 # cvsreduce - skeletonize CVS master files
 #
-# Default behavior is to strip non-sticky tags and replace log text
-# with a unique string including the revision ID.
+# Default behavior is to strip non-sticky tags, replace log text
+# with a unique string including the revision ID, and replace
+# all revisions with a different unique string containing the
+# revision ID.
 #
 import sys, getopt
 
@@ -36,6 +38,7 @@ def replace_escaped_text(input, replacement, output):
 def skeletonize(input, output):
     state = "ini"
     last_version = None
+    deltacount = 0;
     while True:
         line = input.readline()
         if not line:
@@ -54,6 +57,14 @@ def skeletonize(input, output):
                                  "log entry for %s\n" % last_version,
                                  output)
                     continue
+            elif line.startswith("text"):
+                output.write(line)
+                txt = "text for %s\n" % last_version
+                if deltacount > 0:
+                    txt = "d1\na1\n" + txt
+                deltacount += 1
+                replace_escaped_text(input, txt, output)
+                continue
         elif state == "sym":
             if not line[0] in (' ', '\t'):
                 state = "ini"
