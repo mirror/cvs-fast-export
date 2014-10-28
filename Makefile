@@ -32,7 +32,7 @@ CPPFLAGS += -DTHREADS
 CFLAGS += -march=native
 
 # To enable debugging of the Yacc grammar, uncomment the following line
-#CPPFLAGS += -DYYDEBUG=1
+CPPFLAGS += -DYYDEBUG=1
 # To enable debugging of blob export, uncomment the following line
 #CPPFLAGS += -DFDEBUG=1
 # To enable assertions of red black trees, uncomment the following line
@@ -57,11 +57,11 @@ CPPFLAGS+=-Drestrict=__restrict__
 # To enable profiling, uncomment the following line
 # Note: the profiler gets confused if you don't also turn off -O flags.
 # CFLAGS += -pg
-# CFLAGS += -O3
-CFLAGS += -g
+CFLAGS += -O3
+#CFLAGS += -g
 CFLAGS += $(EXTRA_CFLAGS)
 
-YFLAGS=
+#YFLAGS= --report=all
 LFLAGS=
 
 OBJS=gram.o lex.o rbtree.o main.o import.o dump.o cvsnumber.o \
@@ -79,7 +79,7 @@ export.o: uthash.h
 BISON ?= bison
 
 gram.h gram.c: gram.y
-	$(BISON) --defines=gram.h --output-file=gram.c $(YFLAGS) $<
+	$(BISON)  $(YFLAGS) --defines=gram.h --output-file=gram.c $<
 lex.h lex.c: lex.l
 	flex $(LFLAGS) --header-file=lex.h --outfile=lex.c $<
 
@@ -102,7 +102,7 @@ html: cvssync.1 cvs-fast-export.1
 
 clean:
 	rm -f $(OBJS) gram.h gram.c lex.h lex.c cvs-fast-export docbook-xsl.css
-	rm -f cvs-fast-export.1 cvs-fast-export.html
+	rm -f cvs-fast-export.1 cvs-fast-export.html gram.output
 	rm -f cvssync.1 cvssync.html PROFILE gmon.out
 	rm -f MANIFEST index.html *.tar.gz docbook-xsl.css
 
