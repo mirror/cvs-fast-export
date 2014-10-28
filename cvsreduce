@@ -1,0 +1,76 @@
+#!/usr/bin/env python
+#
+# cvsreduce - skeletonize CVS master files
+#
+# Default behavior is to strip non-sticky tags and replace log text
+# with a unique string including the revision ID.
+#
+import sys, getopt
+
+strip_tags = True
+strip_logs = True
+verbose = 0
+
+def replace_escaped_text(input, replacement, output):
+    leader = input.read(1)
+    if leader != '@':
+        sys.stderr.write("fatal error, @ leader not where expected.\n")
+        sys.exit(1)
+    else:
+        output.write('@' + replacement)
+    while True:
+        nxt = input.read(1)
+        if nxt == '@':
+            nxt2 = input.read(1)
+            if nxt2 == '@':
+                continue
+            else:
+                break
+    if nxt2 == '\n':
+        output.write("@\n")
+    else:
+        sys.stderr.write("fatal error, @ trailer not followed by newline (%s).\n" % nxt2)
+        sys.exit(1)
+        
+
+def skeletonize(input, output):
+    state = "ini"
+    last_version = None
+    while True:
+        line = input.readline()
+        if not line:
+            break
+        if verbose:
+            sys.stderr.write("%s: %s\n" % (state, line.strip()))
+        if state == 'ini':
+            if line.startswith("symbols"):
+                state = "sym"
+            elif line[0].isdigit():
+                last_version = line.strip()
+            elif line.startswith("log"):
+                if strip_logs:
+                    output.write(line)
+                    replace_escaped_text(input,
+                                 "log entry for %s\n" % last_version,
+                                 output)
+                    continue
+        elif state == "sym":
+            if not line[0] in (' ', '\t'):
+                state = "ini"
+            elif strip_tags and '0' not in line.split(":")[1]:
+                continue
+        output.write(line)
+
+if __name__ == '__main__':
+    (opts, arguments) = getopt.getopt(sys.argv[1:], "tlv")
+    for (opt, arg) in opts:
+        if opt == '-t':
+            strip_tags = False
+        if opt == '-l':
+            strip_logs = False
+        if opt == '-v':
+            verbose += 1
+
+    skeletonize(sys.stdin, sys.stdout)
+
+# end
