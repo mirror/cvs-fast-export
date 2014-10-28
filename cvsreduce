@@ -5,7 +5,7 @@
 # Called as a filter, skeletonizes a CVS master presented on srandard input
 # and write it to standard output. If an argument is specified, it must be
 # the name of a directory containing CVS master files; in that case a
-# correspondding directory of stripped files is created.
+# corresponding directory of stripped files is created.
 #
 # Default behavior is to strip non-sticky tags, replace each version
 # of content with a unique string including the revision ID, and
@@ -77,7 +77,7 @@ def skeletonize(input, output):
         line = input.readline()
         if not line:
             break
-        if verbose:
+        if verbose > 1:
             sys.stderr.write("%s: %s\n" % (state, line.strip()))
         if state == 'ini':
             if line.startswith("symbols"):
@@ -136,14 +136,22 @@ if __name__ == '__main__':
         path_parts = list(dirName.split(os.sep))
         path_parts.pop(0)
         newparts = [outdir] + path_parts 
-        for i in range(len(path_parts)):
-            newdir = os.path.join(new_parts[:i+1])
+        for i in range(len(newparts)):
+            newdir = os.path.join(*newparts[:i+1])
             if not os.path.exists(newdir):
+                if verbose:
+                    print("Directory creation: %s" % newdir)
                 os.mkdir(newdir)
         for fname in fileList:
             oldname = os.path.join(dirName, fname)
             newpath = newparts + [fname]
             newname = os.path.join(*newpath)
-            print('\t%s\t%s' % (oldname, newname))
+            if verbose > 0:
+                print('%s -> %s' % (oldname, newname))
+            old = open(oldname, "r")
+            new = open(newname, "w")
+            skeletonize(old, new)
+            old.close()
+            new.close()
 
 # end
