@@ -222,12 +222,13 @@ rev_pack_files(cvs_commit **files, int nfiles, int *ndr)
      * runs of common directory prefixes, and thus maximum 
      * space-saving effect out of the next step.  This reduces
      * working-set size at the expense of the sort runtime.
+     * Sorting the masters at the input stage causes
+     * them to come out in the right order here, without
+     * multiple additional sorts
      */
-#ifdef MEMOSORT
-    memo_sort(files, nfiles);
-#else
+#ifndef FILESORT
     qsort(files, nfiles, sizeof(cvs_commit *), compare_cvs_commit);
-#endif /* MEMOSORT */
+#endif /* !FILESORT */
 
     /* pull out directories */
     for (i = 0; i < nfiles; i++) {

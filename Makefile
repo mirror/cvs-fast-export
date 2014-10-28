@@ -46,7 +46,7 @@ CPPFLAGS += -DYYDEBUG=1
 # anything else
 CPPFLAGS += -DREDBLACK # Use red-black trees for faster symbol lookup
 CPPFLAGS += -DUSE_MMAP # Use mmap for reading CVS masters
-CPPFLAGS += -DMEMOSORT # Memoized fast path sorting
+CPPFLAGS += -DFILESORT # Memoized fast path sorting
 CPPFLAGS += -DBLOOMSET # Use Bloom lookup to speed up export
 
 # First line works for GNU C.  
@@ -66,7 +66,7 @@ LFLAGS=
 
 OBJS=gram.o lex.o rbtree.o main.o import.o dump.o cvsnumber.o \
 	cvsutil.o revdir.o revlist.o atom.o revcvs.o generate.o export.o \
-	nodehash.o tags.o authormap.o graph.o utils.o merge.o memosort.o
+	nodehash.o tags.o authormap.o graph.o utils.o merge.o
 
 cvs-fast-export: $(OBJS)
 	$(CC) $(CFLAGS) $(OBJS) $(LDFLAGS) $(LIBS) -o $@

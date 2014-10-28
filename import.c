@@ -63,6 +63,12 @@ typedef struct _analysis {
     generator_t generator;
 } analysis_t;
 
+static cvs_master *
+sort_cvs_masters(cvs_master *list);
+
+static void
+debug_cvs_masters(cvs_master *list);
+
 static char *rectify_name(const char *raw, char *rectified, size_t rectlen)
 /* from master name to the name humans thought of the file by */
 {
@@ -130,9 +136,6 @@ rev_list_file(const char *name, analysis_t *out)
     cvs->gen.master_name = name;
     cvs->gen.expand = EXPANDUNSPEC;
     cvs->export_name = atom(rectify_name(name, rectified, sizeof(rectified)));
-#ifdef MEMOSORT
-    collect_path(cvs->export_name);
-#endif /*MEMOSORT */
     cvs->mode = buf.st_mode;
     cvs->verbose = verbose;
 
@@ -169,6 +172,61 @@ strcommonendingwith(const char *a, const char *b, char endc)
     }
     return d;
 }
+
+#ifdef FILESORT
+/*
+ * Sort list of cvs masters in path_deep_compare order
+ * Causes commits to come out in correct pack order
+ * Based on merge sort algorithm described at
+ * http://www.chiark.greenend.org.uk/~sgtatham/algorithms/listsort.html
+ * and obviously similar to the the cvs_master_sort_heads function
+ */
+static cvs_master *
+sort_cvs_masters(cvs_master *list)
+{
+    cvs_master *p, *q, *elt, *tail = NULL;
+    unsigned int k = 1, merge_count, ps, qs;
+
+    if (!list)
+	return NULL;
+
+    do {
+	p = list;
+	list = tail = NULL;
+	merge_count = 0;
+	while (p) {
+	    // skip q k places past p
+	    merge_count++;
+	    for (q = p, ps = 0; ps < k && q; ps++, q = q->next);
+	    qs = k;
+	    while (ps > 0 || (qs > 0 && q)) {
+		if (ps == 0 || (qs != 0 && q &&
+				path_deep_compare(
+				  p->heads->commit->master->name,
+                                  q->heads->commit->master->name
+                                ) > 0)) {
+		    elt = q;
+		    q = q->next;
+		    qs--;
+		} else {
+		    elt = p;
+		    p = p->next;
+		    ps--;
+		}
+		if (tail)
+		    tail->next = elt;
+		else
+		    list = elt;
+		tail = elt;
+	    }
+	    p = q;
+	}
+	tail->next = NULL;
+	k += k;
+    } while (merge_count > 1);
+    return list;
+}
+#endif /* FILESORT */
 
 static void *worker(void *arg)
 /* consume masters off the queue */
@@ -342,9 +400,9 @@ void analyze_masters(int argc, char *argv[],
     else
 #endif /* THREADS */
 	worker(NULL);
-#ifdef MEMOSORT
-    presort_paths();
-#endif /*MEMOSORT */
+#ifdef FILESORT
+    head = sort_cvs_masters((cvs_master *) head);
+#endif /*FILESORT */
     progress_end("done, %d revisions", total_revisions);
 
     forest->errcount = err;
