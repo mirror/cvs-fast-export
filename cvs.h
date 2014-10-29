@@ -724,7 +724,7 @@ extern bool progress;
 #define NO_MAX	-1
 
 #ifdef THREADS
-int threads;
+extern int threads;
 #endif /* THREADS */
 
 #endif /* _CVS_H_ */

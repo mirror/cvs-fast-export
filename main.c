@@ -30,6 +30,9 @@
 int commit_time_window = 300;
 bool progress = false;
 FILE *LOGFILE;
+#ifdef THREADS
+int threads = NO_MAX;
+#endif /* THREADS */
 
 static import_options_t import_options = {
     .striplen = -1,
@@ -363,6 +366,13 @@ main(int argc, char **argv)
     argv[optind-1] = argv[0];
     argv += optind-1;
     argc -= optind-1;
+
+#ifdef THREADS
+#ifdef _SC_NPROCESSORS_ONLN
+    if (threads == NO_MAX)
+	threads = 2 * sysconf(_SC_NPROCESSORS_ONLN);
+#endif /*  _SC_NPROCESSORS_ONLN */
+#endif
 
     gather_stats("before parsing");
 
