@@ -97,7 +97,7 @@ if __name__ == '__main__':
         if ":" not in host:
             sys.stderr.write("cvssync: repository path is missing.\n")
             sys.exit(1)
-        (host, path) = host.split(":")        
+        (host, path) = host.split(":")
     else:
         sys.stderr.write("cvssync: requires a host/path and module argument\n")
         sys.exit(1)

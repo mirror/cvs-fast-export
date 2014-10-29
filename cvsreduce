@@ -1,31 +1,31 @@
 #!/usr/bin/env python
-#
-# cvsreduce - skeletonize CVS master files
-#
-# Called as a filter, skeletonizes a CVS master presented on standard input
-# and write it to standard output. If an argument is specified, it must be
-# the name of a directory containing CVS master files; in that case a
-# corresponding directory of stripped files is created.
-#
-# Options:
-#    -o dir  Set name of output directory. Defaults to the input dirname
-#            with the suffix '-stripped'.
-#    -t      Suppress stripping of (non-sticky) tags.  Sticky tags are
-#            always preserved.
-#    -l      Suppress replacement of log content with a hash.
-#    -c      Suppress replacement of revision content.
-#    -v      Enable progrsss messages.
-#
-# Default behavior is to strip non-sticky tags, replace each version
-# of content with a unique string including the revision ID, and
-# replace log text with its MD5 hash in hex.
-#
-# The intent is to discard bulky content but preserve all metadata
-# relevant to changeset merging. A collection of stripped files should
-# imply the same changeset DAG as the unstripped originals, but be
-# easier to pass around, faster to process, and not reveal potentially
-# sensitive data.
-#
+"""
+cvsreduce - skeletonize CVS master files
+
+Called as a filter, skeletonizes a CVS master presented on standard input
+and write it to standard output. If an argument is specified, it must be
+the name of a directory containing CVS master files; in that case a
+corresponding directory of stripped files is created.
+
+Options:
+   -o dir  Set name of output directory. Defaults to the input dirname
+           with the suffix '-stripped'.
+   -t      Suppress stripping of (non-sticky) tags.  Sticky tags are
+           always preserved.
+   -l      Suppress replacement of log content with a hash.
+   -c      Suppress replacement of revision content.
+   -v      Enable progrsss messages.
+
+Default behavior is to strip non-sticky tags, replace each version
+of content with a unique string including the revision ID, and
+replace log text with its MD5 hash in hex.
+
+The intent is to discard bulky content but preserve all metadata
+relevant to changeset merging. A collection of stripped files should
+imply the same changeset DAG as the unstripped originals, but be
+easier to pass around, faster to process, and not reveal potentially
+sensitive data.
+"""
 import os, sys, getopt, hashlib
 
 strip_tags = True
@@ -33,37 +33,39 @@ strip_logs = True
 strip_content = True
 verbose = 0
 
-def replace_escaped_text(input, replacement, output):
-    leader = input.read(1)
+def replace_escaped_text(inputf, replacement, outputf):
+    "Replace text between @ delimiters with a specified string."
+    leader = inputf.read(1)
     if leader != '@':
         sys.stderr.write("cvsreduce: fatal error, @ leader not where expected.\n")
         sys.exit(1)
     else:
-        output.write('@' + replacement)
+        outputf.write('@' + replacement)
     while True:
-        nxt = input.read(1)
+        nxt = inputf.read(1)
         if nxt == '@':
-            nxt2 = input.read(1)
+            nxt2 = inputf.read(1)
             if nxt2 == '@':
                 continue
             else:
                 break
     if nxt2 == '\n':
-        output.write("@\n")
+        outputf.write("@\n")
     else:
         sys.stderr.write("cvsreduce: fatal error, @ trailer not followed by newline (%s).\n" % nxt2)
         sys.exit(1)
-        
-def hash_escaped_text(input, output):
-    leader = input.read(1)
+
+def hash_escaped_text(inputf, outputf):
+    "Replace text between @ delimiters with its MD5 hash."
+    leader = inputf.read(1)
     if leader != '@':
         sys.stderr.write("cvsreduce: fatal error, @ leader not where expected.\n")
         sys.exit(1)
     txt = ""
     while True:
-        nxt = input.read(1)
+        nxt = inputf.read(1)
         if nxt == '@':
-            nxt2 = input.read(1)
+            nxt2 = inputf.read(1)
             if nxt2 == '@':
                 txt += "@"
                 continue
@@ -73,18 +75,19 @@ def hash_escaped_text(input, output):
     if nxt2 == '\n':
         m = hashlib.md5()
         m.update(txt)
-        output.write("@%s\n@\n" % m.hexdigest())        
+        outputf.write("@%s\n@\n" % m.hexdigest())
     else:
         sys.stderr.write("cvsreduce: fatal error, @ trailer not followed by newline (%s).\n" % nxt2)
         sys.exit(1)
 
 
-def skeletonize(input, output):
+def skeletonize(inputf, outputf):
+    "Skeletonize a CVS master, discarding content but leaving metadata."
     state = "ini"
     last_version = None
-    deltacount = 0;
+    deltacount = 0
     while True:
-        line = input.readline()
+        line = inputf.readline()
         if not line:
             break
         if verbose > 1:
@@ -96,26 +99,26 @@ def skeletonize(input, output):
                 last_version = line.strip()
             elif line.startswith("log"):
                 if strip_logs:
-                    output.write(line)
-                    hash_escaped_text(input, output)
+                    outputf.write(line)
+                    hash_escaped_text(inputf, outputf)
                     continue
             elif line.startswith("text"):
                 if strip_content:
-                    output.write(line)
+                    outputf.write(line)
                     txt = "content for %s\n" % last_version
                     if deltacount > 0:
                         txt = "d1 1\na1 1\n" + txt
                     deltacount += 1
-                    replace_escaped_text(input, txt, output)
+                    replace_escaped_text(inputf, txt, outputf)
                     continue
         elif state == "sym":
             if not line[0] in (' ', '\t'):
                 state = "ini"
             elif strip_tags and '0' not in line.split(":")[1]:
                 if line.endswith(";\n"):
-                    output.write("\t;\n")
+                    outputf.write("\t;\n")
                 continue
-        output.write(line)
+        outputf.write(line)
 
 if __name__ == '__main__':
     (opts, arguments) = getopt.getopt(sys.argv[1:], "ctlo:v")
@@ -150,7 +153,7 @@ if __name__ == '__main__':
     for dirName, subdirList, fileList in os.walk(originals):
         path_parts = list(dirName.split(os.sep))
         path_parts.pop(0)
-        newparts = [outdir] + path_parts 
+        newparts = [outdir] + path_parts
         for i in range(len(newparts)):
             newdir = os.path.join(*newparts[:i+1])
             if not os.path.exists(newdir):

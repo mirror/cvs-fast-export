@@ -138,9 +138,9 @@ cppcheck:
 PYLINTOPTS = --rcfile=/dev/null --reports=n \
 	--msg-template="{path}:{line}: [{msg_id}({symbol}), {obj}] {msg}" \
 	--dummy-variables-rgx='^_'
-PYSUPPRESSIONS = --disable="C0103,C0301"
+PYSUPPRESSIONS = --disable="C0103,C0301,C0325,R0912,W0142"
 pylint:
-	@pylint $(PYLINTOPTS) $(PYSUPPRESSIONS) cvssync
+	@pylint $(PYLINTOPTS) $(PYSUPPRESSIONS) cvssync cvsreduce
 
 SOURCES = Makefile *.[ch] *.[yl] cvssync
 DOCS = README COPYING NEWS AUTHORS TODO control cvs-fast-export.asc cvssync.asc hacking.asc
