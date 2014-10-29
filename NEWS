@@ -3,6 +3,7 @@
 Repository head:
     New -l option for redirecting logs during long conversions.
     Minor speedups and working-set reductions.
+    Incremental dumping can now be done in fast mode.
 
 1.22: 2014-10-21
     New --embed-id and --expand options by Robert deBath.

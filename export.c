@@ -678,7 +678,7 @@ struct commit_seq {
 };
 
 static int compare_commit(const git_commit *ac, const git_commit *bc)
-/* attempt the mathemaically impossible total ordering on the DAG */
+/* attempt the mathematically impossible total ordering on the DAG */
 {
     time_t timediff;
     int cmp;
@@ -836,9 +836,7 @@ void export_commits(forest_t *forest,
     int recount = 0;
     char outbuf[BUFSIZ];
 
-    if (opts->fromtime > 0)
-	opts->reportmode = canonical;
-    else if (opts->reportmode == adaptive) {
+    if (opts->reportmode == adaptive) {
 	if (forest->textsize <= SMALL_REPOSITORY)
 	    opts->reportmode = canonical;
         else
@@ -886,10 +884,10 @@ void export_commits(forest_t *forest,
 
     if (opts->reportmode == fast) {
 	/*
-	 * Dump by branch order, not by commit date.  Slightly faster and
-	 * less memory-intensive, but (a) incremental dump won't work, and
-	 * (b) it's not git-fast-export  canonical form and cannot be 
-	 * directly compared to the output of other tools.
+	 * Dump by branch order, not by commit date.  Slightly faster
+	 * and less memory-intensive, but it's not git-fast-export
+	 * canonical form and cannot be directly compared to the
+	 * output of other tools.
 	 */
 	git_commit **history;
 	int alloc, i;
@@ -916,11 +914,17 @@ void export_commits(forest_t *forest,
 		 * commits, along with any matching tags.
 		 */
 		for (i=n-1; i>=0; i--) {
-		    export_commit(history[i], h->ref_name, true, opts);
+		    git_commit *gc = history[i];
+		    if (opts->fromtime >= gc->date)
+			continue;
+		    if (gc->parent != NULL && display_date(gc->parent, markmap[gc->parent->serial], opts->force_dates) < opts->fromtime)
+			(void)printf("from %s%s^0\n\n",
+				     opts->branch_prefix, h->ref_name);
+		    export_commit(gc, h->ref_name, true, opts);
 		    progress_step();
 		    for (t = all_tags; t; t = t->next)
-			if (t->commit == history[i] && display_date(history[i], markmap[history[i]->serial], opts->force_dates) > opts->fromtime)
-			    printf("reset refs/tags/%s\nfrom :%d\n\n", t->name, markmap[history[i]->serial]);
+			if (t->commit == gc && display_date(gc, markmap[gc->serial], opts->force_dates) > opts->fromtime)
+			    printf("reset refs/tags/%s\nfrom :%d\n\n", t->name, markmap[gc->serial]);
 		}
 
 		free(history);

@@ -965,6 +965,13 @@ void generate_files(generator_t *gen,
     eb->current->node_text = load_text(eb, &node->patch->text);
     process_delta(eb, node, ENTER);
     for (;;) {
+	/*
+	 * Revisions are written backwards in time starting from the tip,
+	 * so if we're incremental-dumping we can just stop on the
+	 * first that's too old.
+	 */
+	if (node->commit && opts->fromtime >= node->commit->date)
+	    goto Done;
 	if (node->commit != NULL && !node->commit->dead) {
 	    out_buffer_init(eb);
 	    if (eb->Gexpand < EXPANDKO)
@@ -998,7 +1005,6 @@ void generate_files(generator_t *gen,
 	process_delta(eb, node, EDIT);
     }
 Done:
-
     generate_wrap(gen);
 }
 
