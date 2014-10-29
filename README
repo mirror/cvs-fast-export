@@ -16,12 +16,17 @@ The analysis stage of this code originally travelled as "parsecvs"
 and was written by Keith Packard in early 2006.  It was briefly 
 maintained by Bart Massey before passing to Eric S. Raymond in 
 late 2012; ESR wrote the fast-export output stage and renamed the
-program to reflect its new function. Alan Barrett wrote the 
-improved progress meter.
+program to reflect its new function. More historical details are
+in hacking.asc.
 
 The distribution includes a tool, cvssync, for fetching masters from
 CVS remote repositories so cvs-fast-export can see them.  You will
 need rsync installed to use it.
+
+Also included is a tool called cvsreduce that strips content out of
+trees of RCS/CVS masters, leaving only metadata structure in place. If
+you encounter a bug in this progeam, sending the maintainer a reduced
+version of your CVS tree greatly decreases the rxpected time to fix.
 
 This code has a regression-test suite; invoke it with "make check".
 You will need RCS and SCCS installed to run the tests, but they're 
