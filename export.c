@@ -26,7 +26,6 @@
 #include <time.h>
 
 #include "cvs.h"
-#include "uthash.h"
 /*
  * If a program has ever invoked pthreads, the GNU C library does extra
  * checking during stdio operations even if the program no longer has
@@ -86,38 +85,6 @@ static int seqno_next(void)
  * SCCS CVS CVS.adm RCSLOG cvslog.*
  */
 #define CVS_IGNORES "# CVS default ignores begin\ntags\nTAGS\n.make.state\n.nse_depinfo\n*~\n#*\n.#*\n,*\n_$*\n*$\n*.old\n*.bak\n*.BAK\n*.orig\n*.rej\n.del-*\n*.a\n*.olb\n*.o\n*.obj\n*.so\n*.exe\n*.Z\n*.elc\n*.ln\ncore\n# CVS default ignores end\n"
-
-struct fileop_hash {
-    const char *key;
-    const char *value;
-    UT_hash_handle hh;
-};
-
-static const char *fileop_name(const char *rectified)
-{
-    static struct fileop_hash *hash = NULL;
-    struct fileop_hash *v;
-
-    HASH_FIND_PTR(hash, &rectified, v);
-
-    if (v == NULL) {
-	v = xmalloc(sizeof(struct fileop_hash), __func__);
-	v->key = rectified;
-	size_t rlen = strlen(rectified);
-
-	char path[PATH_MAX];
-	strncpy(path, rectified, PATH_MAX-1);
-	
-	if (rlen >= 10 && strcmp(path + rlen - 10, ".cvsignore") == 0) {
-	    path[rlen - 9] = 'g';
-	    path[rlen - 8] = 'i';
-	    path[rlen - 7] = 't';
-	}
-	v->value = atom(path);
-	HASH_ADD_PTR(hash, key, v);
-    }
-    return v->value;
-}
 
 static char *blobfile(const char *basename,
 		      const int serial,
@@ -458,7 +425,7 @@ static void export_commit(git_commit *commit,
 	    bool present, changed;
 	    
 	    op->rev = cc = dir->files[j];
-	    stripped = fileop_name(cc->master->name);
+	    stripped = cc->master->fileop_name;
 	    present = false;
 	    changed = false;
 	    if (commit->parent) {
@@ -515,7 +482,7 @@ static void export_commit(git_commit *commit,
 		if (!present) {
 
 		    op->op = 'D';
-		    op->path = fileop_name(cc->master->name);
+		    op->path = cc->master->fileop_name;
 		    op++;
 		    if (op == operations + noperations)
 		    {

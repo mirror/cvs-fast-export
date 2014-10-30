@@ -29,6 +29,22 @@
 #include "rbtree.h"
 #endif /* REDBLACK */ 
 
+static const char *fileop_name(const char *rectified)
+{
+    size_t rlen = strlen(rectified);
+
+    if (rlen >= 10 && strcmp(rectified + rlen - 10, ".cvsignore") == 0) {
+        char path[PATH_MAX];
+        strncpy(path, rectified, PATH_MAX-1);
+        path[rlen - 9] = 'g';
+        path[rlen - 8] = 'i';
+        path[rlen - 7] = 't';
+        return atom(path);
+    }
+    // assume rectified is already an atom
+    return rectified;
+}
+
 static cvs_commit *
 cvs_master_find_revision(cvs_master *cm, const cvs_number *number)
 /* given a single-file revlist tree, locate the specific version number */
@@ -61,6 +77,7 @@ cvs_master_branch_build(cvs_file *cvs, const cvs_number *branch)
     rev_master  *master = xcalloc(1,sizeof(rev_master), "master construction");
 
     master->name = cvs->export_name;
+    master->fileop_name = fileop_name(cvs->export_name);
     master->commits = xcalloc(cvs->nversions, sizeof(cvs_commit),
 			      "commit slab alloc");
 
