@@ -129,7 +129,6 @@ static void out_buffer_init(editbuffer_t *eb)
 {
     char *t;
     eb->Goutbuf = xmalloc(sizeof(struct out_buffer_type), "out_buffer_init");
-    memset(eb->Goutbuf, 0, sizeof(struct out_buffer_type));
     eb->Goutbuf->size = initial_out_buffer_size;
     t = xmalloc(eb->Goutbuf->size, "out+buffer_init");
     eb->Goutbuf->text = t;
