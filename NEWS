@@ -1,8 +1,8 @@
 		cvs-fast-export project news
 
-Repository head:
+1.23: 2014-10-29
     New -l option for redirecting logs during long conversions.
-    Minor speedups and working-set reductions.
+    More speedups and working-set reductions.
     Incremental dumping can now be done in fast mode.
 
 1.22: 2014-10-21
