@@ -73,8 +73,6 @@ cvs-fast-export: $(OBJS)
 
 $(OBJS): cvs.h
 revcvs.o cvsutils.o rbtree.o: rbtree.h
-memosort.o: uthash.h
-export.o: uthash.h
 
 BISON ?= bison
 
