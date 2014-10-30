@@ -9,7 +9,7 @@ corresponding directory of stripped files is created.
 
 Options:
    -o dir  Set name of output directory. Defaults to the input dirname
-           with the suffix '-stripped'.
+           with the suffix '-reduced'.
    -t      Suppress stripping of (non-sticky) tags.  Sticky tags are
            always preserved.
    -l      Suppress replacement of log content with a hash.
@@ -147,7 +147,7 @@ if __name__ == '__main__':
 
     originals = arguments[0]
     if not outdir:
-        outdir = originals + "-stripped"
+        outdir = originals + "-reduced"
     if os.path.exists(outdir):
         sys.stderr.write("cvsreduce: refusing to step on %s.\n" % outdir)
         sys.exit(1)
