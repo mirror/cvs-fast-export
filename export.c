@@ -834,7 +834,6 @@ void export_commits(forest_t *forest,
     git_repo *rl = forest->head;
     generator_t *gp;
     int recount = 0;
-    char outbuf[BUFSIZ];
 
     if (opts->reportmode == adaptive) {
 	if (forest->textsize <= SMALL_REPOSITORY)
@@ -855,7 +854,7 @@ void export_commits(forest_t *forest,
     }
 
     /* an attempt to optimize output throughput */
-    setvbuf(stdout, outbuf, _IOFBF, sizeof(outbuf));
+    setvbuf(stdout, NULL, _IOFBF, BUFSIZ);
 
     export_stats.export_total_commits = export_ncommit(rl);
     /* the +1 is because mark indices are 1-origin, slot 0 always empty */
@@ -1012,6 +1011,7 @@ void export_commits(forest_t *forest,
     }
 
     memcpy(stats, &export_stats, sizeof(export_stats_t));
+
 }
 
 /* end */
