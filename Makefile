@@ -32,7 +32,7 @@ CPPFLAGS += -DTHREADS
 CFLAGS += -march=native
 
 # To enable debugging of the Yacc grammar, uncomment the following line
-CPPFLAGS += -DYYDEBUG=1
+#CPPFLAGS += -DYYDEBUG=1
 # To enable debugging of blob export, uncomment the following line
 #CPPFLAGS += -DFDEBUG=1
 # To enable assertions of red black trees, uncomment the following line
@@ -46,7 +46,7 @@ CPPFLAGS += -DYYDEBUG=1
 # anything else
 CPPFLAGS += -DREDBLACK # Use red-black trees for faster symbol lookup
 CPPFLAGS += -DUSE_MMAP # Use mmap for reading CVS masters
-CPPFLAGS += -DFILESORT # Memoized fast path sorting
+CPPFLAGS += -DFILESORT # Presort files yo avoid directory sorts later
 CPPFLAGS += -DBLOOMSET # Use Bloom lookup to speed up export
 
 # First line works for GNU C.  
@@ -58,7 +58,7 @@ CPPFLAGS+=-Drestrict=__restrict__
 # Note: the profiler gets confused if you don't also turn off -O flags.
 # CFLAGS += -pg
 CFLAGS += -O3
-#CFLAGS += -g
+# CFLAGS += -g
 CFLAGS += $(EXTRA_CFLAGS)
 
 #YFLAGS= --report=all
