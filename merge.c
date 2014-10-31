@@ -26,7 +26,7 @@
 
 static rev_ref *
 rev_find_head(rev_list *rl, const char *name)
-/* find a named head in a revlist */
+/* find a named branch head in a revlist - used on both CVS and gitspace sides */
 {
     rev_ref	*h;
 
@@ -591,9 +591,10 @@ merge_branches(rev_ref **branches, int nbranch,
 
     /*
      * Gitspace branch construction is done. Now connect it to its
-     * parent branch.  The CVS commits referenced in the revisions
+     * parent branch.  The CVS commits now referenced in the revisions
      * array are for the oldest commit on the branch (the last clique
-     * to be collected in the previous phase).
+     * to be collected in the previous phase).  This is not the brahch's
+     * root commit, but the child of that root.
      */
     nbranch = cvs_commit_date_sort(revisions, nbranch);
     if (nbranch && branch->parent )
@@ -618,6 +619,10 @@ merge_branches(rev_ref **branches, int nbranch,
 	    }
 	}
 	if (present == nbranch)
+	    /* 
+	     * Branch join looks normal, we can just go ahead and build
+	     * the last commit.
+	     */
 	    *tail = NULL;
 	else if ((*tail = git_commit_locate_one(branch->parent,
 						 revisions[present])))
