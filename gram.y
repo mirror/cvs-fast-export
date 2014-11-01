@@ -65,7 +65,7 @@ extern YY_DECL;	/* FIXME: once the Bison bug requiring this is fixed */
 %token		DESC LOG TEXT STRICT AUTHOR STATE
 %token		SEMI COLON
 %token		BRAINDAMAGED_NUMBER
-%token <atom>	NAME
+%token <atom>	TOKEN
 %token <s>	DATA
 %token <text>	TEXT_DATA
 %token <number>	NUMBER
@@ -120,7 +120,7 @@ header		: HEAD opt_number SEMI
 locks		: locks lock
 		|
 		;
-lock		: NAME COLON NUMBER
+lock		: TOKEN COLON NUMBER
 		;
 lock_type	: STRICT SEMI
 		|
@@ -147,7 +147,7 @@ fscked_symbol	: name COLON BRAINDAMAGED_NUMBER
 			fprintf(stderr, "ignoring symbol %s (FreeBSD RELENG_2_1_0 braindamage?)\n", $1);
 		  }
 		;
-name		: NAME
+name		: TOKEN
 		| NUMBER
 		  {
 		    char    name[CVS_MAX_REV_LEN];
@@ -197,10 +197,10 @@ date		: DATE NUMBER SEMI
 		    $$ = lex_date (&$2, scanner, cvsfile);
 		  }
 		;
-author		: AUTHOR NAME SEMI
+author		: AUTHOR TOKEN SEMI
 		  { $$ = $2; }
 		;
-state		: STATE NAME SEMI
+state		: STATE TOKEN SEMI
 		  { $$ = $2; }
 		;
 branches	: BRANCHES numbers SEMI
@@ -225,7 +225,7 @@ opt_number	: NUMBER
 		|
 		  { $$.c = 0; }
 		;
-commitid	: COMMITID NAME SEMI
+commitid	: COMMITID TOKEN SEMI
 		  { $$ = $2; }
 		;
 desc		: DESC DATA
@@ -259,23 +259,23 @@ log		: LOG DATA
 text		: TEXT TEXT_DATA
 		  { $$ = $2; }
 		;
-deltatype	: DELTATYPE NAME SEMI
+deltatype	: DELTATYPE TOKEN SEMI
 		  { $$ = $2; }
 		;
-group		: GROUP NAME SEMI
+group		: GROUP TOKEN SEMI
 		  { $$ = $2; }
 		;
 kopt		: KOPT DATA SEMI
 		  { free($2); }
                 | KOPT SEMI
 		;
-owner		: OWNER NAME SEMI
+owner		: OWNER TOKEN SEMI
 		  { $$ = $2; }
 		;
-permissions	: PERMISSIONS NAME SEMI
+permissions	: PERMISSIONS TOKEN SEMI
 		  { $$ = $2; }
 		;
-filename	: FILENAME NAME SEMI
+filename	: FILENAME TOKEN SEMI
 		  { $$ = $2; }
 		;
 mergepoint	: MERGEPOINT NUMBER SEMI

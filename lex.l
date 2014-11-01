@@ -93,29 +93,29 @@ YY_DECL;
 <CONTENT>[-a-zA-Z_+%][-a-zA-Z_0-9+/%=.~^\\*?#!\[\]()<>]* {
 					fast_export_sanitize(yyscanner, cvs);
 					yylval->atom = atom(yytext);
-					return NAME;
+					return TOKEN;
 				}
 <AUTHORSS>[-a-zA-Z_0-9+%][-a-zA-Z_0-9+/%=.~^\\*?]* {
 					fast_export_sanitize(yyscanner, cvs);
 					yylval->atom = atom(yytext);
-					return NAME;
+					return TOKEN;
 				}
 <PERM>[0-9]+ {
 					yylval->atom = atom(yytext);
-					return NAME;
+					return TOKEN;
 				}
 <COMMIT>[0-9a-zA-Z]+		{
 					yylval->atom = atom(yytext);
-					return NAME;
+					return TOKEN;
 				}
 <REVISION>[0-9]+\.[0-9.]*			{
 					yylval->number = lex_number(yytext);
 					return NUMBER;
 				}
-<FNAME>[^;]* {
-	yylval->atom = atom(yytext);
-	return NAME;
-}
+<FNAME>[^;]*			{
+					yylval->atom = atom(yytext);
+					return TOKEN;
+				}
 [0-9]+\.[0-9.]*			{
 					yylval->number = lex_number(yytext);
 					return NUMBER;
