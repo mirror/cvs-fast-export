@@ -112,8 +112,7 @@ YY_DECL;
 					return NUMBER;
 				}
 <FNAME>[^;]*			{
-					yylval->atom = atom(yytext);
-					return TOKEN;
+					return IGNORED;
 				}
 [0-9]+\.[0-9.]*			{
 					yylval->number = lex_number(yytext);

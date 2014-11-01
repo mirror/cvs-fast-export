@@ -275,8 +275,8 @@ owner		: OWNER IGNORED SEMI
 permissions	: PERMISSIONS IGNORED SEMI
 		  { $$ = NULL; }
 		;
-filename	: FILENAME TOKEN SEMI
-		  { $$ = $2; }
+filename	: FILENAME IGNORED SEMI
+		  { $$ = NULL; }
 		;
 mergepoint	: MERGEPOINT NUMBER SEMI
 		  { $$ = $2; }
