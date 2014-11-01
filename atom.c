@@ -22,6 +22,73 @@
 #include <pthread.h>
 #endif /* THREADS */
 
+/*****************************************************************************
+
+From http://planetmath.org/goodhashtableprimes:
+
+In the course of designing a good hashing configuration, it is helpful
+to have a list of prime numbers for the hash table size.
+
+The following is such a list. It has the properties that:
+
+    1. each number in the list is prime
+    2. each number is slightly less than twice the size of the previous
+    3. each number is as far as possible from the nearest two powers of two
+
+Using primes for hash tables is a good idea because it minimizes
+clustering in the hashed table. Item (2) is nice because it is
+convenient for growing a hash table in the face of expanding
+data. Item (3) has, allegedly, been shown to yield especially good
+results in practice.
+
+And here is the list:
+
+lwr 	upr 	% err   	prime
+2^5 	2^6 	10.416667 	53
+2^6 	2^7 	1.041667 	97
+2^7 	2^8 	0.520833 	193
+2^8 	2^9 	1.302083 	389
+2^9 	2^10 	0.130208 	769
+2^10 	2^11 	0.455729 	1543
+2^11 	2^12 	0.227865 	3079
+2^12 	2^13 	0.113932 	6151
+2^13 	2^14 	0.008138 	12289
+2^14 	2^15 	0.069173 	24593
+2^15 	2^16 	0.010173 	49157
+2^16 	2^17 	0.013224 	98317
+2^17 	2^18 	0.002543 	196613
+2^18 	2^19 	0.006358 	393241
+2^19 	2^20 	0.000127 	786433
+2^20 	2^21 	0.000318 	1572869
+2^21 	2^22 	0.000350 	3145739
+2^22 	2^23 	0.000207 	6291469
+2^23 	2^24 	0.000040 	12582917
+2^24 	2^25 	0.000075 	25165843
+2^25 	2^26 	0.000010 	50331653
+2^26 	2^27 	0.000023 	100663319
+2^27 	2^28 	0.000009 	201326611
+2^28 	2^29 	0.000001 	402653189
+2^29 	2^30 	0.000011 	805306457
+2^30 	2^31 	0.000000 	1610612741
+
+The columns are, in order, the lower bounding power of two, the upper
+bounding power of two, the relative deviation (in percent) of the
+prime number from the optimal middle of the first two, and finally the
+prime itself.
+
+Happy hashing!
+
+*****************************************************************************/
+
+/*
+ * This prime number is scaled to be effective for the NetBSD src
+ * repository, which at around 135K masters is the largest we know of.
+ * The intent is to reduce expected depth of the hash buckets in the
+ * worst case to about 4.  Space cost on a 64-bit machine is 8 times
+ * this in bytes.
+ */
+#define HASH_SIZE	49157
+
 typedef uint32_t	crc32_t;
 
 static crc32_t crc32_table[256];
@@ -53,8 +120,6 @@ crc32 (const char *string)
 	crc32 = (crc32 >> 8) ^ crc32_table[(crc32 ^ c) & 0xff];
     return ~crc32;
 }
-
-#define HASH_SIZE	9013	/* prime for better hash performance */
 
 typedef struct _hash_bucket {
     struct _hash_bucket	*next;
