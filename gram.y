@@ -63,7 +63,7 @@ extern YY_DECL;	/* FIXME: once the Bison bug requiring this is fixed */
 %token		BRANCHES DELTATYPE NEXT COMMITID EXPAND
 %token		GROUP KOPT OWNER PERMISSIONS FILENAME MERGEPOINT HARDLINKS
 %token		DESC LOG TEXT STRICT AUTHOR STATE
-%token		SEMI COLON
+%token		SEMI COLON IGNORED
 %token		BRAINDAMAGED_NUMBER
 %token <atom>	TOKEN
 %token <s>	DATA
@@ -262,18 +262,18 @@ text		: TEXT TEXT_DATA
 deltatype	: DELTATYPE TOKEN SEMI
 		  { $$ = $2; }
 		;
-group		: GROUP TOKEN SEMI
-		  { $$ = $2; }
+group		: GROUP IGNORED SEMI
+		  { $$ = NULL; }
 		;
 kopt		: KOPT DATA SEMI
 		  { free($2); }
                 | KOPT SEMI
 		;
-owner		: OWNER TOKEN SEMI
-		  { $$ = $2; }
+owner		: OWNER IGNORED SEMI
+		  { $$ = NULL; }
 		;
-permissions	: PERMISSIONS TOKEN SEMI
-		  { $$ = $2; }
+permissions	: PERMISSIONS IGNORED SEMI
+		  { $$ = NULL; }
 		;
 filename	: FILENAME TOKEN SEMI
 		  { $$ = $2; }

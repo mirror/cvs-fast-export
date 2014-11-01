@@ -100,9 +100,8 @@ YY_DECL;
 					yylval->atom = atom(yytext);
 					return TOKEN;
 				}
-<PERM>[0-9]+ {
-					yylval->atom = atom(yytext);
-					return TOKEN;
+<PERM>[0-9]+			{
+					return IGNORED;
 				}
 <COMMIT>[0-9a-zA-Z]+		{
 					yylval->atom = atom(yytext);
