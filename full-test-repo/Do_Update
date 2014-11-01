@@ -1,0 +1,94 @@
+#!/bin/sh -
+set -e
+
+# NOTE: execute bit copied from RCS file.
+
+AUTHORS='Authors'
+CVSREPO=':pserver:anonymous@cvs.savannah.nongnu.org:/sources/cvs'
+CVSRSYNC='cvs.savannah.gnu.org::sources/cvs/'
+CVSMODULE='ccvs'
+
+export CVSROOT=`pwd`/cvsroot
+if [ -f "$AUTHORS" ]
+then AUTHORS="-A \"$AUTHORS\""
+else AUTHORS=
+fi
+
+[ -x ../cvs-fast-export ] || ../cvs-fast-export -h >/dev/null
+
+[ -f cvsroot.done ] || {
+    rsync -z -Pax "$CVSRSYNC" cvsroot
+    touch cvsroot.done
+    rm -f export.done ||:
+}
+
+(
+[ ! -d git ] && rm export.done ||:
+
+mkdir -p git
+cd git
+[ -f .git ] || git init
+
+git checkout -f \
+$(echo "tree $(git hash-object -t tree -w /dev/null)
+author nobody <> 1 +0000
+committer nobody <> 1 +0000
+" | git hash-object -t commit -w --stdin )
+
+)
+
+[ -f export.done -a export.done -nt ../cvs-fast-export ] || {
+    find cvsroot/"$CVSMODULE" |
+	../cvs-fast-export -p -k $AUTHORS |
+	buffer -m 8m |
+	(	cd git
+	    git fast-import --force
+	)
+    touch export.done
+}
+
+echo Starting full test
+rm -rf results success.log ||:
+
+for branch in master `
+    cd git
+    git show-ref --tags --heads |
+    sed 's:.*/::' |
+    grep -v master |
+    grep -v '[^-_a-zA-Z0-9]'
+    `
+do
+    rm -rf checkout
+    mkdir -p checkout
+
+    echo Checking out CVS
+    if [ "$branch" = master ]
+    then cvs -Q co -d checkout -P $CVSMODULE
+    else cvs -Q co -d checkout -P -r $branch $CVSMODULE
+    fi
+
+    echo Cleaning CVS
+    find checkout \( -name .cvsignore -o -name CVS \) -exec rm -rf {} +	||:
+    find checkout -depth -type d -exec rmdir {} + 2>/dev/null		||:
+
+    echo Checking out git
+    (cd git ; git checkout $branch )
+
+    echo Compare
+    diff -urd -x .gitignore -x .git checkout git > result.diff ||:
+
+    if [ -s result.diff ]
+    then echo FAILED: $branch
+	mkdir -p results
+	mv result.diff results/$branch.diff
+    else echo SUCCESS: $branch
+	rm result.diff
+	echo $branch >> success.log
+    fi
+
+done
+
+rm -rf checkout ||:
+(cd git ; git checkout master )
+
+echo Test run complete.
