@@ -711,8 +711,11 @@ void progress_end(const char * /*format*/, ...) _printflike(1, 2);
 #define YY_DECL int yylex \
 	(YYSTYPE * yylval_param , yyscan_t yyscanner, cvs_file *cvs)
 
-
+/*
+ * Statistics gathering.
+ */
 extern unsigned int warncount;
+extern unsigned int natoms;
 
 /*
  * Global options

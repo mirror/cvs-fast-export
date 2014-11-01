@@ -419,9 +419,10 @@ main(int argc, char **argv)
 
 	elapsed = seconds_diff(&checkpoints[ncheckpoints-1].timespec, 
 			       &checkpoints[0].timespec);
-	fprintf(STATUS, "%ld commits/%.3fM text at %d commits/sec.\n",
+	fprintf(STATUS, "%ld commits/%.3fM text, %u atoms at %d commits/sec.\n",
 		export_stats.export_total_commits,
 		export_stats.snapsize / 1000000.0,
+		natoms,
 		(int)(export_stats.export_total_commits / elapsed));
     }
 

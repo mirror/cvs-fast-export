@@ -89,6 +89,8 @@ Happy hashing!
  */
 #define HASH_SIZE	49157
 
+unsigned int natoms;	/* we report this so we can tune the hash properly */
+
 typedef uint32_t	crc32_t;
 
 static crc32_t crc32_table[256];
@@ -110,7 +112,7 @@ generate_crc32_table(void)
 }
 
 static crc32_t
-crc32 (const char *string)
+crc32(const char *string)
 {
     crc32_t		crc32 = ~0;
     unsigned char	c;
@@ -205,6 +207,7 @@ collision:
 #endif /* BLOOMSET */
     memcpy(b->string, string, len + 1);
     *head = b;
+    natoms++;
 #ifdef THREADS
     if (threads > 1)
 	pthread_mutex_unlock(&bucket_mutex);
