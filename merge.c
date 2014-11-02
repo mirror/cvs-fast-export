@@ -746,7 +746,7 @@ git_repo *
 merge_to_changesets(cvs_repo *masters, int verbose)
 /* entry point - merge CVS revision lists to a gitspace DAG */
 {
-    int		count = cvs_master_count(masters);
+    int		head_count = 0, count = cvs_master_count(masters);
     int		n; /* used only in progress messages */
     git_repo	*gl = xcalloc(1, sizeof(git_repo), "list merge");
     cvs_master	*master;
@@ -764,9 +764,10 @@ merge_to_changesets(cvs_repo *masters, int verbose)
     for (master = masters; master; master = master->next) {
 	for (lh = master->heads; lh; lh = lh->next) {
 	    h = rev_find_head(gl, lh->ref_name);
-	    if (!h)
+	    if (!h) {
+		head_count++;
 		rev_list_add_head(gl, NULL, lh->ref_name, lh->degree);
-	    else if (lh->degree > h->degree)
+	    } else if (lh->degree > h->degree)
 		h->degree = lh->degree;
 	}
 	if (++n % 100 == 0)
@@ -822,7 +823,7 @@ merge_to_changesets(cvs_repo *masters, int verbose)
     /*
      * Merge common branches
      */
-    progress_begin("Merge common branches...", count);
+    progress_begin("Merge common branches...", head_count);
     for (h = gl->heads; h; h = h->next) {
 	/*
 	 * For this imputed gitspace branch, locate the corresponding
