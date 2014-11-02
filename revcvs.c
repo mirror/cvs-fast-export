@@ -78,6 +78,7 @@ cvs_master_branch_build(cvs_file *cvs, const cvs_number *branch)
 
     master->name = cvs->export_name;
     master->fileop_name = fileop_name(cvs->export_name);
+    master->mode = cvs->mode;
     master->commits = xcalloc(cvs->nversions, sizeof(cvs_commit),
 			      "commit slab alloc");
 

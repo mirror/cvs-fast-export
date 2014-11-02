@@ -1,0 +1,64 @@
+blob
+mark :1
+data 79
+Now is the time for all good shellscripts to come to the iid of their systems.
+
+commit refs/heads/master
+mark :2
+committer foo <foo> 101200 +0000
+data 27
+Committing executable file
+
+M 100755 :1 exec
+M 100644 inline .gitignore
+data 198
+# CVS default ignores begin
+tags
+TAGS
+.make.state
+.nse_depinfo
+*~
+#*
+.#*
+,*
+_$*
+*$
+*.old
+*.bak
+*.BAK
+*.orig
+*.rej
+.del-*
+*.a
+*.olb
+*.o
+*.obj
+*.so
+*.exe
+*.Z
+*.elc
+*.ln
+core
+# CVS default ignores end
+
+property cvs-revision 9 exec 1.1
+
+blob
+mark :3
+data 46
+The quick brown fox jumped over the lazy dog.
+
+commit refs/heads/master
+mark :4
+committer foo <foo> 102400 +0000
+data 31
+Committing nonexecutable file.
+
+from :2
+M 100644 :3 nonexec
+property cvs-revision 12 nonexec 1.1
+
+reset refs/heads/master
+from :4
+
+done
