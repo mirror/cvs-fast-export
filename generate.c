@@ -925,10 +925,12 @@ static node_t *generate_setup(generator_t *gen, enum expand_mode id_token_expand
 
 	eb->current = eb->stack;
 	eb->Gfilename = gen->master_name;
-	if (gen->expand != EXPANDUNSPEC)
+	if (gen->expand == EXPANDKB)
 	    eb->Gexpand = gen->expand;
 	else if (id_token_expand != EXPANDUNSPEC)
 	    eb->Gexpand = id_token_expand;
+	else if (gen->expand != EXPANDUNSPEC)
+	    eb->Gexpand = gen->expand;
 	else
 	    eb->Gexpand = EXPANDKO;
 	eb->Gabspath = NULL;
