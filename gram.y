@@ -265,8 +265,7 @@ deltatype	: DELTATYPE TOKEN SEMI
 group		: GROUP IGNORED SEMI
 		  { $$ = NULL; }
 		;
-kopt		: KOPT DATA SEMI
-		  { free($2); }
+kopt		: KOPT IGNORED SEMI
                 | KOPT SEMI
 		;
 owner		: OWNER IGNORED SEMI
@@ -284,8 +283,7 @@ mergepoint	: MERGEPOINT NUMBER SEMI
 hardlinks	: HARDLINKS strings SEMI
 		;
 
-strings		: DATA strings 
-		  { free($1); }
+strings		: IGNORED strings
 		| /* empty*/
 		;
 %%

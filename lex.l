@@ -121,8 +121,25 @@ YY_DECL;
 ;				BEGIN(INITIAL); return SEMI;
 :				return COLON;
 <SKIPTOSEMI>[^;]*		{
+
+#ifdef __UNUSED__
+					/*
+					 * If we ever need the data from the kopt
+					 * or hardlinks clause,
+					 * (1) Condition in this.
+                                         * (2) Condition in the definition of
+					 * parse_data_until_newline() below.
+					 * (3) Change IGNORED to DATA
+					 * (4) Make the corresponding change
+					 * in the grammar file.
+					 * Renember, parse_data_until_newline()
+					 * return allocated storage.
+					 */
 					yylval->s = parse_data_until_newline(yyscanner);
 					return DATA;
+#else
+					return IGNORED;
+#endif /* __UNUSED__ */
 				}
 <INITIAL,CONTENT>@		{
 					yylval->s = parse_data(yyscanner);
@@ -236,6 +253,7 @@ parse_text(cvs_text *text, yyscan_t yyscanner, cvs_file *cvs)
     text->length = length;
 }
 
+#ifdef __UNUSED__
 static char *
 parse_data_until_newline(yyscan_t yyscanner)
 {
@@ -257,6 +275,7 @@ parse_data_until_newline(yyscan_t yyscanner)
     varbuf_free(&buf);
     return ret;
 }
+#endif /* __UNUSED__ */
 
 cvs_number
 lex_number(const char *s)
