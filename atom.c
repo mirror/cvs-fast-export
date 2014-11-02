@@ -126,9 +126,6 @@ crc32(const char *string)
 typedef struct _hash_bucket {
     struct _hash_bucket	*next;
     crc32_t		crc;
-#ifdef BLOOMSET
-    bloom_t        	bloom;
-#endif /* BLOOMSET */
     char		string[0];
 } hash_bucket_t;
 
@@ -136,41 +133,6 @@ static hash_bucket_t	*buckets[HASH_SIZE];
 #ifdef THREADS
 static pthread_mutex_t bucket_mutex = PTHREAD_MUTEX_INITIALIZER;
 #endif /* THREADS */
-
-#ifdef BLOOMSET
-#ifndef offsetof
-#define offsetof(T, f)  (size_t)(&((T *)0)->f)
-#endif
-#define containerof(fp, T, f) (T *)((char *)(fp) - offsetof(T, f))
-
-const bloom_t *
-atom_bloom(const char *atom)
-{
-    hash_bucket_t *b = containerof(atom, hash_bucket_t, string);
-    return &b->bloom;
-}
-
-#define BLOOM_K 9 /* TODO optimal? */
-
-static void
-make_bloom(crc32_t crc, bloom_t *b)
-{
-    unsigned k;
-    bloomword n = crc;
-
-    memset(b, 0, sizeof *b);
-    for (k = 0; k < BLOOM_K; k++) {
-	unsigned bit;
-        n ^= n >> 12;
-        n ^= n << 25;
-        n ^= n >> 27;
-	n *=  (bloomword)2685821657736338717;
-
-	bit = n % BLOOMSIZE;
-	b->el[bit / BLOOMWIDTH] |= (bloomword)1 << (bit % BLOOMWIDTH);
-    }
-}
-#endif /* BLOOMSET */
 
 const char *
 atom(const char *string)
@@ -202,9 +164,6 @@ collision:
     b = xmalloc(sizeof(hash_bucket_t) + len + 1, __func__);
     b->next = 0;
     b->crc = crc;
-#ifdef BLOOMSET
-    make_bloom(crc, &b->bloom);
-#endif /* BLOOMSET */
     memcpy(b->string, string, len + 1);
     *head = b;
     natoms++;

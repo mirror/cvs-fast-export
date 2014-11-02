@@ -260,26 +260,6 @@ git_commit_build(cvs_commit **revisions, cvs_commit *leader, const int nrevision
 
     memcpy(commit->dirs, rds, (commit->ndirs = nds) * sizeof(rev_dir *));
 
-#ifdef BLOOMSET
-    /* 
-     * Prepare the inverse Bloom set for this commit.
-     * This is used in the export code to flatten out what would
-     * oterwise we a severe hotspot.
-     */
-    {
-	rev_dir * const *d;
-	cvs_commit * const *f;
-
-	memset(&commit->bloom, ~0, sizeof commit->bloom);
-	for (d = commit->dirs; d < commit->dirs + commit->ndirs; d++) {
-	    for (f = (*d)->files; f < (*d)->files + (*d)->nfiles; f++) {
-		const bloom_t *b = atom_bloom((*f)->master->name);
-		BLOOM_OP(&commit->bloom, &commit->bloom, & ~, b);
-	    }
-	}
-    }
-#endif /* BLOOMSET */
-    
 #ifdef ORDERDEBUG
     fprintf(stderr, "commit_build: %p\n", commit);
 

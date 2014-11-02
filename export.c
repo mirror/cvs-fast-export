@@ -323,16 +323,6 @@ static void compute_parent_links(const git_commit *commit)
     file_iter_start(&parent_iter, parent);
     while ((cf = file_iter_next(&commit_iter))) {
 	file_iter it;
-#ifdef BLOOMSET
-	const bloom_t *bloom = atom_bloom(cf->master->name);
-	unsigned k;
-
-	for (k = 0; k < BLOOMLENGTH; ++k) {
-	    if (bloom->el[k] & parent->bloom.el[k]) {
-	        goto next;
-	    }
-	}
-#endif /* BLOOMSET */
 
 	/* Because the commit file lists are sorted,
 	 * we can restart the iterator after the

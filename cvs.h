@@ -270,27 +270,6 @@ typedef struct _rev_dir {
  * Structures built by master file parsing end.
  */
 
-#ifdef BLOOMSET
-/*
- * A Bloom filter is a technique for probabilistic set matching.
- * We use them here for testing sets of atoms.
- */
-#define BLOOMSIZE 128		/* free param: size of the filter-bit vector */
-typedef uint64_t bloomword;	/* integral type for bit-vector elements */
-
-#define BLOOMWIDTH	(sizeof(bloomword) * CHAR_BIT)
-#define BLOOMLENGTH	(BLOOMSIZE / BLOOMWIDTH)
-typedef struct _bloom {
-    bloomword el[BLOOMLENGTH];
-} bloom_t;
-
-#define BLOOM_OP(dst, src1, op, src2) do { \
-    unsigned _i; \
-    for (_i = 0; _i < BLOOMLENGTH; _i++) \
-         (dst)->el[_i] = (src1)->el[_i] op (src2)->el[_i]; \
-  } while (0)
-#endif /* BLOOMSET */
-
 /*
  * Tricky polymorphism hack to reduce working set size for large repos
  * begins here.
@@ -353,9 +332,6 @@ typedef struct _git_commit {
     /* gitspace-only members begin here */
     short		nfiles;
     short		ndirs;
-#ifdef BLOOMSET
-    bloom_t		bloom;
-#endif /* BLOOMSET */
     rev_dir		*dirs[0];
 } git_commit;
 
@@ -602,11 +578,6 @@ dump_rev_graph(git_repo *rl, const char *title);
 
 const char *
 atom(const char *string);
-
-#ifdef BLOOMSET
-const bloom_t *
-atom_bloom(const char *atom);
-#endif /* BLOOMSET */
 
 void
 discard_atoms(void);

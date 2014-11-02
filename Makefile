@@ -47,7 +47,6 @@ CFLAGS += -march=native
 CPPFLAGS += -DREDBLACK # Use red-black trees for faster symbol lookup
 CPPFLAGS += -DUSE_MMAP # Use mmap for reading CVS masters
 CPPFLAGS += -DFILESORT # Presort files to avoid directory sorts later
-#CPPFLAGS += -DBLOOMSET # Use Bloom lookup to speed up export
 
 # First line works for GNU C.  
 # Replace with the next if your compiler doesn't support C99 restrict qualifier
