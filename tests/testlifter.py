@@ -252,11 +252,12 @@ def expect_different(a, b):
 
 class ConvertComparison:
     "Compare a CVS repository and its conversion for equality."
-    def __init__(self, stem, module, options=""):
+    def __init__(self, stem, repo=None, checkout=None, module=None, options=""):
         self.stem = stem
-        self.module = module
-        self.repo = CVSRepository(stem + ".testrepo")
-        self.checkout = self.repo.checkout(module, stem + ".checkout")
+        self.module = module if module else stem
+        self.repo = CVSRepository(repo if repo else stem + ".testrepo")
+        self.checkout = self.repo.checkout(module,
+                                           checkout if checkout else stem + ".checkout")
         self.repo.convert("module", stem + ".git", more_opts=options)
         with directory_context(stem + ".git"):
             self.branches = [name for name in capture_or_die("git branch -l").split()]
