@@ -8,6 +8,10 @@ CVSREPO=':pserver:anonymous@cvs.savannah.nongnu.org:/sources/cvs'
 CVSRSYNC='cvs.savannah.gnu.org::sources/cvs/'
 CVSMODULE='ccvs'
 
+CVSKFLAG=-kkv ; GITKFLAG=-k	    # Mostly, $Name: fails.
+CVSKFLAG=-ko ; GITKFLAG=	    # OK, probably.
+CVSKFLAG=-kk ; GITKFLAG=--expand=k  # OK
+
 export CVSROOT=`pwd`/cvsroot
 if [ -f "$AUTHORS" ]
 then AUTHORS="-A \"$AUTHORS\""
@@ -18,6 +22,9 @@ fi
 
 [ -f cvsroot.done ] || {
     rsync -z -Pax "$CVSRSYNC" cvsroot
+    sed 's/^LockDir=/#LockDir=/' < cvsroot/CVSROOT/config > cvsroot/CVSROOT/config.new &&
+    mv -f cvsroot/CVSROOT/config.new cvsroot/CVSROOT/config
+    chmod 444 cvsroot/CVSROOT/config
     touch cvsroot.done
     rm -f export.done ||:
 }
@@ -39,7 +46,7 @@ committer nobody <> 1 +0000
 
 [ -f export.done -a export.done -nt ../cvs-fast-export ] || {
     find cvsroot/"$CVSMODULE" |
-	../cvs-fast-export -p -k $AUTHORS |
+	../cvs-fast-export -p $GITKFLAG $AUTHORS |
 	buffer -m 8m |
 	(	cd git
 	    git fast-import --force
@@ -63,19 +70,23 @@ do
 
     echo Checking out CVS
     if [ "$branch" = master ]
-    then cvs -Q co -d checkout -P $CVSMODULE
-    else cvs -Q co -d checkout -P -r $branch $CVSMODULE
+    then cvs -Q co -d checkout $CVSKFLAG -P $CVSMODULE
+    else cvs -Q co -d checkout $CVSKFLAG -P -r $branch $CVSMODULE
     fi
 
     echo Cleaning CVS
     find checkout \( -name .cvsignore -o -name CVS \) -exec rm -rf {} +	||:
     find checkout -depth -type d -exec rmdir {} + 2>/dev/null		||:
+    (cd checkout ; find * -type f ! -name .gitignore -printf '%m %p\n' > Attrs.txt)
 
     echo Checking out git
     (cd git ; git checkout $branch )
+    (cd git ; find * -type f ! -name .gitignore -printf '%m %p\n' > Attrs.txt)
 
     echo Compare
     diff -urd -x .gitignore -x .git checkout git > result.diff ||:
+
+    rm -f checkout/Attrs.txt git/Attrs.txt ||:
 
     if [ -s result.diff ]
     then echo FAILED: $branch
