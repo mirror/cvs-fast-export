@@ -50,6 +50,6 @@
 
 import testlifter
 
-cc = testlifter.ConvertComparison("t9605", "module")
+cc = testlifter.ConvertComparison(stem="t9605", module="module")
 cc.cmp_branch_tree("test of branch", "master", True)
 cc.cleanup()

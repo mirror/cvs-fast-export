@@ -21,7 +21,7 @@ Rev  2 2005-02-01 00:00:00 +0000
 Rev  1 2005-01-01 00:00:00 +0000
 """
 
-cc = testlifter.ConvertComparison("t9604", "module")
+cc = testlifter.ConvertComparison(stem="t9604", module="module")
 cc.cmp_branch_tree("test of branch", "master", True)
 cc.command_returns("cd t9604.git >/dev/null; git log --format='%s %ai'", uncorrected)
 cc.cleanup()
@@ -55,7 +55,8 @@ Rev  1 2005-01-01 00:00:00 +0000 User One
 afp = open(tempfile.mktemp(), "w")
 afp.write(authormap)
 afp.flush()
-cc = testlifter.ConvertComparison("t9604", "module", options="-A %s" % afp.name)
+cc = testlifter.ConvertComparison(stem="t9604", module="module",
+                                  options="-A %s" % afp.name)
 cc.cmp_branch_tree("test of branch", "master", True)
 cc.command_returns("cd t9604.git >/dev/null; git log --format='%s %ai %an'", corrected)
 os.remove(afp.name)

@@ -261,7 +261,7 @@ class ConvertComparison:
         with directory_context(stem + ".git"):
             self.branches = [name for name in capture_or_die("git branch -l").split()]
             self.tags = [name for name in capture_or_die("git tag -l").split()]
-    def cmp_branch_tree(self, legend, tag, success_expected):
+    def cmp_branch_tree(self, legend, tag, success_expected=True):
         "Test to see if a tag checkout has the expected content."
         def recursive_file_gen(mydir, ignore):
             for root, dirs, files in os.walk(mydir):

@@ -72,7 +72,7 @@ correctly along tags and branches.  Here is its history:
 
 import testlifter
 
-cc = testlifter.ConvertComparison("t9602", "module")
+cc = testlifter.ConvertComparison(stem="t9602", module="module")
 cc.cmp_branch_tree("test of branch", "master", True)
 cc.cmp_branch_tree("test of branch", "vendorbranch", True)
 cc.cmp_branch_tree("test of branch", "B_FROM_INITIALS", True)
