@@ -2,6 +2,7 @@
 
 Repository head:
     Simplify and fully document -k; it now requires an argument.
+    In normal (non-promiscuous) mode, paths containing CVSROOT are ignored.
 
 1.24: 2014-10-30
     Bugfix release: a late change to I/O buffering in 1.23 was faulty.
