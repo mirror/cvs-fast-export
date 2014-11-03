@@ -119,6 +119,8 @@ class RCSRepository:
         self.stream(module, gitdir, streamfile, more_opts)
         do_or_die("rm -fr {0} && mkdir {0} && git init --quiet {0}".format(gitdir))
         do_or_die('cat {2} | (cd {1} >/dev/null; git fast-import --quiet --done && git checkout)'.format(self.directory, gitdir, streamfile))
+        if not self.retain:
+            os.remove(streamfile)
         self.conversions.append(gitdir)
     def cleanup(self):
         "Clean up the repository conversions."
