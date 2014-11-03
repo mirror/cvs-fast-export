@@ -58,6 +58,8 @@ CPPFLAGS+=-Drestrict=__restrict__
 # CFLAGS += -pg
 CFLAGS += -O3
 # CFLAGS += -g
+# Test coverage flags
+# CFLAGS += -ftest-coverage -fprofile-arcs
 CFLAGS += $(EXTRA_CFLAGS)
 
 #YFLAGS= --report=all
@@ -102,6 +104,7 @@ clean:
 	rm -f cvs-fast-export.1 cvs-fast-export.html gram.output
 	rm -f cvssync.1 cvssync.html PROFILE gmon.out
 	rm -f MANIFEST index.html *.tar.gz docbook-xsl.css
+	rm -f *.gcno *.gcda
 
 check: cvs-fast-export
 	@[ -d tests ] || mkdir tests
