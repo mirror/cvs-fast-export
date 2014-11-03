@@ -109,12 +109,9 @@ class RCSRepository:
             if self.conversions:
                 os.system("rm -fr " % " ".join(conversions))
 
-class CVSRepository:
+class CVSRepository(RCSRepository):
     def __init__(self, name):
-        self.name = name
-        self.retain = ("-n" in sys.argv[1:])
-        global verbose
-        verbose += sys.argv[1:].count("-v")
+        RCSRepository.__init__(self, name)
         self.directory = os.path.join(os.getcwd(), self.name)
         self.checkouts = []
         self.conversions = []
@@ -140,19 +137,12 @@ class CVSRepository:
         "Create a checkout of this repo."
         self.checkouts.append(CVSCheckout(self, module, checkout))
         return self.checkouts[-1]
-    def convert(self, module, gitdir, more_opts=''):
-        "Convert a specified module.  Leave the stream dump in a log file."
-        vopt = "-v " * (verbose - DEBUG_LIFTER + 1)
-        do_or_die("rm -fr {0} && mkdir {0} && git init --quiet {0}".format(gitdir))
-        do_or_die('find {0}/{1} -name "*,v" | sort | cvs-fast-export {3} {4} | tee {2}.fi | (cd {2} >/dev/null; git fast-import --quiet --done && git checkout)'.format(self.directory, module, gitdir, vopt, more_opts))
-        self.conversions.append(gitdir)
     def cleanup(self):
         "Clean up the repository checkout directories."
         if not self.retain:
+            RCSRepository.self.cleanup()
             for checkout in self.checkouts:
                 checkout.cleanup()
-            if self.conversions:
-                os.system("rm -fr " % " ".join(conversions))
 
 class CVSCheckout:
     def __init__(self, repo, module, checkout=None):
