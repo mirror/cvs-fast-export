@@ -378,10 +378,12 @@ void analyze_masters(int argc, char *argv[],
      * CVS branch heads (rev_refs), each one of which points at a list
      * of CVS commit structures (cvs_commit).
      */
+#ifdef THREADS
     if (threads > 1)
 	snprintf(name, sizeof(name), 
 		 "Analyzing masters with %d threads...", threads);
     else
+#endif /* THREADS */
 	strcpy(name, "Analyzing masters...");
     progress_begin(name, total_files);
 #ifdef THREADS
