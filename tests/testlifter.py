@@ -97,11 +97,15 @@ class RCSRepository:
     def checkin(self, filename, message):
         "Check in changes to the specified file."
         self.do("ci", "-m'%s' %s" % (message, filename))
+    def stream(self, module, gitdir, outfile, more_opts=''):
+        vopt = "-v " * (verbose - DEBUG_LIFTER + 1)
+        do_or_die('find -H {0} -name "*,v" | cvs-fast-export {1} {2} >{3}'.format(self.directory, vopt, more_opts, outfile))
     def convert(self, module, gitdir, more_opts=''):
         "Convert the repo.  Leave the stream dump in a log file."
-        vopt = "-v " * (verbose - DEBUG_LIFTER + 1)
+        streamfile = "%s.git.fi" % module
+        self.stream(module, gitdir, streamfile, more_opts)
         do_or_die("rm -fr {0} && mkdir {0} && git init --quiet {0}".format(gitdir))
-        do_or_die('find -H {0} -name "*,v" | sort | cvs-fast-export {2} {3} | tee {1}.fi | (cd {1} >/dev/null; git fast-import --quiet --done && git checkout)'.format(self.directory, gitdir, vopt, more_opts))
+        do_or_die('cat {2} | (cd {1} >/dev/null; git fast-import --quiet --done && git checkout)'.format(self.directory, gitdir, streamfile))
         self.conversions.append(gitdir)
     def cleanup(self):
         "Clean up the repository conversions."
