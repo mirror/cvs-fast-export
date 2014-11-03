@@ -101,7 +101,7 @@ class RCSRepository:
         "Convert the repo.  Leave the stream dump in a log file."
         vopt = "-v " * (verbose - DEBUG_LIFTER + 1)
         do_or_die("rm -fr {0} && mkdir {0} && git init --quiet {0}".format(gitdir))
-        do_or_die('find {0} -name "*,v" | sort | cvs-fast-export {2} {3} | tee {1}.fi | (cd {1} >/dev/null; git fast-import --quiet --done && git checkout)'.format(self.directory, gitdir, vopt, more_opts))
+        do_or_die('find -H {0} -name "*,v" | sort | cvs-fast-export {2} {3} | tee {1}.fi | (cd {1} >/dev/null; git fast-import --quiet --done && git checkout)'.format(self.directory, gitdir, vopt, more_opts))
         self.conversions.append(gitdir)
     def cleanup(self):
         "Clean up the repository conversions."
@@ -157,13 +157,23 @@ class CVSRepository:
 class CVSCheckout:
     def __init__(self, repo, module, checkout=None):
         self.repo = repo
-        self.module = module
+        self.module = module or "module"
         self.checkout = checkout or module
+        # Hack to get around repositories that don't have a CVSROOT & module
+        self.proxied = False
+        if not os.path.exists(self.repo.directory + os.sep + "CVSROOT"):
+            proxy = self.repo.name + "-proxy"
+            os.mkdir(proxy)
+            os.symlink(self.repo.directory, proxy + os.sep + self.module)
+            os.mkdir(proxy + os.sep + "CVSROOT")
+            self.repo.name += "-proxy"
+            self.repo.directory += "-proxy"
+            self.proxied = True
         self.repo.do("co", self.module)
         if checkout:
             if os.path.exists(checkout):
                 shutil.rmtree(checkout)
-            os.rename(module, checkout)
+            os.rename(self.module, checkout)
         self.directory = os.path.join(os.getcwd(), self.checkout)
     def do(self, cmd, *args):
         "Execute a command in the checkout directory."
@@ -226,6 +236,10 @@ class CVSCheckout:
         self.do("up", "-kk", "-r", rev) 
     def cleanup(self):
         "Clean up the checkout directory."
+        if self.proxied:
+            shutil.rmtree(self.repo.directory + os.sep + "CVSROOT")
+            os.unlink(self.repo.directory + os.sep + module)
+            os.rmdir(self.repo.directory)
         shutil.rmtree(self.directory)
 
 def expect_same(a, b):
