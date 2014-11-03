@@ -1,6 +1,12 @@
+#!/usr/bin/env python
 """
-Test framework for cvs-fast-export.
+cvscompare - check a CVS repo against its conversion
+
+Check the tree content of a gitspace conversion against the CVS.
 """
+# This is the testlifter.py code from the distribution directory.
+# Modify it there, not here
+
 import sys, os, shutil, subprocess, time, filecmp
 
 DEBUG_STEPS    = 1
@@ -101,7 +107,7 @@ class RCSRepository:
         "Convert the repo.  Leave the stream dump in a log file."
         vopt = "-v " * (verbose - DEBUG_LIFTER + 1)
         do_or_die("rm -fr {0} && mkdir {0} && git init --quiet {0}".format(gitdir))
-        do_or_die('find -H {0} -name "*,v" | sort | cvs-fast-export {2} {3} | tee {1}.fi | (cd {1} >/dev/null; git fast-import --quiet --done && git checkout)'.format(self.directory, gitdir, vopt, more_opts))
+        do_or_die('find {0} -name "*,v" | sort | cvs-fast-export {2} {3} | tee {1}.fi | (cd {1} >/dev/null; git fast-import --quiet --done && git checkout)'.format(self.directory, gitdir, vopt, more_opts))
         self.conversions.append(gitdir)
     def cleanup(self):
         "Clean up the repository conversions."
@@ -144,7 +150,7 @@ class CVSRepository:
         "Convert a specified module.  Leave the stream dump in a log file."
         vopt = "-v " * (verbose - DEBUG_LIFTER + 1)
         do_or_die("rm -fr {0} && mkdir {0} && git init --quiet {0}".format(gitdir))
-        do_or_die('find {0}/{1} -name "*,v" | sort | cvs-fast-export {3} {4} | tee {2}.fi | (cd {2} >/dev/null; git fast-import --quiet --done && git checkout)'.format(self.directory, module, gitdir, vopt, more_opts))
+        do_or_die('find -H {0}/{1} -name "*,v" | sort | cvs-fast-export {3} {4} | tee {2}.fi | (cd {2} >/dev/null; git fast-import --quiet --done && git checkout)'.format(self.directory, module, gitdir, vopt, more_opts))
         self.conversions.append(gitdir)
     def cleanup(self):
         "Clean up the repository checkout directories."
@@ -157,7 +163,7 @@ class CVSRepository:
 class CVSCheckout:
     def __init__(self, repo, module, checkout=None):
         self.repo = repo
-        self.module = module or "module"
+        self.module = module if module else "module"
         self.checkout = checkout or module
         # Hack to get around repositories that don't have a CVSROOT & module
         self.proxied = False
@@ -336,3 +342,36 @@ class ConvertComparison:
         os.system("rm -fr {0}.git".format(self.stem))
 
 # End.
+
+# Copy of testlifter.py ends here
+
+if __name__ == '__main__':
+    import getopt
+    (opts, arguments) = getopt.getopt(sys.argv[1:], "nv")
+    noexec = True
+    for (opt, arg) in opts:
+        if opt == '-n':
+            noexec = True
+        elif opt == '-v':
+            verbose += 1
+
+    if not arguments:
+        sys.stderr.write("cvscompare: requires a repo/module argument.\n")
+        sys.exit(1)
+    elif "/" in arguments[0]:
+        (repo, module) = arguments[0].split('/')
+    elif not os.path.isdir(arguments[0] + os.sep + "CVSROOT"):
+        (repo, module) = (arguments[0], None)
+    else:
+        sys.stderr.write("cvscompare: location not parseable\n")
+        sys.exit(1)
+
+    cc = ConvertComparison(stem=repo, repo=repo, module=module,
+                           checkout=repo+".checkout")
+    if verbose == 0:
+        verbose = 1
+    cc.cmp_branch_tree("test of branch", "master")
+    cc.cleanup()
+    os.remove("%s.git.fi" % repo)
+
+# end
