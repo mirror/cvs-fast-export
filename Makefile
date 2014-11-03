@@ -95,15 +95,14 @@ lex.o: lex.c gram.h
 	a2x --doctype manpage --format xhtml -D . $<
 	rm -f docbook-xsl.css
 
-man: cvssync.1 cvs-fast-export.1
+man: cvs-fast-export.1 cvssync.1 cvscompare.1
 
-html: cvssync.1 cvs-fast-export.1
+html: cvs-fast-export.html cvssync.html cvscompare.html reporting-bugs.html
 
 clean:
-	rm -f $(OBJS) gram.h gram.c lex.h lex.c cvs-fast-export docbook-xsl.css
-	rm -f cvs-fast-export.1 cvs-fast-export.html gram.output
-	rm -f cvssync.1 cvssync.html PROFILE gmon.out
-	rm -f MANIFEST index.html *.tar.gz docbook-xsl.css
+	rm -f $(OBJS) gram.h gram.c lex.h lex.c cvs-fast-export
+	rm -f *.1 *.html docbook-xsl.css gram.output gmon.out
+	rm -f MANIFEST index.html *.tar.gz
 	rm -f *.gcno *.gcda
 
 check: cvs-fast-export
@@ -139,15 +138,15 @@ PYLINTOPTS = --rcfile=/dev/null --reports=n \
 	--dummy-variables-rgx='^_'
 PYSUPPRESSIONS = --disable="C0103,C0301,C0325,R0912,W0142"
 pylint:
-	@pylint $(PYLINTOPTS) $(PYSUPPRESSIONS) cvssync cvsreduce
+	@pylint $(PYLINTOPTS) $(PYSUPPRESSIONS) cvssync cvscompare cvsreduce
 
-SOURCES = Makefile *.[ch] *.[yl] cvssync
-DOCS = README COPYING NEWS AUTHORS TODO control cvs-fast-export.asc cvssync.asc hacking.asc
+SOURCES = Makefile *.[ch] *.[yl] cvssync cvscompare cvsreduce
+DOCS = README COPYING NEWS AUTHORS TODO control *.asc
 ALL =  $(SOURCES) $(DOCS) tests
 cvs-fast-export-$(VERSION).tar.gz: $(ALL)
 	tar --transform='s:^:cvs-fast-export-$(VERSION)/:' --show-transformed-names -cvzf cvs-fast-export-$(VERSION).tar.gz $(ALL)
 
 dist: cvs-fast-export-$(VERSION).tar.gz
 
-release: cvs-fast-export-$(VERSION).tar.gz cvs-fast-export.html cvssync.html
+release: cvs-fast-export-$(VERSION).tar.gz html
 	shipper version=$(VERSION) | sh -e -x

@@ -370,12 +370,10 @@ class ConvertComparison:
 
 if __name__ == '__main__':
     import getopt
-    (opts, arguments) = getopt.getopt(sys.argv[1:], "nv")
+    (opts, arguments) = getopt.getopt(sys.argv[1:], "v")
     noexec = True
     for (opt, arg) in opts:
-        if opt == '-n':
-            noexec = True
-        elif opt == '-v':
+        if opt == '-v':
             verbose += 1
 
     if not arguments:
