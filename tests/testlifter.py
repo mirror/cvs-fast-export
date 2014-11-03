@@ -274,7 +274,7 @@ class ConvertComparison:
                                            checkout if checkout else stem + ".checkout")
         self.repo.convert("module", stem + ".git", more_opts=options)
         with directory_context(stem + ".git"):
-            self.branches = [name for name in capture_or_die("git branch -l").split()]
+            self.branches = [name for name in capture_or_die("git branch -l").split() if name != '*']
             self.tags = [name for name in capture_or_die("git tag -l").split()]
     def cmp_branch_tree(self, legend, tag, success_expected=True):
         "Test to see if a tag checkout has the expected content."
