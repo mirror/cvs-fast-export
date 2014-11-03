@@ -99,7 +99,8 @@ class RCSRepository:
         self.do("ci", "-m'%s' %s" % (message, filename))
     def stream(self, module, gitdir, outfile, more_opts=''):
         vopt = "-v " * (verbose - DEBUG_LIFTER + 1)
-        do_or_die('find -H {0} -name "*,v" | cvs-fast-export {1} {2} >{3}'.format(self.directory, vopt, more_opts, outfile))
+        # The -L is necessary to handle proxied directories. 
+        do_or_die('find -L {0} -name "*,v" | cvs-fast-export {1} {2} >{3}'.format(self.directory, vopt, more_opts, outfile))
     def convert(self, module, gitdir, more_opts=''):
         "Convert the repo.  Leave the stream dump in a log file."
         streamfile = "%s.git.fi" % module
@@ -320,6 +321,12 @@ class ConvertComparison:
             if not success_expected and verbose >= DEBUG_STEPS:
                 sys.stderr.write(preamble + "trees diverged as expected\n")
         return success
+    def checkall(self):
+        "Check all named references - branches and tags - expecting matches."
+        for branch in cc.branches:
+            cc.cmp_branch_tree("test of branch", branch)
+        for tag in cc.tags:
+            cc.cmp_branch_tree("test of tag", tag)
     def command_returns(self, cmd, expected):
         seen = capture_or_die(cmd)
         succeeded = (seen.strip() == expected.strip())

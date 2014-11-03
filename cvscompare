@@ -10,6 +10,9 @@ Will produce spurious errors idf any CVS ranch name had to be sanitized.
 # This is the testlifter.py code from the distribution directory.
 # Modify it there, not here
 
+"""
+Test framework for cvs-fast-export.
+"""
 import sys, os, shutil, subprocess, time, filecmp
 
 DEBUG_STEPS    = 1
@@ -75,7 +78,7 @@ class RCSRepository:
         global verbose
         verbose += sys.argv[1:].count("-v")
         # For convenience, emulate the module structure of a CVS repository
-        self.directory = os.path.join(os.getcwd(), self.name + ".repo", "module")
+        self.directory = os.path.join(os.getcwd(), self.name, "module")
         self.conversions = []
     def do(self, cmd, *args):
         "Execute a RCS command in context of this repo."
@@ -106,11 +109,16 @@ class RCSRepository:
     def checkin(self, filename, message):
         "Check in changes to the specified file."
         self.do("ci", "-m'%s' %s" % (message, filename))
+    def stream(self, module, gitdir, outfile, more_opts=''):
+        vopt = "-v " * (verbose - DEBUG_LIFTER + 1)
+        # The -L is necessary to handle proxied directories. 
+        do_or_die('find -L {0} -name "*,v" | cvs-fast-export {1} {2} >{3}'.format(self.directory, vopt, more_opts, outfile))
     def convert(self, module, gitdir, more_opts=''):
         "Convert the repo.  Leave the stream dump in a log file."
-        vopt = "-v " * (verbose - DEBUG_LIFTER + 1)
+        streamfile = "%s.git.fi" % module
+        self.stream(module, gitdir, streamfile, more_opts)
         do_or_die("rm -fr {0} && mkdir {0} && git init --quiet {0}".format(gitdir))
-        do_or_die('find {0} -name "*,v" | sort | cvs-fast-export {2} {3} | tee {1}.fi | (cd {1} >/dev/null; git fast-import --quiet --done && git checkout)'.format(self.directory, gitdir, vopt, more_opts))
+        do_or_die('cat {2} | (cd {1} >/dev/null; git fast-import --quiet --done && git checkout)'.format(self.directory, gitdir, streamfile))
         self.conversions.append(gitdir)
     def cleanup(self):
         "Clean up the repository conversions."
@@ -118,12 +126,9 @@ class RCSRepository:
             if self.conversions:
                 os.system("rm -fr " % " ".join(conversions))
 
-class CVSRepository:
+class CVSRepository(RCSRepository):
     def __init__(self, name):
-        self.name = name
-        self.retain = ("-n" in sys.argv[1:])
-        global verbose
-        verbose += sys.argv[1:].count("-v")
+        RCSRepository.__init__(self, name)
         self.directory = os.path.join(os.getcwd(), self.name)
         self.checkouts = []
         self.conversions = []
@@ -137,7 +142,7 @@ class CVSRepository:
                                              self.directory,
                                              " ".join(cmd)))
     def init(self):
-        do_or_die("rm -fr {0}; mkdir {0}".format(self.name))
+        RCSRepository.init(self)
         self.do("init")
     def module(self, mname):
         "Create an empty module with a specified name."
@@ -149,24 +154,17 @@ class CVSRepository:
         "Create a checkout of this repo."
         self.checkouts.append(CVSCheckout(self, module, checkout))
         return self.checkouts[-1]
-    def convert(self, module, gitdir, more_opts=''):
-        "Convert a specified module.  Leave the stream dump in a log file."
-        vopt = "-v " * (verbose - DEBUG_LIFTER + 1)
-        do_or_die("rm -fr {0} && mkdir {0} && git init --quiet {0}".format(gitdir))
-        do_or_die('find -H {0}/{1} -name "*,v" | sort | cvs-fast-export {3} {4} | tee {2}.fi | (cd {2} >/dev/null; git fast-import --quiet --done && git checkout)'.format(self.directory, module, gitdir, vopt, more_opts))
-        self.conversions.append(gitdir)
     def cleanup(self):
         "Clean up the repository checkout directories."
         if not self.retain:
+            RCSRepository.self.cleanup()
             for checkout in self.checkouts:
                 checkout.cleanup()
-            if self.conversions:
-                os.system("rm -fr " % " ".join(conversions))
 
 class CVSCheckout:
     def __init__(self, repo, module, checkout=None):
         self.repo = repo
-        self.module = module if module else "module"
+        self.module = module or "module"
         self.checkout = checkout or module
         # Hack to get around repositories that don't have a CVSROOT & module
         self.proxied = False
@@ -335,6 +333,12 @@ class ConvertComparison:
             if not success_expected and verbose >= DEBUG_STEPS:
                 sys.stderr.write(preamble + "trees diverged as expected\n")
         return success
+    def checkall(self):
+        "Check all named references - branches and tags - expecting matches."
+        for branch in cc.branches:
+            cc.cmp_branch_tree("test of branch", branch)
+        for tag in cc.tags:
+            cc.cmp_branch_tree("test of tag", tag)
     def command_returns(self, cmd, expected):
         seen = capture_or_die(cmd)
         succeeded = (seen.strip() == expected.strip())
@@ -373,11 +377,7 @@ if __name__ == '__main__':
                            checkout=repo+".checkout")
     if verbose == 0:
         verbose = 1
-    for branch in cc.branches:
-        cc.cmp_branch_tree("test of branch", branch)
-    for tag in cc.tags:
-        cc.cmp_branch_tree("test of tag", tag)
+    cc.checkall()
     cc.cleanup()
-    os.remove("%s.git.fi" % repo)
 
 # end
