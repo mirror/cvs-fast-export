@@ -25,8 +25,8 @@ LIBS=-lrt
 CPPFLAGS += -DVERSION=\"$(VERSION)\"
 
 # Enable this for multithreading.
-CFLAGS += -pthread
-CPPFLAGS += -DTHREADS
+#CFLAGS += -pthread
+#CPPFLAGS += -DTHREADS
 
 # Optimizing for speed. Comment this out for distribution builds
 CFLAGS += -march=native
@@ -56,8 +56,8 @@ CPPFLAGS+=-Drestrict=__restrict__
 # To enable profiling, uncomment the following line
 # Note: the profiler gets confused if you don't also turn off -O flags.
 # CFLAGS += -pg
-CFLAGS += -O3
-# CFLAGS += -g
+# CFLAGS += -O3
+CFLAGS += -g
 # Test coverage flags
 # CFLAGS += -ftest-coverage -fprofile-arcs
 CFLAGS += $(EXTRA_CFLAGS)

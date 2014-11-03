@@ -100,7 +100,7 @@ class RCSRepository:
     def stream(self, module, gitdir, outfile, more_opts=''):
         vopt = "-v " * (verbose - DEBUG_LIFTER + 1)
         # The -L is necessary to handle proxied directories. 
-        do_or_die('find -L {0} -name "*,v" | cvs-fast-export {1} {2} >{3}'.format(self.directory, vopt, more_opts, outfile))
+        do_or_die('find -L {0} -name "*,v" | cvs-fast-export -k k {1} {2} >{3}'.format(self.directory, vopt, more_opts, outfile))
     def convert(self, module, gitdir, more_opts=''):
         "Convert the repo.  Leave the stream dump in a log file."
         streamfile = "%s.git.fi" % module
@@ -108,6 +108,8 @@ class RCSRepository:
         do_or_die("rm -fr {0} && mkdir {0} && git init --quiet {0}".format(gitdir))
         do_or_die('cat {2} | (cd {1} >/dev/null; git fast-import --quiet --done && git checkout)'.format(self.directory, gitdir, streamfile))
         self.conversions.append(gitdir)
+        if not self.retain:
+            os.remove(streamfile)
     def cleanup(self):
         "Clean up the repository conversions."
         if not self.retain:
