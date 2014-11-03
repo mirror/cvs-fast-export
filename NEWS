@@ -1,5 +1,8 @@
 		cvs-fast-export project news
 
+Repository head:
+    Simplify and fully document -k; it now requires an argument.
+
 1.24: 2014-10-30
     Bugfix release: a late change to I/O buffering in 1.23 was faulty.
 

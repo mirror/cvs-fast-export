@@ -235,7 +235,7 @@ main(int argc, char **argv)
             { "embed-id",           0, 0, 'E' },
 	    { "sizes",              0, 0, 'S' },	/* undocumented */
 	};
-	int c = getopt_long(argc, argv, "+hVw:l:grvaA:R:Tke:s:pPi:t:CFSE", options, NULL);
+	int c = getopt_long(argc, argv, "+hVw:l:grvaA:R:Tk:e:s:pPi:t:CFSE", options, NULL);
 	if (c < 0)
 	    break;
 	switch(c) {
@@ -245,7 +245,7 @@ main(int argc, char **argv)
                    "Mandatory arguments to long options are mandatory for short options too.\n"
                    " -h --help                       This help\n"
 		   " -g --graph                      Dump the commit graph\n"
-		   " -k                              Enable keyword expansion\n"
+		   " -k --expand                     Enable keyword expansion\n"
                    " -V --version                    Print version\n"
                    " -w --commit-time-window=WINDOW  Time window for commits(seconds)\n"
 		   " -a --authorlist                 Report committer IDs from repository\n"
@@ -271,10 +271,7 @@ main(int argc, char **argv)
 	    import_options.promiscuous = true;
 	    break;
         case 'k':
-	    if (optarg == NULL)
-		export_options.id_token_expand = EXPANDKKV;
-	    else
-		export_options.id_token_expand = expand_override(optarg);
+	    export_options.id_token_expand = expand_override(optarg);
 	    break;
 	case 'v':
 	    import_options.verbose++;
