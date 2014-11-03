@@ -66,7 +66,7 @@ class RCSRepository:
         global verbose
         verbose += sys.argv[1:].count("-v")
         # For convenience, emulate the module structure of a CVS repository
-        self.directory = os.path.join(os.getcwd(), self.name + ".repo", "module")
+        self.directory = os.path.join(os.getcwd(), self.name, "module")
         self.conversions = []
     def do(self, cmd, *args):
         "Execute a RCS command in context of this repo."
@@ -129,7 +129,7 @@ class CVSRepository(RCSRepository):
                                              self.directory,
                                              " ".join(cmd)))
     def init(self):
-        do_or_die("rm -fr {0}; mkdir {0}".format(self.name))
+        RCSRepository.init(self)
         self.do("init")
     def module(self, mname):
         "Create an empty module with a specified name."

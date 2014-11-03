@@ -3,7 +3,7 @@
 
 import testlifter, time
 
-repo = testlifter.RCSRepository("twotag")
+repo = testlifter.RCSRepository("twotag.repo")
 repo.init()
 
 repo.add("tweedledum")
