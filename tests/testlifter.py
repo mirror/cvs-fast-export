@@ -150,6 +150,7 @@ class CVSRepository(RCSRepository):
                 checkout.cleanup()
 
 class CVSCheckout:
+    PROXYSUFFIX = "-proxy"
     def __init__(self, repo, module, checkout=None):
         self.repo = repo
         self.module = module or "module"
@@ -157,12 +158,16 @@ class CVSCheckout:
         # Hack to get around repositories that don't have a CVSROOT & module
         self.proxied = False
         if not os.path.exists(self.repo.directory + os.sep + "CVSROOT"):
-            proxy = self.repo.name + "-proxy"
+            proxy = self.repo.name + CVSCheckout.PROXYSUFFIX
+            try:
+                shutil.rmtree(proxy)
+            except OSError:
+                pass
             os.mkdir(proxy)
             os.symlink(self.repo.directory, proxy + os.sep + self.module)
             os.mkdir(proxy + os.sep + "CVSROOT")
-            self.repo.name += "-proxy"
-            self.repo.directory += "-proxy"
+            self.repo.name += CVSCheckout.PROXYSUFFIX
+            self.repo.directory += CVSCheckout.PROXYSUFFIX
             self.proxied = True
         self.repo.do("co", self.module)
         if checkout:
@@ -261,12 +266,13 @@ def expect_different(a, b):
 
 class ConvertComparison:
     "Compare a CVS repository and its conversion for equality."
-    def __init__(self, stem, repo=None, checkout=None, module=None, options=""):
+    def __init__(self, stem, repo=None, checkout=None, module=None, options="", showdiffs=False):
         self.stem = stem
-        self.module = module if module else stem
         self.repo = CVSRepository(repo if repo else stem + ".testrepo")
         self.checkout = self.repo.checkout(module,
                                            checkout if checkout else stem + ".checkout")
+        self.module = module or stem
+        self.showdiffs = showdiffs
         self.repo.convert("module", stem + ".git", more_opts=options)
         with directory_context(stem + ".git"):
             self.branches = [name for name in capture_or_die("git branch -l").split() if name != '*']
@@ -311,7 +317,8 @@ class ConvertComparison:
                     success = False
                     if success_expected:
                         sys.stderr.write("%s %s %s: %s and %s are different.\n" % (self.stem, legend, tag, a, b))
-                        #do_or_die("diff -u %s %s" % (a, b))
+                        if self.showdiffs:
+                            os.system("diff -u %s %s" % (a, b))
         if success:
             if not success_expected:
                 sys.stderr.write(preamble + "trees unexpectedly match\n")
