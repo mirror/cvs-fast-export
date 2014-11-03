@@ -311,6 +311,13 @@ class ConvertComparison:
         if cvsfiles != gitfiles:
             if success_expected:
                 sys.stderr.write(preamble + "file manifests don't match.\n")
+                if self.showdiffs:
+                    sys.stderr.write(preamble + "common: %d\n" %
+                                     len([f for f in gitfiles if f in cvsfiles]))
+                    sys.stderr.write(preamble + "gitspace only: %s\n" %
+                                     {f for f in gitfiles if not f in cvsfiles})
+                    sys.stderr.write(preamble + "CVS only: %s\n" %
+                                     {f for f in cvsfiles if not f in gitfiles})
             return False
         else:
             success = True

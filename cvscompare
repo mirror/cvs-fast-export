@@ -323,6 +323,13 @@ class ConvertComparison:
         if cvsfiles != gitfiles:
             if success_expected:
                 sys.stderr.write(preamble + "file manifests don't match.\n")
+                if self.showdiffs:
+                    sys.stderr.write(preamble + "common: %d\n" %
+                                     len([f for f in gitfiles if f in cvsfiles]))
+                    sys.stderr.write(preamble + "gitspace only: %s\n" %
+                                     {f for f in gitfiles if not f in cvsfiles})
+                    sys.stderr.write(preamble + "CVS only: %s\n" %
+                                     {f for f in cvsfiles if not f in gitfiles})
             return False
         else:
             success = True
@@ -383,7 +390,7 @@ if __name__ == '__main__':
         sys.exit(1)
 
     cc = ConvertComparison(stem=repo, repo=repo, module=module,
-                           checkout=repo+".checkout")
+                           checkout=repo+".checkout", showdiffs= True)
     if verbose == 0:
         verbose = 1
     cc.checkall()
