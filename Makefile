@@ -95,9 +95,12 @@ lex.o: lex.c gram.h
 	a2x --doctype manpage --format xhtml -D . $<
 	rm -f docbook-xsl.css
 
+reporting-bugs.html: reporting-bugs.asc
+	asciidoc reporting-bugs.asc
+
 man: cvs-fast-export.1 cvssync.1 cvscompare.1
 
-html: cvs-fast-export.html cvssync.html cvscompare.html reporting-bugs.html
+html: cvs-fast-export.html cvssync.html cvscompare.html 
 
 clean:
 	rm -f $(OBJS) gram.h gram.c lex.h lex.c cvs-fast-export
