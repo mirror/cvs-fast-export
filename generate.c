@@ -803,7 +803,7 @@ static void process_delta(editbuffer_t *eb,
     eb->Glog = node->patch->log;
     in_buffer_init(eb, Gnode_text(eb), 1);
     eb->Gversion = node->version;
-    cvs_number_string(&eb->Gversion->number, eb->Gversion_number, sizeof(eb->Gversion_number));
+    cvs_number_string(eb->Gversion->number, eb->Gversion_number, sizeof(eb->Gversion_number));
 
     switch(func) {
     case ENTER:

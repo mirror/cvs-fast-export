@@ -105,9 +105,9 @@ headers		: header headers
 		|
 		;
 header		: HEAD opt_number SEMI
-		  { cvsfile->head = $2; }
+		  { cvsfile->head = atom_cvs_number($2); }
 		| BRANCH NUMBER SEMI
-		  { cvsfile->branch = $2; }
+		  { cvsfile->branch = atom_cvs_number($2); }
 		| ACCESS SEMI
 		| symbollist
 		  { cvsfile->symbols = $1; }
@@ -139,7 +139,7 @@ symbol		: name COLON NUMBER
 		  {
 		  	$$ = xcalloc (1, sizeof (cvs_symbol), "making symbol");
 			$$->symbol_name = $1;
-			$$->number = $3;
+			$$->number = atom_cvs_number($3);
 		  }
 		;
 fscked_symbol	: name COLON BRAINDAMAGED_NUMBER
@@ -177,13 +177,13 @@ revision	: NUMBER date author state branches next revtrailer
 		  {
 		    $$ = xcalloc (1, sizeof (cvs_version),
 				    "gram.y::revision");
-		    $$->number = $1;
+		    $$->number = atom_cvs_number($1);
 		    $$->date = $2;
 		    $$->author = $3;
 		    $$->state = $4;
 		    $$->dead = !strcmp ($4, "dead");
 		    $$->branches = $5;
-		    $$->parent = $6;
+		    $$->parent = atom_cvs_number($6);
 		    $$->commitid = $7;
 		    if ($$->commitid == NULL 
 			        && cvsfile->skew_vulnerable < $$->date)
@@ -211,7 +211,7 @@ numbers		: NUMBER numbers
 			$$ = xcalloc (1, sizeof (cvs_branch),
 				    "gram.y::numbers");
 			$$->next = $2;
-			$$->number = $1;
+			$$->number = atom_cvs_number($1);
 			hash_branch(&cvsfile->gen.nodehash, $$);
 		  }
 		|
@@ -238,7 +238,7 @@ patches		: patches patch
 		;
 patch		: NUMBER log text
 		  { $$ = xcalloc (1, sizeof (cvs_patch), "gram.y::patch");
-		    $$->number = $1;
+		    $$->number = atom_cvs_number($1);
 		    if (!strcmp($2, "Initial revision\n")) {
 			    /* description is available because the
 			     * desc production has already been reduced */
