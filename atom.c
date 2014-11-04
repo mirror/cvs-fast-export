@@ -21,7 +21,6 @@
 #ifdef THREADS
 #include <pthread.h>
 #endif /* THREADS */
-
 /*****************************************************************************
 
 From http://planetmath.org/goodhashtableprimes:
@@ -174,6 +173,57 @@ collision:
     return b->string;
 }
 
+typedef struct _number_bucket {
+    struct _number_bucket *next;
+    cvs_number number;
+} number_bucket_t;
+
+#define NUMBER_HASH_SIZE 6151
+
+static number_bucket_t  *number_buckets[NUMBER_HASH_SIZE];
+#ifdef THREADS
+static pthread_mutex_t number_bucket_mutex = PTHREAD_MUTEX_INITIALIZER;
+#endif /* THREADS */
+
+/*
+ * Intern a revision number
+ * netbsd-pkgsrc calls this 42,000,000 times for 22,000 distinct values
+ */
+const cvs_number *
+atom_cvs_number(const cvs_number n)
+{
+    unsigned int bucket = hash_cvs_number(n) % NUMBER_HASH_SIZE;
+    number_bucket_t **head = &number_buckets[bucket];
+    number_bucket_t *b;
+
+    while ((b = *head)) {
+    collision:
+	if (cvs_number_equal(&b->number, &n))
+	    return &b->number;
+	head = &(b->next);
+    }
+#ifdef THREADS
+    if (threads > 1)
+	pthread_mutex_lock(&number_bucket_mutex);
+#endif /* THREADS */
+    if ((b = *head)) {
+#ifdef THREADS
+	if (threads > 1)
+	    pthread_mutex_unlock(&number_bucket_mutex);
+#endif /* THREADS */
+	goto collision;
+    }
+
+    b = xmalloc(sizeof(number_bucket_t), __func__);
+    b->next = NULL;
+    memcpy(&b->number, &n, sizeof(cvs_number));
+    *head = b;
+#ifdef THREADS
+    if (threads > 1)
+	pthread_mutex_unlock(&number_bucket_mutex);
+#endif /* THREADS */
+    return &b->number;
+}
 void
 discard_atoms(void)
 /* empty all string buckets */

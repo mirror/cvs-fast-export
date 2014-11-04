@@ -348,7 +348,7 @@ static void dump_file(const cvs_commit *cvs_commit, FILE *fp)
 {
     char buf[CVS_MAX_REV_LEN + 1];
     fprintf(fp, "   file name: %s %s\n", cvs_commit->master->name, 
-	    cvs_number_string(&cvs_commit->number, buf, sizeof(buf)));
+	    cvs_number_string(cvs_commit->number, buf, sizeof(buf)));
  }
 
 static void dump_dir(const rev_dir *rev_dir, FILE *fp)
@@ -445,7 +445,7 @@ static void export_commit(git_commit *commit,
 		    char fr[BUFSIZ];
 		    int xtr = opts->embed_ids?10:2;
 		    stringify_revision(cc->master->name, 
-				  " ", &cc->number, fr, sizeof fr);
+				  " ", cc->number, fr, sizeof fr);
 		    if (strlen(revpairs) + strlen(fr) + xtr > revpairsize)
 		    {
 			revpairsize *= 2;

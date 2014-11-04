@@ -617,7 +617,7 @@ merge_branches(rev_ref **branches, int nbranch,
 		if (!revisions[present]->dead)
 		    dump_number_file(LOGFILE,
 				      revisions[present]->master->name,
-				      &revisions[present]->number);
+				      revisions[present]->number);
 		warn("\n");
 		/*
 		 * The file part of the error message could be spurious for
@@ -631,7 +631,7 @@ merge_branches(rev_ref **branches, int nbranch,
 		first = prev->dirs[0]->files[0];
 		dump_number_file(LOGFILE,
 				  first->master->name,
-				  &first->number);
+				  first->number);
 		fprintf(LOGFILE, "\n");
 	    }
 	} else if ((*tail = git_commit_locate_date(branch->parent,
@@ -793,7 +793,7 @@ merge_to_changesets(cvs_repo *masters, int verbose)
 	for (lh = master->heads; lh; lh = lh->next) {
 	    cvs_commit *commit = lh->commit;
 	    fputs("rev_ref: ", stderr);
-	    dump_number_file(stderr, lh->ref_name, &lh->number);
+	    dump_number_file(stderr, lh->ref_name, lh->number);
 	    fputc('\n', stderr);
 	    fprintf(stderr, "commit first file: %s\n", commit->master->name);
 	}

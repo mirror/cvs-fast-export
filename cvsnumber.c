@@ -22,6 +22,8 @@
 #define min(a,b) ((a) < (b) ? (a) : (b))
 #define max(a,b) ((a) > (b) ? (a) : (b))
 
+const cvs_number cvs_zero = {.c = 0};
+
 bool
 cvs_is_head(const cvs_number *n)
 /* is a specified CVS revision the magic name of a branch's sticky tag? */
@@ -71,6 +73,22 @@ cvs_same_branch(const cvs_number *a, const cvs_number *b)
 	    return false;
     }
     return true;
+}
+
+bool
+cvs_number_equal(const cvs_number *n1, const cvs_number *n2) {
+    /* can use memcmp as cvs_number isn't padded */
+    return 0 == memcmp(n1, n2, sizeof(short) * (n1->c + 1));
+    /*
+    if (n1->n != n2->n)
+	return false;
+
+    unsigned short i;
+    for (i = 0; i < n1->c; i++)
+	if (n1->n[i] != n2->n[i])
+	    return false;
+    return true;
+    */
 }
 
 int
@@ -167,7 +185,7 @@ cvs_number_string(const cvs_number *n, char *str, size_t maxlen)
 	    strcat(str, r);
 	else
 	    fatal_error("revision string too long");
-	
+
     }
     return str;
 }

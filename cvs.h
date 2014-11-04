@@ -92,6 +92,8 @@ typedef struct _cvs_number {
     short		n[CVS_MAX_DEPTH];
 } cvs_number;
 
+extern const cvs_number cvs_zero;
+
 struct _cvs_version;
 struct _cvs_patch;
 
@@ -104,7 +106,7 @@ typedef struct node {
     struct node *to;
     struct node *down;
     struct node *sib;
-    cvs_number number;
+    const cvs_number *number;
     flag starts;
 } node_t;
 
@@ -120,13 +122,13 @@ typedef struct _cvs_symbol {
     /* a CVS symbol-to-revision association */
     struct _cvs_symbol	*next;
     const char		*symbol_name;
-    cvs_number		number;
+    const cvs_number	*number;
 } cvs_symbol;
 
 typedef struct _cvs_branch {
     /* a CVS branch name */
     struct _cvs_branch	*next;
-    cvs_number		number;
+    const cvs_number	*number;
     node_t		*node;
 } cvs_branch;
 
@@ -138,9 +140,9 @@ typedef struct _cvs_version {
     const char		*restrict commitid;
     cvs_branch		*branches;
     node_t		*node;
-    cvs_number		number;
+    const cvs_number	*number;
     cvstime_t		date;
-    cvs_number		parent;	/* next in ,v file */
+    const cvs_number	*parent;	/* next in ,v file */
     flag		dead;
 } cvs_version;
 
@@ -154,7 +156,7 @@ typedef struct _cvs_text {
 typedef struct _cvs_patch {
     /* a CVS patch structure */
     struct _cvs_patch	*next;
-    cvs_number		number;
+    const cvs_number	*number;
     const char		*log;
     cvs_text		text;
     node_t		*node;
@@ -243,8 +245,8 @@ typedef struct {
 #endif /* REDBLACK */
     const char		*description;
     generator_t		gen;
-    cvs_number		head;
-    cvs_number		branch;
+    const cvs_number	*head;
+    const cvs_number	*branch;
     cvstime_t           skew_vulnerable;
     serial_t		nversions;
     mode_t		mode;
@@ -314,7 +316,7 @@ typedef struct _cvs_commit {
     /* CVS-only members begin here */
     bool                emitted:1;
     rev_master          *master;
-    cvs_number		number;
+    const cvs_number		*number;
 } cvs_commit;
 
 typedef struct _git_commit {
@@ -341,7 +343,7 @@ typedef struct _rev_ref {
     struct _rev_ref	*parent;	/* link into tree */
     cvs_commit		*commit;
     const char		*ref_name;
-    cvs_number		number;		/* not used in gitspace */
+    const cvs_number	*number;	/* not used in gitspace */
     unsigned		depth:7;	/* branch depth in tree (1 is trunk) */
     unsigned		degree:7;	/* # of digits in original CVS version */
     flag		shown:1;	/* only used in graph emission */
@@ -431,7 +433,7 @@ cvs_number
 lex_number(const char *);
 
 cvstime_t
-lex_date(cvs_number *n, void *, cvs_file *cvs);
+lex_date(const cvs_number *n, void *, cvs_file *cvs);
 
 cvs_master *
 cvs_master_digest(cvs_file *cvs);
@@ -509,6 +511,9 @@ cvs_is_head(const cvs_number *n);
 bool
 cvs_same_branch(const cvs_number *a, const cvs_number *b);
 
+bool
+cvs_number_equal(const cvs_number *n1, const cvs_number *n2);
+
 int
 cvs_number_compare(const cvs_number *a, const cvs_number *b);
 
@@ -578,6 +583,12 @@ dump_rev_graph(git_repo *rl, const char *title);
 
 const char *
 atom(const char *string);
+
+const cvs_number *
+atom_cvs_number(const cvs_number n);
+
+unsigned long
+hash_cvs_number(const cvs_number key);
 
 void
 discard_atoms(void);

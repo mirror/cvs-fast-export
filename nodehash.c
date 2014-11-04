@@ -62,7 +62,8 @@
 #define HASHMIX1(hash, new)	SDBM(hash, new)
 #define HASHMIX2(hash, new)	hash = ((hash << 10) + new)
 
-inline static unsigned int hash_bucket(const cvs_number key)
+unsigned long
+hash_cvs_number(const cvs_number key)
 {
     int i;
     unsigned long hashval;
@@ -70,10 +71,11 @@ inline static unsigned int hash_bucket(const cvs_number key)
     for (i = 0, hashval = 0; i < key.c - 1; i++)
 	HASHMIX1(hashval, key.n[i]);
     HASHMIX2(hashval, key.n[key.c - 1]);
-    return hashval % NODE_HASH_SIZE;
+    return hashval;
 }
 
-static node_t *hash_number(nodehash_t *context, const cvs_number *const n)
+static node_t *
+node_for_cvs_number(nodehash_t *context, const cvs_number *const n)
 /* look up the node associated with a specified CVS release number */
 {
     cvs_number key = *n;
@@ -82,16 +84,18 @@ static node_t *hash_number(nodehash_t *context, const cvs_number *const n)
     int i;
 
     if (key.c > 2 && !key.n[key.c - 2]) {
+	/* not found a repo that exercises this yet */
 	key.n[key.c - 2] = key.n[key.c - 1];
 	key.c--;
     }
     if (key.c & 1)
+	/* or this */
 	key.n[key.c] = 0;
-    hash = hash_bucket(key);
+    hash = hash_cvs_number(key) % NODE_HASH_SIZE;
     for (p = context->table[hash]; p; p = p->hash_next) {
-	if (p->number.c != key.c)
+	if (p->number->c != key.c)
 	    continue;
-	for (i = 0; i < key.c && p->number.n[i] == key.n[i]; i++)
+	for (i = 0; i < key.c && p->number->n[i] == key.n[i]; i++)
 	    ;
 	if (i == key.c)
 	    return p;
@@ -103,7 +107,7 @@ static node_t *hash_number(nodehash_t *context, const cvs_number *const n)
      * problem shows as difficult-to-interpret errors under valgrind.
      */
     p = xcalloc(1, sizeof(node_t), "hash number generation");
-    p->number = key;
+    p->number = atom_cvs_number(key);
     p->hash_next = context->table[hash];
     context->table[hash] = p;
     context->nentries++;
@@ -120,11 +124,11 @@ static node_t *find_parent(nodehash_t *context,
     int i;
 
     key.c -= depth;
-    hash = hash_bucket(key);
+    hash = hash_cvs_number(key) % NODE_HASH_SIZE;
     for (p = context->table[hash]; p; p = p->hash_next) {
-	if (p->number.c != key.c)
+	if (p->number->c != key.c)
 	    continue;
-	for (i = 0; i < key.c && p->number.n[i] == key.n[i]; i++)
+	for (i = 0; i < key.c && p->number->n[i] == key.n[i]; i++)
 	    ;
 	if (i == key.c)
 	    break;
@@ -135,43 +139,43 @@ static node_t *find_parent(nodehash_t *context,
 void hash_version(nodehash_t *context, cvs_version *v)
 /* intern a version onto the node list */
 {
-    v->node = hash_number(context, &v->number);
+    v->node = node_for_cvs_number(context, v->number);
     if (v->node->version) {
 	char name[CVS_MAX_REV_LEN];
 	announce("more than one delta with number %s\n",
-		 cvs_number_string(&v->node->number, name, sizeof(name)));
+		 cvs_number_string(v->node->number, name, sizeof(name)));
     } else {
 	v->node->version = v;
     }
-    if (v->node->number.c & 1) {
+    if (v->node->number->c & 1) {
 	char name[CVS_MAX_REV_LEN];
 	announce("revision with odd depth(%s)\n",
-		 cvs_number_string(&v->node->number, name, sizeof(name)));
+		 cvs_number_string(v->node->number, name, sizeof(name)));
     }
 }
 
 void hash_patch(nodehash_t *context, cvs_patch *p)
 /* intern a patch onto the node list */
 {
-    p->node = hash_number(context, &p->number);
+    p->node = node_for_cvs_number(context, p->number);
     if (p->node->patch) {
 	char name[CVS_MAX_REV_LEN];
 	announce("more than one delta with number %s\n",
-		 cvs_number_string(&p->node->number, name, sizeof(name)));
+		 cvs_number_string(p->node->number, name, sizeof(name)));
     } else {
 	p->node->patch = p;
     }
-    if (p->node->number.c & 1) {
+    if (p->node->number->c & 1) {
 	char name[CVS_MAX_REV_LEN];
 	announce("patch with odd depth(%s)\n",
-		 cvs_number_string(&p->node->number, name, sizeof(name)));
+		 cvs_number_string(p->node->number, name, sizeof(name)));
     }
 }
 
 void hash_branch(nodehash_t *context, cvs_branch *b)
 /* intern a branch onto the node list */
 {
-    b->node = hash_number(context, &b->number);
+    b->node = node_for_cvs_number(context, b->number);
 }
 
 void clean_hash(nodehash_t *context)
@@ -196,15 +200,15 @@ static int compare(const void *a, const void *b)
 {
     node_t *x = *(node_t * const *)a, *y = *(node_t * const *)b;
     int n, i;
-    n = x->number.c;
-    if (n < y->number.c)
+    n = x->number->c;
+    if (n < y->number->c)
 	return -1;
-    if (n > y->number.c)
+    if (n > y->number->c)
 	return 1;
     for (i = 0; i < n; i++) {
-	if (x->number.n[i] < y->number.n[i])
+	if (x->number->n[i] < y->number->n[i])
 	    return -1;
-	if (x->number.n[i] > y->number.n[i])
+	if (x->number->n[i] > y->number->n[i])
 	    return 1;
     }
     return 0;
@@ -212,9 +216,9 @@ static int compare(const void *a, const void *b)
 
 static void try_pair(nodehash_t *context, node_t *a, node_t *b)
 {
-    int n = a->number.c;
+    int n = a->number->c;
 
-    if (n == b->number.c) {
+    if (n == b->number->c) {
 	int i;
 	if (n == 2) {
 	    a->next = b;
@@ -222,7 +226,7 @@ static void try_pair(nodehash_t *context, node_t *a, node_t *b)
 	    return;
 	}
 	for (i = n - 2; i >= 0; i--)
-	    if (a->number.n[i] != b->number.n[i])
+	    if (a->number->n[i] != b->number->n[i])
 		break;
 	if (i < 0) {
 	    a->next = b;
@@ -232,10 +236,10 @@ static void try_pair(nodehash_t *context, node_t *a, node_t *b)
     } else if (n == 2) {
 	context->head_node = a;
     }
-    if ((b->number.c & 1) == 0) {
+    if ((b->number->c & 1) == 0) {
 	b->starts = true;
 	/* can the code below ever be needed? */
-	node_t *p = find_parent(context, &b->number, 1);
+	node_t *p = find_parent(context, b->number, 1);
 	if (p)
 	    p->next = b;
     }
@@ -251,9 +255,9 @@ cvs_find_version(const cvs_file *cvs, const cvs_number *number)
     cvs_version	*nv = NULL;
 
     for (cv = cvs->gen.versions; cv; cv = cv->next) {
-	if (cvs_same_branch(number, &cv->number) &&
-	    cvs_number_compare(&cv->number, number) > 0 &&
-	    (!nv || cvs_number_compare(&nv->number, &cv->number) > 0))
+	if (cvs_same_branch(number, cv->number) &&
+	    cvs_number_compare(cv->number, number) > 0 &&
+	    (!nv || cvs_number_compare(nv->number, cv->number) > 0))
 	    nv = cv;
     }
     return nv ? nv->node : NULL;
@@ -275,7 +279,7 @@ void build_branches(nodehash_t *context)
     }
     qsort(v, context->nentries, sizeof(node_t *), compare);
     /* only trunk? */
-    if (v[context->nentries-1]->number.c == 2)
+    if (v[context->nentries-1]->number->c == 2)
 	context->head_node = v[context->nentries-1];
     for (p = v + context->nentries - 2 ; p >= v; p--)
 	try_pair(context, p[0], p[1]);
@@ -283,10 +287,10 @@ void build_branches(nodehash_t *context)
 	node_t *a = *p, *b = NULL;
 	if (!a->starts)
 	    continue;
-	b = find_parent(context, &a->number, 2);
+	b = find_parent(context, a->number, 2);
 	if (!b) {
 	    char name[CVS_MAX_REV_LEN];
-	    announce("no parent for %s\n", cvs_number_string(&a->number, name, sizeof(name)));
+	    announce("no parent for %s\n", cvs_number_string(a->number, name, sizeof(name)));
 	    continue;
 	}
 	a->sib = b->down;
