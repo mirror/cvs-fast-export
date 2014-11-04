@@ -14,7 +14,7 @@ Options:
            always preserved.
    -l      Suppress replacement of log content with a hash.
    -c      Suppress replacement of revision content.
-   -v      Enable progrsss messages.
+   -v      Enable progress messages.
 
 Default behavior is to strip non-sticky tags, replace each version
 of content with a unique string including the revision ID, and
