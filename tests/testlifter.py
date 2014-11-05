@@ -122,7 +122,7 @@ class RCSRepository:
         "Clean up the repository conversions."
         if not self.retain:
             if self.conversions:
-                os.system("rm -fr " % " ".join(conversions))
+                os.system("rm -fr %s".join(self.conversions))
 
 class CVSRepository(RCSRepository):
     def __init__(self, name):
@@ -155,7 +155,7 @@ class CVSRepository(RCSRepository):
     def cleanup(self):
         "Clean up the repository checkout directories."
         if not self.retain:
-            RCSRepository.self.cleanup()
+            RCSRepository.cleanup(self)
             for checkout in self.checkouts:
                 checkout.cleanup()
 
@@ -344,7 +344,11 @@ class ConvertComparison:
     def checkall(self):
         "Check all named references - branches and tags - expecting matches."
         for branch in cc.branches:
-            cc.compare_tree("branch", branch)
+            if branch.endswith("UNNAMED-BRANCH"):
+                if verbose > 0:
+                    sys.stderr.write("testframe: slipping %s\n" % branch)
+            else:
+                cc.compare_tree("branch", branch)
         for tag in cc.tags:
             cc.compare_tree("tag", tag)
     def command_returns(self, cmd, expected):
