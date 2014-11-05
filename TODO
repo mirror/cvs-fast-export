@@ -5,7 +5,7 @@ Before you try to modify this code, read hacking.asc.
 * The QED repo in the tests directory raises a branch cycle error.
   This may reveal a bug in the second toposort function. 
 
-* The twicedead repo in the tests directory misbehaves under cvscompare.
+* The twicedead repo in the tests directory misbehaves under cvsconvert.
 
 * Issue a warning when the same tag is attached to multiple commits.
   At the moment it's just silently reported attached to the last.

@@ -23,7 +23,7 @@ The distribution includes a tool, cvssync, for fetching masters from
 CVS remote repositories so cvs-fast-export can see them.  You will
 need rsync installed to use it.
 
-A weapper scripped called cvscompare runs a conversion to git and
+A weapper scripped called cvsconvert runs a conversion to git and
 looks for content mismatches with the original CVS.
 
 Also included is a tool called cvsreduce that strips content out of

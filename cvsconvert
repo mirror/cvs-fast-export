@@ -1,9 +1,9 @@
 #!/usr/bin/env python
 """
-cvscompare - check a CVS repo against its conversion
+cvsconvert - convert a CVS repo and check against the original
 
-Check the tree content of a gitspace conversion against the CVS.
-The tip state of every branch, and every tag, is checked.
+Convert, and check the tree content of a gitspace conversion against
+the CVS.  The tip state of every branch, and every tag, is checked.
 
 Will produce spurious errors if any CVS branch name had to be sanitized.
 """
@@ -362,7 +362,6 @@ class ConvertComparison:
             sys.stderr.write(cmd + " return was not as expected\n")
     def cleanup(self):
         self.checkout.cleanup()
-        os.system("rm -fr {0}.git".format(self.stem))
 
 # End.
 
@@ -377,14 +376,14 @@ if __name__ == '__main__':
             verbose += 1
 
     if not arguments:
-        sys.stderr.write("cvscompare: requires a repo/module argument.\n")
+        sys.stderr.write("cvsconvert: requires a repo/module argument.\n")
         sys.exit(1)
     elif "/" in arguments[0]:
         (repo, module) = arguments[0].split('/')
     elif not os.path.isdir(arguments[0] + os.sep + "CVSROOT"):
         (repo, module) = (arguments[0], None)
     else:
-        sys.stderr.write("cvscompare: location not parseable\n")
+        sys.stderr.write("cvsconvert: location not parseable\n")
         sys.exit(1)
 
     cc = ConvertComparison(stem=repo, repo=repo, module=module,

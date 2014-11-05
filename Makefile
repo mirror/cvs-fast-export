@@ -98,9 +98,9 @@ lex.o: lex.c gram.h
 reporting-bugs.html: reporting-bugs.asc
 	asciidoc reporting-bugs.asc
 
-man: cvs-fast-export.1 cvssync.1 cvscompare.1
+man: cvs-fast-export.1 cvssync.1 cvsconvert.1
 
-html: cvs-fast-export.html cvssync.html cvscompare.html 
+html: cvs-fast-export.html cvssync.html cvsconvert.html
 
 clean:
 	rm -f $(OBJS) gram.h gram.c lex.h lex.c cvs-fast-export
@@ -141,9 +141,9 @@ PYLINTOPTS = --rcfile=/dev/null --reports=n \
 	--dummy-variables-rgx='^_'
 PYSUPPRESSIONS = --disable="C0103,C0301,C0325,R0912,W0142"
 pylint:
-	@pylint $(PYLINTOPTS) $(PYSUPPRESSIONS) cvssync cvscompare cvsreduce
+	@pylint $(PYLINTOPTS) $(PYSUPPRESSIONS) cvssync cvsconvert cvsreduce
 
-SOURCES = Makefile *.[ch] *.[yl] cvssync cvscompare cvsreduce
+SOURCES = Makefile *.[ch] *.[yl] cvssync cvsconvert cvsreduce
 DOCS = README COPYING NEWS AUTHORS TODO control *.asc
 ALL =  $(SOURCES) $(DOCS) tests
 cvs-fast-export-$(VERSION).tar.gz: $(ALL)
