@@ -192,7 +192,7 @@ static pthread_mutex_t number_bucket_mutex = PTHREAD_MUTEX_INITIALIZER;
 const cvs_number *
 atom_cvs_number(const cvs_number n)
 {
-    unsigned int bucket = hash_cvs_number(n) % NUMBER_HASH_SIZE;
+    unsigned int bucket = hash_cvs_number(&n) % NUMBER_HASH_SIZE;
     number_bucket_t **head = &number_buckets[bucket];
     number_bucket_t *b;
 

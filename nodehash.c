@@ -63,51 +63,67 @@
 #define HASHMIX2(hash, new)	hash = ((hash << 10) + new)
 
 unsigned long
-hash_cvs_number(const cvs_number key)
+hash_cvs_number(const cvs_number *const key)
 {
     int i;
     unsigned long hashval;
 
-    for (i = 0, hashval = 0; i < key.c - 1; i++)
-	HASHMIX1(hashval, key.n[i]);
-    HASHMIX2(hashval, key.n[key.c - 1]);
+    for (i = 0, hashval = 0; i < key->c - 1; i++)
+	HASHMIX1(hashval, key->n[i]);
+    HASHMIX2(hashval, key->n[key->c - 1]);
     return hashval;
+}
+
+/* Not found a repo yet where the munge functions are called */
+static const cvs_number *
+key_munge1 (const cvs_number *const k)
+{
+    cvs_number key;
+    memcpy(&key, k, sizeof(cvs_number));
+    key.n[key.c - 2] = key.n[key.c - 1];
+    key.c--;
+    return atom_cvs_number(key);
+}
+
+static const cvs_number *
+key_munge2 (const cvs_number *const k)
+{
+    cvs_number key;
+    memcpy(&key, k, sizeof(cvs_number));
+    key.n[key.c] = 0;
+    return atom_cvs_number(key);
 }
 
 static node_t *
 node_for_cvs_number(nodehash_t *context, const cvs_number *const n)
-/* look up the node associated with a specified CVS release number */
+/*
+ * look up the node associated with a specified CVS release number
+ * only call with a number that has been through atom_cvs_number
+ */
 {
-    cvs_number key = *n;
+    const cvs_number *k = n;
     node_t *p;
     unsigned int hash;
-    int i;
 
-    if (key.c > 2 && !key.n[key.c - 2]) {
-	/* not found a repo that exercises this yet */
-	key.n[key.c - 2] = key.n[key.c - 1];
-	key.c--;
-    }
-    if (key.c & 1)
-	/* or this */
-	key.n[key.c] = 0;
-    hash = hash_cvs_number(key) % NODE_HASH_SIZE;
-    for (p = context->table[hash]; p; p = p->hash_next) {
-	if (p->number->c != key.c)
-	    continue;
-	for (i = 0; i < key.c && p->number->n[i] == key.n[i]; i++)
-	    ;
-	if (i == key.c)
+    if (k->c > 2 && !k->n[k->c - 2])
+	k = key_munge1(k);
+
+    if (k->c & 1)
+	k = key_munge2(k);
+
+    hash = hash_cvs_number(k) % NODE_HASH_SIZE;
+    for (p = context->table[hash]; p; p = p->hash_next)
+	if (p->number == k)
 	    return p;
-    }
+
     /*
      * While it looks like a good idea, an attempt at slab allocation
-     * failed miserably here.  Noted because tthe regression-test
+     * failed miserably here.  Noted because the regression-test
      * suite didn't catch it.  Attempting to convert groff did.  The
      * problem shows as difficult-to-interpret errors under valgrind.
      */
     p = xcalloc(1, sizeof(node_t), "hash number generation");
-    p->number = atom_cvs_number(key);
+    p->number = k;
     p->hash_next = context->table[hash];
     context->table[hash] = p;
     context->nentries++;
@@ -118,22 +134,20 @@ static node_t *find_parent(nodehash_t *context,
 			   const cvs_number *const n, const int depth)
 /* find the parent node of the specified prefix of a release number */
 {
-    cvs_number key = *n;
+    cvs_number key;
+    const cvs_number *k;
     node_t *p;
     unsigned int hash;
-    int i;
 
+    memcpy(&key, n, sizeof(cvs_number));
     key.c -= depth;
-    hash = hash_cvs_number(key) % NODE_HASH_SIZE;
-    for (p = context->table[hash]; p; p = p->hash_next) {
-	if (p->number->c != key.c)
-	    continue;
-	for (i = 0; i < key.c && p->number->n[i] == key.n[i]; i++)
-	    ;
-	if (i == key.c)
-	    break;
-    }
-    return p;
+    k = atom_cvs_number(key);
+    hash = hash_cvs_number(k) % NODE_HASH_SIZE;
+    for (p = context->table[hash]; p; p = p->hash_next)
+	if (p->number == k)
+	    return p;
+
+    return NULL;
 }
 
 void hash_version(nodehash_t *context, cvs_version *v)
@@ -238,7 +252,10 @@ static void try_pair(nodehash_t *context, node_t *a, node_t *b)
     }
     if ((b->number->c & 1) == 0) {
 	b->starts = true;
-	/* can the code below ever be needed? */
+	/* can the code below ever be needed?
+	 * it's called 90,000 times in netbsd-pkgsrc
+         * but no parent is ever found.
+	 */
 	node_t *p = find_parent(context, b->number, 1);
 	if (p)
 	    p->next = b;
