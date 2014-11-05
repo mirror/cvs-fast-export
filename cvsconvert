@@ -291,35 +291,28 @@ class ConvertComparison:
         with directory_context(stem + ".git"):
             self.branches = [name for name in capture_or_die("git branch -l").split() if name != '*']
             self.tags = [name for name in capture_or_die("git tag -l").split()]
-    def cmp_branch_tree(self, legend, tag, success_expected=True):
-        "Test to see if a tag checkout has the expected content."
-        def recursive_file_gen(mydir, ignore):
+    def compare_tree(self, legend, ref, success_expected=True):
+        "Test to see if a tag or branch checkout has the expected content."
+        preamble = "%s %s %s: " % (self.stem, legend, ref)
+        if ref not in self.tags and ref not in self.branches:
+            if success_expected:
+                sys.stderr.write(preamble + "%s unexpectedly missing.\n" % ref)
+            return False
+        def ftw(mydir, ignore):
             for root, dirs, files in os.walk(mydir):
                 for file in files:
                     path = os.path.join(root, file)
                     if ignore not in path.split(os.sep) and not path.endswith(".cvsignore") and not path.endswith(".gitignore"):
                         yield path
-        preamble = "%s %s %s: " % (self.stem, legend, tag)
-        if tag not in self.tags and tag not in self.branches:
-            if success_expected:
-                sys.stderr.write(preamble + "tag or branch %s unexpectedly missing\n" % tag)
-            return False
-        self.checkout.update(tag)
+        self.checkout.update(ref)
         with directory_context(self.stem + ".git"):
-            do_or_die("git checkout --quiet %s" % tag)
-        cvspaths = list(recursive_file_gen(self.stem + ".checkout", ignore="CVS"))
+            do_or_die("git checkout --quiet %s" % ref)
+        cvspaths = list(ftw(self.stem + ".checkout", ignore="CVS"))
         cvsfiles = [fn[len(self.stem+".checkout")+1:] for fn in cvspaths]
-        gitpaths = list(recursive_file_gen(self.stem + ".git", ignore=".git"))
+        gitpaths = list(ftw(self.stem + ".git", ignore=".git"))
         gitfiles = [fn[len(self.stem+".git")+1:] for fn in gitpaths]
         cvsfiles.sort()
         gitfiles.sort()
-        # Ignore .gitignores in manifest comparison, since we generate them.
-        for fn in cvsfiles:
-            if fn.endswith(".cvsignore"):
-                cvsfiles.remove(fn)
-        for fn in gitfiles:
-            if fn.endswith(".gitignore"):
-                gitfiles.remove(fn)
         if cvsfiles != gitfiles:
             if success_expected:
                 sys.stderr.write(preamble + "file manifests don't match.\n")
@@ -337,7 +330,7 @@ class ConvertComparison:
                 if not filecmp.cmp(a, b, shallow=False):
                     success = False
                     if success_expected:
-                        sys.stderr.write("%s %s %s: %s and %s are different.\n" % (self.stem, legend, tag, a, b))
+                        sys.stderr.write("%s %s %s: %s and %s are different.\n" % (self.stem, legend, ref, a, b))
                         if self.showdiffs:
                             os.system("diff -u %s %s" % (a, b))
         if success:
@@ -352,9 +345,9 @@ class ConvertComparison:
     def checkall(self):
         "Check all named references - branches and tags - expecting matches."
         for branch in cc.branches:
-            cc.cmp_branch_tree("test of branch", branch)
+            cc.compare_tree("branch", branch)
         for tag in cc.tags:
-            cc.cmp_branch_tree("test of tag", tag)
+            cc.compare_tree("tag", tag)
     def command_returns(self, cmd, expected):
         seen = capture_or_die(cmd)
         succeeded = (seen.strip() == expected.strip())
@@ -362,6 +355,7 @@ class ConvertComparison:
             sys.stderr.write(cmd + " return was not as expected\n")
     def cleanup(self):
         self.checkout.cleanup()
+        os.system("rm -fr {0}.git".format(self.stem))
 
 # End.
 
