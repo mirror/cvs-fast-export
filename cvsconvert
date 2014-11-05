@@ -398,7 +398,7 @@ if __name__ == '__main__':
     if verbose == 0:
         verbose = 1
     cc.checkall()
-    cc.cleanup()
+    cc.checkout.cleanup()
     sys.stderr.write("cvsconvert: conversion is in %s.git\n" % (repo,))
 
 # end
