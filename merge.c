@@ -154,23 +154,6 @@ cvs_commit_date_sort(cvs_commit **commits, int ncommit)
 }
 
 static bool
-git_commit_incorporates(const git_commit *c, const cvs_commit *part)
-/* does this commit touch the file revision in a specified CVS commit? */
-{
-    int	i, j;
-
-    if (!c)
-	return false;
-    for (i = 0; i < c->ndirs; i++) {
-	rev_dir	*dir = c->dirs[i];
-	for (j = 0; j < dir->nfiles; j++)
-	    if (dir->files[j] == part)
-		return true;
-    }
-    return false;
-}
-
-static bool
 cvs_commit_time_close(const cvstime_t a, const cvstime_t b)
 /* are two timestamps within the commit-coalescence window of each other? */
 {
@@ -883,7 +866,7 @@ rev_uniq_file(git_commit *uniq, git_commit *common, int *nuniqp)
     for (i = 0; i < uniq->ndirs; i++) {
 	rev_dir	*dir = uniq->dirs[i];
 	for (j = 0; j < dir->nfiles; j++)
-	    if (!git_commit_incorporates(common, dir->files[j])) {
+	    if (dir->files[j]->gitspace != common) {
 		fl = xcalloc(1, sizeof(cvs_commit_list), "rev_uniq_file");
 		fl->file = dir->files[j];
 		*tail = fl;
