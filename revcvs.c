@@ -507,7 +507,10 @@ cvs_master_set_refs(cvs_master *cm, cvs_file *cvsfile)
          */
 	if (!h->number) {
 	    h->number = atom_cvs_number(cvs_zero);
-	    fprintf(LOGFILE, "unnumbered head in %s\n", cvsfile->export_name);
+	    if (h->ref_name)
+		warn("Unnumbered head %s in %s\n", h->ref_name, cvsfile->export_name);
+	    else
+		warn("unnumbered head in %s\n", cvsfile->export_name);
 	}
 
 	if (h->number->c >= 4) {
