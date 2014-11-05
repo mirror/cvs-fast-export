@@ -599,7 +599,7 @@ const cvs_number *
 atom_cvs_number(const cvs_number n);
 
 unsigned long
-hash_cvs_number(const cvs_number key);
+hash_cvs_number(const cvs_number *const key);
 
 void
 discard_atoms(void);
