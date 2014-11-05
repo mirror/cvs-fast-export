@@ -366,6 +366,6 @@ class ConvertComparison:
             sys.stderr.write(cmd + " return was not as expected\n")
     def cleanup(self):
         self.checkout.cleanup()
-        os.system("rm -fr {0}.git".format(self.stem))
+        shutil.rmtree(self.stem+ConvertComparison.SUFFIX)
 
 # End.
