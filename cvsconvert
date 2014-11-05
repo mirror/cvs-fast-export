@@ -393,12 +393,14 @@ if __name__ == '__main__':
         else:
             (repo, module) = (arguments[0], candidates[0])
             sys.stderr.write("cvsconvert: processing %s/%s\n" % (repo, module))
-    sys.stderr.write("cvsconvert: conversion will be in %s.git\n" % (repo,))
     cc = ConvertComparison(stem=repo, repo=repo, module=module,
-                           checkout=repo+".checkout", showdiffs= True)
+                           checkout=repo+".checkout",
+                           options="-p",
+                           showdiffs= True)
     if verbose == 0:
         verbose = 1
     cc.checkall()
     cc.cleanup()
+    sys.stderr.write("cvsconvert: conversion is in %s.git\n" % (repo,))
 
 # end
