@@ -383,9 +383,17 @@ if __name__ == '__main__':
     elif not os.path.isdir(arguments[0] + os.sep + "CVSROOT"):
         (repo, module) = (arguments[0], None)
     else:
-        sys.stderr.write("cvsconvert: location not parseable\n")
-        sys.exit(1)
-
+        candidates = [sub for sub in os.listdir(arguments[0]) if sub != "CVSROOT" and os.path.isdir(os.path.join(arguments[0], sub))]
+        if len(candidates) == 0:
+            sys.stderr.write("cvsconvert: no modules under %s.\n" % arguments[0])
+            sys.exit(1)
+        elif len(candidates) > 1:
+            sys.stderr.write("cvsconvert: choose one of %s\n" % candidates)
+            sys.exit(1)
+        else:
+            (repo, module) = (arguments[0], candidates[0])
+            sys.stderr.write("cvsconvert: processing %s/%s\n" % (repo, module))
+    sys.stderr.write("cvsconvert: conversion will be in %s.git\n" % (repo,))
     cc = ConvertComparison(stem=repo, repo=repo, module=module,
                            checkout=repo+".checkout", showdiffs= True)
     if verbose == 0:
