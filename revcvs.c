@@ -413,10 +413,10 @@ cvs_master_find_branch(cvs_master *cm, const cvs_number *number)
 	return NULL;
     memcpy(&n, number, sizeof(cvs_number));
     h = NULL;
-    while (n.c >= 2)
-    {
+    while (n.c >= 2) {
+	const cvs_number *k = atom_cvs_number(n);
 	for (h = cm->heads; h; h = h->next) {
-	    if (cvs_same_branch(h->number, atom_cvs_number(n))) {
+	    if (cvs_same_branch(h->number, k)) {
 		break;
 	    }
 	}
