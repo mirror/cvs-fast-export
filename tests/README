@@ -45,9 +45,19 @@ that are git stream outputs.
 This is a specifically crafted test to see if incremental dumping of a 
 late section of a repository works.
 
-== The QED repostory ==
+== Pathological repositories ==
 
-This is a stripped down version of a repo that contains a branch cycle.
+These don't have regression tests yet.
+
+QED.testrepo::
+	contains a branch cycle.
+
+twicedead::
+	contains a pathological master set to dead state twice.
+
+== The twicedead repostory ==
+
+Has a pathological twice-dead master in it.
 
 == The t9600 group ==
 

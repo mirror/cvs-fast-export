@@ -1,0 +1,74 @@
+head	1.4;
+access;
+symbols
+	goodtag:1.3;
+locks; strict;
+comment	@# @;
+
+
+1.4
+date	2004.10.27.12.21.52;	author tamuki;	state dead;
+branches;
+next	1.3;
+
+1.3
+date	2003.06.05.11.27.30;	author mput;	state Exp;
+branches;
+next	1.2;
+
+1.2
+date	2002.10.09.13.06.20;	author mput;	state dead;
+branches;
+next	1.1;
+
+1.1
+date	2002.10.09.10.30.37;	author mput;	state Exp;
+branches;
+next	;
+
+desc
+@@
+
+
+1.4
+log
+@1f8306988a29ab262ecc5cd63c6f1149
+@
+text
+@content for 1.4
+@
+
+
+1.3
+log
+@31b6c12ce8767229571f7a6b707ea3e9
+@
+text
+@d1 1
+a1 1
+twicedead,v content for 1.3
+@
+
+
+1.2
+log
+@1f5550816497e3303a589d3bd12f1009
+@
+text
+@d1 1
+a1 1
+twicedead,v content for 1.2
+@
+
+
+1.1
+log
+@da28248b4ec75efbe0ba7461142ed60d
+@
+text
+@d1 1
+a1 1
+twicedead,v content for 1.1
+@
+
+

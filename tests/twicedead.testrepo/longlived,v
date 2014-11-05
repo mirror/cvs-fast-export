@@ -1,0 +1,284 @@
+head	1.17;
+access;
+symbols
+	badtag:1.17
+	goodtag:1.16;
+locks; strict;
+comment	@# @;
+
+
+1.17
+date	2004.02.13.15.57.33;	author mput;	state Exp;
+branches;
+next	1.16;
+
+1.16
+date	2004.02.10.07.21.55;	author tamuki;	state Exp;
+branches;
+next	1.15;
+
+1.15
+date	2004.02.09.14.16.17;	author mput;	state Exp;
+branches;
+next	1.14;
+
+1.14
+date	2004.02.05.08.02.09;	author tamuki;	state Exp;
+branches;
+next	1.13;
+
+1.13
+date	2004.02.04.08.40.49;	author mput;	state Exp;
+branches;
+next	1.12;
+
+1.12
+date	2004.01.31.13.13.55;	author mput;	state Exp;
+branches;
+next	1.11;
+
+1.11
+date	2003.10.08.07.11.43;	author tamuki;	state Exp;
+branches;
+next	1.10;
+
+1.10
+date	2003.10.07.03.45.39;	author skeishi;	state Exp;
+branches;
+next	1.9;
+
+1.9
+date	2003.09.02.23.26.20;	author mput;	state Exp;
+branches;
+next	1.8;
+
+1.8
+date	2003.06.27.06.04.53;	author skeishi;	state Exp;
+branches;
+next	1.7;
+
+1.7
+date	2003.06.24.06.49.26;	author mput;	state Exp;
+branches;
+next	1.6;
+
+1.6
+date	2003.06.07.17.11.25;	author mput;	state Exp;
+branches;
+next	1.5;
+
+1.5
+date	2003.06.05.11.24.44;	author mput;	state Exp;
+branches;
+next	1.4;
+
+1.4
+date	2002.10.09.13.06.05;	author mput;	state dead;
+branches;
+next	1.3;
+
+1.3
+date	2002.10.09.11.13.20;	author mput;	state Exp;
+branches;
+next	1.2;
+
+1.2
+date	2002.10.09.11.09.02;	author mput;	state Exp;
+branches;
+next	1.1;
+
+1.1
+date	2002.10.09.10.30.31;	author mput;	state Exp;
+branches;
+next	;
+
+desc
+@@
+
+1.17
+log
+@cb99fb968777affc72fca01bdf55ecf1
+@
+text
+@content for 1.17
+@
+
+
+1.16
+log
+@223e57cd589de296e66c8b94930d83b9
+@
+text
+@d1 1
+a1 1
+longlived,v content for 1.16
+@
+
+
+1.15
+log
+@3b59618cbb56752e2bd6a5f50138985d
+@
+text
+@d1 1
+a1 1
+longlived,v content for 1.15
+@
+
+
+1.14
+log
+@89c59e38294211d1f32e83778964c40d
+@
+text
+@d1 1
+a1 1
+longlived,v content for 1.14
+@
+
+
+1.13
+log
+@2ccc44a9510a988d94679c55c1de8ef4
+@
+text
+@d1 1
+a1 1
+longlived,v content for 1.13
+@
+
+
+1.12
+log
+@5648ddac707a803c1254bec9ec895179
+@
+text
+@d1 1
+a1 1
+longlived,v content for 1.12
+@
+
+
+1.11
+log
+@0638ee012e3f3ae293cebb60f1bdffe7
+@
+text
+@d1 1
+a1 1
+longlived,v content for 1.11
+@
+
+
+1.10
+log
+@390ad7bcc042ba2e547b681744f84cd0
+@
+text
+@d1 1
+a1 1
+longlived,v content for 1.10
+@
+
+
+1.9
+log
+@041cbfc6f75e86e7f1c95ac0d3978a33
+@
+text
+@d1 1
+a1 1
+longlived,v content for 1.9
+@
+
+
+1.8
+log
+@585e3addfd28851ce8284bca18e152df
+@
+text
+@d1 1
+a1 1
+longlived,v content for 1.8
+@
+
+
+1.7
+log
+@4492f3ab8b9945541ae4a686620932aa
+@
+text
+@d1 1
+a1 1
+longlived,v content for 1.7
+@
+
+
+1.6
+log
+@fb06524553d043d782e1b7e5e7581f3b
+@
+text
+@d1 1
+a1 1
+longlived,v content for 1.6
+@
+
+
+1.5
+log
+@31b6c12ce8767229571f7a6b707ea3e9
+@
+text
+@d1 1
+a1 1
+longlived,v content for 1.5
+@
+
+
+1.4
+log
+@1f5550816497e3303a589d3bd12f1009
+@
+text
+@d1 1
+a1 1
+longlived,v content for 1.4
+@
+
+
+1.3
+log
+@eb588b83639fafe54c1d05af0b55e84e
+@
+text
+@d1 1
+a1 1
+longlived,v content for 1.3
+@
+
+
+1.2
+log
+@6e796b573fde2f0ba64aa54987652f3d
+@
+text
+@d1 1
+a1 1
+longlived,v content for 1.2
+@
+
+
+1.1
+log
+@da28248b4ec75efbe0ba7461142ed60d
+@
+text
+@d1 1
+a1 1
+longlived,v content for 1.1
+@
+
+
+
+
