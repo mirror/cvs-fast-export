@@ -12,3 +12,8 @@ twicedead test of tag goodtag: trees matched as expected
 These two files were extracted from the timidity CVS repository
 and stripped to the smallest possible test case.
 
+This turns out to be a bug in CVS!
+
+badtag goes with revision 1.17 of longlived, which is dated *before*
+twicedead was set to state dead in its 1.4 revision.  Thus, twicedead
+should in fact be visible at the history state corresponding to the tag.
