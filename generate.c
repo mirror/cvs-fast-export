@@ -224,7 +224,7 @@ enum expand_mode expand_override(char const *s)
 	    if (strcmp(s,expand_names[i]) == 0)
 		return(enum expand_mode) i;
     }
-    return EXPANDKO;
+    return EXPANDUNSPEC;
 }
 
 static char const *basefilename(const char const *p)

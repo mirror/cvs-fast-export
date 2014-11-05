@@ -1,7 +1,8 @@
 		cvs-fast-export project news
 
 Repository:
-    cvscompare canged to cvsconvert, a validating wrapper script.
+    cvscompare changed to cvsconvert, a validating wrapper script.
+    The rules for keyword expansion have changed yet again.
 
 1.25: 2014-11-03
     Simplify and fully document -k; it now requires an argument.
