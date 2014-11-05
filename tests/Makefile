@@ -10,16 +10,22 @@ CVS_FAST_EXPORT = ../cvs-fast-export $(OPTS)
 
 check: test
 
-.SUFFIXES: .tst .repo .testrepo .checkout .dot ,v
+.SUFFIXES: .tst .repo .testrepo .checkout .dot .fi ,v
 
 .tst.repo:
 	python $<
 .repo.checkout:
-	$(CVS) -d :local:${PWD}/$*.repo -Q checkout $* && mv $* $*.checkout
+	$(CVS) -d :local:${PWD}/$*.repo -Q checkout module && mv module $*.checkout
 .repo.dot:
 	find $</module -name '*,v' | $(CVS_FAST_EXPORT) -g >$*.dot
+.repo.fi:
+	find $</module -name '*,v' | $(CVS_FAST_EXPORT) >$*.dot
+.testrepo.checkout:
+	$(CVS) -d :local:${PWD}/$*.testrepo -Q checkout module && mv module $*.checkout
 .testrepo.dot:
 	find $</module -name '*,v' | $(CVS_FAST_EXPORT) -g >$*.dot
+.testrepo.fi:
+	find $</module -name '*,v' | $(CVS_FAST_EXPORT) >$*.fi
 ,v.dot:
 	$(CVS_FAST_EXPORT) -g $< >$*.dot
 
