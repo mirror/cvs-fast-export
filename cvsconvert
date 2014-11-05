@@ -369,11 +369,14 @@ class ConvertComparison:
 
 if __name__ == '__main__':
     import getopt
-    (opts, arguments) = getopt.getopt(sys.argv[1:], "v")
+    (opts, arguments) = getopt.getopt(sys.argv[1:], "k:v")
     noexec = True
+    kexpand = ""
     for (opt, arg) in opts:
         if opt == '-v':
             verbose += 1
+        elif opt == '-k':
+            kexpand = arg
 
     if not arguments:
         sys.stderr.write("cvsconvert: requires a repo/module argument.\n")
@@ -395,7 +398,7 @@ if __name__ == '__main__':
             sys.stderr.write("cvsconvert: processing %s/%s\n" % (repo, module))
     cc = ConvertComparison(stem=repo, repo=repo, module=module,
                            checkout=repo+".checkout",
-                           options="-p",
+                           options="-p " + kexpand,
                            showdiffs= True)
     if verbose == 0:
         verbose = 1
