@@ -124,7 +124,7 @@ class RCSRepository:
         # The -L is necessary to handle proxied directories. 
         self.run_with_cleanup('find -L {0} -name "*,v" | cvs-fast-export -k k {1} {2} >{3}'.format(self.directory, vopt, more_opts, outfile))
     def convert(self, module, gitdir, more_opts=''):
-        "Convert the repo.  Leave the stream dump in a log file."
+        "Convert the repo."
         streamfile = "%s.git.fi" % module
         self.stream(module, gitdir, streamfile, more_opts)
         self.run_with_cleanup("rm -fr {0} && mkdir {0} && git init --quiet {0}".format(gitdir))
@@ -290,6 +290,8 @@ def expect_different(a, b):
 
 class ConvertComparison:
     "Compare a CVS repository and its conversion for equality."
+    # Needs to stay synchronized with reposurgeon's generic conversion makefile
+    SUFFIX = "-git"
     def __init__(self, stem, repo=None, checkout=None, module=None, options="", showdiffs=False):
         self.stem = stem
         self.repo = CVSRepository(repo if repo else stem + ".testrepo")
@@ -297,8 +299,8 @@ class ConvertComparison:
                                            checkout if checkout else stem + ".checkout")
         self.module = module or stem
         self.showdiffs = showdiffs
-        self.repo.convert("module", stem + ".git", more_opts=options)
-        with directory_context(stem + ".git"):
+        self.repo.convert("module", stem + ConvertComparison.SUFFIX, more_opts=options)
+        with directory_context(stem + ConvertComparison.SUFFIX):
             self.branches = [name for name in capture_or_die("git branch -l").split() if name != '*']
             self.tags = [name for name in capture_or_die("git tag -l").split()]
         self.branches.sort()
@@ -319,14 +321,14 @@ class ConvertComparison:
                     if ignore not in path.split(os.sep) and not path.endswith(".cvsignore") and not path.endswith(".gitignore"):
                         yield path
         self.checkout.update(ref)
-        with directory_context(self.stem + ".git"):
+        with directory_context(self.stem + ConvertComparison.SUFFIX):
             if not noisy_run("git checkout --quiet %s" % ref):
                 self.repo.cleanup()
                 sys.exit(1)
         cvspaths = list(ftw(self.stem + ".checkout", ignore="CVS"))
         cvsfiles = [fn[len(self.stem+".checkout")+1:] for fn in cvspaths]
-        gitpaths = list(ftw(self.stem + ".git", ignore=".git"))
-        gitfiles = [fn[len(self.stem+".git")+1:] for fn in gitpaths]
+        gitpaths = list(ftw(self.stem + ConvertComparison.SUFFIX, ignore=".git"))
+        gitfiles = [fn[len(self.stem+ConvertComparison.SUFFIX)+1:] for fn in gitpaths]
         cvsfiles.sort()
         gitfiles.sort()
         success = True
@@ -419,6 +421,6 @@ if __name__ == '__main__':
         verbose = 1
     cc.checkall()
     cc.checkout.cleanup()
-    sys.stderr.write("cvsconvert: conversion is in %s.git\n" % (repo,))
+    sys.stderr.write("cvsconvert: conversion is in %s%s\n" % (repo, ConvertComparison.SUFFIX))
 
 # end
