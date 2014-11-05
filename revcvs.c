@@ -747,12 +747,9 @@ cvs_master_digest(cvs_file *cvs)
     if (cvs->verbose > 0) {
 	rev_ref	*lh;
 
-	debugmsg("Named heads:\n");
-	for (lh = cm->heads; lh; lh = lh->next) {
-	    char buf[BUFSIZ];
-	    debugmsg("\t%s\n",
-		     stringify_revision(lh->ref_name, " ", &lh->number, buf, BUFSIZ));
-	}
+	debugmsg("Named heads in %s:\n", cvs->gen.master_name);
+	for (lh = cm->heads; lh; lh = lh->next)
+	    debugmsg("\t%s\n", lh->ref_name);
     }
 
     //rev_list_validate(cm);
