@@ -5,7 +5,7 @@ cvscompare - check a CVS repo against its conversion
 Check the tree content of a gitspace conversion against the CVS.
 The tip state of every branch, and every tag, is checked.
 
-Will produce spurious errors idf any CVS ranch name had to be sanitized.
+Will produce spurious errors if any CVS branch name had to be sanitized.
 """
 # This is the testlifter.py code from the distribution directory.
 # Modify it there, not here
