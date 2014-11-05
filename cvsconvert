@@ -29,17 +29,17 @@ def noisy_run(dcmd, legend=""):
     if legend:
         legend = " "  + legend
     if verbose >= DEBUG_COMMANDS:
-        sys.stdout.write("testframe: executing '%s'%s\n" % (dcmd, legend))
+        sys.stdout.write("%s: executing '%s'%s\n" % (sys.argv[0], dcmd, legend))
     try:
         retcode = subprocess.call(dcmd, shell=True)
         if retcode < 0:
-            sys.stderr.write("testframe: child was terminated by signal %d.\n" % -retcode)
+            sys.stderr.write("%s: child was terminated by signal %d.\n" % (-sys.argv[0], retcode))
             sys.exit(1)
         elif retcode != 0:
-            sys.stderr.write("testframe: child returned %d.\n" % retcode)
+            sys.stderr.write("%s: child returned %d.\n" % (sys.argv[0], retcode))
             return False
     except (OSError, IOError) as e:
-        sys.stderr.write("testframe: xecution of %s%s failed: %s\n" % (dcmd, legend, e))
+        sys.stderr.write("%s: execution of %s%s failed: %s\n" % (sys.argv[0], dcmd, legend, e))
         return False
     return True
 
@@ -48,14 +48,14 @@ def capture_or_die(dcmd, legend=""):
     if legend:
         legend = " "  + legend
     if verbose >= DEBUG_COMMANDS:
-        sys.stdout.write("testframe: executing '%s'%s\n" % (dcmd, legend))
+        sys.stdout.write("%s: executing '%s'%s\n" % (sys.argv[0], dcmd, legend))
     try:
         return subprocess.Popen(dcmd, shell=True, stdout=subprocess.PIPE).communicate()[0]
     except subprocess.CalledProcessError as e:
         if e.returncode < 0:
-            sys.stderr.write("testframe: child was terminated by signal %d." % -e.returncode)
+            sys.stderr.write("%s: child was terminated by signal %d." % (sys.argv[0], -e.returncode))
         elif e.returncode != 0:
-            sys.stderr.write("testframe: child returned %d." % e.returncode)
+            sys.stderr.write("%s: child returned %d." % (sys.argv[0], e.returncode))
         sys.exit(1)
     
 class directory_context:
@@ -358,7 +358,7 @@ class ConvertComparison:
         for branch in cc.branches:
             if branch.endswith("UNNAMED-BRANCH"):
                 if verbose > 0:
-                    sys.stderr.write("testframe: slipping %s\n" % branch)
+                    sys.stderr.write("%s: slipping %s\n" % (sys.argv[0], branch))
             else:
                 cc.compare_tree("branch", branch)
         for tag in cc.tags:
