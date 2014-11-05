@@ -499,7 +499,13 @@ cvs_master_set_refs(cvs_master *cm, cvs_file *cvsfile)
      */
     for (h = cm->heads; h; h = h->next) {
 	cvs_number	n;
-
+	
+	if (h->number.c == 0) {
+	    if (h->ref_name)
+		warn("Unnumbered head %s in %s\n", h->ref_name, cvsfile->export_name);
+	    else
+		warn("Unnumbered, unamed head in %s\n", cvsfile->export_name);
+	}
 	if (h->number.c >= 4) {
 	    n = h->number;
 	    n.c -= 2;
