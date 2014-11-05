@@ -154,7 +154,7 @@ cvs_commit_date_sort(cvs_commit **commits, int ncommit)
 }
 
 static bool
-git_commit_incorporates(const git_commit *c, const cvs_commit *f)
+git_commit_incorporates(const git_commit *c, const cvs_commit *part)
 /* does this commit touch the file revision in a specified CVS commit? */
 {
     int	i, j;
@@ -164,7 +164,7 @@ git_commit_incorporates(const git_commit *c, const cvs_commit *f)
     for (i = 0; i < c->ndirs; i++) {
 	rev_dir	*dir = c->dirs[i];
 	for (j = 0; j < dir->nfiles; j++)
-	    if (dir->files[j] == f)
+	    if (dir->files[j] == part)
 		return true;
     }
     return false;
@@ -300,7 +300,7 @@ git_commit_locate_date(const rev_ref *branch, const cvstime_t date)
 }
 
 static git_commit *
-git_commit_locate_one(const rev_ref *branch, const cvs_commit *file)
+git_commit_locate_one(const rev_ref *branch, const cvs_commit *part)
 /* seek a gitspace commit on branch incorporating cvs_commit */
 {
     git_commit	*commit;
@@ -314,24 +314,24 @@ git_commit_locate_one(const rev_ref *branch, const cvs_commit *file)
 	 commit = commit->parent)
     {
 	/* PUNNING: see the big comment in cvs.h */ 
-	if (cvs_commit_match((cvs_commit *)commit, file))
+	if (cvs_commit_match((cvs_commit *)commit, part))
 	    return commit;
     }
     return NULL;
 }
 
 static git_commit *
-git_commit_locate_any(const rev_ref *branch, const cvs_commit *file)
+git_commit_locate_any(const rev_ref *branch, const cvs_commit *part)
 /* seek a gitspace commit on *any* branch incorporating cvs_commit */
 {
     git_commit	*commit;
 
     if (!branch)
 	return NULL;
-    commit = git_commit_locate_any(branch->next, file);
+    commit = git_commit_locate_any(branch->next, part);
     if (commit)
 	return commit;
-    return git_commit_locate_one(branch, file);
+    return git_commit_locate_one(branch, part);
 }
 
 static git_commit *
