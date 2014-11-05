@@ -23,7 +23,7 @@ Rev  1 2005-01-01 00:00:00 +0000
 
 cc = testlifter.ConvertComparison(stem="t9604", module="module")
 cc.compare_tree("branch", "master", True)
-cc.command_returns("cd t9604.git >/dev/null; git log --format='%s %ai'", uncorrected)
+cc.command_returns("cd t9604-git >/dev/null; git log --format='%s %ai'", uncorrected)
 cc.cleanup()
 
 authormap = """\
@@ -58,7 +58,7 @@ afp.flush()
 cc = testlifter.ConvertComparison(stem="t9604", module="module",
                                   options="-A %s" % afp.name)
 cc.compare_tree("branch", "master", True)
-cc.command_returns("cd t9604.git >/dev/null; git log --format='%s %ai %an'", corrected)
+cc.command_returns("cd t9604-git >/dev/null; git log --format='%s %ai %an'", corrected)
 os.remove(afp.name)
 afp.close()
 cc.cleanup()
