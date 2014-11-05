@@ -782,9 +782,11 @@ merge_to_changesets(cvs_repo *masters, int verbose)
     /*
      * Compute branch parent relationships.
      */
-    progress_begin("Compute branch parent relationships...", count);
-    for (h = gl->heads; h; h = h->next)
+    progress_begin("Compute branch parent relationships...", head_count);
+    for (h = gl->heads; h; h = h->next) {
 	rev_ref_set_parent(gl, h, masters);
+	progress_step();
+    }
     progress_end(NULL);
 
 #ifdef ORDERDEBUG
