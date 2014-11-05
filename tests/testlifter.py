@@ -16,18 +16,19 @@ def noisy_run(dcmd, legend=""):
     "Either execute a command or raise a fatal exception."
     if legend:
         legend = " "  + legend
+    caller = os.path.basename(sys.argv[0])
     if verbose >= DEBUG_COMMANDS:
-        sys.stdout.write("%s: executing '%s'%s\n" % (sys.argv[0], dcmd, legend))
+        sys.stdout.write("%s: executing '%s'%s\n" % (caller, dcmd, legend))
     try:
         retcode = subprocess.call(dcmd, shell=True)
         if retcode < 0:
-            sys.stderr.write("%s: child was terminated by signal %d.\n" % (-sys.argv[0], retcode))
+            sys.stderr.write("%s: child was terminated by signal %d.\n" % (-caller, retcode))
             sys.exit(1)
         elif retcode != 0:
-            sys.stderr.write("%s: child returned %d.\n" % (sys.argv[0], retcode))
+            sys.stderr.write("%s: child returned %d.\n" % (caller, retcode))
             return False
     except (OSError, IOError) as e:
-        sys.stderr.write("%s: execution of %s%s failed: %s\n" % (sys.argv[0], dcmd, legend, e))
+        sys.stderr.write("%s: execution of %s%s failed: %s\n" % (caller, dcmd, legend, e))
         return False
     return True
 
@@ -35,15 +36,16 @@ def capture_or_die(dcmd, legend=""):
     "Either execute a command and capture its output or die."
     if legend:
         legend = " "  + legend
+    caller = os.path.basename(sys.argv[0])
     if verbose >= DEBUG_COMMANDS:
-        sys.stdout.write("%s: executing '%s'%s\n" % (sys.argv[0], dcmd, legend))
+        sys.stdout.write("%s: executing '%s'%s\n" % (caller, dcmd, legend))
     try:
         return subprocess.Popen(dcmd, shell=True, stdout=subprocess.PIPE).communicate()[0]
     except subprocess.CalledProcessError as e:
         if e.returncode < 0:
-            sys.stderr.write("%s: child was terminated by signal %d." % (sys.argv[0], -e.returncode))
+            sys.stderr.write("%s: child was terminated by signal %d." % (caller, -e.returncode))
         elif e.returncode != 0:
-            sys.stderr.write("%s: child returned %d." % (sys.argv[0], e.returncode))
+            sys.stderr.write("%s: child returned %d." % (caller, e.returncode))
         sys.exit(1)
     
 class directory_context:
@@ -287,6 +289,10 @@ class ConvertComparison:
         with directory_context(stem + ".git"):
             self.branches = [name for name in capture_or_die("git branch -l").split() if name != '*']
             self.tags = [name for name in capture_or_die("git tag -l").split()]
+        self.branches.sort()
+        if "master" in self.branches:
+            self.branches.remove("master")
+            self.branches = ["master"] + self.branches
     def compare_tree(self, legend, ref, success_expected=True):
         "Test to see if a tag or branch checkout has the expected content."
         preamble = "%s %s %s: " % (self.stem, legend, ref)
@@ -346,7 +352,7 @@ class ConvertComparison:
         for branch in cc.branches:
             if branch.endswith("UNNAMED-BRANCH"):
                 if verbose > 0:
-                    sys.stderr.write("%s: slipping %s\n" % (sys.argv[0], branch))
+                    sys.stderr.write("%s: skipping %s\n" % (os.path.basename(sys.argv[0]), branch))
             else:
                 cc.compare_tree("branch", branch)
         for tag in cc.tags:
