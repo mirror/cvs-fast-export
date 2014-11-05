@@ -301,6 +301,7 @@ class ConvertComparison:
         gitfiles = [fn[len(self.stem+".git")+1:] for fn in gitpaths]
         cvsfiles.sort()
         gitfiles.sort()
+        success = True
         if cvsfiles != gitfiles:
             if success_expected:
                 sys.stderr.write(preamble + "file manifests don't match.\n")
@@ -311,16 +312,16 @@ class ConvertComparison:
                                      {f for f in gitfiles if not f in cvsfiles})
                     sys.stderr.write(preamble + "CVS only: %s\n" %
                                      {f for f in cvsfiles if not f in gitfiles})
-            return False
-        else:
-            success = True
-            for (a, b) in zip(cvspaths, gitpaths):
-                if not filecmp.cmp(a, b, shallow=False):
-                    success = False
-                    if success_expected:
-                        sys.stderr.write("%s %s %s: %s and %s are different.\n" % (self.stem, legend, ref, a, b))
-                        if self.showdiffs:
-                            os.system("diff -u %s %s" % (a, b))
+            success = False
+        common = [(path, path.replace(".checkout/", ".git/"))
+                  for path in cvspaths if path.replace(".checkout/", ".git/") in gitpaths]
+        for (a, b) in common:
+            if not filecmp.cmp(a, b, shallow=False):
+                success = False
+                if success_expected:
+                    sys.stderr.write("%s %s %s: %s and %s are different.\n" % (self.stem, legend, ref, a, b))
+                    if self.showdiffs:
+                        os.system("diff -u %s %s" % (a, b))
         if success:
             if not success_expected:
                 sys.stderr.write(preamble + "trees unexpectedly match\n")
