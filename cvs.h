@@ -254,10 +254,10 @@ typedef struct {
 typedef struct _rev_master {
     /* information shared by all revisions of a master */
     const char		*name;
+    const char          *fileop_name;
     struct _cvs_commit  *commits;
     serial_t		ncommits;
     mode_t		mode;
-    const char          *fileop_name;
 } rev_master;
 
 typedef struct _rev_dir {
