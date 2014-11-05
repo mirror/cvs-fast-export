@@ -260,6 +260,12 @@ git_commit_build(cvs_commit **revisions, cvs_commit *leader, const int nrevision
 
     memcpy(commit->dirs, rds, (commit->ndirs = nds) * sizeof(rev_dir *));
 
+    /* link each CVS commit to the gitspace commit it is part of */
+    nfile = 0;
+    for (n = 0; n < nrevisions; n++)
+       if (revisions[n] && !revisions[n]->dead)
+           files[nfile++]->gitspace = commit;
+
 #ifdef ORDERDEBUG
     fprintf(stderr, "commit_build: %p\n", commit);
 

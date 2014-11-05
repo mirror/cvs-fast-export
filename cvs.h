@@ -316,7 +316,8 @@ typedef struct _cvs_commit {
     /* CVS-only members begin here */
     bool                emitted:1;
     rev_master          *master;
-    const cvs_number		*number;
+    struct _git_commit	*gitspace;
+    const cvs_number	*number;
 } cvs_commit;
 
 typedef struct _git_commit {
