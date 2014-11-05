@@ -22,7 +22,7 @@ DEBUG_LIFTER   = 4
 
 verbose = 0
 
-os.putenv("PATH", os.getenv("PATH") + "|..") 
+os.putenv("PATH", os.getenv("PATH") + os.pathsep + "..") 
 
 def noisy_run(dcmd, legend=""):
     "Either execute a command or raise a fatal exception."
