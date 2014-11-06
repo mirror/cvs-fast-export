@@ -23,3 +23,6 @@ XBS-HTML-Target: index.html
 XBS-VC-Tag-Template: %(version)s
 
 XBS-Validate: make check
+
+XBS-IRC-Channel: irc://chat.freenode.net/#reposurgeon
+
