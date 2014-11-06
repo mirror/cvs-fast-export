@@ -662,7 +662,7 @@ rev_tag_search(tag_t *tag, cvs_commit **revisions, git_repo *gl)
     git_commit	*gc;
 
     cvs_commit_date_sort(revisions, tag->count);
-    /* tag gets parented with branch of most recent matching commit */
+    /* tag gets parented with oldest branch with a matching commit */
     tag->parent = NULL;
     for (h = gl->heads; h; h = h->next)
     {
