@@ -1,6 +1,6 @@
 		cvs-fast-export project news
 
-Repository:
+1.26: 2014-11-05
     cvscompare changed to cvsconvert, a validating wrapper script.
     The rules for keyword expansion have changed yet again.
 
