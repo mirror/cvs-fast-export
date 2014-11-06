@@ -14,7 +14,7 @@ Description: Export an RCS or CVS history as a fast-import stream.
 
 XBS-Gitorious-URL: https://gitorious.org/cvs-fast-export/
 
-XBS-Ohloh-URL: https://www.ohloh.net/p/cvs-fast-export
+XBS-OpenHub-URL: https://www.ohloh.net/p/cvs-fast-export
 
 Homepage: http://www.catb.org/~esr/cvs-fast-export
 
