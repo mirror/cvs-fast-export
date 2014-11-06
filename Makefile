@@ -113,13 +113,14 @@ check: cvs-fast-export
 	$(MAKE) -C tests -s -f $(srcdir)tests/Makefile
 
 install: install-bin install-man
-install-bin: cvs-fast-export cvssync
+install-bin: cvs-fast-export cvssync cvsconvert
 	$(INSTALL) -d "$(target)/bin"
 	$(INSTALL) $^ "$(target)/bin"
 install-man: man
 	$(INSTALL) -d "$(target)/share/man/man1"
 	$(INSTALL) -m 644 cvs-fast-export.1 "$(target)/share/man/man1"
 	$(INSTALL) -m 644 cvssync.1 "$(target)/share/man/man1"
+	$(INSTALL) -m 644 cvsconvert.1 "$(target)/share/man/man1"
 
 PROFILE_REPO = ~/software/groff-conversion/groff-mirror/groff
 gmon.out: cvs-fast-export
