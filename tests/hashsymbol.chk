@@ -109,9 +109,6 @@ tree is based on my version #390.
 from :2
 M 100644 :3 hashsymbol
 
-reset refs/tags/magnum-base
-from :4
-
 reset refs/tags/amiga-version#621
 from :4
 
@@ -144,474 +141,6 @@ Clean up deleted files.
 
 from :4
 D hashsymbol
-
-reset refs/tags/netbsd-5-2-2-RELEASE
-from :5
-
-reset refs/tags/netbsd-5-1-4-RELEASE
-from :5
-
-reset refs/tags/netbsd-5-2-1-RELEASE
-from :5
-
-reset refs/tags/netbsd-5-1-3-RELEASE
-from :5
-
-reset refs/tags/rmind-smpnet-nbase
-from :5
-
-reset refs/tags/rmind-smpnet-base
-from :5
-
-reset refs/tags/agc-symver-base
-from :5
-
-reset refs/tags/tls-maxphys-base
-from :5
-
-reset refs/tags/yamt-pagecache-base8
-from :5
-
-reset refs/tags/yamt-pagecache-base7
-from :5
-
-reset refs/tags/netbsd-5-2-RELEASE
-from :5
-
-reset refs/tags/netbsd-5-2-RC1
-from :5
-
-reset refs/tags/yamt-pagecache-base6
-from :5
-
-reset refs/tags/yamt-pagecache-base5
-from :5
-
-reset refs/tags/yamt-pagecache-base4
-from :5
-
-reset refs/tags/netbsd-5-1-2-RELEASE
-from :5
-
-reset refs/tags/netbsd-5-1-1-RELEASE
-from :5
-
-reset refs/tags/jmcneill-usbmp-base
-from :5
-
-reset refs/tags/jmcneill-audiomp3-base
-from :5
-
-reset refs/tags/yamt-pagecache-base3
-from :5
-
-reset refs/tags/yamt-pagecache-base2
-from :5
-
-reset refs/tags/yamt-pagecache-base
-from :5
-
-reset refs/tags/rmind-uvmplock-nbase
-from :5
-
-reset refs/tags/jym-xensuspend-nbase
-from :5
-
-reset refs/tags/bouyer-quota2-nbase
-from :5
-
-reset refs/tags/bouyer-quota2-base
-from :5
-
-reset refs/tags/jruoho-x86intr-base
-from :5
-
-reset refs/tags/matt-nb5-pq3-base
-from :5
-
-reset refs/tags/netbsd-5-1-RELEASE
-from :5
-
-reset refs/tags/yamt-nfs-mp-base11
-from :5
-
-reset refs/tags/netbsd-5-1-RC4
-from :5
-
-reset refs/tags/uebayasi-xip-base2
-from :5
-
-reset refs/tags/yamt-nfs-mp-base10
-from :5
-
-reset refs/tags/netbsd-5-1-RC3
-from :5
-
-reset refs/tags/netbsd-5-1-RC2
-from :5
-
-reset refs/tags/netbsd-5-1-RC1
-from :5
-
-reset refs/tags/rmind-uvmplock-base
-from :5
-
-reset refs/tags/yamt-nfs-mp-base9
-from :5
-
-reset refs/tags/uebayasi-xip-base
-from :5
-
-reset refs/tags/netbsd-5-0-2-RELEASE
-from :5
-
-reset refs/tags/yamt-nfs-mp-base8
-from :5
-
-reset refs/tags/yamt-nfs-mp-base7
-from :5
-
-reset refs/tags/netbsd-5-0-1-RELEASE
-from :5
-
-reset refs/tags/jymxensuspend-base
-from :5
-
-reset refs/tags/yamt-nfs-mp-base6
-from :5
-
-reset refs/tags/yamt-nfs-mp-base5
-from :5
-
-reset refs/tags/yamt-nfs-mp-base4
-from :5
-
-reset refs/tags/yamt-nfs-mp-base3
-from :5
-
-reset refs/tags/netbsd-5-0-RELEASE
-from :5
-
-reset refs/tags/netbsd-5-0-RC4
-from :5
-
-reset refs/tags/netbsd-5-0-RC3
-from :5
-
-reset refs/tags/netbsd-5-0-RC2
-from :5
-
-reset refs/tags/jym-xensuspend-base
-from :5
-
-reset refs/tags/netbsd-5-0-RC1
-from :5
-
-reset refs/tags/haad-dm-base2
-from :5
-
-reset refs/tags/haad-nbase2
-from :5
-
-reset refs/tags/ad-audiomp2-base
-from :5
-
-reset refs/tags/netbsd-5-base
-from :5
-
-reset refs/tags/haad-dm-base1
-from :5
-
-reset refs/tags/haad-dm-base
-from :5
-
-reset refs/tags/simonb-wapbl-nbase
-from :5
-
-reset refs/tags/yamt-pf42-base4
-from :5
-
-reset refs/tags/simonb-wapbl-base
-from :5
-
-reset refs/tags/yamt-pf42-base3
-from :5
-
-reset refs/tags/hpcarm-cleanup-nbase
-from :5
-
-reset refs/tags/yamt-pf42-base2
-from :5
-
-reset refs/tags/yamt-nfs-mp-base2
-from :5
-
-reset refs/tags/yamt-nfs-mp-base
-from :5
-
-reset refs/tags/yamt-pf42-base
-from :5
-
-reset refs/tags/ad-socklock-base1
-from :5
-
-reset refs/tags/yamt-lazymbuf-base15
-from :5
-
-reset refs/tags/yamt-lazymbuf-base14
-from :5
-
-reset refs/tags/keiichi-mipv6-nbase
-from :5
-
-reset refs/tags/mjf-devfs2-base
-from :5
-
-reset refs/tags/keiichi-mipv6-base
-from :5
-
-reset refs/tags/bouyer-xeni386-merge1
-from :5
-
-reset refs/tags/vmlocking2-base3
-from :5
-
-reset refs/tags/bouyer-xeni386-nbase
-from :5
-
-reset refs/tags/yamt-kmem-base3
-from :5
-
-reset refs/tags/cube-autoconf-base
-from :5
-
-reset refs/tags/yamt-kmem-base2
-from :5
-
-reset refs/tags/bouyer-xeni386-base
-from :5
-
-reset refs/tags/yamt-kmem-base
-from :5
-
-reset refs/tags/vmlocking2-base2
-from :5
-
-reset refs/tags/reinoud-bufcleanup-nbase
-from :5
-
-reset refs/tags/vmlocking2-base1
-from :5
-
-reset refs/tags/jmcneill-base
-from :5
-
-reset refs/tags/mjf-devfs-base
-from :5
-
-reset refs/tags/bouyer-xenamd64-base2
-from :5
-
-reset refs/tags/vmlocking-nbase
-from :5
-
-reset refs/tags/yamt-x86pmap-base4
-from :5
-
-reset refs/tags/bouyer-xenamd64-base
-from :5
-
-reset refs/tags/yamt-x86pmap-base3
-from :5
-
-reset refs/tags/yamt-x86pmap-base2
-from :5
-
-reset refs/tags/yamt-x86pmap-base
-from :5
-
-reset refs/tags/jmcneill-pm-base
-from :5
-
-reset refs/tags/hpcarm-cleanup-base
-from :5
-
-reset refs/tags/mjf-ufs-trans-base
-from :5
-
-reset refs/tags/yamt-idlelwp-base8
-from :5
-
-reset refs/tags/ppcoea-renovation-base
-from :5
-
-reset refs/tags/reinoud-bufcleanup-base
-from :5
-
-reset refs/tags/vmlocking-base
-from :5
-
-reset refs/tags/ad-audiomp-base
-from :5
-
-reset refs/tags/post-newlock2-merge
-from :5
-
-reset refs/tags/newlock2-nbase
-from :5
-
-reset refs/tags/yamt-splraiseipl-base5
-from :5
-
-reset refs/tags/yamt-splraiseipl-base4
-from :5
-
-reset refs/tags/yamt-splraiseipl-base3
-from :5
-
-reset refs/tags/yamt-splraiseipl-base2
-from :5
-
-reset refs/tags/yamt-splraiseipl-base
-from :5
-
-reset refs/tags/newlock2-base
-from :5
-
-reset refs/tags/yamt-pdpolicy-base8
-from :5
-
-reset refs/tags/yamt-pdpolicy-base7
-from :5
-
-reset refs/tags/yamt-pdpolicy-base6
-from :5
-
-reset refs/tags/gdamore-uart-base
-from :5
-
-reset refs/tags/simonb-timcounters-final
-from :5
-
-reset refs/tags/yamt-pdpolicy-base5
-from :5
-
-reset refs/tags/elad-kernelauth-nbase
-from :5
-
-reset refs/tags/yamt-pdpolicy-base4
-from :5
-
-reset refs/tags/yamt-pdpolicy-base3
-from :5
-
-reset refs/tags/yamt-pdpolicy-base2
-from :5
-
-reset refs/tags/yamt-pdpolicy-base
-from :5
-
-reset refs/tags/yamt-uio_vmspace-base5
-from :5
-
-reset refs/tags/simonb-timecounters-base
-from :5
-
-reset refs/tags/rpaulo-netinet-merge-pcb-base
-from :5
-
-reset refs/tags/yamt-readahead-base3
-from :5
-
-reset refs/tags/yamt-readahead-base2
-from :5
-
-reset refs/tags/yamt-readahead-base
-from :5
-
-reset refs/tags/yamt-vop-base3
-from :5
-
-reset refs/tags/yamt-vop-base2
-from :5
-
-reset refs/tags/thorpej-vnode-attr-base
-from :5
-
-reset refs/tags/yamt-vop-base
-from :5
-
-reset refs/tags/yamt-km-base4
-from :5
-
-reset refs/tags/yamt-km-base3
-from :5
-
-reset refs/tags/yamt-km-base2
-from :5
-
-reset refs/tags/yamt-km-base
-from :5
-
-reset refs/tags/kent-audio2-base
-from :5
-
-reset refs/tags/ktrace-lwp-base
-from :5
-
-reset refs/tags/nathanw_sa_before_merge
-from :5
-
-reset refs/tags/gmcgarry_ctxsw_base
-from :5
-
-reset refs/tags/gmcgarry_ucred_base
-from :5
-
-reset refs/tags/nathanw_sa_base
-from :5
-
-reset refs/tags/gehenna-devsw-base
-from :5
-
-reset refs/tags/eeh-devprop-base
-from :5
-
-reset refs/tags/newlock-base
-from :5
-
-reset refs/tags/ifpoll-base
-from :5
-
-reset refs/tags/thorpej-mips-cache-base
-from :5
-
-reset refs/tags/thorpej-devvp-base
-from :5
-
-reset refs/tags/kqueue-base
-from :5
-
-reset refs/tags/thorpej_scsipi_beforemerge
-from :5
-
-reset refs/tags/thorpej_scsipi_nbase
-from :5
-
-reset refs/tags/chs-ubc2-newbase
-from :5
-
-reset refs/tags/fvdl-softdep-base
-from :5
-
-reset refs/tags/thorpej_scsipi_base
-from :5
-
-reset refs/tags/thorpej-signal-base
-from :5
-
-reset refs/tags/marc-pcmcia-base
-from :5
 
 commit refs/heads/thorpej-signal
 mark :6
@@ -662,372 +191,358 @@ data 24
 Clean up deleted files.
 
 
-commit refs/heads/eeh-devprop
+commit refs/heads/gehenna-devsw
 mark :13
 committer mycroft <mycroft> 760148666 +0000
 data 24
 Clean up deleted files.
 
 
-commit refs/heads/gehenna-devsw
+commit refs/heads/gmcgarry_ucred
 mark :14
 committer mycroft <mycroft> 760148666 +0000
 data 24
 Clean up deleted files.
 
 
-commit refs/heads/gmcgarry_ucred
+commit refs/heads/gmcgarry_ctxsw
 mark :15
 committer mycroft <mycroft> 760148666 +0000
 data 24
 Clean up deleted files.
 
 
-commit refs/heads/gmcgarry_ctxsw
+commit refs/heads/ktrace-lwp
 mark :16
 committer mycroft <mycroft> 760148666 +0000
 data 24
 Clean up deleted files.
 
 
-commit refs/heads/ktrace-lwp
+commit refs/heads/kent-audio2
 mark :17
 committer mycroft <mycroft> 760148666 +0000
 data 24
 Clean up deleted files.
 
 
-commit refs/heads/kent-audio2
+commit refs/heads/yamt-km
 mark :18
 committer mycroft <mycroft> 760148666 +0000
 data 24
 Clean up deleted files.
 
 
-commit refs/heads/yamt-km
+commit refs/heads/yamt-lazymbuf
 mark :19
 committer mycroft <mycroft> 760148666 +0000
 data 24
 Clean up deleted files.
 
 
-commit refs/heads/yamt-lazymbuf
+commit refs/heads/thorpej-vnode-attr
 mark :20
 committer mycroft <mycroft> 760148666 +0000
 data 24
 Clean up deleted files.
 
 
-commit refs/heads/yamt-vop
+commit refs/heads/yamt-readahead
 mark :21
 committer mycroft <mycroft> 760148666 +0000
 data 24
 Clean up deleted files.
 
 
-commit refs/heads/thorpej-vnode-attr
+commit refs/heads/yamt-uio_vmspace
 mark :22
 committer mycroft <mycroft> 760148666 +0000
 data 24
 Clean up deleted files.
 
 
-commit refs/heads/yamt-readahead
+commit refs/heads/rpaulo-netinet-merge-pcb
 mark :23
 committer mycroft <mycroft> 760148666 +0000
 data 24
 Clean up deleted files.
 
 
-commit refs/heads/yamt-uio_vmspace
+commit refs/heads/simonb-timecounters
 mark :24
 committer mycroft <mycroft> 760148666 +0000
 data 24
 Clean up deleted files.
 
 
-commit refs/heads/rpaulo-netinet-merge-pcb
+commit refs/heads/yamt-pdpolicy
 mark :25
 committer mycroft <mycroft> 760148666 +0000
 data 24
 Clean up deleted files.
 
 
-commit refs/heads/simonb-timecounters
+commit refs/heads/gdamore-uart
 mark :26
 committer mycroft <mycroft> 760148666 +0000
 data 24
 Clean up deleted files.
 
 
-commit refs/heads/yamt-pdpolicy
+commit refs/heads/newlock2
 mark :27
 committer mycroft <mycroft> 760148666 +0000
 data 24
 Clean up deleted files.
 
 
-commit refs/heads/gdamore-uart
+commit refs/heads/yamt-splraiseipl
 mark :28
 committer mycroft <mycroft> 760148666 +0000
 data 24
 Clean up deleted files.
 
 
-commit refs/heads/newlock2
+commit refs/heads/yamt-idlelwp
 mark :29
 committer mycroft <mycroft> 760148666 +0000
 data 24
 Clean up deleted files.
 
 
-commit refs/heads/yamt-splraiseipl
+commit refs/heads/ad-audiomp
 mark :30
 committer mycroft <mycroft> 760148666 +0000
 data 24
 Clean up deleted files.
 
 
-commit refs/heads/yamt-idlelwp
+commit refs/heads/vmlocking
 mark :31
 committer mycroft <mycroft> 760148666 +0000
 data 24
 Clean up deleted files.
 
 
-commit refs/heads/ad-audiomp
+commit refs/heads/ppcoea-renovation
 mark :32
 committer mycroft <mycroft> 760148666 +0000
 data 24
 Clean up deleted files.
 
 
-commit refs/heads/vmlocking
+commit refs/heads/hpcarm-cleanup
 mark :33
 committer mycroft <mycroft> 760148666 +0000
 data 24
 Clean up deleted files.
 
 
-commit refs/heads/ppcoea-renovation
+commit refs/heads/jmcneill-pm
 mark :34
 committer mycroft <mycroft> 760148666 +0000
 data 24
 Clean up deleted files.
 
 
-commit refs/heads/hpcarm-cleanup
+commit refs/heads/yamt-x86pmap
 mark :35
 committer mycroft <mycroft> 760148666 +0000
 data 24
 Clean up deleted files.
 
 
-commit refs/heads/jmcneill-pm
+commit refs/heads/bouyer-xenamd64
 mark :36
 committer mycroft <mycroft> 760148666 +0000
 data 24
 Clean up deleted files.
 
 
-commit refs/heads/yamt-x86pmap
+commit refs/heads/mjf-devfs
 mark :37
 committer mycroft <mycroft> 760148666 +0000
 data 24
 Clean up deleted files.
 
 
-commit refs/heads/bouyer-xenamd64
+commit refs/heads/vmlocking2
 mark :38
 committer mycroft <mycroft> 760148666 +0000
 data 24
 Clean up deleted files.
 
 
-commit refs/heads/mjf-devfs
+commit refs/heads/yamt-kmem
 mark :39
 committer mycroft <mycroft> 760148666 +0000
 data 24
 Clean up deleted files.
 
 
-commit refs/heads/vmlocking2
+commit refs/heads/bouyer-xeni386
 mark :40
 committer mycroft <mycroft> 760148666 +0000
 data 24
 Clean up deleted files.
 
 
-commit refs/heads/yamt-kmem
+commit refs/heads/cube-autoconf
 mark :41
 committer mycroft <mycroft> 760148666 +0000
 data 24
 Clean up deleted files.
 
 
-commit refs/heads/bouyer-xeni386
+commit refs/heads/keiichi-mipv6
 mark :42
 committer mycroft <mycroft> 760148666 +0000
 data 24
 Clean up deleted files.
 
 
-commit refs/heads/cube-autoconf
+commit refs/heads/mjf-devfs2
 mark :43
 committer mycroft <mycroft> 760148666 +0000
 data 24
 Clean up deleted files.
 
 
-commit refs/heads/keiichi-mipv6
+commit refs/heads/yamt-pf42
 mark :44
 committer mycroft <mycroft> 760148666 +0000
 data 24
 Clean up deleted files.
 
 
-commit refs/heads/mjf-devfs2
+commit refs/heads/yamt-nfs-mp
 mark :45
 committer mycroft <mycroft> 760148666 +0000
 data 24
 Clean up deleted files.
 
 
-commit refs/heads/yamt-pf42
+commit refs/heads/simonb-wapbl
 mark :46
 committer mycroft <mycroft> 760148666 +0000
 data 24
 Clean up deleted files.
 
 
-commit refs/heads/yamt-nfs-mp
+commit refs/heads/haad-dm
 mark :47
 committer mycroft <mycroft> 760148666 +0000
 data 24
 Clean up deleted files.
 
 
-commit refs/heads/simonb-wapbl
+commit refs/heads/netbsd-5
 mark :48
 committer mycroft <mycroft> 760148666 +0000
 data 24
 Clean up deleted files.
 
 
-commit refs/heads/haad-dm
+commit refs/heads/ad-audiomp2
 mark :49
 committer mycroft <mycroft> 760148666 +0000
 data 24
 Clean up deleted files.
 
 
-commit refs/heads/netbsd-5
+commit refs/heads/jym-xensuspend
 mark :50
 committer mycroft <mycroft> 760148666 +0000
 data 24
 Clean up deleted files.
 
 
-commit refs/heads/ad-audiomp2
+commit refs/heads/netbsd-5-0
 mark :51
 committer mycroft <mycroft> 760148666 +0000
 data 24
 Clean up deleted files.
 
 
-commit refs/heads/jym-xensuspend
+commit refs/heads/uebayasi-xip
 mark :52
 committer mycroft <mycroft> 760148666 +0000
 data 24
 Clean up deleted files.
 
 
-commit refs/heads/netbsd-5-0
+commit refs/heads/rmind-uvmplock
 mark :53
 committer mycroft <mycroft> 760148666 +0000
 data 24
 Clean up deleted files.
 
 
-commit refs/heads/uebayasi-xip
+commit refs/heads/netbsd-5-1
 mark :54
 committer mycroft <mycroft> 760148666 +0000
 data 24
 Clean up deleted files.
 
 
-commit refs/heads/rmind-uvmplock
+commit refs/heads/matt-nb5-pq3
 mark :55
 committer mycroft <mycroft> 760148666 +0000
 data 24
 Clean up deleted files.
 
 
-commit refs/heads/netbsd-5-1
+commit refs/heads/jruoho-x86intr
 mark :56
 committer mycroft <mycroft> 760148666 +0000
 data 24
 Clean up deleted files.
 
 
-commit refs/heads/matt-nb5-pq3
+commit refs/heads/bouyer-quota2
 mark :57
 committer mycroft <mycroft> 760148666 +0000
 data 24
 Clean up deleted files.
 
 
-commit refs/heads/jruoho-x86intr
+commit refs/heads/yamt-pagecache
 mark :58
 committer mycroft <mycroft> 760148666 +0000
 data 24
 Clean up deleted files.
 
 
-commit refs/heads/bouyer-quota2
+commit refs/heads/jmcneill-audiomp3
 mark :59
 committer mycroft <mycroft> 760148666 +0000
 data 24
 Clean up deleted files.
 
 
-commit refs/heads/yamt-pagecache
+commit refs/heads/jmcneill-usbmp
 mark :60
 committer mycroft <mycroft> 760148666 +0000
 data 24
 Clean up deleted files.
 
 
-commit refs/heads/jmcneill-audiomp3
+commit refs/heads/netbsd-5-2
 mark :61
 committer mycroft <mycroft> 760148666 +0000
 data 24
 Clean up deleted files.
 
 
-commit refs/heads/jmcneill-usbmp
+commit refs/heads/rmind-smpnet
 mark :62
 committer mycroft <mycroft> 760148666 +0000
 data 24
 Clean up deleted files.
 
 
-commit refs/heads/netbsd-5-2
-mark :63
-committer mycroft <mycroft> 760148666 +0000
-data 24
-Clean up deleted files.
-
-
-commit refs/heads/rmind-smpnet
-mark :64
-committer mycroft <mycroft> 760148666 +0000
-data 24
-Clean up deleted files.
-
-
 commit refs/heads/agc-symver
-mark :65
+mark :63
 committer mycroft <mycroft> 760148666 +0000
 data 24
 Clean up deleted files.
@@ -1060,163 +575,157 @@ from :11
 reset refs/heads/newlock
 from :12
 
-reset refs/heads/eeh-devprop
+reset refs/heads/gehenna-devsw
 from :13
 
-reset refs/heads/gehenna-devsw
+reset refs/heads/gmcgarry_ucred
 from :14
 
-reset refs/heads/gmcgarry_ucred
+reset refs/heads/gmcgarry_ctxsw
 from :15
 
-reset refs/heads/gmcgarry_ctxsw
+reset refs/heads/ktrace-lwp
 from :16
 
-reset refs/heads/ktrace-lwp
+reset refs/heads/kent-audio2
 from :17
 
-reset refs/heads/kent-audio2
+reset refs/heads/yamt-km
 from :18
 
-reset refs/heads/yamt-km
+reset refs/heads/yamt-lazymbuf
 from :19
 
-reset refs/heads/yamt-lazymbuf
+reset refs/heads/thorpej-vnode-attr
 from :20
 
-reset refs/heads/yamt-vop
+reset refs/heads/yamt-readahead
 from :21
 
-reset refs/heads/thorpej-vnode-attr
+reset refs/heads/yamt-uio_vmspace
 from :22
 
-reset refs/heads/yamt-readahead
+reset refs/heads/rpaulo-netinet-merge-pcb
 from :23
 
-reset refs/heads/yamt-uio_vmspace
+reset refs/heads/simonb-timecounters
 from :24
 
-reset refs/heads/rpaulo-netinet-merge-pcb
+reset refs/heads/yamt-pdpolicy
 from :25
 
-reset refs/heads/simonb-timecounters
+reset refs/heads/gdamore-uart
 from :26
 
-reset refs/heads/yamt-pdpolicy
+reset refs/heads/newlock2
 from :27
 
-reset refs/heads/gdamore-uart
+reset refs/heads/yamt-splraiseipl
 from :28
 
-reset refs/heads/newlock2
+reset refs/heads/yamt-idlelwp
 from :29
 
-reset refs/heads/yamt-splraiseipl
+reset refs/heads/ad-audiomp
 from :30
 
-reset refs/heads/yamt-idlelwp
+reset refs/heads/vmlocking
 from :31
 
-reset refs/heads/ad-audiomp
+reset refs/heads/ppcoea-renovation
 from :32
 
-reset refs/heads/vmlocking
+reset refs/heads/hpcarm-cleanup
 from :33
 
-reset refs/heads/ppcoea-renovation
+reset refs/heads/jmcneill-pm
 from :34
 
-reset refs/heads/hpcarm-cleanup
+reset refs/heads/yamt-x86pmap
 from :35
 
-reset refs/heads/jmcneill-pm
+reset refs/heads/bouyer-xenamd64
 from :36
 
-reset refs/heads/yamt-x86pmap
+reset refs/heads/mjf-devfs
 from :37
 
-reset refs/heads/bouyer-xenamd64
+reset refs/heads/vmlocking2
 from :38
 
-reset refs/heads/mjf-devfs
+reset refs/heads/yamt-kmem
 from :39
 
-reset refs/heads/vmlocking2
+reset refs/heads/bouyer-xeni386
 from :40
 
-reset refs/heads/yamt-kmem
+reset refs/heads/cube-autoconf
 from :41
 
-reset refs/heads/bouyer-xeni386
+reset refs/heads/keiichi-mipv6
 from :42
 
-reset refs/heads/cube-autoconf
+reset refs/heads/mjf-devfs2
 from :43
 
-reset refs/heads/keiichi-mipv6
+reset refs/heads/yamt-pf42
 from :44
 
-reset refs/heads/mjf-devfs2
+reset refs/heads/yamt-nfs-mp
 from :45
 
-reset refs/heads/yamt-pf42
+reset refs/heads/simonb-wapbl
 from :46
 
-reset refs/heads/yamt-nfs-mp
+reset refs/heads/haad-dm
 from :47
 
-reset refs/heads/simonb-wapbl
+reset refs/heads/netbsd-5
 from :48
 
-reset refs/heads/haad-dm
+reset refs/heads/ad-audiomp2
 from :49
 
-reset refs/heads/netbsd-5
+reset refs/heads/jym-xensuspend
 from :50
 
-reset refs/heads/ad-audiomp2
+reset refs/heads/netbsd-5-0
 from :51
 
-reset refs/heads/jym-xensuspend
+reset refs/heads/uebayasi-xip
 from :52
 
-reset refs/heads/netbsd-5-0
+reset refs/heads/rmind-uvmplock
 from :53
 
-reset refs/heads/uebayasi-xip
+reset refs/heads/netbsd-5-1
 from :54
 
-reset refs/heads/rmind-uvmplock
+reset refs/heads/matt-nb5-pq3
 from :55
 
-reset refs/heads/netbsd-5-1
+reset refs/heads/jruoho-x86intr
 from :56
 
-reset refs/heads/matt-nb5-pq3
+reset refs/heads/bouyer-quota2
 from :57
 
-reset refs/heads/jruoho-x86intr
+reset refs/heads/yamt-pagecache
 from :58
 
-reset refs/heads/bouyer-quota2
+reset refs/heads/jmcneill-audiomp3
 from :59
 
-reset refs/heads/yamt-pagecache
+reset refs/heads/jmcneill-usbmp
 from :60
 
-reset refs/heads/jmcneill-audiomp3
+reset refs/heads/netbsd-5-2
 from :61
 
-reset refs/heads/jmcneill-usbmp
+reset refs/heads/rmind-smpnet
 from :62
 
-reset refs/heads/netbsd-5-2
-from :63
-
-reset refs/heads/rmind-smpnet
-from :64
-
 reset refs/heads/agc-symver
-from :65
+from :63
 
 done
