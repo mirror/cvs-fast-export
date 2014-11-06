@@ -658,9 +658,38 @@ merge_branches(rev_ref **branches, int nbranch,
 static void
 rev_tag_search(tag_t *tag, cvs_commit **revisions, git_repo *gl)
 {
+    rev_ref	*h;
+    git_commit	*gc;
+
     cvs_commit_date_sort(revisions, tag->count);
     /* tag gets parented with branch of most recent matching commit */
-    tag->parent = git_branch_of_commit(gl, revisions[0]);
+    tag->parent = NULL;
+    for (h = gl->heads; h; h = h->next)
+    {
+	if (h->tail)
+	    continue;
+	for (gc = (git_commit *)h->commit; gc; gc = gc->parent) {
+	    if (gc == revisions[0]->gitspace) {
+		tag->parent = h;
+		goto breakout;
+	    }
+	    if (gc->tail)
+		break;
+	}
+    }
+breakout:
+#ifdef __UNUSED__
+    if (tag->parent == NULL)
+	/*
+	 * This is what the code used to do before we put in the direct check
+	 * against the gitspace pointer.  Advantage: my note requiring an
+	 * exact match, it avoids omitting "could not be assigned"
+	 * messages for a master that has been lifted out of context.
+	 * Disadvantage: those messages may be a correctness feature.
+	 * Also this computation is slightly more expensive.
+	 */
+	tag->parent = git_branch_of_commit(gl, revisions[0]);
+#endif /* __UNUSED__ */
     if (tag->parent)
 	tag->commit = git_commit_locate(tag->parent, revisions[0]);
     if (!tag->commit) {
