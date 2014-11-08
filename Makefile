@@ -25,8 +25,8 @@ LIBS=-lrt
 CPPFLAGS += -DVERSION=\"$(VERSION)\"
 
 # Enable this for multithreading.
-#CFLAGS += -pthread
-#CPPFLAGS += -DTHREADS
+CFLAGS += -pthread
+CPPFLAGS += -DTHREADS
 
 # Optimizing for speed. Comment this out for distribution builds
 CFLAGS += -march=native
