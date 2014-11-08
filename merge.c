@@ -375,7 +375,7 @@ merge_branches(rev_ref **branches, int nbranch,
     int n;
     git_commit *prev = NULL;
     git_commit *head = NULL, **tail = &head;
-    cvs_commit **revisions = xcalloc(nbranch, sizeof(cvs_commit *), "merging per-file branches");
+    cvs_commit **revisions = xmalloc(nbranch * sizeof(cvs_commit *), "merging per-file branches");
     git_commit *commit;
     cvs_commit *latest;
     cvs_commit **p;
