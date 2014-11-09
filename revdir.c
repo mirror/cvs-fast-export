@@ -163,10 +163,10 @@ rds_put(const int index, rev_dir *rd)
     if (sds == 0) {
 	sds = 128;
 	rds = xmalloc(sds * sizeof(rev_dir *), __func__);
-    } else {
-	while (sds <= index) {
+    } else if (sds <= index) {
+	do {
 	    sds *= 2;
-	}
+	} while (sds <= index);
 	rds = xrealloc(rds, sds * sizeof(rev_dir *), __func__);
     }
     rds[index] = rd;
