@@ -140,9 +140,9 @@ typedef struct _cvs_version {
     const char		*restrict commitid;
     cvs_branch		*branches;
     node_t		*node;
-    const cvs_number	*number;
+    const cvs_number	*restrict number;
     cvstime_t		date;
-    const cvs_number	*parent;	/* next in ,v file */
+    const cvs_number	*restrict parent; /* next in ,v file */
     flag		dead;
 } cvs_version;
 
