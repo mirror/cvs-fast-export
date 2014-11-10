@@ -46,14 +46,14 @@ s_rebuild: neutralize.map
 	@-for file in $(TESTLOADS); do \
 	    echo "Remaking $${file}.chk"; \
 	    make --quiet $${file}.repo; \
-	    find $${file}.repo/module -name '*,v' | sort | $(CVS_FAST_EXPORT) $(TESTOPTS) >$${file}.chk 2>&1; \
+	    find $${file}.repo/module -name '*,v' | $(CVS_FAST_EXPORT) $(TESTOPTS) >$${file}.chk 2>&1; \
 	done;
 s_regress: neutralize.map
 	@echo "== Dump regressions =="
 	@-for file in $(TESTLOADS); do \
 	    echo -n "  $${file} "; grep '##' $${file}.tst  || echo ' ## (no description)'; \
 	    make --quiet $${file}.repo; \
-	    find $${file}.repo/module -name '*,v' | sort | $(CVS_FAST_EXPORT) $(TESTOPTS) 2>&1 | $(DIFF) $${file}.chk -; \
+	    find $${file}.repo/module -name '*,v' | $(CVS_FAST_EXPORT) $(TESTOPTS) 2>&1 | $(DIFF) $${file}.chk -; \
 	done
 
 MASTERS := $(shell ls -1 *,v | sed '/,v/s///')
@@ -75,14 +75,14 @@ i_rebuild: neutralize.map
 	@-for file in $(INCREMENTAL); do \
 	    echo "Remaking $${file}.inc-chk"; \
 	    make --quiet $${file}.repo; \
-	    find $${file}.repo/module -name '*,v' | sort | $(CVS_FAST_EXPORT) -T -A neutralize.map -i $(THRESHOLD) >$${file}.inc-chk 2>&1; \
+	    find $${file}.repo/module -name '*,v' | $(CVS_FAST_EXPORT) -T -A neutralize.map -i $(THRESHOLD) >$${file}.inc-chk 2>&1; \
 	done;
 i_regress: neutralize.map
 	@echo "== Incremental-dump regressions =="
 	@-for file in $(INCREMENTAL); do \
 	    echo -n "  $${file} "; grep '##' $${file}.tst  || echo ' ## (no description)'; \
 	    make --quiet $${file}.repo; \
-	    find $${file}.repo/module -name '*,v' | sort | $(CVS_FAST_EXPORT) -T -i $(THRESHOLD) -A neutralize.map 2>&1 | $(DIFF) $${file}.inc-chk -; \
+	    find $${file}.repo/module -name '*,v' | $(CVS_FAST_EXPORT) -T -i $(THRESHOLD) -A neutralize.map 2>&1 | $(DIFF) $${file}.inc-chk -; \
 	done
 
 # Alas, this produces false failures on branchy repos because of some
@@ -95,8 +95,8 @@ f_regress:
 	@-for file in $(LINEAR); do \
 	    echo -n "  $${file} "; grep '##' $${file}.tst  || echo ' ## (no description)'; \
 	    make --quiet $${file}.repo; \
-	    find $${file}.repo/module -name '*,v' | sort | $(CVS_FAST_EXPORT) -C -T -A neutralize.map 2>&1 | ./gitwash >canonical$$; \
-	    find $${file}.repo/module -name '*,v' | sort | $(CVS_FAST_EXPORT) -F -T -A neutralize.map 2>&1 | ./gitwash >fast$$; \
+	    find $${file}.repo/module -name '*,v' | $(CVS_FAST_EXPORT) -C -T -A neutralize.map 2>&1 | ./gitwash >canonical$$; \
+	    find $${file}.repo/module -name '*,v' | $(CVS_FAST_EXPORT) -F -T -A neutralize.map 2>&1 | ./gitwash >fast$$; \
 	    $(DIFF) canonical$$ fast$$; \
 	    rm canonical$$ fast$$; \
 	done
