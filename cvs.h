@@ -398,9 +398,12 @@ typedef struct _cvs_author {
  *
  * If the compiler is GCC version 2.7 or later, this is implemented
  * using __attribute__((__format__(...))).
+ *
+ * OS X lacks __alloc_size__,
  */
 #if defined(__GNUC__) \
-    && (__GNUC__ > 2) || (__GNUC__ == 2 && __GNUC_MINOR__ >= 7)
+    && (__GNUC__ > 2) || (__GNUC__ == 2 && __GNUC_MINOR__ >= 7) \
+    && !defined(__APPLE__)
 #define _printflike(fmtarg, firstvararg)       \
             __attribute__((__format__(__printf__, fmtarg, firstvararg)))
 #define _alloclike(sizearg) 		       \
@@ -421,6 +424,12 @@ typedef struct _cvs_author {
 #define _noreturn                              /* nothing */
 #define _pure                                  /* nothing */
 #define _alignof(T)  sizeof(long double)
+#endif
+
+#if defined(__APPLE__)
+/* we mock this in utils.c; the CLOCK_REALTIME value is not used */
+int clock_gettime(clockid_t clock_id, struct timespec *tp)
+#define CLOCK_REALTIME	0
 #endif
 
 cvs_author *fullname(const char *);
