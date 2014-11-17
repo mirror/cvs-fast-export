@@ -428,7 +428,8 @@ typedef struct _cvs_author {
 
 #if defined(__APPLE__)
 /* we mock this in utils.c; the CLOCK_REALTIME value is not used */
-int clock_gettime(clockid_t clock_id, struct timespec *tp)
+typedef int clockid_t;
+int clock_gettime(clockid_t clock_id, struct timespec *tp);
 #define CLOCK_REALTIME	0
 #endif
 
