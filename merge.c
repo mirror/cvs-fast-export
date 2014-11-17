@@ -443,7 +443,7 @@ merge_branches(rev_ref **branches, int nbranch,
 	if (!birth || time_compare(birth, c->date) >= 0)
 	    continue;
 	if (!c->dead)
-	    warn("warning - %s: too late date through branch %s\n",
+	    warn("warning - %s branch %s: tip commit older than imputed branch join\n",
 		     c->master->name, branch->ref_name);
 	revisions[n] = NULL;
     }
