@@ -11,6 +11,7 @@ int clock_gettime(clockid_t clock_id, struct timespec *tp)
     uint64_t time = mach_absolute_time();
     tp->tv_nsec = ((double)time * (double)timebase.numer)/((double)timebase.denom);
     tp->tv_sec = ((double)time * (double)timebase.numer)/((double)timebase.denom * NSEC_PER_SEC);
+    return EXIT_SUCCESS;
 }
 #endif
 
