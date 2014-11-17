@@ -48,6 +48,16 @@ rev_ref_find_name(rev_ref *h, const char *name)
 
 static bool
 rev_ref_is_ready(const char *name, cvs_repo *source, rev_ref *ready)
+/*
+ * name:   Name of branch we are considering adding to toposorted list.
+ * source: All the cvs masters.
+ * ready:  The list of branches we have already sorted.
+ *
+ * A branch is ready, if it has no parent, or we've already sorted it's parent
+ *
+ * Parent branch names are determined by examining every cvs master
+ * ?? Can one branch have different parents in different masters??
+ */
 {
     for (; source; source = source->next) {
 	rev_ref *head = rev_find_head(source, name);
@@ -61,13 +71,16 @@ rev_ref_is_ready(const char *name, cvs_repo *source, rev_ref *ready)
 
 static rev_ref *
 rev_ref_tsort(rev_ref *refs, cvs_repo *masters)
+/* Sort a list of git space branches so parents come before children */
 {
     rev_ref *done = NULL;
     rev_ref **done_tail = &done;
     rev_ref *r, **prev;
 
     while (refs) {
+	/* search the remaining input list */
 	for (prev = &refs; (r = *prev); prev = &(*prev)->next) {
+            /* find a branch where we've already sorted its parent */
 	    if (rev_ref_is_ready(r->ref_name, masters, done)) {
 		break;
 	    }
@@ -76,6 +89,10 @@ rev_ref_tsort(rev_ref *refs, cvs_repo *masters)
 	    announce("internal error - branch cycle\n");
 	    return NULL;
 	}
+        /*
+         * Remove the found branch from the input list and 
+         * append it to the output list
+         */
 	*prev = r->next;
 	*done_tail = r;
 	r->next = NULL;
