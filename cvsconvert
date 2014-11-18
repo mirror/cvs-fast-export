@@ -338,10 +338,14 @@ class ConvertComparison:
                 if self.showdiffs:
                     sys.stderr.write(preamble + "common: %d\n" %
                                      len([f for f in gitfiles if f in cvsfiles]))
-                    sys.stderr.write(preamble + "gitspace only: %s\n" %
-                                     {f for f in gitfiles if not f in cvsfiles})
-                    sys.stderr.write(preamble + "CVS only: %s\n" %
-                                     {f for f in cvsfiles if not f in gitfiles})
+                    gitspace_only = {f for f in gitfiles if not f in cvsfiles}
+                    if gitspace_only:
+                        sys.stderr.write(preamble + "gitspace only: %s\n" %
+                                         gitspace_only)
+                    cvs_only = {f for f in cvsfiles if not f in gitfiles}
+                    if cvs_only:
+                        sys.stderr.write(preamble + "CVS only: %s\n" %
+                                         cvs_only)
             success = False
         common = [(path, path.replace(".checkout/", ".git/"))
                   for path in cvspaths if path.replace(".checkout/", ".git/") in gitpaths]

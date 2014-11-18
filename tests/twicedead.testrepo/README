@@ -6,7 +6,6 @@ twicedead test of branch master: trees matched as expected
 twicedead test of tag badtag: file manifests don't match.
 twicedead test of tag badtag: common: 1
 twicedead test of tag badtag: gitspace only: set(['twicedead'])
-twicedead test of tag badtag: CVS only: set([])
 twicedead test of tag goodtag: trees matched as expected
 
 These two files were extracted from the timidity CVS repository
