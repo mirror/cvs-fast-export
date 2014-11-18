@@ -1,3 +1,5 @@
 cvs-fast-export: no commitids before 2003-06-03T04:33:13Z.
 t9602 branch vendorbranch: vendorbranch unexpectedly missing.
 t9602 tag vendortag: trees unexpectedly match
+t9602 tag T_MIXED: t9602.checkout/sub3/default and t9602-git/sub3/default are different.
+t9602 tag T_MIXED: t9602.checkout/sub2/subsubA/default and t9602-git/sub2/subsubA/default are different.

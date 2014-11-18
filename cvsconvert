@@ -257,7 +257,7 @@ class CVSCheckout:
         "Update the content to the specified revision or tag."
         if rev == 'master':
             rev = "HEAD"
-        self.do("up", "-kk", "-r", rev) 
+        self.do("up", "-kk", "-A", "-r", rev)
     def cleanup(self):
         "Clean up the checkout directory."
         if self.proxied:
@@ -326,10 +326,15 @@ class ConvertComparison:
                     if ignore not in path.split(os.sep) and not path.endswith(".cvsignore") and not path.endswith(".gitignore"):
                         yield path
         self.checkout.update(ref)
+        if 0:
+            with directory_context(self.stem + ConvertComparison.SUFFIX):
+                if not noisy_run("git checkout --quiet %s" % ref):
+                    self.repo.cleanup()
+                    sys.exit(1)
         with directory_context(self.stem + ConvertComparison.SUFFIX):
-            if not noisy_run("git checkout --quiet %s" % ref):
-                self.repo.cleanup()
-                sys.exit(1)
+            if not noisy_run("git log --format=%H -1"):
+		self.repo.cleanup()
+	 	sys.exit(1)
         cvspaths = list(ftw(self.stem + ".checkout", ignore="CVS"))
         cvsfiles = [fn[len(self.stem+".checkout")+1:] for fn in cvspaths]
         gitpaths = list(ftw(self.stem + ConvertComparison.SUFFIX, ignore=".git"))
@@ -352,8 +357,8 @@ class ConvertComparison:
                         sys.stderr.write(preamble + "CVS only: %s\n" %
                                          cvs_only)
             success = False
-        common = [(path, path.replace(".checkout/", ".git/"))
-                  for path in cvspaths if path.replace(".checkout/", ".git/") in gitpaths]
+        common = [(path, path.replace(".checkout/", ConvertComparison.SUFFIX + "/"))
+                  for path in cvspaths if path.replace(".checkout/", ConvertComparison.SUFFIX + "/") in gitpaths]
         for (a, b) in common:
             if not filecmp.cmp(a, b, shallow=False):
                 success = False

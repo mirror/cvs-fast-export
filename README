@@ -34,8 +34,9 @@ version of your CVS tree greatly decreases the rxpected time to fix.
 A more detailed guide to effective bug reporting is at reporting.asc.
 
 This code has a regression-test suite; invoke it with "make check".
-You will need RCS and SCCS installed to run the tests, but they're 
-not required for production use of cvs-fast-export.
+You will need RCS and CVS installed to run the tests, but they're
+not required for production use of cvs-fast-export.  Installed CVS
+us required to use the cvsconvert wrapper script.
 
 See also the NEWS and TODO files.  There is an (incomplete) tour of
 the internals in hacking.asc.
