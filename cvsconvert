@@ -34,10 +34,10 @@ def noisy_run(dcmd, legend=""):
     try:
         retcode = subprocess.call(dcmd, shell=True)
         if retcode < 0:
-            sys.stderr.write("%s: child was terminated by signal %d.\n" % (-caller, retcode))
+            sys.stderr.write("%s: %s was terminated by signal %d.\n" % (-caller, dcmd, retcode))
             sys.exit(1)
         elif retcode != 0:
-            sys.stderr.write("%s: child returned %d.\n" % (caller, retcode))
+            sys.stderr.write("%s: %s returned %d.\n" % (caller, dcmd, retcode))
             return False
     except (OSError, IOError) as e:
         sys.stderr.write("%s: execution of %s%s failed: %s\n" % (caller, dcmd, legend, e))
