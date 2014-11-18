@@ -326,15 +326,15 @@ class ConvertComparison:
                     if ignore not in path.split(os.sep) and not path.endswith(".cvsignore") and not path.endswith(".gitignore"):
                         yield path
         self.checkout.update(ref)
+        with directory_context(self.stem + ConvertComparison.SUFFIX):
+            if not noisy_run("git checkout --quiet %s" % ref):
+                self.repo.cleanup()
+                sys.exit(1)
         if 0:
             with directory_context(self.stem + ConvertComparison.SUFFIX):
-                if not noisy_run("git checkout --quiet %s" % ref):
+                if not noisy_run("git log --format=%H -1"):
                     self.repo.cleanup()
                     sys.exit(1)
-        with directory_context(self.stem + ConvertComparison.SUFFIX):
-            if not noisy_run("git log --format=%H -1"):
-		self.repo.cleanup()
-	 	sys.exit(1)
         cvspaths = list(ftw(self.stem + ".checkout", ignore="CVS"))
         cvsfiles = [fn[len(self.stem+".checkout")+1:] for fn in cvspaths]
         gitpaths = list(ftw(self.stem + ConvertComparison.SUFFIX, ignore=".git"))
@@ -400,16 +400,19 @@ class ConvertComparison:
 
 if __name__ == '__main__':
     import getopt
-    (opts, arguments) = getopt.getopt(sys.argv[1:], "k:nv")
+    (opts, arguments) = getopt.getopt(sys.argv[1:], "k:npv")
     retain = True
+    engine_opts = ""
     kexpand = ""
     for (opt, arg) in opts:
         if opt == '-v':
             verbose += 1
         elif opt == '-n':
             retain = False
+        elif opt == '-p':
+            engine_opts += " -p"
         elif opt == '-k':
-            kexpand = arg
+            engine_opts += " " + arg
 
     if not arguments:
         sys.stderr.write("cvsconvert: requires a repo/module argument.\n")
@@ -431,7 +434,7 @@ if __name__ == '__main__':
             sys.stderr.write("cvsconvert: processing %s/%s\n" % (repo, module))
     cc = ConvertComparison(stem=repo, repo=repo, module=module,
                            checkout=repo+".checkout",
-                           options="-p " + kexpand,
+                           options=engine_opts,
                            showdiffs= True)
     if verbose == 0:
         verbose = 1
