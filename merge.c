@@ -53,10 +53,12 @@ rev_ref_is_ready(const char *name, cvs_repo *source, rev_ref *ready)
  * source: All the cvs masters.
  * ready:  The list of branches we have already sorted.
  *
- * A branch is ready, if it has no parent, or we've already sorted it's parent
+ * A branch is ready if it has no parent, or we've already sorted its parent.
+ * Thus, toposorting with this relation will put the (parentless) trunk first,
+ * and child branches after their respective parent branches.
  *
- * Parent branch names are determined by examining every cvs master
- * ?? Can one branch have different parents in different masters??
+ * Parent branch names are determined by examining every cvs master.  See the
+ * general note on branch matching under merge_changesets().
  */
 {
     for (; source; source = source->next) {
@@ -770,9 +772,18 @@ merge_to_changesets(cvs_repo *masters, int verbose)
     rev_ref	**refs = xcalloc(count, sizeof(rev_ref *), "list merge");
 
     /*
-     * Find all of the heads across all of the incoming trees.
-     * Use them to initialize named branch heads in the output list.
-     * Yes, this is currently very inefficient.
+     * It is expected that the branch trees in all CVS masters have
+     * equivalent sets of parent-child relationships, but not
+     * necessarily that the branch nodes always occur in the same
+     * order. Equivalently, it may not be the case that the branch IDs
+     * of equivalent named branches in different masters are the
+     * same. So the only way we can group CVS branches into cliques
+     * that should be bundled into single gitspace branches is by the
+     * labels at their tips.
+     *
+     * First, find all of the named heads across all of the incoming
+     * CVS trees.  Use them to initialize named branch heads in the
+     * output list.  Yes, this is currently very inefficient.
      */
     progress_begin("Make DAG branch heads...", count);
     n = 0;
