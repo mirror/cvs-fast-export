@@ -14,6 +14,7 @@ and stripped to the smallest possible test case.
 
 This turns out to be a bug in CVS!
 
-badtag goes with revision 1.17 of longlived, which is dated *before*
-twicedead was set to state dead in its 1.4 revision.  Thus, twicedead
-should in fact be visible at the history state corresponding to the tag.
+badtag goes with revision 1.17 of longlived, which is dated
+2004-02-13T15:57:33 *before* twicedead was set to state dead in its
+1.4 revision on 2004-10-27T12:21:52.  Thus, twicedead should in fact
+be visible at the history state corresponding to the tag.
