@@ -252,7 +252,8 @@ class CVSCheckout:
             shutil.rmtree(self.repo.directory + os.sep + "CVSROOT")
             os.unlink(self.repo.directory + os.sep + self.module)
             os.rmdir(self.repo.directory)
-        shutil.rmtree(self.directory)
+        if os.path.exists(self.directory):
+            shutil.rmtree(self.directory)
 
 def expect_same(a, b):
     "Complain if two files aren't identical"
