@@ -326,6 +326,10 @@ class ConvertComparison:
             if not noisy_run("git checkout --quiet %s" % ref):
                 self.repo.cleanup()
                 sys.exit(1)
+        with directory_context(self.stem + ConvertComparison.SUFFIX):   #RDB
+            if not noisy_run("git log --format=%H -1"):
+                self.repo.cleanup()
+                sys.exit(1)
         cvspaths = list(ftw(self.stem + ".checkout", ignore="CVS"))
         cvsfiles = [fn[len(self.stem+".checkout")+1:] for fn in cvspaths]
         gitpaths = list(ftw(self.stem + ConvertComparison.SUFFIX, ignore=".git"))
@@ -348,8 +352,8 @@ class ConvertComparison:
                         sys.stderr.write(preamble + "CVS only: %s\n" %
                                          cvs_only)
             success = False
-        common = [(path, path.replace(".checkout/", ".git/"))
-                  for path in cvspaths if path.replace(".checkout/", ".git/") in gitpaths]
+        common = [(path, path.replace(".checkout/", "-git/"))
+                  for path in cvspaths if path.replace(".checkout/", "-git/") in gitpaths]
         for (a, b) in common:
             if not filecmp.cmp(a, b, shallow=False):
                 success = False
