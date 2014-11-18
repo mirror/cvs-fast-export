@@ -391,14 +391,12 @@ class ConvertComparison:
 
 if __name__ == '__main__':
     import getopt
-    (opts, arguments) = getopt.getopt(sys.argv[1:], "k:nv")
-    discard = False
+    (opts, arguments) = getopt.getopt(sys.argv[1:], "k:v")
+    noexec = True
     kexpand = ""
     for (opt, arg) in opts:
         if opt == '-v':
             verbose += 1
-        elif opt == '-n':
-            discard = True
         elif opt == '-k':
             kexpand = arg
 
@@ -426,14 +424,8 @@ if __name__ == '__main__':
                            showdiffs= True)
     if verbose == 0:
         verbose = 1
-    try:
-        cc.checkall()
-    finally:
-        if discard:
-            cc.cleanup()
-        else:
-            cc.checkout.cleanup()
-            sys.stderr.write("cvsconvert: conversion is in %s%s\n" \
-                             % (repo, ConvertComparison.SUFFIX))
+    cc.checkall()
+    cc.checkout.cleanup()
+    sys.stderr.write("cvsconvert: conversion is in %s%s\n" % (repo, ConvertComparison.SUFFIX))
 
 # end
