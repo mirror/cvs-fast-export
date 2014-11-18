@@ -94,3 +94,11 @@ O546adb8c|esr|~/public_html/cvs-fast-export/tests/*0|module||module
 U546adb8d|esr|~/public_html/cvs-fast-export/tests/twicedead.testrepo.checkout|module|1.17|longlived
 U546adb8e|esr|~/public_html/cvs-fast-export/tests/twicedead.testrepo.checkout|module|1.16|longlived
 U546adb8e|esr|~/public_html/cvs-fast-export/tests/twicedead.testrepo.checkout|module|1.3|twicedead
+O546ae3f5|esr|~/public_html/cvs-fast-export/tests/*0|module||module
+U546ae3f6|esr|~/public_html/cvs-fast-export/tests/twicedead.testrepo.checkout|module|1.17|longlived
+U546ae3f7|esr|~/public_html/cvs-fast-export/tests/twicedead.testrepo.checkout|module|1.16|longlived
+U546ae3f7|esr|~/public_html/cvs-fast-export/tests/twicedead.testrepo.checkout|module|1.3|twicedead
+O546ae4a7|esr|~/public_html/cvs-fast-export/tests/*0|module||module
+U546ae4a8|esr|~/public_html/cvs-fast-export/tests/twicedead.testrepo.checkout|module|1.17|longlived
+U546ae4a9|esr|~/public_html/cvs-fast-export/tests/twicedead.testrepo.checkout|module|1.16|longlived
+U546ae4a9|esr|~/public_html/cvs-fast-export/tests/twicedead.testrepo.checkout|module|1.3|twicedead
