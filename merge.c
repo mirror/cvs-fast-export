@@ -289,6 +289,7 @@ git_commit_build(cvs_commit **revisions, cvs_commit *leader, const int nrevision
 
 static git_commit *
 git_commit_locate_date(const rev_ref *branch, const cvstime_t date)
+/* on branch, locate a commit within fuzz-time distance of date */
 {
     git_commit	*commit;
 
