@@ -74,26 +74,6 @@ hash_cvs_number(const cvs_number *const key)
     return hashval;
 }
 
-/* Not found a repo yet where the munge functions are called */
-static const cvs_number *
-key_munge1 (const cvs_number *const k)
-{
-    cvs_number key;
-    memcpy(&key, k, sizeof(cvs_number));
-    key.n[key.c - 2] = key.n[key.c - 1];
-    key.c--;
-    return atom_cvs_number(key);
-}
-
-static const cvs_number *
-key_munge2 (const cvs_number *const k)
-{
-    cvs_number key;
-    memcpy(&key, k, sizeof(cvs_number));
-    key.n[key.c] = 0;
-    return atom_cvs_number(key);
-}
-
 static node_t *
 node_for_cvs_number(nodehash_t *context, const cvs_number *const n)
 /*
@@ -104,12 +84,6 @@ node_for_cvs_number(nodehash_t *context, const cvs_number *const n)
     const cvs_number *k = n;
     node_t *p;
     unsigned int hash;
-
-    if (k->c > 2 && !k->n[k->c - 2])
-	k = key_munge1(k);
-
-    if (k->c & 1)
-	k = key_munge2(k);
 
     hash = hash_cvs_number(k) % NODE_HASH_SIZE;
     for (p = context->table[hash]; p; p = p->hash_next)
