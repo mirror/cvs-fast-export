@@ -65,7 +65,7 @@ class RCSRepository:
     "An RCS file collection."
     def __init__(self, name):
         self.name = name
-        self.retain = ("-n" in sys.argv[1:])
+        self.retain = False
         global verbose
         verbose += sys.argv[1:].count("-v")
         # For convenience, emulate the module structure of a CVS repository
@@ -124,7 +124,7 @@ class RCSRepository:
         "Clean up the repository conversions."
         if not self.retain:
             if self.conversions:
-                os.system("rm -fr %s".join(self.conversions))
+                os.system("rm -fr %s" % " ".join(self.conversions))
 
 class CVSRepository(RCSRepository):
     def __init__(self, name):

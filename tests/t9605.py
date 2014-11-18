@@ -48,8 +48,9 @@
 #
 # Reported by Chris Rorvick.
 
-import testlifter
+import sys, testlifter
 
 cc = testlifter.ConvertComparison(stem="t9605", module="module")
+cc.repo.retain = ("-k" in sys.argv[1:])
 cc.compare_tree("branch", "master", True)
 cc.cleanup()

@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 ## Testing for correct timestamp handling in author maps.
-import testlifter, tempfile, os
+import sys, testlifter, tempfile, os
 
 uncorrected = """\
 Rev 16 2006-10-29 07:00:01 +0000
@@ -22,6 +22,7 @@ Rev  1 2005-01-01 00:00:00 +0000
 """
 
 cc = testlifter.ConvertComparison(stem="t9604", module="module")
+cc.repo.retain = ("-k" in sys.argv[1:])
 cc.compare_tree("branch", "master", True)
 cc.command_returns("cd t9604-git >/dev/null; git log --format='%s %ai'", uncorrected)
 cc.cleanup()
@@ -57,6 +58,7 @@ afp.write(authormap)
 afp.flush()
 cc = testlifter.ConvertComparison(stem="t9604", module="module",
                                   options="-A %s" % afp.name)
+cc.repo.retain = ("-k" in sys.argv[1:])
 cc.compare_tree("branch", "master", True)
 cc.command_returns("cd t9604-git >/dev/null; git log --format='%s %ai %an'", corrected)
 os.remove(afp.name)

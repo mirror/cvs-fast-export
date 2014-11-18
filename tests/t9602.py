@@ -70,9 +70,10 @@ correctly along tags and branches.  Here is its history:
       sub3/default.
 '''
 
-import testlifter
+import sys, testlifter
 
 cc = testlifter.ConvertComparison(stem="t9602", module="module")
+cc.repo.retain = ("-k" in sys.argv[1:])
 cc.compare_tree("branch", "master", True)
 cc.compare_tree("branch", "vendorbranch", True)
 cc.compare_tree("branch", "B_FROM_INITIALS", True)
