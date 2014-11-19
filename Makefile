@@ -70,7 +70,7 @@ OBJS=gram.o lex.o rbtree.o main.o import.o dump.o cvsnumber.o \
 	nodehash.o tags.o authormap.o graph.o utils.o merge.o
 
 cvs-fast-export: $(OBJS)
-	$(CC) $(CFLAGS) $(OBJS) $(LDFLAGS) $(LIBS) -o $@
+	$(CC) $(CFLAGS) $(TARGET_ARCH) $(OBJS) $(LDFLAGS) $(LIBS) -o $@
 
 $(OBJS): cvs.h
 revcvs.o cvsutils.o rbtree.o: rbtree.h
