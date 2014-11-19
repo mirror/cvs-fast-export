@@ -52,8 +52,11 @@ These don't have regression tests yet.
 QED.testrepo::
 	contains a branch cycle.
 
-twicedead::
+twicedead.testrepo::
 	contains a pathological master set to dead state twice.
+
+oldhead.testrepo::
+	produced a content mismatch at version 1.26.
 
 == The twicedead repostory ==
 

@@ -1,0 +1,16 @@
+At version 1.26, produced a content mismatch:
+
+esr@snark:~/WWW/cvs-fast-export/tests$ cvsconvert -n oldhead.testrep
+cvs checkout: cannot find module `module' - ignored
+cvsconvert: cvs -Q -d:local:/home/esr/public_html/cvs-fast-export/tests/oldhead.testrep-proxy co module returned 1.
+esr@snark:~/WWW/cvs-fast-export/tests$ cvsconvert -n oldhead.testrepo
+cvsconvert: processing oldhead.testrepo/module
+cvs-fast-export: Unnumbered head import-1.1.1 in ChangeLog
+cvs-fast-export: no commitids before 2006-06-30T13:21:39Z.
+oldhead.testrepo branch master: oldhead.testrepo.checkout/Makefile.am and oldhead.testrepo-git/Makefile.am are different.
+--- oldhead.testrepo.checkout/Makefile.am	2014-11-18 20:08:51.185630315 -0500
++++ oldhead.testrepo-git/Makefile.am	2014-11-18 20:08:51.173630051 -0500
+@@ -1 +1 @@
+-Makefile.am,v content for 1.7
++Makefile.am,v content for 1.1.1.1
+cvsconvert: conversion is in oldhead.testrepo-git
