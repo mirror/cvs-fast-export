@@ -508,7 +508,7 @@ typedef struct _export_options {
 
 typedef struct _export_stats {
     long	export_total_commits;
-    long	snapsize;
+    double	snapsize;
 } export_stats_t;
 
 void
