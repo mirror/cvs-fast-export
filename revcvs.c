@@ -88,7 +88,7 @@ cvs_master_branch_build(cvs_file *cvs, const cvs_number *branch)
 	master->dirname = atom(buf);
 	master->dirlen = slash - master->name;
     } else {
-	master->dirname = NULL;
+	master->dirname = atom("\0");
 	master->dirlen = 0;
     }
 	
