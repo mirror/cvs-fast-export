@@ -2,6 +2,8 @@
 
 You will need RCS and CVS installed to run these tests.
 
+Ensure there is no CVSROOT folder in any parent directory.
+
 There are mutiple groups of tests in this directory.
 
 == Auxiliary tools ==

@@ -1,0 +1,3 @@
+The cygwin cvs package does not respect the -Q (very quiet) flag on all commands.
+
+Expect some noise when building the test repositories.
