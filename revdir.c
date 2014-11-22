@@ -146,7 +146,7 @@ static int compare_cvs_commit(const void *a, const void *b)
     const char *bf = (*bp)->master->name;
 
 #ifdef ORDERDEBUG
-    fprintf(stderr, "Comparing %s with %s\n", af, bf);
+    warn("Comparing %s with %s\n", af, bf);
 #endif /* ORDERDEBUG */
 
     return path_deep_compare(af, bf);
@@ -207,12 +207,12 @@ rev_pack_files(cvs_commit **files, int nfiles, int *ndr)
     rev_dir *rd;
     
 #ifdef ORDERDEBUG
-    fputs("Packing:\n", stderr);
+    fputs("Packing:\n", LOGFILE);
     {
 	cvs_commit **s;
 
 	for (s = files; s < files + nfiles; s++)
-	    fprintf(stderr, "cvs_commit: %s\n", (*s)->master->name);
+	    debugmsg("cvs_commit: %s\n", (*s)->master->name);
     }
 #endif /* ORDERDEBUG */
 

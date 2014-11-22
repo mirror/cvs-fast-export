@@ -300,10 +300,10 @@ cvs_master_patch_vendor_branch(cvs_master *cm, cvs_file *cvs)
 	}
     }
 #if CVSDEBUG
-    fprintf(stderr, "%s spliced:\n", cvs->name);
+    debugmsg("%s spliced:\n", cvs->export_name);
     for (t = trunk->commit; t; t = t->parent) {
-	dump_number_file(stderr, "\t", t->number);
-	fprintf(stderr, "\n");
+	dump_number_file(LOGFILE, "\t", t->number);
+	debugmsg("\n");
     }
 #endif
 }
@@ -677,12 +677,12 @@ cvs_master_sort_heads(cvs_master *cm, cvs_file *cvs)
 
     cm->heads = l;
 #if DEBUG
-    fprintf(stderr, "Sorted heads for %s\n", cvs->name);
+    debugmsg("Sorted heads for %s\n", cvs->name);
     for (e = cm->heads; e;) {
-	fprintf(stderr, "\t");
-	//cvs_master_dump_ref_parents(stderr, e->parent);
-	dump_number_file(stderr, e->name, e->number);
-	fprintf(stderr, "\n");
+	debugmsg("\t");
+	//cvs_master_dump_ref_parents(LOGFILE, e->parent);
+	dump_number_file(LOGFILE, e->name, e->number);
+	debugmsg("\n");
 	e = e->next;
     }
 #endif

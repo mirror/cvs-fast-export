@@ -150,7 +150,7 @@ YY_DECL;
 \n				;
 1				return BRAINDAMAGED_NUMBER;
 .				{ 
-				    fprintf(stderr, "%s: (%d) ignoring %c\n", 
+				    warn("%s: (%d) ignoring %c\n",
 					cvs->gen.master_name, yylineno,
 					yytext[0]);
 				}
@@ -319,13 +319,13 @@ lex_date(const cvs_number const *n, yyscan_t yyscanner, cvs_file *cvs)
     d = mktime(&tm);
     if (d == 0) {
 	int i;
-	fprintf(stderr, "%s: (%d) unparsable date: ", 
+	warn("%s: (%d) unparsable date: ",
 			cvs->gen.master_name, yyget_lineno(yyscanner));
 	for (i = 0; i < n->c; i++) {
-	    if (i) fprintf(stderr, ".");
-	    fprintf(stderr, "%d", n->n[i]);
+	    if (i) warn(".");
+	    warn("%d", n->n[i]);
 	}
-	fprintf(stderr, "\n");
+	warn("\n");
     }
     if (d < RCS_EPOCH)
 	fatal_error("%s: (%d) date before RCS epoch: ",
