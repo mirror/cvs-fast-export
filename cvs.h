@@ -257,6 +257,8 @@ typedef struct _rev_master {
     /* information shared by all revisions of a master */
     const char		*name;
     const char          *fileop_name;
+    const char          *dirname;
+    short               dirlen;
     struct _cvs_commit  *commits;
     serial_t		ncommits;
     mode_t		mode;

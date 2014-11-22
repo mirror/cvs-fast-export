@@ -198,8 +198,7 @@ rev_free_dirs(void)
 rev_dir **
 rev_pack_files(cvs_commit **files, int nfiles, int *ndr)
 {
-    const char *dir = 0;
-    char    *slash;
+    const char *dir = NULL, *curdir = NULL;
     int	    dirlen = 0;
     int	    i;
     int	    start = 0;
@@ -232,19 +231,18 @@ rev_pack_files(cvs_commit **files, int nfiles, int *ndr)
 
     /* pull out directories */
     for (i = 0; i < nfiles; i++) {
-	if (!dir || strncmp(files[i]->master->name, dir, dirlen) != 0)
-	{
-	    if (i > start) {
-		rd = rev_pack_dir(files + start, i - start);
-		rds_put(nds++, rd);
+	/* avoid strncmp as much as possible */
+	if (curdir != files[i]->master->dirname) {
+	    if (!dir || strncmp(files[i]->master->name, dir, dirlen) != 0) {
+		if (i > start) {
+		    rd = rev_pack_dir(files + start, i - start);
+		    rds_put(nds++, rd);
+		}
+		start = i;
+		dir = files[i]->master->name;
+		dirlen = files[i]->master->dirlen;
 	    }
-	    start = i;
-	    dir = files[i]->master->name;
-	    slash = strrchr(dir, '/');
-	    if (slash)
-		dirlen = slash - dir;
-	    else
-		dirlen = 0;
+	    curdir = files[i]->master->dirname;
 	}
     }
     if (dir) {

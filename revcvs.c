@@ -76,9 +76,22 @@ cvs_master_branch_build(cvs_file *cvs, const cvs_number *branch)
     cvs_commit	*c, *p, *gc;
     node_t	*node;
     rev_master  *master = xcalloc(1,sizeof(rev_master), "master construction");
+    char        buf[PATH_MAX];
 
     master->name = cvs->export_name;
     master->fileop_name = fileop_name(cvs->export_name);
+
+    char *slash = strrchr(master->name, '/');
+    if (slash) {
+	strncpy(buf, master->name, slash - master->name);
+	buf[slash - master->name + 1] = '\0';
+	master->dirname = atom(buf);
+	master->dirlen = slash - master->name;
+    } else {
+	master->dirname = NULL;
+	master->dirlen = 0;
+    }
+	
     master->mode = cvs->mode;
     master->commits = xcalloc(cvs->nversions, sizeof(cvs_commit),
 			      "commit slab alloc");
