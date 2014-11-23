@@ -47,24 +47,21 @@ rev_ref_find_name(rev_ref *h, const char *name)
 }
 
 static bool
-rev_ref_is_ready(const char *name, cvs_repo *source, rev_ref *ready)
+parents_in_revlist(const char *child_name, rev_ref *rev_list,
+			     cvs_repo *source)
 /*
- * name:   Name of branch we are considering adding to toposorted list.
- * source: All the cvs masters.
- * ready:  The list of branches we have already sorted.
- *
- * A branch is ready if it has no parent, or we've already sorted its parent.
- * Thus, toposorting with this relation will put the (parentless) trunk first,
- * and child branches after their respective parent branches.
+ * See whether all the parents of child_name are in rev_list
+ * If child_name has no parents (e.g. master branch) then this is
+ * trivally true.
  *
  * Parent branch names are determined by examining every cvs master.  See the
  * general note on branch matching under merge_changesets().
  */
 {
     for (; source; source = source->next) {
-	rev_ref *head = rev_find_head(source, name);
+	rev_ref *head = rev_find_head(source, child_name);
 	if (head) {
-	    if (head->parent && !rev_ref_find_name(ready, head->parent->ref_name))
+	    if (head->parent && !rev_ref_find_name(rev_list, head->parent->ref_name))
 		    return false;
 	}
     }
@@ -72,18 +69,22 @@ rev_ref_is_ready(const char *name, cvs_repo *source, rev_ref *ready)
 }
 
 static rev_ref *
-rev_ref_tsort(rev_ref *refs, cvs_repo *masters)
+rev_ref_tsort(rev_ref *git_branches, cvs_repo *masters)
 /* Sort a list of git space branches so parents come before children */
 {
-    rev_ref *done = NULL;
-    rev_ref **done_tail = &done;
+    rev_ref *sorted_git_branches = NULL;
+    rev_ref **sorted_tail = &sorted_git_branches;
     rev_ref *r, **prev;
 
-    while (refs) {
+    while (git_branches) {
 	/* search the remaining input list */
-	for (prev = &refs; (r = *prev); prev = &(*prev)->next) {
-            /* find a branch where we've already sorted its parent */
-	    if (rev_ref_is_ready(r->ref_name, masters, done)) {
+	for (prev = &git_branches; (r = *prev); prev = &(*prev)->next) {
+            /*
+	     * Find a branch where we've already sorted its parents.
+	     * Toposorting with this relation will put the (parentless) trunk first,
+	     * and child branches after their respective parent branches.
+	     */
+	    if (parents_in_revlist(r->ref_name, sorted_git_branches, masters)) {
 		break;
 	    }
 	}
@@ -96,11 +97,11 @@ rev_ref_tsort(rev_ref *refs, cvs_repo *masters)
          * append it to the output list
          */
 	*prev = r->next;
-	*done_tail = r;
+	*sorted_tail = r;
 	r->next = NULL;
-	done_tail = &r->next;
+	sorted_tail = &r->next;
     }
-    return done;
+    return sorted_git_branches;
 }
 
 static int
