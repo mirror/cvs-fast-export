@@ -300,18 +300,18 @@ git_commit_build(cvs_commit **revisions, cvs_commit *leader,
            files[nfile++]->gitspace = commit;
 
 #ifdef ORDERDEBUG
-    fprintf(stderr, "commit_build: %p\n", commit);
+    debugmsg("commit_build: %p\n", commit);
 
     for (n = 0; n < nfile; n++)
-	fprintf(stderr, "%s\n", revisions[n]->master->name);
-    fputs("After packing:\n", stderr);
+	debugmsg("%s\n", revisions[n]->master->name);
+    fputs("After packing:\n", LOGFILE);
     for (n = 0; n < commit->ndirs; n++)
     {
 	rev_dir *rev_dir = commit->dirs[n];
 	int i;
 
 	for (i = 0; i < rev_dir->nfiles; i++)
-	    fprintf(stderr, "   file name: %s\n", rev_dir->files[i]->master->name);
+	    debugmsg("   file name: %s\n", rev_dir->files[i]->master->name);
     }
 #endif /* ORDERDEBUG */
 
@@ -740,6 +740,7 @@ merge_branches(rev_ref **branches, int nbranch,
 	 * Sanity check that we've ordered things properly
 	 * oc is useful for a conditional breakpoint if not
 	 */
+	size_t i;
 	for (i = skip + 1; i < nrev; i++) {
 	    if (compare_clique(&sort_buf[i-1], &sort_buf[i]) > 0)
 		warn("Sort broken oc: %lu\n", oc);

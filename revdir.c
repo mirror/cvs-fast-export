@@ -146,7 +146,7 @@ static int compare_cvs_commit(const void *a, const void *b)
     const char *bf = (*bp)->master->name;
 
 #ifdef ORDERDEBUG
-    fprintf(stderr, "Comparing %s with %s\n", af, bf);
+    warn("Comparing %s with %s\n", af, bf);
 #endif /* ORDERDEBUG */
 
     return path_deep_compare(af, bf);

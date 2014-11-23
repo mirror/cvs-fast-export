@@ -313,10 +313,10 @@ cvs_master_patch_vendor_branch(cvs_master *cm, cvs_file *cvs)
 	}
     }
 #if CVSDEBUG
-    fprintf(stderr, "%s spliced:\n", cvs->name);
+    debugmsg("%s spliced:\n", cvs->export_name);
     for (t = trunk->commit; t; t = t->parent) {
-	dump_number_file(stderr, "\t", t->number);
-	fprintf(stderr, "\n");
+	dump_number_file(LOGFILE, "\t", t->number);
+	debugmsg("\n");
     }
 #endif
 }

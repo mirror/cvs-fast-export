@@ -150,9 +150,9 @@ YY_DECL;
 \n				;
 1				return BRAINDAMAGED_NUMBER;
 .				{ 
-				    fprintf(stderr, "%s: (%d) ignoring %c\n", 
-					cvs->gen.master_name, yylineno,
-					yytext[0]);
+					warn("%s: (%d) ignoring %c\n",
+					    cvs->gen.master_name, yylineno,
+					    yytext[0]);
 				}
 %%
 

@@ -144,7 +144,7 @@ symbol		: name COLON NUMBER
 		;
 fscked_symbol	: name COLON BRAINDAMAGED_NUMBER
 		  {
-			fprintf(stderr, "ignoring symbol %s (FreeBSD RELENG_2_1_0 braindamage?)\n", $1);
+		        warn("ignoring symbol %s (FreeBSD RELENG_2_1_0 braindamage?)\n", $1);
 		  }
 		;
 name		: TOKEN
@@ -290,6 +290,5 @@ strings		: IGNORED strings
 
 int yyerror(yyscan_t scanner, cvs_file *cvs, char *msg)
 {
-	fprintf(stderr, "parse error %s at %s\n", msg, yyget_text(scanner));
-	exit(1);
+    fatal_error("parse error %s at %s\n", msg, yyget_text(scanner));
 }
