@@ -140,7 +140,7 @@ atom(const char *string)
     crc32_t		crc = crc32 (string);
     hash_bucket_t	**head = &buckets[crc % HASH_SIZE];
     hash_bucket_t	*b;
-    int			len = strlen(string);
+    int			len;
 
     while ((b = *head)) {
 collision:
@@ -160,6 +160,7 @@ collision:
 	goto collision;
     }
 
+    len = strlen(string);
     b = xmalloc(sizeof(hash_bucket_t) + len + 1, __func__);
     b->next = 0;
     b->crc = crc;
