@@ -29,6 +29,10 @@
 #include "rbtree.h"
 #endif /* REDBLACK */ 
 
+#ifdef THREADS
+#include <pthread.h>
+#endif
+
 static const char *fileop_name(const char *rectified)
 {
     size_t rlen = strlen(rectified);
@@ -43,6 +47,73 @@ static const char *fileop_name(const char *rectified)
     }
     // assume rectified is already an atom
     return rectified;
+}
+
+#define DIR_BUCKETS 24593
+
+typedef struct _dir_bucket {
+    struct _dir_bucket *next;
+    master_dir         dir;
+} dir_bucket;
+
+static dir_bucket *dir_buckets[DIR_BUCKETS];
+#ifdef THREADS
+static pthread_mutex_t dir_bucket_mutex = PTHREAD_MUTEX_INITIALIZER;
+#endif /* THREADS */
+
+static const master_dir *
+atom_dir(const char* name)
+/* Extract information about the directory a master is in .
+ * atomize the result so all references to the same directory
+ * point the the same value.
+ */
+{
+    char       *slash = strrchr(name, '/');
+    const char *dirname;
+    short      dirlen;
+    char       buf[PATH_MAX];
+    if (slash) {
+	strncpy(buf, name, slash - name);
+	buf[slash - name + 1] = '\0';
+	dirname = atom(buf);
+	dirlen = slash - name;
+    } else {
+	dirname = atom("\0");
+	dirlen = 0;
+    }
+    uintptr_t  hash = FNV_OFF * FNV_MIX ^ (uintptr_t)dirname;
+    dir_bucket **head = &dir_buckets[hash % DIR_BUCKETS];
+    dir_bucket *b;
+
+    while ((b = *head)) {
+    collision:
+	if (b->dir.name == dirname)
+	    return &(b->dir);
+	head = &(b->next);
+    }
+#ifdef THREADS
+    if (threads > 1)
+	pthread_mutex_lock(&dir_bucket_mutex);
+#endif /* THREADS */
+    if ((b = *head)) {
+#ifdef THREADS
+	if (threads > 1)
+	    pthread_mutex_unlock(&dir_bucket_mutex);
+#endif /* THREADS */
+	goto collision;
+    }
+    b = xmalloc(sizeof(dir_bucket), __func__);
+    b->next = NULL;
+    b->dir.name = dirname;
+    b->dir.len = dirlen;
+    /* used as an input to the hash of the dir_is_ancestor fn */
+    b->dir.prehash = FNV_OFF * FNV_MIX ^ (uintptr_t)b;
+    *head = b;
+#ifdef THREADS
+    if (threads > 1)
+	pthread_mutex_unlock(&dir_bucket_mutex);
+#endif /* THREADS */
+    return &(b->dir);
 }
 
 static cvs_commit *
@@ -76,22 +147,10 @@ cvs_master_branch_build(cvs_file *cvs, const cvs_number *branch)
     cvs_commit	*c, *p, *gc;
     node_t	*node;
     rev_master  *master = xcalloc(1,sizeof(rev_master), "master construction");
-    char        buf[PATH_MAX];
 
     master->name = cvs->export_name;
     master->fileop_name = fileop_name(cvs->export_name);
-
-    char *slash = strrchr(master->name, '/');
-    if (slash) {
-	strncpy(buf, master->name, slash - master->name);
-	buf[slash - master->name + 1] = '\0';
-	master->dirname = atom(buf);
-	master->dirlen = slash - master->name;
-    } else {
-	master->dirname = atom("\0");
-	master->dirlen = 0;
-    }
-	
+    master->dir = atom_dir(master->name);
     master->mode = cvs->mode;
     master->commits = xcalloc(cvs->nversions, sizeof(cvs_commit),
 			      "commit slab alloc");

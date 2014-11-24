@@ -253,12 +253,18 @@ typedef struct {
     unsigned short	verbose;
 } cvs_file;
 
+typedef struct _master_dir {
+    /* directory reference for a master */
+    const char          *name;
+    uintptr_t           prehash;
+    short               len;
+} master_dir;
+
 typedef struct _rev_master {
     /* information shared by all revisions of a master */
     const char		*name;
     const char          *fileop_name;
-    const char          *dirname;
-    short               dirlen;
+    const master_dir    *dir;
     struct _cvs_commit  *commits;
     serial_t		ncommits;
     mode_t		mode;
@@ -727,5 +733,16 @@ extern bool progress;
 #ifdef THREADS
 extern int threads;
 #endif /* THREADS */
+
+/* FNV Hash Constants from http://isthe.com/chongo/tech/comp/fnv/ */
+#if UINTPTR_MAX == 0xffffffff
+/* 32 bit */
+#define FNV_OFF 2166136261U
+#define FNV_MIX 16777619U
+#else
+/* 64 bit */
+#define FNV_OFF 14695981039346656037UL
+#define FNV_MIX 1099511628211UL
+#endif /* FNV Constants */
 
 #endif /* _CVS_H_ */
