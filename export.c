@@ -301,46 +301,36 @@ static void compute_parent_links(const git_commit *commit)
     const git_commit *parent = commit->parent;
     file_iter commit_iter, parent_iter;
     cvs_commit *cf, *pf;
-    unsigned nparent, ncommit, maxmatch;
-
-    ncommit = 0;
-    file_iter_start(&commit_iter, commit);
-    while ((cf = file_iter_next(&commit_iter))) {
-	++ncommit;
-        cf->other = NULL;
-    }
-
-    nparent = 0;
-    file_iter_start(&parent_iter, parent);
-    while ((pf = file_iter_next(&parent_iter))) {
-	++nparent;
-        pf->other = NULL;
-    }
-
-    maxmatch = (nparent < ncommit) ? nparent : ncommit;
 
     file_iter_start(&commit_iter, commit);
     file_iter_start(&parent_iter, parent);
-    while ((cf = file_iter_next(&commit_iter))) {
-	file_iter it;
 
-	/* Because the commit file lists are sorted,
-	 * we can restart the iterator after the
-	 * last successful match */
-	it = parent_iter;
-	while ((pf = file_iter_next(&it))) {
-	    if (cf->master->name == pf->master->name) {
-		cf->other = pf;
-		pf->other = cf;
-		if (--maxmatch == 0)
-		    return;
-		parent_iter = it;
-		break;
-	    }
+    /*
+     * File list are sorted by path_deep_compare
+     * We can use a merge join to efficiently find links
+     */
+    cf = file_iter_next(&commit_iter);
+    pf = file_iter_next(&parent_iter);
+    while (cf && pf) {
+	if (pf->master->name == cf->master->name) {
+	    cf->other = pf;
+	    pf->other = cf;
+	    pf = file_iter_next(&parent_iter);
+	    cf = file_iter_next(&commit_iter);
+	    continue;
 	}
-
-        next:;
+	if (path_deep_compare(pf->master->name, cf->master->name) < 0) {
+	    pf->other = NULL;
+	    pf = file_iter_next(&parent_iter);
+	} else {
+	    cf->other = NULL;
+	    cf = file_iter_next(&commit_iter);
+	}
     }
+    for (; cf; cf = file_iter_next(&commit_iter))
+	cf->other = NULL;
+    for (; pf; pf = file_iter_next(&parent_iter))
+	pf->other = NULL;
 }
 
 #ifdef ORDERDEBUG
