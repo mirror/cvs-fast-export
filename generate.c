@@ -857,7 +857,6 @@ static void snapshotline(editbuffer_t *eb, register uchar * l)
     register int c;
 #ifdef FASTOUT
     struct out_buffer_type *ob = eb->Goutbuf;
-    size_t chars_read = 0;
     uchar * start = l;
 #endif
     do {
@@ -868,29 +867,28 @@ static void snapshotline(editbuffer_t *eb, register uchar * l)
 #else
 	if ((c = *l++) == SDELIM  &&  *l++ != SDELIM) 
 	    break;
-	chars_read++;
 	if (c == SDELIM) {
 	    // @@ is a memcpy barrier as we're unescaping it
-	    while (ob->end_of_text - ob->ptr < chars_read) {
+	    // -1 because if we get here we skipped a SDELIM
+	    while (ob->end_of_text - ob->ptr < l - start - 1) {
 	    	out_buffer_enlarge(eb);
 		ob = eb->Goutbuf;
 	    }
-	    memcpy(ob->ptr, start, chars_read);
+	    memcpy(ob->ptr, start, l - start - 1);
+	    ob->ptr += l - start - 1;
 	    start = l;
-	    ob->ptr += chars_read;
-	    chars_read = 0;
 	}
 #endif
     } while (c != '\n');
 
 #ifdef FASTOUT
-    if (chars_read != 0) {
-	while (ob->end_of_text - ob->ptr < chars_read) {
+    if (l - start != 0) {
+	while (ob->end_of_text - ob->ptr < l - start) {
 	    out_buffer_enlarge(eb);
             ob = eb->Goutbuf;
 	}
-	memcpy(ob->ptr, start, chars_read);
-	ob->ptr += chars_read;
+	memcpy(ob->ptr, start, l - start);
+	ob->ptr += l - start;
     }
 #endif /* FASTOUT */
 }
