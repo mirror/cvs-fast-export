@@ -194,16 +194,54 @@ rev_free_dirs(void)
 	sds = 0;
     }
 }
+/* Tuned to netbsd-pkgsrc which creates 94245 hash entries*/
+#define DIR_COMP_BUCKETS 98317
+
+
+typedef struct _dir_comp_bucket {
+    struct _dir_comp_bucket *next;
+    const master_dir        *child;
+    const master_dir        *ancestor;
+    bool                    is_ancestor;
+} dir_comp_bucket;
+
+static dir_comp_bucket *dir_comp_buckets[DIR_COMP_BUCKETS];
+
+static bool
+dir_is_ancestor(const master_dir *child, const master_dir *ancestor)
+/* 
+ * Test whether a directory is an ancestor of another, memoize the result
+ * netbsd-pkgsrc calls this 7 billion times for 95,000 unique inputs
+ */
+{
+    /* FNV-1 Hash from http://isthe.com/chongo/tech/comp/fnv/ */
+    uintptr_t       hash = child->prehash;
+    hash = hash * FNV_MIX ^ (uintptr_t)ancestor;
+    dir_comp_bucket **head = &dir_comp_buckets[hash % DIR_COMP_BUCKETS];
+    dir_comp_bucket *b;
+
+    while ((b = *head)) {
+	if (b->child == child && b->ancestor == ancestor)
+	    return b->is_ancestor;
+	head = &(b->next);
+    }
+
+    b = xmalloc(sizeof(dir_comp_bucket), __func__);
+    b->next = NULL;
+    b->child = child;
+    b->ancestor = ancestor;
+    b->is_ancestor = (strncmp(child->name, ancestor->name, ancestor->len) != 0);
+    *head = b;
+    return b->is_ancestor;
+}
+
 
 rev_dir **
 rev_pack_files(cvs_commit **files, int nfiles, int *ndr)
 {
-    const char *dir = NULL, *curdir = NULL;
-    int	    dirlen = 0;
-    int	    i;
-    int	    start = 0;
-    int	    nds = 0;
-    rev_dir *rd;
+    const master_dir *dir = NULL, *curdir = NULL;
+    int	             i, start = 0, nds = 0;
+    rev_dir          *rd;
     
 #ifdef ORDERDEBUG
     fputs("Packing:\n", stderr);
@@ -232,17 +270,16 @@ rev_pack_files(cvs_commit **files, int nfiles, int *ndr)
     /* pull out directories */
     for (i = 0; i < nfiles; i++) {
 	/* avoid strncmp as much as possible */
-	if (curdir != files[i]->master->dirname) {
-	    if (!dir || strncmp(files[i]->master->name, dir, dirlen) != 0) {
+	if (curdir != files[i]->master->dir) {
+	    if (!dir || dir_is_ancestor(files[i]->master->dir, dir)) {
 		if (i > start) {
 		    rd = rev_pack_dir(files + start, i - start);
 		    rds_put(nds++, rd);
 		}
 		start = i;
-		dir = files[i]->master->name;
-		dirlen = files[i]->master->dirlen;
+		dir = files[i]->master->dir;
 	    }
-	    curdir = files[i]->master->dirname;
+	    curdir = files[i]->master->dir;
 	}
     }
     if (dir) {
