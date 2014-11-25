@@ -239,19 +239,6 @@ struct fileop {
     const char *path;
 };
 
-static int fileop_sort(const void *a, const void *b)
-/* sort fileops as git fast-export does */
-{
-    /* As it says, 'Handle files below a directory first, in case they are
-     * all deleted and the directory changes to a file or symlink.'
-     * Because this doesn't have to handle renames, just sort lexicographically
-     * We append a sentinel to make sure "a/b/c" < "a/b" < "a".
-     */
-    struct fileop *oa = (struct fileop *)a;
-    struct fileop *ob = (struct fileop *)b;
-    return path_deep_compare(oa->path, ob->path);
-}
-
 /*
  * The magic number 100000 avoids generating forced UTC times that might be
  * negative in some timezone, while producing a sequence easy to read.
@@ -295,44 +282,6 @@ file_iter_start(file_iter *pos, const git_commit *commit) {
     }
 }
 
-static void compute_parent_links(const git_commit *commit)
-/* create reciprocal link pairs between file refs in a commit and its parent */
-{
-    const git_commit *parent = commit->parent;
-    file_iter commit_iter, parent_iter;
-    cvs_commit *cf, *pf;
-
-    file_iter_start(&commit_iter, commit);
-    file_iter_start(&parent_iter, parent);
-
-    /*
-     * File list are sorted by path_deep_compare
-     * We can use a merge join to efficiently find links
-     */
-    cf = file_iter_next(&commit_iter);
-    pf = file_iter_next(&parent_iter);
-    while (cf && pf) {
-	if (pf->master->name == cf->master->name) {
-	    cf->other = pf;
-	    pf->other = cf;
-	    pf = file_iter_next(&parent_iter);
-	    cf = file_iter_next(&commit_iter);
-	    continue;
-	}
-	if (path_deep_compare(pf->master->name, cf->master->name) < 0) {
-	    pf->other = NULL;
-	    pf = file_iter_next(&parent_iter);
-	} else {
-	    cf->other = NULL;
-	    cf = file_iter_next(&commit_iter);
-	}
-    }
-    for (; cf; cf = file_iter_next(&commit_iter))
-	cf->other = NULL;
-    for (; pf; pf = file_iter_next(&parent_iter))
-	pf->other = NULL;
-}
-
 #ifdef ORDERDEBUG
 static void dump_file(const cvs_commit *cvs_commit, FILE *fp)
 {
@@ -360,13 +309,68 @@ static void dump_commit(const git_commit *commit, FILE *fp)
 }
 #endif /* ORDERDEBUG */
 
-static void export_commit(git_commit *commit,
-			  const char *branch,
-			  const bool report,
-			  const export_options_t *opts)
-/* export a commit(and the blobs it is the first to reference) */
+
+static struct fileop *
+next_op_slot(struct fileop **operations, struct fileop *op, int *noperations)
+/* move to next operations slot, expand if necessary */
 {
 #define OP_CHUNK	32
+    if (++op == (*operations) + (*noperations)) {
+	(*noperations) += OP_CHUNK;
+	*operations = xrealloc(*operations, sizeof(struct fileop) * (*noperations), __func__);
+	// realloc can move operations
+	op = (*operations) + (*noperations) - OP_CHUNK;
+    }
+    return op;
+}
+
+static void
+build_modify_op(cvs_commit *c, struct fileop *op)
+/* fill out a modify fileop from a cvs commit */
+{
+    op->rev = c;
+    op->path = c->master->fileop_name;
+    op->op = 'M';
+    if (c->master->mode & 0100)
+	op->mode = 0755;
+    else
+	op->mode = 0644;
+}
+
+static void
+append_revpair(cvs_commit *c, const export_options_t *opts,
+	       char **revpairs, size_t *revpairsize)
+/* append file information if requested */
+{
+    if (opts->revision_map || opts->reposurgeon || opts->embed_ids) {
+	char fr[BUFSIZ];
+	int xtr = opts->embed_ids ? 10 : 2;
+	stringify_revision(c->master->name, " ", c->number, fr, sizeof fr);
+	if (strlen(*revpairs) + strlen(fr) + xtr > *revpairsize) {
+	    *revpairsize *= 2;
+	    *revpairs = xrealloc(*revpairs, *revpairsize, "revpair allocation");
+	}
+	if (opts->embed_ids)
+	    strcat(*revpairs, "CVS-ID: ");
+	strcat(*revpairs, fr);
+	strcat(*revpairs, "\n");
+    }
+}
+
+static void
+build_delete_op(cvs_commit *c, struct fileop *op)
+{
+    op->op = 'D';
+    op->path = c->master->fileop_name;
+}
+static void
+export_commit(git_commit *commit, const char *branch,
+	      const bool report, const export_options_t *opts)
+/* export a commit and the blobs it is the first to reference */
+{
+    const git_commit *parent = commit->parent;
+    file_iter commit_iter, parent_iter;
+    cvs_commit *cc, *pc = NULL;
     cvs_author *author;
     const char *full;
     const char *email;
@@ -374,8 +378,6 @@ static void export_commit(git_commit *commit,
     char *revpairs = NULL;
     size_t revpairsize = 0;
     time_t ct;
-    cvs_commit	*cc;
-    int		i, j;
     struct fileop *operations, *op, *op2;
     int noperations;
     serial_t here;
@@ -383,113 +385,74 @@ static void export_commit(git_commit *commit,
 
     if (!s_gitignore) s_gitignore = atom(".gitignore");
 
-    if (opts->reposurgeon || opts->revision_map != NULL || opts->embed_ids)
-    {
+    if (opts->reposurgeon || opts->revision_map || opts->embed_ids) {
 	revpairs = xmalloc((revpairsize = 1024), "revpair allocation");
 	revpairs[0] = '\0';
     }
 
-    /*
-     * Precompute mutual parent-child pointers.
-     */
-    if (commit->parent) 
-	compute_parent_links(commit);
-
     noperations = OP_CHUNK;
     op = operations = xmalloc(sizeof(struct fileop) * noperations, "fileop allocation");
-    for (i = 0; i < commit->ndirs; i++) {
-	rev_dir	*dir = commit->dirs[i];
-	
-	for (j = 0; j < dir->nfiles; j++) {
-	    const char *stripped;
-	    bool present, changed;
-	    
-	    op->rev = cc = dir->files[j];
-	    stripped = cc->master->fileop_name;
-	    present = false;
-	    changed = false;
-	    if (commit->parent) {
-		present = (cc->other != NULL);
-		changed = present && (cc->serial != cc->other->serial);
+
+    /* Perform a merge join between files in commit and files in parent commit
+     * to determine modified (including new) and deleted files  between commits.
+     * This works because files are sorted by path_deep_compare order
+     * The merge join also preseves this order, removing the need to sort
+     * operations once generated.
+     */
+    file_iter_start(&commit_iter, commit);
+    cc = file_iter_next(&commit_iter);
+    if (parent) {
+	file_iter_start(&parent_iter, parent);
+
+	pc = file_iter_next(&parent_iter);
+	while (cc && pc) {
+	    if (pc->master->fileop_name == cc->master->fileop_name) {
+		/* file exists in parent and master, check whether it is the same revision */
+		if (cc->serial != pc->serial) {
+		    build_modify_op(cc, op);
+		    append_revpair(cc, opts, &revpairs, &revpairsize);
+		    op = next_op_slot(&operations, op, &noperations);
+		}
+		pc = file_iter_next(&parent_iter);
+		cc = file_iter_next(&commit_iter);
+		continue;
 	    }
-	    if (!present || changed) {
-
-		op->op = 'M';
-		// git fast-import only supports 644 and 755 file modes
-		if (cc->master->mode & 0100)
-		    op->mode = 0755;
-		else
-		    op->mode = 0644;
-		op->path = stripped;
-		op++;
-		if (op == operations + noperations)
-		{
-		    noperations += OP_CHUNK;
-		    operations = xrealloc(operations,
-					  sizeof(struct fileop) * noperations, __func__);
-		    // realloc can move operations
-		    op = operations + noperations - OP_CHUNK;
-		}
-
-		if (opts->revision_map != NULL || opts->reposurgeon || opts->embed_ids) {
-		    char fr[BUFSIZ];
-		    int xtr = opts->embed_ids?10:2;
-		    stringify_revision(cc->master->name, 
-				  " ", cc->number, fr, sizeof fr);
-		    if (strlen(revpairs) + strlen(fr) + xtr > revpairsize)
-		    {
-			revpairsize *= 2;
-			revpairs = xrealloc(revpairs, revpairsize, "revpair allocation");
-		    }
-		    if (opts->embed_ids)
-			strcat(revpairs, "CVS-ID: ");
-		    strcat(revpairs, fr);
-		    strcat(revpairs, "\n");
-		}
+	    if (path_deep_compare(pc->master->fileop_name, cc->master->fileop_name) < 0) {
+		/* parent but no child, delete op */
+		build_delete_op(pc, op);
+		op = next_op_slot(&operations, op, &noperations);
+		pc = file_iter_next(&parent_iter);
+	    } else {
+		/* child but no parent, modify op */
+		build_modify_op(cc, op);
+		append_revpair(cc, opts, &revpairs, &revpairsize);
+		op = next_op_slot(&operations, op, &noperations);
+		cc = file_iter_next(&commit_iter);
 	    }
 	}
     }
-
-    if (commit->parent)
-    {
-	for (i = 0; i < commit->parent->ndirs; i++) {
-	    rev_dir	*dir = commit->parent->dirs[i];
-
-	    for (j = 0; j < dir->nfiles; j++) {
-		bool present;
-		cc = dir->files[j];
-		present = (cc->other != NULL);
-		if (!present) {
-
-		    op->op = 'D';
-		    op->path = cc->master->fileop_name;
-		    op++;
-		    if (op == operations + noperations)
-		    {
-			noperations += OP_CHUNK;
-			operations = xrealloc(operations,
-					      sizeof(struct fileop) * noperations,
-					      __func__);
-			// realloc can move operations
-			op = operations + noperations - OP_CHUNK;
-		    }
-		}
-	    }
-	}
+    for (; cc; cc = file_iter_next(&commit_iter)) {
+	/* child but no parent, modify op */
+	build_modify_op(cc, op);
+	append_revpair(cc, opts, &revpairs, &revpairsize);
+	op = next_op_slot(&operations, op, &noperations);
+    }
+    /* if no parent commit, we've set pf to null to skip this */
+    for (; pc; pc = file_iter_next(&parent_iter)) {
+	/* parent but no child, delete op */
+	build_delete_op(pc, op);
+	op = next_op_slot(&operations, op, &noperations);
     }
 
-    for (op2 = operations; op2 < op; op2++)
-    {
-	if (op2->op == 'M' && !op2->rev->emitted)
-	{
+    for (op2 = operations; op2 < op; op2++) {
+	if (op2->op == 'M' && !op2->rev->emitted) {
 	    if (opts->reportmode == canonical)
 		markmap[op2->rev->serial] = ++mark;
 	    if (report && opts->reportmode == canonical) {
 		char path[PATH_MAX];
 		char *fn = blobfile(op2->path, op2->rev->serial, false, path);
 		FILE *rfp = fopen(fn, "r");
-		if (rfp)
-		{
+		if (rfp){
 		    char buf[BUFSIZ];
 		    printf("blob\nmark :%d\n", mark);
 
@@ -504,9 +467,6 @@ static void export_commit(git_commit *commit,
 	    }
 	}
     }
-
-    /* sort operations into canonical order */
-    qsort((void *)operations, op - operations, sizeof(struct fileop), fileop_sort); 
 
     author = fullname(commit->author);
     if (!author) {

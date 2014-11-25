@@ -74,6 +74,11 @@ rev_pack_dir(cvs_commit **files, const int nfiles)
  * Compare/order filenames, such that files in subdirectories
  * sort earlier than files in the parent
  *
+ * Also sorts in the same order that git fast-export does
+ * As it says, 'Handle files below a directory first, in case they are
+ * all deleted and the directory changes to a file or symlink.'
+ * Because this doesn't have to handle renames, just sort lexicographically
+ *
  *    a/x < b/y < a < b
  */
 int path_deep_compare(const void *a, const void *b)
