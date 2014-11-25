@@ -580,7 +580,7 @@ cvs_master_set_refs(cvs_master *cm, cvs_file *cvsfile)
 	if (!h->number) {
 	    h->number = atom_cvs_number(cvs_zero);
 	    if (h->ref_name)
-		warn("Unnumbered head %s in %s\n", h->ref_name, cvsfile->export_name);
+		warn("unnumbered head %s in %s\n", h->ref_name, cvsfile->export_name);
 	    else
 		warn("unnumbered head in %s\n", cvsfile->export_name);
 	}
@@ -802,7 +802,7 @@ cvs_master_digest(cvs_file *cvs)
      * Search for other branches
      */
     if (cvs->verbose > 0)
-	debugmsg("Building branches for %s:\n", cvs->gen.master_name);
+	debugmsg("Building non-trunk branches for %s:\n", cvs->gen.master_name);
     
     for (cv = cvs->gen.versions; cv; cv = cv->next) {
 	for (cb = cv->branches; cb; cb = cb->next)
@@ -811,8 +811,12 @@ cvs_master_digest(cvs_file *cvs)
 	    if (cvs->verbose > 0)
 	    {
 	        char buf[BUFSIZ];
-		debugmsg("\t%s\n",
-			 cvs_number_string(branch->number, buf, BUFSIZ));
+	        char buf2[BUFSIZ];
+	        char buf3[BUFSIZ];
+		debugmsg("\t%s\t->\t%s\t->\t%s\n",
+			 cvs_number_string(cv->number, buf, BUFSIZ),
+			 cvs_number_string(cb->number, buf2, BUFSIZ),
+			 cvs_number_string(branch->number, buf3, BUFSIZ));
 	    }
 	    rev_list_add_head(cm, branch, NULL, 0);
 	}
@@ -827,8 +831,12 @@ cvs_master_digest(cvs_file *cvs)
 	rev_ref	*lh;
 
 	debugmsg("Named heads in %s:\n", cvs->gen.master_name);
-	for (lh = cm->heads; lh; lh = lh->next)
-	    debugmsg("\t%s\n", lh->ref_name);
+	for (lh = cm->heads; lh; lh = lh->next) {
+	    char buf[BUFSIZ];
+
+	    debugmsg("\tname = %s\tmumber = %s\n", lh->ref_name,
+		     cvs_number_string(lh->number, buf, BUFSIZ));
+	}
     }
 
     //rev_list_validate(cm);

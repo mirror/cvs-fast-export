@@ -2,7 +2,7 @@
 
 Before you try to modify this code, read hacking.asc.
 
-* Progress reporting withing files for large files with many commits?
+* Progress reporting within files for large files with many commits?
 
 * The QED repo in the tests directory raises a branch cycle error.
   This may reveal a bug in the second toposort function. 
