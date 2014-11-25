@@ -311,10 +311,7 @@ typedef struct _cvs_commit {
     struct _cvs_commit	*parent;
     const char		*restrict log;
     const char		*restrict author;
-    union {
-	const char	*restrict commitid;
-	struct _cvs_commit  *other;
-    };
+    const char	        *restrict commitid;
     cvstime_t		date;
     serial_t            serial;
     branchcount_t	refcount;

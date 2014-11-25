@@ -175,11 +175,15 @@ strcommonendingwith(const char *a, const char *b, char endc)
 
 #ifdef FILESORT
 /*
- * Sort list of cvs masters in path_deep_compare order
- * Causes commits to come out in correct pack order
+ * Sort list of cvs masters in path_deep_compare order of output name.
+ * Causes commits to come out in correct pack order.
+ * Also causes operations to come out in correct fileop_sort order.
+ * Note some output names are different to input names.
+ * e.g. .cvsignore becomes .gitignore
+ *
  * Based on merge sort algorithm described at
  * http://www.chiark.greenend.org.uk/~sgtatham/algorithms/listsort.html
- * and obviously similar to the the cvs_master_sort_heads function
+ * and obviously similar to the the cvs_master_sort_heads function.
  */
 static cvs_master *
 sort_cvs_masters(cvs_master *list)
@@ -203,8 +207,8 @@ sort_cvs_masters(cvs_master *list)
 	    while (ps > 0 || (qs > 0 && q)) {
 		if (ps == 0 || (qs != 0 && q &&
 				path_deep_compare(
-				  p->heads->commit->master->name,
-                                  q->heads->commit->master->name
+				  p->heads->commit->master->fileop_name,
+                                  q->heads->commit->master->fileop_name
                                 ) > 0)) {
 		    elt = q;
 		    q = q->next;
