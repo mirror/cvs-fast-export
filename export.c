@@ -407,7 +407,7 @@ export_commit(git_commit *commit, const char *branch,
 	pc = file_iter_next(&parent_iter);
 	while (cc && pc) {
 	    if (pc->master->fileop_name == cc->master->fileop_name) {
-		/* file exists in parent and master, check whether it is the same revision */
+		/* file exists in commit and parent, check whether it is the same revision */
 		if (cc->serial != pc->serial) {
 		    build_modify_op(cc, op);
 		    append_revpair(cc, opts, &revpairs, &revpairsize);
@@ -437,7 +437,7 @@ export_commit(git_commit *commit, const char *branch,
 	append_revpair(cc, opts, &revpairs, &revpairsize);
 	op = next_op_slot(&operations, op, &noperations);
     }
-    /* if no parent commit, we've set pf to null to skip this */
+    /* if no parent commit, we've set pc to null to skip this */
     for (; pc; pc = file_iter_next(&parent_iter)) {
 	/* parent but no child, delete op */
 	build_delete_op(pc, op);
@@ -452,7 +452,7 @@ export_commit(git_commit *commit, const char *branch,
 		char path[PATH_MAX];
 		char *fn = blobfile(op2->path, op2->rev->serial, false, path);
 		FILE *rfp = fopen(fn, "r");
-		if (rfp){
+		if (rfp) {
 		    char buf[BUFSIZ];
 		    printf("blob\nmark :%d\n", mark);
 
