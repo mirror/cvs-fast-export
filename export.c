@@ -369,8 +369,8 @@ export_commit(git_commit *commit, const char *branch,
 /* export a commit and the blobs it is the first to reference */
 {
     const git_commit *parent = commit->parent;
-    file_iter commit_iter, parent_iter;
-    cvs_commit *cc, *pc;
+    file_iter commit_iter;
+    cvs_commit *cc;
     cvs_author *author;
     const char *full;
     const char *email;
@@ -379,7 +379,7 @@ export_commit(git_commit *commit, const char *branch,
     size_t revpairsize = 0;
     time_t ct;
     struct fileop *operations, *op, *op2;
-    int noperations;
+    int noperations = OP_CHUNK;
     serial_t here;
     static const char *s_gitignore;
 
@@ -390,7 +390,6 @@ export_commit(git_commit *commit, const char *branch,
 	revpairs[0] = '\0';
     }
 
-    noperations = OP_CHUNK;
     op = operations = xmalloc(sizeof(struct fileop) * noperations, "fileop allocation");
 
     /* Perform a merge join between files in commit and files in parent commit
@@ -402,9 +401,11 @@ export_commit(git_commit *commit, const char *branch,
     file_iter_start(&commit_iter, commit);
     cc = file_iter_next(&commit_iter);
     if (parent) {
-	file_iter_start(&parent_iter, parent);
+	file_iter parent_iter;
 
-	pc = file_iter_next(&parent_iter);
+	file_iter_start(&parent_iter, parent);
+	cvs_commit *pc = file_iter_next(&parent_iter);
+
 	while (cc && pc) {
 	    if (pc->master->fileop_name == cc->master->fileop_name) {
 		/* file exists in commit and parent, check whether it is the same revision */
