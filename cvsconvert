@@ -441,6 +441,9 @@ if __name__ == '__main__':
     cc.repo.retain = retain
     cc.checkall()
     cc.checkout.cleanup()
-    sys.stderr.write("cvsconvert: conversion is in %s%s\n" % (repo, ConvertComparison.SUFFIX))
+    if retain:
+        sys.stderr.write("cvsconvert: conversion is in %s%s\n" % (repo, ConvertComparison.SUFFIX))
+    else:
+        cc.cleanup()
 
 # end
