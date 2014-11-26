@@ -369,7 +369,7 @@ export_commit(git_commit *commit, const char *branch,
 /* export a commit and the blobs it is the first to reference */
 {
     const git_commit *parent = commit->parent;
-    file_iter commit_iter, parent_iter;
+    file_iter commit_iter, parent_iter = {};
     cvs_commit *cc, *pc = NULL;
     cvs_author *author;
     const char *full;
