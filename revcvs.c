@@ -384,7 +384,7 @@ cvs_master_patch_vendor_branch(cvs_master *cm, cvs_file *cvs)
 	dump_number_file(LOGFILE, "\t", t->number);
 	debugmsg("\n");
     }
-#endif
+#endif /* CVSDEBUG */
 }
 
 static void
@@ -803,18 +803,22 @@ cvs_master_digest(cvs_file *cvs)
 	rev_ref	*t;
 	t = rev_list_add_head(cm, trunk, atom("master"), 2);
 	t->number = trunk_number;
+#if CVSDEBUG
 	if (cvs->verbose > 0)
 	    debugmsg("Building trunk branch %s for %s:\n", 
 		     cvs_number_string(t->number, buf, BUFSIZ),
 		     cvs->gen.master_name);
+#endif /* CVSDEBUG */
     }
     else
 	warn("warning - no master branch generated\n");
+#if CVSDEBUG
     /*
      * Search for other branches
      */
     if (cvs->verbose > 0)
 	debugmsg("Building non-trunk branches for %s:\n", cvs->gen.master_name);
+#endif /* CVSDEBUG */
     
     for (cv = cvs->gen.versions; cv; cv = cv->next) {
 	for (cb = cv->branches; cb; cb = cb->next)
@@ -838,6 +842,7 @@ cvs_master_digest(cvs_file *cvs)
     cvs_master_sort_heads(cm, cvs);
     rev_list_set_tail(cm);
 
+#if CVSDEBUG
     if (cvs->verbose > 0) {
 	rev_ref	*lh;
 
@@ -849,6 +854,7 @@ cvs_master_digest(cvs_file *cvs)
 		     cvs_number_string(lh->number, buf, BUFSIZ));
 	}
     }
+#endif /* CVSDEBUG */
 
     //rev_list_validate(cm);
     return cm;
