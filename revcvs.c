@@ -148,11 +148,11 @@ cvs_master_branch_build(cvs_file *cvs, const cvs_number *branch)
     node_t	*node;
     rev_master  *master = xcalloc(1,sizeof(rev_master), "master construction");
 #if CVSDEBUG
-    char buf[BUFSIZ];
+    char buf[CVS_MAX_REV_LEN];
 
     if (cvs->verbose > 0)
 	debugmsg("\tstarting new branch, branch number = %s\n",
-	     cvs_number_string(branch, buf, BUFSIZ));
+	     cvs_number_string(branch, buf, CVS_MAX_REV_LEN));
 #endif /* CVSDEBUG */
 
     master->name = cvs->export_name;
@@ -226,7 +226,7 @@ cvs_master_branch_build(cvs_file *cvs, const cvs_number *branch)
 #if CVSDEBUG
     if (cvs->verbose > 0)
 	debugmsg("\tnew branch, head number = %s\n",
-	     cvs_number_string(head->number, buf, BUFSIZ));
+	     cvs_number_string(head->number, buf, CVS_MAX_REV_LEN));
 #endif /* CVSDEBUG */
 
     /* coverity[leaked_storage] */
@@ -263,7 +263,7 @@ cvs_master_patch_vendor_branch(cvs_master *cm, cvs_file *cvs)
 	if (h->commit && cvs_is_vendor(h->commit->number))
 	{
 #ifdef CVSDEBUG
-	    char buf[BUFSIZ];
+	    char buf[CVS_MAX_REV_LEN];
 	    ++nvb;
 #endif /* CVSDEBUG */
 	    /*
@@ -333,10 +333,11 @@ cvs_master_patch_vendor_branch(cvs_master *cm, cvs_file *cvs)
 	    else
 		delete_head = true;
 #if CVSDEBUG
-	    debugmsg("In %s, vendor branch %s %sdeleted.\n",
-		     cvs->export_name,
-		     cvs_number_string(h->commit->number, buf, BUFSIZ),
-		     delete_head ? "" : "not ");
+	    if (cvs->verbose > 0)
+		debugmsg("In %s, vendor branch %s %sdeleted.\n",
+			 cvs->export_name,
+			 cvs_number_string(h->commit->number, buf, CVS_MAX_REV_LEN),
+			 delete_head ? "" : "not ");
 #endif /* CVSDEBUG */
 	    /*
 	     * Patch up the remaining vendor branch pieces
@@ -820,13 +821,16 @@ cvs_master_sort_heads(cvs_master *cm, cvs_file *cvs)
 
     cm->heads = l;
 #ifdef CVSDEBUG
-    fprintf(stderr, "Sorted heads for %s\n", cvs->gen.master_name);
-    for (e = cm->heads; e;) {
-	fprintf(stderr, "\t");
-	//cvs_master_dump_ref_parents(stderr, e->parent);
-	dump_number_file(stderr, e->ref_name, e->number);
-	fprintf(stderr, "\n");
-	e = e->next;
+    if (cvs->verbose > 0)
+    {
+	debugmsg("Sorted heads for %s\n", cvs->gen.master_name);
+	for (e = cm->heads; e;) {
+	    debugmsg("\t");
+	    //cvs_master_dump_ref_parents(stderr, e->parent);
+	    dump_number_file(LOGFILE, e->ref_name, e->number);
+	    debugmsg("\n");
+	    e = e->next;
+	}
     }
 #endif /* CVSDEBUG */
 }
@@ -843,7 +847,7 @@ cvs_master_digest(cvs_file *cvs)
     cvs_branch	*cb;
     cvs_version	*ctrunk = NULL;
 #if CVSDEBUG
-    char buf[BUFSIZ];
+    char buf[CVS_MAX_REV_LEN];
 #endif /* CVSDEBUG */
 
     build_branches(&cvs->gen.nodehash);
@@ -872,7 +876,7 @@ cvs_master_digest(cvs_file *cvs)
 #if CVSDEBUG
 	if (cvs->verbose > 0)
 	    debugmsg("Building trunk branch %s for %s:\n",
-		     cvs_number_string(t->number, buf, BUFSIZ),
+		     cvs_number_string(t->number, buf, CVS_MAX_REV_LEN),
 		     cvs->gen.master_name);
 #endif /* CVSDEBUG */
     }
@@ -893,12 +897,12 @@ cvs_master_digest(cvs_file *cvs)
 #ifdef CVSDEBUG
 	    if (cvs->verbose > 0)
 	    {
-	        char buf2[BUFSIZ];
-	        char buf3[BUFSIZ];
+	        char buf2[CVS_MAX_REV_LEN];
+	        char buf3[CVS_MAX_REV_LEN];
 		debugmsg("\t%s\t->\t%s\t->\t%s\n",
-			 cvs_number_string(cv->number, buf, BUFSIZ),
-			 cvs_number_string(cb->number, buf2, BUFSIZ),
-			 cvs_number_string(branch->number, buf3, BUFSIZ));
+			 cvs_number_string(cv->number, buf, CVS_MAX_REV_LEN),
+			 cvs_number_string(cb->number, buf2, CVS_MAX_REV_LEN),
+			 cvs_number_string(branch->number, buf3, CVS_MAX_REV_LEN));
 	    }
 #endif /* CVSDEBUG */
 	    rev_list_add_head(cm, branch, NULL, 0);
@@ -916,10 +920,10 @@ cvs_master_digest(cvs_file *cvs)
 
 	debugmsg("Named heads in %s:\n", cvs->gen.master_name);
 	for (lh = cm->heads; lh; lh = lh->next) {
-	    char buf[BUFSIZ];
+	    char buf[CVS_MAX_REV_LEN];
 
 	    debugmsg("\tname = %s\tnumber = %s\n", lh->ref_name,
-		     cvs_number_string(lh->number, buf, BUFSIZ));
+		     cvs_number_string(lh->number, buf, CVS_MAX_REV_LEN));
 	}
     }
 #endif /* CVSDEBUG */
