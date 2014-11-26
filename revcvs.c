@@ -253,6 +253,9 @@ cvs_master_patch_vendor_branch(cvs_master *cm, cvs_file *cvs)
     cvs_commit	*t, **tp, *v, **vp;
     cvs_commit	*vlast;
     rev_ref	**h_p;
+#ifdef CVSDEBUG
+    int		nvb = 0;
+#endif /* CVSDEBUG */
 
     trunk = cm->heads;
     for (h_p = &cm->heads; (h = *h_p);) {
@@ -261,6 +264,7 @@ cvs_master_patch_vendor_branch(cvs_master *cm, cvs_file *cvs)
 	{
 #ifdef CVSDEBUG
 	    char buf[BUFSIZ];
+	    ++nvb;
 #endif /* CVSDEBUG */
 	    /*
 	     * Find version 1.2 on the trunk.
@@ -400,10 +404,12 @@ cvs_master_patch_vendor_branch(cvs_master *cm, cvs_file *cvs)
 	}
     }
 #if CVSDEBUG
-    debugmsg("%s spliced:\n", cvs->export_name);
-    for (t = trunk->commit; t; t = t->parent) {
-	dump_number_file(LOGFILE, "\t", t->number);
-	debugmsg("\n");
+    if (cvs->verbose > 0 && nvb > 0) {
+	debugmsg("%s spliced:\n", cvs->export_name);
+	for (t = trunk->commit; t; t = t->parent) {
+	    dump_number_file(LOGFILE, "\t", t->number);
+	    debugmsg("\n");
+	}
     }
 #endif /* CVSDEBUG */
 }
