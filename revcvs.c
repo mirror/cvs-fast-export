@@ -147,10 +147,13 @@ cvs_master_branch_build(cvs_file *cvs, const cvs_number *branch)
     cvs_commit	*c, *p, *gc;
     node_t	*node;
     rev_master  *master = xcalloc(1,sizeof(rev_master), "master construction");
+#if CVSDEBUG
     char buf[BUFSIZ];
 
-    debugmsg("\tstarting new branch, branch number = %s\n",
+    if (cvs->verbose > 0)
+	debugmsg("\tstarting new branch, branch number = %s\n",
 	     cvs_number_string(branch, buf, BUFSIZ));
+#endif /* CVSDEBUG */
 
     master->name = cvs->export_name;
     master->fileop_name = fileop_name(cvs->export_name);
@@ -220,8 +223,11 @@ cvs_master_branch_build(cvs_file *cvs, const cvs_number *branch)
 	}
     }
 
-    debugmsg("\tnew branch, head number = %s\n",
+#if CVSDEBUG
+    if (cvs->verbose > 0)
+	debugmsg("\tnew branch, head number = %s\n",
 	     cvs_number_string(head->number, buf, BUFSIZ));
+#endif /* CVSDEBUG */
 
     /* coverity[leaked_storage] */
     return head;
@@ -787,7 +793,9 @@ cvs_master_digest(cvs_file *cvs)
     cvs_version	*cv;
     cvs_branch	*cb;
     cvs_version	*ctrunk = NULL;
+#if CVSDEBUG
     char buf[BUFSIZ];
+#endif /* CVSDEBUG */
 
     build_branches(&cvs->gen.nodehash);
     /*
