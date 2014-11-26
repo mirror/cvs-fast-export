@@ -27,7 +27,7 @@
 
 #ifdef REDBLACK
 #include "rbtree.h"
-#endif /* REDBLACK */ 
+#endif /* REDBLACK */
 
 #ifdef THREADS
 #include <pthread.h>
@@ -286,7 +286,7 @@ cvs_master_patch_vendor_branch(cvs_master *cm, cvs_file *cvs)
 	     */
 	    while ((t = *tp))
 	    {
-		if (!t->parent || 
+		if (!t->parent ||
 		    time_compare(vlast->date, t->parent->date) >= 0)
 		{
 		    break;
@@ -333,7 +333,7 @@ cvs_master_patch_vendor_branch(cvs_master *cm, cvs_file *cvs)
 	    else
 		delete_head = true;
 #if CVSDEBUG
-	    debugmsg("In %s, vendor branch %s %sdeleted.\n", 
+	    debugmsg("In %s, vendor branch %s %sdeleted.\n",
 		     cvs->export_name,
 		     cvs_number_string(h->commit->number, buf, BUFSIZ),
 		     delete_head ? "" : "not ");
@@ -372,7 +372,7 @@ cvs_master_patch_vendor_branch(cvs_master *cm, cvs_file *cvs)
 		    }
 		}
 	    }
-	    
+	   
 	    /*
 	     * Merge two branches based on dates
 	     */
@@ -416,7 +416,7 @@ cvs_master_patch_vendor_branch(cvs_master *cm, cvs_file *cvs)
 
 static void
 cvs_master_graft_branches(cvs_master *cm, cvs_file *cvs)
-/* turn disconnected branches into a tree by grafting roots to parents */ 
+/* turn disconnected branches into a tree by grafting roots to parents */
 {
     rev_ref	*h;
     cvs_commit	*c;
@@ -537,9 +537,9 @@ static void
 cvs_master_set_refs(cvs_master *cm, cvs_file *cvsfile)
 /* create head references or tags for each symbol in the CVS master */
 {
-    rev_ref	*h;
+    rev_ref	*h, **ph, *h2;
     cvs_symbol	*s;
-    
+   
     for (s = cvsfile->symbols; s; s = s->next) {
 	cvs_commit	*c = NULL;
 	/*
@@ -592,8 +592,29 @@ cvs_master_set_refs(cvs_master *cm, cvs_file *cvsfile)
 	    if (!c->dead)
 		break;
 	}
-	if (!c)
+	if (!c) {
+	    char buf[CVS_MAX_REV_LEN];
+	    /*
+	     * Strange edge case here.  Every revision on the branch
+	     * is in state 'dead', and there's no tag pointing to it.
+	     * (Yes, this has been seen in the wild.)  The code used
+	     * to just do a 'continue' here; this produced spurious
+	     * unnumbered-head messages.
+	     *
+	     * We choose to discard the dead branch on the theory that
+	     * these revisions couldn't have been visible in the
+	     * archival state of the CVS, either. They might have been
+	     * visible at some past time in the evolution of the repo,
+	     * but that state is impossible to reconstruct.
+	     *
+	     * This is going to leave some allocated storage hanging.
+	     */
+	    h->number = atom_cvs_number(cvs_zero);
+	    warn("discarding dead untagged branch %s in %s\n",
+		 cvs_number_string(h->commit->number, buf, sizeof(buf)),
+		 cvsfile->export_name);
 	    continue;
+	}
 	memcpy(&n, c->number, sizeof(cvs_number));
 	/* convert to branch form */
 	n.n[n.c-1] = n.n[n.c-2];
@@ -602,11 +623,23 @@ cvs_master_set_refs(cvs_master *cm, cvs_file *cvsfile)
 	h->degree = cvs_number_degree(&n);
 	/* compute name after patching parents */
     }
+    /* discard zero-marked heads */
+    for (ph = &cm->heads; *ph; ph = &(h2->next)) {
+	h2 = *ph;
+	if ((*ph)->number == atom_cvs_number(cvs_zero))
+	    *ph = (*ph)->next;
+    }
+
     /*
      * Link heads together in a tree
      */
     for (h = cm->heads; h; h = h->next) {
 	cvs_number	n;
+
+	/* might have been flagged for discard above */
+	if (h->number == atom_cvs_number(cvs_zero))
+	    continue;
+
 	/*
          * keithp: can get unnumbered heads here
          * not sure what that means
@@ -800,11 +833,11 @@ cvs_master_sort_heads(cvs_master *cm, cvs_file *cvs)
 
 cvs_repo *
 cvs_master_digest(cvs_file *cvs)
-/* return a linked list capturing the CVS master file structure */ 
+/* return a linked list capturing the CVS master file structure */
 {
     cvs_master	*cm = xcalloc(1, sizeof(cvs_master), "cvs_master_digest");
     const cvs_number *trunk_number;
-    cvs_commit	*trunk; 
+    cvs_commit	*trunk;
     cvs_commit	*branch;
     cvs_version	*cv;
     cvs_branch	*cb;
@@ -838,7 +871,7 @@ cvs_master_digest(cvs_file *cvs)
 	t->number = trunk_number;
 #if CVSDEBUG
 	if (cvs->verbose > 0)
-	    debugmsg("Building trunk branch %s for %s:\n", 
+	    debugmsg("Building trunk branch %s for %s:\n",
 		     cvs_number_string(t->number, buf, BUFSIZ),
 		     cvs->gen.master_name);
 #endif /* CVSDEBUG */
@@ -852,7 +885,7 @@ cvs_master_digest(cvs_file *cvs)
     if (cvs->verbose > 0)
 	debugmsg("Building non-trunk branches for %s:\n", cvs->gen.master_name);
 #endif /* CVSDEBUG */
-    
+
     for (cv = cvs->gen.versions; cv; cv = cv->next) {
 	for (cb = cv->branches; cb; cb = cb->next)
 	{

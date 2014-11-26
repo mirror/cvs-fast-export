@@ -1,0 +1,67 @@
+cvs-fast-export: discarding dead untagged branch 1.4.2.2 in deadbranch
+commit refs/heads/master
+mark :1
+committer cgd <cgd> 847321753 +0000
+data 33
+02c3c00d1b01b59dc1df89a22fd85ed7
+
+M 100644 inline .gitignore
+data 198
+# CVS default ignores begin
+tags
+TAGS
+.make.state
+.nse_depinfo
+*~
+#*
+.#*
+,*
+_$*
+*$
+*.old
+*.bak
+*.BAK
+*.orig
+*.rej
+.del-*
+*.a
+*.olb
+*.o
+*.obj
+*.so
+*.exe
+*.Z
+*.elc
+*.ln
+core
+# CVS default ignores end
+
+
+commit refs/heads/master
+mark :2
+committer cgd <cgd> 853377624 +0000
+data 33
+d10b914da055c3e88c3f2d497211d6f0
+
+from :1
+
+commit refs/heads/master
+mark :3
+committer cgd <cgd> 854070780 +0000
+data 33
+67e343d3c0df8fd8230b555776ef6aa5
+
+from :2
+
+commit refs/heads/master
+mark :4
+committer cgd <cgd> 860316071 +0000
+data 33
+4a486f01d33c531a71545e0fa34fc4e3
+
+from :3
+
+reset refs/heads/master
+from :4
+
+done

@@ -1,0 +1,125 @@
+head	1.7;
+access;
+symbols;
+locks; strict;
+comment	@# @;
+
+1.5
+date	97.04.06.08.41.11;	author cgd;	state dead;
+branches;
+next	1.4;
+
+1.4
+date	97.01.24.01.53.00;	author cgd;	state dead;
+branches
+	1.4.2.1;
+next	1.3;
+
+1.3
+date	97.01.16.01.20.24;	author cgd;	state dead;
+branches;
+next	1.2;
+
+1.2
+date	96.11.06.23.09.13;	author cgd;	state dead;
+branches;
+next	1.1;
+
+1.1
+date	95.11.23.02.41.18;	author cgd;	state dead;
+branches;
+next	;
+
+1.4.2.1
+date	97.06.01.04.14.17;	author cgd;	state dead;
+branches;
+next	1.4.2.2;
+
+1.4.2.2
+date	97.07.22.05.37.40;	author cgd;	state dead;
+branches;
+next	;
+
+
+desc
+@This is a heavily reduced history from an attic file in the NetBSD tree
+with a side branch consisting entirely of dead revisions (and the main branch
+too, for that matter). It's not entirely clear what to do in a case like this; 
+we settle for discarding the side branch with a warning and passing on the trunk
+for further analysis.
+@
+
+
+1.5
+log
+@4a486f01d33c531a71545e0fa34fc4e3
+@
+text
+@sys/arch/alpha/stand/installboot.old/Attic/Makefile,v content for 1.5
+@
+
+
+1.4
+log
+@67e343d3c0df8fd8230b555776ef6aa5
+@
+text
+@d1 1
+a1 1
+sys/arch/alpha/stand/installboot.old/Attic/Makefile,v content for 1.4
+@
+
+
+1.4.2.1
+log
+@5873d8ab9a7d4adce9ee8f8e70cfd164
+@
+text
+@d1 1
+a1 1
+sys/arch/alpha/stand/installboot.old/Attic/Makefile,v content for 1.4.2.1
+@
+
+
+1.4.2.2
+log
+@67c541812e46c3924d0b70dab4015ce1
+@
+text
+@d1 1
+a1 1
+sys/arch/alpha/stand/installboot.old/Attic/Makefile,v content for 1.4.2.2
+@
+
+
+1.3
+log
+@d10b914da055c3e88c3f2d497211d6f0
+@
+text
+@d1 1
+a1 1
+sys/arch/alpha/stand/installboot.old/Attic/Makefile,v content for 1.3
+@
+
+
+1.2
+log
+@02c3c00d1b01b59dc1df89a22fd85ed7
+@
+text
+@d1 1
+a1 1
+sys/arch/alpha/stand/installboot.old/Attic/Makefile,v content for 1.2
+@
+
+
+1.1
+log
+@9a8494f26b19ec9b6d911864f788627f
+@
+text
+@d1 1
+a1 1
+sys/arch/alpha/stand/installboot.old/Attic/Makefile,v content for 1.1
+@
