@@ -602,15 +602,19 @@ cvs_master_set_refs(cvs_master *cm, cvs_file *cvsfile)
     for (h = cm->heads; h; h = h->next) {
 	cvs_number	n;
 	/*
-         * Can get unnumbered heads here
+         * keithp: can get unnumbered heads here
          * not sure what that means
+	 *
+	 * ESR: I found a bug in the code for patching vendor branches that
+	 * produced these. It is likely this is now a can't-happen. I have
+	 * re-tagged it as "internal error" but left it in place just in case.
          */
 	if (!h->number) {
 	    h->number = atom_cvs_number(cvs_zero);
 	    if (h->ref_name)
-		warn("unnumbered head %s in %s\n", h->ref_name, cvsfile->export_name);
+		warn("internal error - unnumbered head %s in %s\n", h->ref_name, cvsfile->export_name);
 	    else
-		warn("unnumbered head in %s\n", cvsfile->export_name);
+		warn("internal error - unnumbered head in %s\n", cvsfile->export_name);
 	}
 
 	if (h->number->c >= 4) {

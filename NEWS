@@ -1,5 +1,8 @@
 		cvs-fast-export project news
 
+Repository head:
+    The bug that produced "unnumbered head" warnings has been fixed.
+
 1.26: 2014-11-05
     cvscompare changed to cvsconvert, a validating wrapper script.
     The rules for keyword expansion have changed yet again.
