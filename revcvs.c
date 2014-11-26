@@ -771,6 +771,7 @@ cvs_master_digest(cvs_file *cvs)
     cvs_version	*cv;
     cvs_branch	*cb;
     cvs_version	*ctrunk = NULL;
+    char buf[BUFSIZ];
 
     build_branches(&cvs->gen.nodehash);
     /*
@@ -795,6 +796,10 @@ cvs_master_digest(cvs_file *cvs)
 	rev_ref	*t;
 	t = rev_list_add_head(cm, trunk, atom("master"), 2);
 	t->number = trunk_number;
+	if (cvs->verbose > 0)
+	    debugmsg("Building trunk branch %s for %s:\n", 
+		     cvs_number_string(t->number, buf, BUFSIZ),
+		     cvs->gen.master_name);
     }
     else
 	warn("warning - no master branch generated\n");
@@ -810,7 +815,6 @@ cvs_master_digest(cvs_file *cvs)
 	    branch = cvs_master_branch_build(cvs, cb->number);
 	    if (cvs->verbose > 0)
 	    {
-	        char buf[BUFSIZ];
 	        char buf2[BUFSIZ];
 	        char buf3[BUFSIZ];
 		debugmsg("\t%s\t->\t%s\t->\t%s\n",
@@ -834,7 +838,7 @@ cvs_master_digest(cvs_file *cvs)
 	for (lh = cm->heads; lh; lh = lh->next) {
 	    char buf[BUFSIZ];
 
-	    debugmsg("\tname = %s\tmumber = %s\n", lh->ref_name,
+	    debugmsg("\tname = %s\tnumber = %s\n", lh->ref_name,
 		     cvs_number_string(lh->number, buf, BUFSIZ));
 	}
     }
