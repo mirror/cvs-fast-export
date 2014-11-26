@@ -351,7 +351,13 @@ cvs_master_patch_vendor_branch(cvs_master *cm, cvs_file *cvs)
 			      "import-%s", rev);
 		    vendor->ref_name = atom(name);
 		    vendor->parent = trunk;
-		    vendor->degree = vlast->number->c;
+		    /*
+		     * Degree used to be set from vlast->number->c;
+		     * this should be equivalent, since the branches
+		     * have not yet been grafted.
+		     */
+		    vendor->degree = h->commit->number->c;
+		    vendor->number = h->commit->number;
 		}
 		for (vr = vendor->commit; vr; vr = vr->parent)
 		{
