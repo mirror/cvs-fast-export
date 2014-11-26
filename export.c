@@ -409,7 +409,7 @@ export_commit(git_commit *commit, const char *branch,
 	while (cc && pc) {
 	    if (pc->master->fileop_name == cc->master->fileop_name) {
 		/* file exists in commit and parent, check whether it is the same revision */
-		if (cc->serial != pc->serial) {
+		if (cc != pc) {
 		    build_modify_op(cc, op);
 		    append_revpair(cc, opts, &revpairs, &revpairsize);
 		    op = next_op_slot(&operations, op, &noperations);
