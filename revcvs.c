@@ -253,6 +253,9 @@ cvs_master_patch_vendor_branch(cvs_master *cm, cvs_file *cvs)
 	bool delete_head = false;
 	if (h->commit && cvs_is_vendor(h->commit->number))
 	{
+#ifdef CVSDEBUG
+	    char buf[BUFSIZ];
+#endif /* CVSDEBUG */
 	    /*
 	     * Find version 1.2 on the trunk.
 	     * This will reset the default branch set
@@ -295,7 +298,7 @@ cvs_master_patch_vendor_branch(cvs_master *cm, cvs_file *cvs)
 		{
 		    /*
 		     * Splice out any portion of the vendor branch
-		     * newer than a the next trunk commit after
+		     * newer than the next trunk commit after
 		     * the oldest branch commit.
 		     */
 		    for (vp = &vendor->commit; (v = *vp); vp = &v->parent)
@@ -319,6 +322,12 @@ cvs_master_patch_vendor_branch(cvs_master *cm, cvs_file *cvs)
 	    }
 	    else
 		delete_head = true;
+#if CVSDEBUG
+	    debugmsg("In %s, vendor branch %s %sdeleted.\n", 
+		     cvs->export_name,
+		     cvs_number_string(h->commit->number, buf, BUFSIZ),
+		     delete_head ? "" : "not ");
+#endif /* CVSDEBUG */
 	    /*
 	     * Patch up the remaining vendor branch pieces
 	     */
@@ -755,16 +764,16 @@ cvs_master_sort_heads(cvs_master *cm, cvs_file *cvs)
     }
 
     cm->heads = l;
-#if DEBUG
-    fprintf(stderr, "Sorted heads for %s\n", cvs->name);
+#ifdef CVSDEBUG
+    fprintf(stderr, "Sorted heads for %s\n", cvs->gen.master_name);
     for (e = cm->heads; e;) {
 	fprintf(stderr, "\t");
 	//cvs_master_dump_ref_parents(stderr, e->parent);
-	dump_number_file(stderr, e->name, e->number);
+	dump_number_file(stderr, e->ref_name, e->number);
 	fprintf(stderr, "\n");
 	e = e->next;
     }
-#endif
+#endif /* CVSDEBUG */
 }
 
 cvs_repo *
@@ -812,7 +821,7 @@ cvs_master_digest(cvs_file *cvs)
     }
     else
 	warn("warning - no master branch generated\n");
-#if CVSDEBUG
+#ifdef CVSDEBUG
     /*
      * Search for other branches
      */
@@ -824,6 +833,7 @@ cvs_master_digest(cvs_file *cvs)
 	for (cb = cv->branches; cb; cb = cb->next)
 	{
 	    branch = cvs_master_branch_build(cvs, cb->number);
+#ifdef CVSDEBUG
 	    if (cvs->verbose > 0)
 	    {
 	        char buf2[BUFSIZ];
@@ -833,6 +843,7 @@ cvs_master_digest(cvs_file *cvs)
 			 cvs_number_string(cb->number, buf2, BUFSIZ),
 			 cvs_number_string(branch->number, buf3, BUFSIZ));
 	    }
+#endif /* CVSDEBUG */
 	    rev_list_add_head(cm, branch, NULL, 0);
 	}
     }
@@ -842,7 +853,7 @@ cvs_master_digest(cvs_file *cvs)
     cvs_master_sort_heads(cm, cvs);
     rev_list_set_tail(cm);
 
-#if CVSDEBUG
+#ifdef CVSDEBUG
     if (cvs->verbose > 0) {
 	rev_ref	*lh;
 
