@@ -2,7 +2,7 @@ head	1.7;
 access;
 symbols;
 locks; strict;
-comment	@# @;
+comment	@# Master from NetBSD with a branch entirely of dead revisions@;
 
 1.5
 date	97.04.06.08.41.11;	author cgd;	state dead;
@@ -42,12 +42,7 @@ next	;
 
 
 desc
-@This is a heavily reduced history from an attic file in the NetBSD tree
-with a side branch consisting entirely of dead revisions (and the main branch
-too, for that matter). It's not entirely clear what to do in a case like this; 
-we settle for discarding the side branch with a warning and passing on the trunk
-for further analysis.
-@
+@@
 
 
 1.5
