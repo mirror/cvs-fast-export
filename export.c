@@ -309,12 +309,12 @@ static void dump_commit(const git_commit *commit, FILE *fp)
 }
 #endif /* ORDERDEBUG */
 
+#define OP_CHUNK	32
 
 static struct fileop *
 next_op_slot(struct fileop **operations, struct fileop *op, int *noperations)
 /* move to next operations slot, expand if necessary */
 {
-#define OP_CHUNK	32
     if (++op == (*operations) + (*noperations)) {
 	(*noperations) += OP_CHUNK;
 	*operations = xrealloc(*operations, sizeof(struct fileop) * (*noperations), __func__);
@@ -369,8 +369,8 @@ export_commit(git_commit *commit, const char *branch,
 /* export a commit and the blobs it is the first to reference */
 {
     const git_commit *parent = commit->parent;
-    file_iter commit_iter, parent_iter = {};
-    cvs_commit *cc, *pc = NULL;
+    file_iter commit_iter, parent_iter;
+    cvs_commit *cc, *pc;
     cvs_author *author;
     const char *full;
     const char *email;
@@ -430,17 +430,16 @@ export_commit(git_commit *commit, const char *branch,
 		cc = file_iter_next(&commit_iter);
 	    }
 	}
+	for (; pc; pc = file_iter_next(&parent_iter)) {
+	    /* parent but no child, delete op */
+	    build_delete_op(pc, op);
+	    op = next_op_slot(&operations, op, &noperations);
+	}
     }
     for (; cc; cc = file_iter_next(&commit_iter)) {
 	/* child but no parent, modify op */
 	build_modify_op(cc, op);
 	append_revpair(cc, opts, &revpairs, &revpairsize);
-	op = next_op_slot(&operations, op, &noperations);
-    }
-    /* if no parent commit, we've set pc to null to skip this */
-    for (; pc; pc = file_iter_next(&parent_iter)) {
-	/* parent but no child, delete op */
-	build_delete_op(pc, op);
 	op = next_op_slot(&operations, op, &noperations);
     }
 
