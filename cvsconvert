@@ -206,7 +206,7 @@ class CVSCheckout:
     def outdo(self, cmd):
         "Execute a command in the checkout directory."
         with directory_context(self.directory):
-            self.run_with_cleanup(cmd)
+            self.repo.run_with_cleanup(cmd)
     def add(self, *filenames):
         "Add a file to the version-controlled set."
         apply(self.do, ["add"] + list(filenames))
