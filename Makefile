@@ -145,13 +145,17 @@ PYSUPPRESSIONS = --disable="C0103,C0301,C0325,R0912,W0142"
 pylint:
 	@pylint $(PYLINTOPTS) $(PYSUPPRESSIONS) cvssync cvsconvert cvsreduce
 
+# Because we don't want copies of the test repositories in the distribution.
+distclean:
+	cd tests; make --quiet clean
+
 SOURCES = Makefile *.[ch] *.[yl] cvssync cvsconvert cvsreduce
 DOCS = README COPYING NEWS AUTHORS TODO control *.asc
 ALL =  $(SOURCES) $(DOCS) tests
 cvs-fast-export-$(VERSION).tar.gz: $(ALL)
 	tar --transform='s:^:cvs-fast-export-$(VERSION)/:' --show-transformed-names -cvzf cvs-fast-export-$(VERSION).tar.gz $(ALL)
 
-dist: cvs-fast-export-$(VERSION).tar.gz
+dist: distclean cvs-fast-export-$(VERSION).tar.gz
 
 release: cvs-fast-export-$(VERSION).tar.gz html
 	shipper version=$(VERSION) | sh -e -x

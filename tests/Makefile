@@ -118,4 +118,4 @@ t_rebuild:
 	done
 
 clean:
-	rm -fr neutralize.map *.checkout *.repo *.pyc *.dot *.git.fi
+	rm -fr neutralize.map *.checkout *.repo *.pyc *.dot *.git *.git.fi
