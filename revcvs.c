@@ -137,8 +137,21 @@ cvs_master_find_revision(cvs_master *cm, const cvs_number *number)
     return NULL;
 }
 
+static rev_master *
+build_rev_master(cvs_file *cvs)
+{
+    rev_master *master = xmalloc(sizeof(rev_master), __func__);
+    master->name = cvs->export_name;
+    master->fileop_name = fileop_name(cvs->export_name);
+    master->dir = atom_dir(master->name);
+    master->mode = cvs->mode;
+    master->commits = xcalloc(cvs->nversions, sizeof(cvs_commit), "commit slab alloc");
+    master->ncommits = 0;
+    return master;
+}
+
 static cvs_commit *
-cvs_master_branch_build(cvs_file *cvs, const cvs_number *branch)
+cvs_master_branch_build(cvs_file *cvs, rev_master *master, const cvs_number *branch)
 /* build a list of commit objects representing a branch from deltas on it */
 {
     cvs_number	n;
@@ -146,7 +159,6 @@ cvs_master_branch_build(cvs_file *cvs, const cvs_number *branch)
     cvs_commit	*head = NULL;
     cvs_commit	*c, *p, *gc;
     node_t	*node;
-    rev_master  *master = xcalloc(1,sizeof(rev_master), "master construction");
 #if CVSDEBUG
     char buf[CVS_MAX_REV_LEN];
 
@@ -155,12 +167,6 @@ cvs_master_branch_build(cvs_file *cvs, const cvs_number *branch)
 	     cvs_number_string(branch, buf, CVS_MAX_REV_LEN));
 #endif /* CVSDEBUG */
 
-    master->name = cvs->export_name;
-    master->fileop_name = fileop_name(cvs->export_name);
-    master->dir = atom_dir(master->name);
-    master->mode = cvs->mode;
-    master->commits = xcalloc(cvs->nversions, sizeof(cvs_commit),
-			      "commit slab alloc");
 
     memcpy(&n, branch, sizeof(cvs_number));
     n.n[n.c-1] = -1;
@@ -865,6 +871,7 @@ cvs_master_digest(cvs_file *cvs)
     cvs_version	*cv;
     cvs_branch	*cb;
     cvs_version	*ctrunk = NULL;
+    rev_master  *master = build_rev_master(cvs);
 #if CVSDEBUG
     char buf[CVS_MAX_REV_LEN];
 #endif /* CVSDEBUG */
@@ -887,7 +894,7 @@ cvs_master_digest(cvs_file *cvs)
 	trunk_number = ctrunk->number;
     else
 	trunk_number = atom_cvs_number(lex_number("1.1"));
-    trunk = cvs_master_branch_build(cvs, trunk_number);
+    trunk = cvs_master_branch_build(cvs, master, trunk_number);
     if (trunk) {
 	rev_ref	*t;
 	t = rev_list_add_head(cm, trunk, atom("master"), 2);
@@ -912,7 +919,7 @@ cvs_master_digest(cvs_file *cvs)
     for (cv = cvs->gen.versions; cv; cv = cv->next) {
 	for (cb = cv->branches; cb; cb = cb->next)
 	{
-	    branch = cvs_master_branch_build(cvs, cb->number);
+	    branch = cvs_master_branch_build(cvs, master, cb->number);
 #ifdef CVSDEBUG
 	    if (cvs->verbose > 0)
 	    {
