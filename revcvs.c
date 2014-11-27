@@ -274,6 +274,8 @@ cvs_master_patch_vendor_branch(cvs_master *cm, cvs_file *cvs)
 	     * branch, and should be on their own branch
 	     */
 	    vendor = h;
+	    t = trunk->commit;
+	    v = vendor->commit;
 	    for (vlast = vendor->commit; vlast; vlast = vlast->parent)
 		if (!vlast->parent)
 		    break;
@@ -394,7 +396,6 @@ cvs_master_patch_vendor_branch(cvs_master *cm, cvs_file *cvs)
 	    /*
 	     * Merge two branches based on dates
 	     */
-	    v = vendor->commit;
 	    while (t && v)
 	    {
 		if (time_compare(v->date, t->date) >= 0)
