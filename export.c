@@ -369,8 +369,8 @@ export_commit(git_commit *commit, const char *branch,
 /* export a commit and the blobs it is the first to reference */
 {
     const git_commit *parent = commit->parent;
-    file_iter commit_iter, parent_iter = {};
-    cvs_commit *cc, *pc = NULL;
+    file_iter commit_iter;
+    cvs_commit *cc;
     cvs_author *author;
     const char *full;
     const char *email;
@@ -402,13 +402,14 @@ export_commit(git_commit *commit, const char *branch,
     file_iter_start(&commit_iter, commit);
     cc = file_iter_next(&commit_iter);
     if (parent) {
+	file_iter parent_iter;
 	file_iter_start(&parent_iter, parent);
 
-	pc = file_iter_next(&parent_iter);
+	cvs_commit *pc = file_iter_next(&parent_iter);
 	while (cc && pc) {
-	    if (pc->master->fileop_name == cc->master->fileop_name) {
+	    if (pc->master == cc->master) {
 		/* file exists in commit and parent, check whether it is the same revision */
-		if (cc->serial != pc->serial) {
+		if (cc != pc) {
 		    build_modify_op(cc, op);
 		    append_revpair(cc, opts, &revpairs, &revpairsize);
 		    op = next_op_slot(&operations, op, &noperations);
@@ -430,17 +431,16 @@ export_commit(git_commit *commit, const char *branch,
 		cc = file_iter_next(&commit_iter);
 	    }
 	}
+	for (; pc; pc = file_iter_next(&parent_iter)) {
+	    /* parent but no child, delete op */
+	    build_delete_op(pc, op);
+	    op = next_op_slot(&operations, op, &noperations);
+	}
     }
     for (; cc; cc = file_iter_next(&commit_iter)) {
 	/* child but no parent, modify op */
 	build_modify_op(cc, op);
 	append_revpair(cc, opts, &revpairs, &revpairsize);
-	op = next_op_slot(&operations, op, &noperations);
-    }
-    /* if no parent commit, we've set pc to null to skip this */
-    for (; pc; pc = file_iter_next(&parent_iter)) {
-	/* parent but no child, delete op */
-	build_delete_op(pc, op);
 	op = next_op_slot(&operations, op, &noperations);
     }
 
