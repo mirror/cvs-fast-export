@@ -465,11 +465,11 @@ resort_revs (size_t skip, size_t nrev, size_t resort) {
      * calculated
      * sort func is hard coded to compare_clique.
      */
-    size_t p, q, i;
     if (resort > (nrev - skip) / 2)
 	/* Sort the whole array again (except the previous nulls) */
 	qsort(sort_buf + skip, nrev - skip, sizeof(size_t), compare_clique);
     else {
+	size_t p, q, i;
 	if (resort > 1)
 	    /* sort the head of the array */
 	    qsort(sort_buf + skip, resort, sizeof(size_t),  compare_clique);

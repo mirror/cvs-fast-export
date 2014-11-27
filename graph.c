@@ -74,8 +74,6 @@ cvs_commit_list_has_filename(const cvs_commit_list *fl, const char *name)
 
 static void dot_commit_graph(git_commit *c, const rev_ref *branch)
 {
-    cvs_commit	*f;
-
     printf("\"");
     if (branch)
 	dot_ref_name(stdout, branch);
@@ -112,6 +110,7 @@ static void dot_commit_graph(git_commit *c, const rev_ref *branch)
 	}
 	rev_diff_free(diff);
     } else {
+	cvs_commit	*f;
 	int		i, j;
 	for (i = 0; i < c->ndirs; i++) {
 	    rev_dir *dir = c->dirs[i];

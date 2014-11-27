@@ -301,6 +301,12 @@ cvs_master_patch_vendor_branch(cvs_master *cm, cvs_file *cvs)
 		if (time_compare(vlast->date, t->date) >= 0)
 		{
 		    delete_head = true;
+#if CVSDEBUG
+		    if (cvs->verbose > 0)
+			debugmsg("In %s, vendor branch %s newer than trunk root.\n",
+			 cvs->export_name,
+			 cvs_number_string(h->commit->number, buf, CVS_MAX_REV_LEN));
+#endif /* CVSDEBUG */
 		}
 		else
 		{
@@ -317,6 +323,12 @@ cvs_master_patch_vendor_branch(cvs_master *cm, cvs_file *cvs)
 			/*
 			 * Nothing newer, nuke vendor branch
 			 */
+#if CVSDEBUG
+		    if (cvs->verbose > 0)
+			debugmsg("In %s, vendor branch %s case #2.\n",
+			 cvs->export_name,
+			 cvs_number_string(h->commit->number, buf, CVS_MAX_REV_LEN));
+#endif /* CVSDEBUG */
 			delete_head = true;
 		    }
 		    else
@@ -328,8 +340,15 @@ cvs_master_patch_vendor_branch(cvs_master *cm, cvs_file *cvs)
 		    }
 		}
 	    }
-	    else
+	    else {
+#if CVSDEBUG
+		if (cvs->verbose > 0)
+		    debugmsg("In %s, vendor branch %s fallthrough case.\n",
+			     cvs->export_name,
+			     cvs_number_string(h->commit->number, buf, CVS_MAX_REV_LEN));
+#endif /* CVSDEBUG */
 		delete_head = true;
+	    }
 #if CVSDEBUG
 	    if (cvs->verbose > 0)
 		debugmsg("In %s, vendor branch %s %sdeleted.\n",
