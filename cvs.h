@@ -337,10 +337,15 @@ typedef struct _git_commit {
     unsigned		tail:1;
     unsigned		tailed:1;
     unsigned		dead:1;
-    /* gitspace-only members begin here */
-    short		nfiles;
-    short		ndirs;
-    rev_dir		*dirs[0];
+    /*
+     * gitspace-only members begin here.
+     * nfiles is only used in debug code, but is essentially free
+     * due to packing. The value can be truncated in large repos
+     */
+    unsigned short      nfiles;
+    unsigned short	ndirs;
+    /* pointer to array of dir pointers */
+    rev_dir		*(*dirs)[0];
 } git_commit;
 
 typedef struct _rev_ref {
@@ -644,7 +649,7 @@ void generate_files(generator_t *gen,
 		    void (*hook)(node_t *node, void *buf, size_t len, export_options_t *popts));
 
 rev_dir **
-rev_pack_files(cvs_commit **files, int nfiles, int *ndr);
+rev_pack_files(cvs_commit **files, size_t nfiles, unsigned short *ndr);
 
 void
 rev_free_dirs(void);

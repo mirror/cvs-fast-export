@@ -258,9 +258,8 @@ git_commit_build(cvs_commit **revisions, cvs_commit *leader,
 		 const int nrevisions, const int nactive)
 /* build a changeset commit from a clique of CVS revisions */
 {
-    int		n, nfile;
+    size_t	n, nfile;
     git_commit	*commit;
-    int		nds;
     rev_dir	**rds;
 
     if (nactive > sfiles) {
@@ -270,16 +269,8 @@ git_commit_build(cvs_commit **revisions, cvs_commit *leader,
     if (!files)
 	/* coverity[sizecheck] Coverity has a bug here */
 	files = xmalloc((sfiles = nactive) * sizeof(cvs_commit *), __func__);
-
-    nfile = 0;
-    for (n = 0; n < nrevisions; n++)
-	if (revisions[n] && !revisions[n]->dead)
-	    files[nfile++] = revisions[n];
     
-    rds = rev_pack_files(files, nfile, &nds);
-        
-    commit = xmalloc( sizeof(git_commit) +
-		      nds * sizeof(rev_dir *), "creating commit");
+    commit = xmalloc( sizeof(git_commit), "creating commit");
     
     commit->parent = NULL;
     commit->date = leader->date;
@@ -290,15 +281,27 @@ git_commit_build(cvs_commit **revisions, cvs_commit *leader,
     commit->dead = false;
     commit->refcount = commit->serial = 0;
 
-    commit->nfiles = nfile;
-
-    memcpy(commit->dirs, rds, (commit->ndirs = nds) * sizeof(rev_dir *));
-
-    /* link each CVS commit to the gitspace commit it is part of */
+    /*
+     * Previously, the rev_dirs array was at the end of the git_commit struct.
+     * This means we didn't know the size until after the call to rev_pack_files.
+     * So, we had to do this iteration through the revisions twice, once to
+     * pick out the files and then later to assign the back link.
+     * In large repositories it is a hotspot. Before this, each iteration was
+     * 13% of the CPU time of the netbsd-pkgsrc conversion.
+     */
     nfile = 0;
     for (n = 0; n < nrevisions; n++)
-       if (revisions[n] && !revisions[n]->dead)
-           files[nfile++]->gitspace = commit;
+	if (revisions[n] && !revisions[n]->dead) {
+	    files[nfile] = revisions[n];
+	    /* link each CVS commit to the gitspace commit it is part of */
+	    files[nfile++]->gitspace = commit;
+	}
+
+    /* Possible truncation */
+    commit->nfiles = nfile;
+    rds = rev_pack_files(files, nfile, &commit->ndirs);
+    commit->dirs = xmalloc(sizeof(rev_dir *) * commit->ndirs, "rev_dir");
+    memcpy(commit->dirs, rds, commit->ndirs * sizeof(rev_dir *));
 
 #ifdef ORDERDEBUG
     debugmsg("commit_build: %p\n", commit);
@@ -308,7 +311,7 @@ git_commit_build(cvs_commit **revisions, cvs_commit *leader,
     fputs("After packing:\n", LOGFILE);
     for (n = 0; n < commit->ndirs; n++)
     {
-	rev_dir *rev_dir = commit->dirs[n];
+	rev_dir *rev_dir = *commit->dirs[n];
 	int i;
 
 	for (i = 0; i < rev_dir->nfiles; i++)
@@ -812,7 +815,7 @@ merge_branches(rev_ref **branches, int nbranch,
 		 */
 		fprintf(LOGFILE, "\tbranch(%3d): %s  ",
 			n, cvstime2rfc3339(prev->date));
-		first = prev->dirs[0]->files[0];
+		first = (*prev->dirs)[0]->files[0];
 		dump_number_file(LOGFILE,
 				  first->master->name,
 				  first->number);
@@ -1098,7 +1101,7 @@ rev_uniq_file(git_commit *uniq, git_commit *common, int *nuniqp)
     if (!uniq)
 	return NULL;
     for (i = 0; i < uniq->ndirs; i++) {
-	rev_dir	*dir = uniq->dirs[i];
+	rev_dir	*dir = *uniq->dirs[i];
 	for (j = 0; j < dir->nfiles; j++)
 	    if (dir->files[j]->gitspace != common) {
 		fl = xcalloc(1, sizeof(cvs_commit_list), "rev_uniq_file");

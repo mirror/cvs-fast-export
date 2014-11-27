@@ -272,8 +272,8 @@ again:
 
 static void
 file_iter_start(file_iter *pos, const git_commit *commit) {
-    pos->dir = commit->dirs;
-    pos->dirmax = commit->dirs + commit->ndirs;
+    pos->dir = *commit->dirs;
+    pos->dirmax = *commit->dirs + commit->ndirs;
     if (pos->dir != pos->dirmax) {
         pos->file = (*pos->dir)->files;
         pos->filemax = pos->file + (*pos->dir)->nfiles;
@@ -305,7 +305,7 @@ static void dump_commit(const git_commit *commit, FILE *fp)
     fprintf(fp, "commit %p seq %d mark %d nfiles: %d, ndirs = %d\n", 
 	    commit, commit->serial, markmap[commit->serial], commit->nfiles, commit->ndirs);
     for (i = 0; i < commit->ndirs; i++)
-	dump_dir(commit->dirs[i], fp);
+	dump_dir(*commit->dirs[i], fp);
 }
 #endif /* ORDERDEBUG */
 

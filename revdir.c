@@ -242,10 +242,11 @@ dir_is_ancestor(const master_dir *child, const master_dir *ancestor)
 
 
 rev_dir **
-rev_pack_files(cvs_commit **files, int nfiles, int *ndr)
+rev_pack_files(cvs_commit **files, size_t nfiles, unsigned short *ndr)
 {
     const master_dir *dir = NULL, *curdir = NULL;
-    int	             i, start = 0, nds = 0;
+    size_t           i, start = 0;
+    unsigned short   nds = 0;
     rev_dir          *rd;
     
 #ifdef ORDERDEBUG

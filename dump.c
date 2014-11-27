@@ -48,11 +48,11 @@ dump_git_commit(const git_commit *c, FILE *fp)
     int		i, j;
 
     for (i = 0; i < c->ndirs; i++) {
-	rev_dir	*dir = c->dirs[i];
+	rev_dir	*dir = *c->dirs[i];
 	
 	for (j = 0; j < dir->nfiles; j++) {
 	    cc = dir->files[j];
-	    dump_number_file(fp, cc->master->name, &cc->number);
+	    dump_number_file(fp, cc->master->name, cc->number);
 	    printf(" ");
 	}
     }

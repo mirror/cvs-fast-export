@@ -113,7 +113,7 @@ static void dot_commit_graph(git_commit *c, const rev_ref *branch)
 	cvs_commit	*f;
 	int		i, j;
 	for (i = 0; i < c->ndirs; i++) {
-	    rev_dir *dir = c->dirs[i];
+	    rev_dir *dir = *c->dirs[i];
 	    for (j = 0; j < dir->nfiles; j++) {
 		 f = dir->files[j];
 		 dump_number(f->master->name, f->number);
