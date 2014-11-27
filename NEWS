@@ -1,6 +1,7 @@
 		cvs-fast-export project news
 
-Repository head:
+
+1.27: 2014-11-27
     The bug that produced "unnumbered head" warnings has been fixed.
 
 1.26: 2014-11-05
