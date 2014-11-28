@@ -32,17 +32,25 @@
  */
 
 typedef struct _rev_filename {
-    volatile struct _rev_filename	*next;
+    struct _rev_filename	*next;
     const char			*file;
 } rev_filename;
 
+typedef struct _rev_file {
+    const char *name;
+    const char *rectified;
+} rev_file;
 /*
  * Ugh...least painful way to make some stuff that isn't thread-local
  * visible.
  */
 static volatile int load_current_file;
-static volatile rev_filename   *fn_head = NULL, **fn_tail = &fn_head, *fn;
-static volatile cvs_master *head = NULL, **tail = &head;
+static rev_filename   *fn_head = NULL, **fn_tail = &fn_head, *fn;
+/* Slabs to be sorted in path_deep_compare order */
+static rev_file *sorted_files;
+static cvs_master *cvs_masters;
+static rev_master *rev_masters;
+static volatile size_t fn_i = 0, fn_n;
 static volatile cvstime_t skew_vulnerable;
 static volatile unsigned int total_revisions;
 static volatile generator_t *generators;
@@ -69,7 +77,8 @@ sort_cvs_masters(cvs_master *list);
 static void
 debug_cvs_masters(cvs_master *list);
 
-static char *rectify_name(const char *raw, char *rectified, size_t rectlen)
+static char *
+rectify_name(const char *raw, char *rectified, size_t rectlen)
 /* from master name to the name humans thought of the file by */
 {
     unsigned len;
@@ -112,30 +121,35 @@ static char *rectify_name(const char *raw, char *rectified, size_t rectlen)
     return rectified;
 }
 
-static cvs_master *
-rev_list_file(const char *name, analysis_t *out) 
+static const char*
+atom_rectify_name(const char *raw)
 {
-    cvs_master	*cm;
+    char rectified[PATH_MAX];
+    return atom(rectify_name(raw, rectified, sizeof(rectified)));
+}
+
+static void
+rev_list_file(rev_file *file, analysis_t *out, cvs_master *cm, rev_master *rm) 
+{
     struct stat	buf;
     yyscan_t scanner;
     FILE *in;
     cvs_file *cvs;
-    char rectified[PATH_MAX];
 
-    in = fopen(name, "r");
+    in = fopen(file->name, "r");
     if (!in) {
-	perror(name);
+	perror(file->name);
 	++err;
-	return NULL;
+	return;
     }
-    if (stat(name, &buf) == -1) {
-	fatal_system_error("%s", name);
+    if (stat(file->name, &buf) == -1) {
+	fatal_system_error("%s", file->name);
     }
 
     cvs = xcalloc(1, sizeof(cvs_file), __func__);
-    cvs->gen.master_name = name;
+    cvs->gen.master_name = file->name;
     cvs->gen.expand = EXPANDUNSPEC;
-    cvs->export_name = atom(rectify_name(name, rectified, sizeof(rectified)));
+    cvs->export_name = file->rectified;
     cvs->mode = buf.st_mode;
     cvs->verbose = verbose;
 
@@ -145,12 +159,11 @@ rev_list_file(const char *name, analysis_t *out)
     yylex_destroy(scanner);
 
     fclose(in);
-    cm = cvs_master_digest(cvs);
+    cvs_master_digest(cvs, cm, rm);
     out->total_revisions = cvs->nversions;
     out->skew_vulnerable = cvs->skew_vulnerable;
     out->generator = cvs->gen;
     cvs_file_free(cvs);
-    return cm;
 }
 
 static int
@@ -236,55 +249,51 @@ sort_cvs_masters(cvs_master *list)
 static void *worker(void *arg)
 /* consume masters off the queue */
 {
-    cvs_master *cm;
     analysis_t out = {0, 0};
-    bool keepgoing = true;
-
+    size_t     i;
     for (;;)
     {
-	const char *filename;
+	//const char *filename;
 
 	/* pop a master off the queue, terminating if none left */
 #ifdef THREADS
 	if (threads > 1)
 	    pthread_mutex_lock(&enqueue_mutex);
 #endif /* THREADS */
-	if (fn_head == NULL)
-	    keepgoing = false;
-	else
-	{
-	    fn = fn_head;
-	    fn_head = fn_head->next;
-	    filename = fn->file;
-	    free((rev_filename *)fn);
-	}
+	i = fn_i++;
 #ifdef THREADS
 	if (threads > 1)
 	    pthread_mutex_unlock(&enqueue_mutex);
 #endif /* THREADS */
-	if (!keepgoing)
+	if (i >= fn_n)
 	    return(NULL);
 
 	/* process it */
-	cm = rev_list_file(filename, &out);
+	rev_list_file(&sorted_files[i], &out, &cvs_masters[i], &rev_masters[i]);
 
 	/* pass it to the next stage */
 #ifdef THREADS
 	if (threads > 1)
 	    pthread_mutex_lock(&revlist_mutex);
 #endif /* THREADS */
-	generators[load_current_file] = out.generator;
+	generators[i] = out.generator;
 	progress_jump(++load_current_file);
-	*tail = cm;
 	total_revisions += out.total_revisions;
 	if (out.skew_vulnerable > skew_vulnerable)
 	    skew_vulnerable = out.skew_vulnerable;
-	tail = (volatile cvs_master **)&cm->next;
 #ifdef THREADS
 	if (threads > 1)
 	    pthread_mutex_unlock(&revlist_mutex);
 #endif /* THREADS */
     }
+}
+
+static int 
+file_compare(const void *f1, const void *f2)
+{
+    rev_file r1 = *(rev_file *)f1;
+    rev_file r2 = *(rev_file *)f2;
+    return path_deep_compare(r1.rectified, r2.rectified);
 }
 
 void analyze_masters(int argc, char *argv[], 
@@ -295,7 +304,7 @@ void analyze_masters(int argc, char *argv[],
     char	    name[PATH_MAX];
     const char      *last = NULL;
     char	    *file;
-    int		    j = 1;
+    size_t	    i, j = 1;
     int		    c;
 #ifdef THREADS
     pthread_attr_t  attr;
@@ -312,9 +321,8 @@ void analyze_masters(int argc, char *argv[],
     for (;;)
     {
 	struct stat stb;
-
+	int l;
 	if (argc < 2) {
-	    int l;
 	    /* coverity[tainted_data] Safe, never handed to exec */
 	    if (fgets(name, sizeof(name), stdin) == NULL)
 		break;
@@ -344,14 +352,12 @@ void analyze_masters(int argc, char *argv[],
 
 	fn = xcalloc(1, sizeof(rev_filename), "filename gathering");
 	*fn_tail = fn;
-	fn_tail = (volatile rev_filename **)&fn->next;
+	fn_tail = (rev_filename **)&fn->next;
 	if (striplen > 0 && last != NULL) {
 	    c = strcommonendingwith(file, last, '/');
 	    if (c < striplen)
 		striplen = c;
 	} else if (striplen < 0) {
-	    size_t i;
-
 	    striplen = 0;
 	    for (i = 0; i < strlen(file); i++)
 		if (file[i] == '/')
@@ -365,8 +371,21 @@ void analyze_masters(int argc, char *argv[],
     }
     forest->filecount = total_files;
 
-    generators = xcalloc(sizeof(generator_t), total_files, __func__);
-
+    generators = xcalloc(sizeof(generator_t), total_files, "Generators");
+    sorted_files = xmalloc(sizeof(rev_file) * total_files, "sorted_files");
+    cvs_masters = xcalloc(total_files, sizeof(cvs_master), "cvs_masters");
+    rev_masters = xmalloc(sizeof(rev_master) * total_files, "rev_masters");
+    fn_n = total_files;
+    i = 0;
+    rev_filename *tn;
+    for (fn = fn_head; fn; fn = tn) {
+	tn = fn->next;
+	sorted_files[i].name = fn->file;
+	sorted_files[i++].rectified = atom_rectify_name(fn->file);
+	free(fn);
+    }
+    qsort(sorted_files, total_files, sizeof(rev_file), file_compare);
+	
     progress_end("done, %.3fKB in %d files",
 		 (forest->textsize/1024.0), forest->filecount);
 
@@ -410,14 +429,20 @@ void analyze_masters(int argc, char *argv[],
 #endif /* THREADS */
 	worker(NULL);
 #ifdef FILESORT
-    head = sort_cvs_masters((cvs_master *) head);
+    //    head = sort_cvs_masters((cvs_master *) head);
 #endif /*FILESORT */
     progress_end("done, %d revisions", total_revisions);
-
+    free(sorted_files);
+    /* Later we'll teach everything to use the array */
+    cvs_master *cm = NULL;
+    for (i = total_files; i-- > 0;) {
+	cvs_masters[i].next = cm;
+	cm = &cvs_masters[i];
+    }
     forest->errcount = err;
     forest->total_revisions = total_revisions;
     forest->skew_vulnerable = skew_vulnerable;
-    forest->head = (rev_list *)head;
+    forest->head = (rev_list*)cvs_masters;
     forest->generators = (generator_t *)generators;
 }
 

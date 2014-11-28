@@ -138,9 +138,8 @@ cvs_master_find_revision(cvs_master *cm, const cvs_number *number)
 }
 
 static rev_master *
-build_rev_master(cvs_file *cvs)
+build_rev_master(cvs_file *cvs, rev_master *master)
 {
-    rev_master *master = xmalloc(sizeof(rev_master), __func__);
     master->name = cvs->export_name;
     master->fileop_name = fileop_name(cvs->export_name);
     master->dir = atom_dir(master->name);
@@ -858,18 +857,19 @@ cvs_master_sort_heads(cvs_master *cm, cvs_file *cvs)
 #endif /* CVSDEBUG */
 }
 
-cvs_repo *
-cvs_master_digest(cvs_file *cvs)
-/* return a linked list capturing the CVS master file structure */
+void
+cvs_master_digest(cvs_file *cvs, cvs_master *cm, rev_master *master)
+/* fill out a linked list capturing the CVS master file structure */
 {
-    cvs_master	*cm = xcalloc(1, sizeof(cvs_master), "cvs_master_digest");
+    //cvs_master	*cm = xcalloc(1, sizeof(cvs_master), "cvs_master_digest");
     const cvs_number *trunk_number;
     cvs_commit	*trunk;
     cvs_commit	*branch;
     cvs_version	*cv;
     cvs_branch	*cb;
     cvs_version	*ctrunk = NULL;
-    rev_master  *master = build_rev_master(cvs);
+    
+    build_rev_master(cvs, master);
 #if CVSDEBUG
     char buf[CVS_MAX_REV_LEN];
 #endif /* CVSDEBUG */
@@ -953,7 +953,6 @@ cvs_master_digest(cvs_file *cvs)
 #endif /* CVSDEBUG */
 
     //rev_list_validate(cm);
-    return cm;
 }
 
 // end

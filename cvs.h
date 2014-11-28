@@ -456,8 +456,8 @@ lex_number(const char *);
 cvstime_t
 lex_date(const cvs_number *n, void *, cvs_file *cvs);
 
-cvs_master *
-cvs_master_digest(cvs_file *cvs);
+void
+cvs_master_digest(cvs_file *cvs, cvs_master *cm, rev_master *master);
 
 git_repo *
 merge_to_changesets(cvs_repo *masters, int verbose);
