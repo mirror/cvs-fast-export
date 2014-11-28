@@ -407,13 +407,19 @@ export_commit(git_commit *commit, const char *branch,
 
 	cvs_commit *pc = file_iter_next(&parent_iter);
 	while (cc && pc) {
+	    if (cc == pc) {
+		/* Child and parent the same, skip. Do this check first as 
+                 * it is the cheapest and fairly common 
+		 */
+		pc = file_iter_next(&parent_iter);
+		cc = file_iter_next(&commit_iter);
+		continue;
+	    }
 	    if (pc->master == cc->master) {
-		/* file exists in commit and parent, check whether it is the same revision */
-		if (cc != pc) {
-		    build_modify_op(cc, op);
-		    append_revpair(cc, opts, &revpairs, &revpairsize);
-		    op = next_op_slot(&operations, op, &noperations);
-		}
+		/* file exists in commit and parent, but different revisiosn, modify op */
+		build_modify_op(cc, op);
+		append_revpair(cc, opts, &revpairs, &revpairsize);
+		op = next_op_slot(&operations, op, &noperations);
 		pc = file_iter_next(&parent_iter);
 		cc = file_iter_next(&commit_iter);
 		continue;
