@@ -110,7 +110,7 @@ class RCSRepository:
     def stream(self, module, gitdir, outfile, more_opts=''):
         vopt = "-v " * (verbose - DEBUG_LIFTER + 1)
         # The -L is necessary to handle proxied directories. 
-        self.run_with_cleanup('find -L {0} -name "*,v" | cvs-fast-export -k k {1} {2} >{3}'.format(self.directory, vopt, more_opts, outfile))
+        self.run_with_cleanup('find -L {0} -name "*,v" | cvs-fast-export {1} {2} >{3}'.format(self.directory, vopt, more_opts, outfile))
     def convert(self, module, gitdir, more_opts=''):
         "Convert the repo."
         streamfile = "%s.git.fi" % module
@@ -245,7 +245,7 @@ class CVSCheckout:
         "Update the content to the specified revision or tag."
         if rev == 'master':
             rev = "HEAD"
-        self.do("up", "-kk", "-A", "-r", rev)
+        self.do("up", "-kb", "-A", "-r", rev)
     def cleanup(self):
         "Clean up the checkout directory."
         if self.proxied:

@@ -257,7 +257,7 @@ class CVSCheckout:
         "Update the content to the specified revision or tag."
         if rev == 'master':
             rev = "HEAD"
-        self.do("up", "-kk", "-A", "-r", rev)
+        self.do("up", "-kb", "-A", "-r", rev)
     def cleanup(self):
         "Clean up the checkout directory."
         if self.proxied:
