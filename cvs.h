@@ -486,7 +486,8 @@ typedef struct _forest {
     unsigned int total_revisions;
 } forest_t;
 
-extern tag_t *all_tags;
+extern tag_t  *all_tags;
+extern size_t tag_count;
 void tag_commit(cvs_commit *c, const char *name, cvs_file *cvsfile);
 cvs_commit **tagged(tag_t *tag);
 void discard_tags(void);

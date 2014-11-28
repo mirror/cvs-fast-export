@@ -16,7 +16,8 @@
 
 static tag_t *table[4096];
 
-tag_t *all_tags;
+tag_t  *all_tags;
+size_t tag_count = 0;
 
 #ifdef THREADS
 static pthread_mutex_t tag_mutex = PTHREAD_MUTEX_INITIALIZER;
@@ -48,6 +49,7 @@ static tag_t *find_tag(const char *name)
     table[hash] = tag;
     tag->next = all_tags;
     all_tags = tag;
+    tag_count++;
     return tag;
 }
 

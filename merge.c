@@ -1063,7 +1063,7 @@ merge_to_changesets(cvs_repo *masters, int verbose)
      * (which normally corresponds to a clique of named tags, one per master)
      * with the right gitspace commit.
      */
-    progress_begin("Find tag locations...", NO_MAX);
+    progress_begin("Find tag locations...", tag_count);
     for (t = all_tags; t; t = t->next) {
 	cvs_commit **commits = tagged(t);
 	if (commits)
@@ -1071,6 +1071,7 @@ merge_to_changesets(cvs_repo *masters, int verbose)
 	else
 	    announce("internal error - lost tag %s\n", t->name);
 	free(commits);
+	progress_step();
     }
     progress_end(NULL);
 
