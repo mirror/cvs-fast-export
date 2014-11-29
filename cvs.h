@@ -361,9 +361,18 @@ typedef struct _rev_ref {
     flag		tail:1;
 } rev_ref;
 
+/* Type punning, previously cvs_master and git_repo were rev_lists underndeath
+ * now cvs_master is backed by an array. We still have some general 
+ * functions that just operate on  the heads member rather, so this lets
+ * us use them from both git and cvs sides.
+ */
+typedef struct _head_list {
+    rev_ref *heads;
+} head_list;
+
 typedef struct _rev_list {
-    struct _rev_list	*next;
     rev_ref	*heads;
+    struct _rev_list	*next;
 } rev_list;
 
 /*
@@ -376,8 +385,8 @@ typedef struct _rev_list {
  * or formal argument can accept any of these, but we try to be more 
  * specific in order to express the domain of a function.
  */
-typedef rev_list cvs_master;	/* represents a single CVS master */
-typedef rev_list cvs_repo;	/* represents a CVS master collection */
+typedef head_list cvs_master;   /* represents a single cvs master */
+                                /* the cvs repo is represented by an array of such */
 typedef rev_list git_repo;	/* represents a gitspace DAG */
 
 typedef struct _cvs_commit_list {
@@ -460,7 +469,7 @@ void
 cvs_master_digest(cvs_file *cvs, cvs_master *cm, rev_master *master);
 
 git_repo *
-merge_to_changesets(cvs_repo *masters, int verbose);
+merge_to_changesets(cvs_master *masters, size_t nmasters, int verbose);
 
 enum { Ncommits = 256 };
 
@@ -485,7 +494,8 @@ typedef struct _forest {
     int filecount;
     off_t textsize;
     int errcount;
-    rev_list *head;
+    cvs_master *cvs;
+    git_repo *git;
     generator_t *generators;
     cvstime_t skew_vulnerable;
     unsigned int total_revisions;
@@ -616,7 +626,7 @@ void
 discard_atoms(void);
 
 rev_ref *
-rev_list_add_head(rev_list *rl, cvs_commit *commit, const char *name, int degree);
+rev_list_add_head(head_list *rl, cvs_commit *commit, const char *name, int degree);
 
 rev_diff *
 git_commit_diff(git_commit *old, git_commit *new);
@@ -625,10 +635,10 @@ void
 rev_diff_free(rev_diff *d);
 
 void
-rev_list_set_tail(rev_list *rl);
+rev_list_set_tail(head_list *rl);
 
 bool
-rev_list_validate(rev_list *rl);
+rev_list_validate(head_list *rl);
 
 int
 path_deep_compare(const void *a, const void *b);

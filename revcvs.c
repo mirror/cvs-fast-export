@@ -861,7 +861,6 @@ void
 cvs_master_digest(cvs_file *cvs, cvs_master *cm, rev_master *master)
 /* fill out a linked list capturing the CVS master file structure */
 {
-    //cvs_master	*cm = xcalloc(1, sizeof(cvs_master), "cvs_master_digest");
     const cvs_number *trunk_number;
     cvs_commit	*trunk;
     cvs_commit	*branch;

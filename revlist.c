@@ -25,7 +25,7 @@
  */
 
 rev_ref *
-rev_list_add_head(rev_list *rl, cvs_commit *commit, 
+rev_list_add_head(head_list *rl, cvs_commit *commit, 
 		  const char *name, const int degree)
 /* decorate a commit list with a named head reference */
 {
@@ -44,7 +44,7 @@ rev_list_add_head(rev_list *rl, cvs_commit *commit,
 }
 
 void
-rev_list_set_tail(rev_list *rl)
+rev_list_set_tail(head_list *rl)
 /* set tail bits so we can walk through each commit in a revlist exactly once */
 {
     rev_ref	*head;
@@ -75,7 +75,7 @@ rev_list_set_tail(rev_list *rl)
 
 #ifdef __UNUSED__
 bool
-rev_list_validate(rev_list *rl)
+rev_list_validate(head_list *rl)
 /* entry point - validate the output */
 {
     rev_ref	*h;

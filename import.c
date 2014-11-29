@@ -44,17 +44,16 @@ typedef struct _rev_file {
  * Ugh...least painful way to make some stuff that isn't thread-local
  * visible.
  */
-static volatile int load_current_file;
-static rev_filename   *fn_head = NULL, **fn_tail = &fn_head, *fn;
+static rev_filename         *fn_head = NULL, **fn_tail = &fn_head, *fn;
 /* Slabs to be sorted in path_deep_compare order */
-static rev_file *sorted_files;
-static cvs_master *cvs_masters;
-static rev_master *rev_masters;
-static volatile size_t fn_i = 0, fn_n;
-static volatile cvstime_t skew_vulnerable;
-static volatile unsigned int total_revisions;
+static rev_file             *sorted_files;
+static cvs_master           *cvs_masters;
+static rev_master           *rev_masters;
+static volatile size_t      fn_i = 0, fn_n;
+static volatile cvstime_t   skew_vulnerable;
+static volatile size_t      total_revisions, load_current_file;
 static volatile generator_t *generators;
-static volatile int err;
+static volatile int         err;
 
 static int total_files, striplen;
 static int verbose;
@@ -186,66 +185,6 @@ strcommonendingwith(const char *a, const char *b, char endc)
     return d;
 }
 
-#ifdef FILESORT
-/*
- * Sort list of cvs masters in path_deep_compare order of output name.
- * Causes commits to come out in correct pack order.
- * Also causes operations to come out in correct fileop_sort order.
- * Note some output names are different to input names.
- * e.g. .cvsignore becomes .gitignore
- *
- * Based on merge sort algorithm described at
- * http://www.chiark.greenend.org.uk/~sgtatham/algorithms/listsort.html
- * and obviously similar to the the cvs_master_sort_heads function.
- */
-static cvs_master *
-sort_cvs_masters(cvs_master *list)
-{
-    cvs_master *p, *q, *elt;
-    unsigned int k = 1, merge_count, ps, qs;
-
-    if (!list)
-	return NULL;
-
-    do {
-	cvs_master *tail = NULL;
-	p = list;
-	list = tail = NULL;
-	merge_count = 0;
-	while (p) {
-	    // skip q k places past p
-	    merge_count++;
-	    for (q = p, ps = 0; ps < k && q; ps++, q = q->next);
-	    qs = k;
-	    while (ps > 0 || (qs > 0 && q)) {
-		if (ps == 0 || (qs != 0 && q &&
-				path_deep_compare(
-				  p->heads->commit->master->fileop_name,
-                                  q->heads->commit->master->fileop_name
-                                ) > 0)) {
-		    elt = q;
-		    q = q->next;
-		    qs--;
-		} else {
-		    elt = p;
-		    p = p->next;
-		    ps--;
-		}
-		if (tail)
-		    tail->next = elt;
-		else
-		    list = elt;
-		tail = elt;
-	    }
-	    p = q;
-	}
-	tail->next = NULL;
-	k += k;
-    } while (merge_count > 1);
-    return list;
-}
-#endif /* FILESORT */
-
 static void *worker(void *arg)
 /* consume masters off the queue */
 {
@@ -253,8 +192,6 @@ static void *worker(void *arg)
     size_t     i;
     for (;;)
     {
-	//const char *filename;
-
 	/* pop a master off the queue, terminating if none left */
 #ifdef THREADS
 	if (threads > 1)
@@ -384,7 +321,17 @@ void analyze_masters(int argc, char *argv[],
 	sorted_files[i++].rectified = atom_rectify_name(fn->file);
 	free(fn);
     }
+#ifdef FILESORT
+    /*
+     * Sort list of files in path_deep_compare order of output name.
+     * cvs_masters and rev_masters will be mainteined in this order.
+     * This causes commits to come out in correct pack order.
+     * It also causes operations to come out in correct fileop_sort order.
+     * Note some output names are different to input names.
+     * e.g. .cvsignore becomes .gitignore
+     */
     qsort(sorted_files, total_files, sizeof(rev_file), file_compare);
+#endif /*FILESORT */
 	
     progress_end("done, %.3fKB in %d files",
 		 (forest->textsize/1024.0), forest->filecount);
@@ -428,21 +375,14 @@ void analyze_masters(int argc, char *argv[],
     else
 #endif /* THREADS */
 	worker(NULL);
-#ifdef FILESORT
-    //    head = sort_cvs_masters((cvs_master *) head);
-#endif /*FILESORT */
-    progress_end("done, %d revisions", total_revisions);
+
+    progress_end("done, %d revisions", (int)total_revisions);
     free(sorted_files);
-    /* Later we'll teach everything to use the array */
-    cvs_master *cm = NULL;
-    for (i = total_files; i-- > 0;) {
-	cvs_masters[i].next = cm;
-	cm = &cvs_masters[i];
-    }
+
     forest->errcount = err;
     forest->total_revisions = total_revisions;
     forest->skew_vulnerable = skew_vulnerable;
-    forest->head = (rev_list*)cvs_masters;
+    forest->cvs = cvs_masters;
     forest->generators = (generator_t *)generators;
 }
 

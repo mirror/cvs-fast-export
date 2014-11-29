@@ -424,7 +424,8 @@ export_commit(git_commit *commit, const char *branch,
 		cc = file_iter_next(&commit_iter);
 		continue;
 	    }
-	    if (path_deep_compare(pc->master->fileop_name, cc->master->fileop_name) < 0) {
+	    /* masters are sorted in fileop order */
+	    if (pc->master < cc->master) {
 		/* parent but no child, delete op */
 		build_delete_op(pc, op);
 		op = next_op_slot(&operations, op, &noperations);
@@ -712,8 +713,8 @@ void export_authors(forest_t *forest, export_options_t *opts)
     size_t alloc;
     authors = NULL;
     alloc = 0;
-    export_stats.export_total_commits = export_ncommit(forest->head);
-    struct commit_seq *hp, *history = canonicalize(forest->head);
+    export_stats.export_total_commits = export_ncommit(forest->git);
+    struct commit_seq *hp, *history = canonicalize(forest->git);
 
     progress_begin("Finding authors...", NO_MAX);
     for (hp = history; hp < history + export_stats.export_total_commits; hp++) {
@@ -744,7 +745,7 @@ void export_commits(forest_t *forest,
     rev_ref *h;
     tag_t *t;
     git_commit *c;
-    git_repo *rl = forest->head;
+    git_repo *rl = forest->git;
     generator_t *gp;
     int recount = 0;
 
