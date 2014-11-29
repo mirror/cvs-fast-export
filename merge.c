@@ -25,7 +25,7 @@
  */
 
 static rev_ref *
-rev_find_head(rev_list *rl, const char *name)
+rev_find_head(head_list *rl, const char *name)
 /* find a named branch head in a revlist - used on both CVS and gitspace sides */
 {
     rev_ref	*h;
@@ -48,7 +48,7 @@ rev_ref_find_name(rev_ref *h, const char *name)
 
 static bool
 parents_in_revlist(const char *child_name, rev_ref *rev_list,
-			     cvs_repo *source)
+		   cvs_master *source, size_t nsource)
 /*
  * See whether all the parents of child_name are in rev_list
  * If child_name has no parents (e.g. master branch) then this is
@@ -58,8 +58,9 @@ parents_in_revlist(const char *child_name, rev_ref *rev_list,
  * general note on branch matching under merge_changesets().
  */
 {
-    for (; source; source = source->next) {
-	rev_ref *head = rev_find_head(source, child_name);
+    cvs_master *cm;
+    for (cm = source; cm < source + nsource; cm++) {
+	rev_ref *head = rev_find_head(cm, child_name);
 	if (head) {
 	    if (head->parent && !rev_ref_find_name(rev_list, head->parent->ref_name))
 		    return false;
@@ -69,7 +70,7 @@ parents_in_revlist(const char *child_name, rev_ref *rev_list,
 }
 
 static rev_ref *
-rev_ref_tsort(rev_ref *git_branches, cvs_repo *masters)
+rev_ref_tsort(rev_ref *git_branches, cvs_master *masters, size_t nmasters)
 /* Sort a list of git space branches so parents come before children */
 {
     rev_ref *sorted_git_branches = NULL;
@@ -84,7 +85,7 @@ rev_ref_tsort(rev_ref *git_branches, cvs_repo *masters)
 	     * Toposorting with this relation will put the (parentless) trunk first,
 	     * and child branches after their respective parent branches.
 	     */
-	    if (parents_in_revlist(r->ref_name, sorted_git_branches, masters)) {
+	    if (parents_in_revlist(r->ref_name, sorted_git_branches, masters, nmasters)) {
 		break;
 	    }
 	}
@@ -102,18 +103,6 @@ rev_ref_tsort(rev_ref *git_branches, cvs_repo *masters)
 	sorted_tail = &r->next;
     }
     return sorted_git_branches;
-}
-
-static int
-cvs_master_count(const cvs_repo *masters)
-/* count all digested masters in the linked list corresponding to a CVS repo */
-{
-    int	count = 0;
-    while (masters) {
-	count++;
-	masters = masters->next;
-    }
-    return count;
 }
 
 static int
@@ -906,27 +895,26 @@ breakout:
 }
 
 static void
-rev_ref_set_parent(git_repo *gl, rev_ref *dest, cvs_repo *source)
+rev_ref_set_parent(git_repo *gl, rev_ref *dest, cvs_master *source, size_t nmasters)
 /* compute parent relationships among gitspace branches */
 {
     cvs_master	*s;
-    rev_ref	*p;
-    rev_ref	*max;
+    rev_ref	*p, *max;
 
     if (dest->depth)
 	return;
 
     max = NULL;
-    for (s = source; s; s = s->next) {
+    for (s = source; s < source + nmasters; s++) {
 	rev_ref	*sh;
 	sh = rev_find_head(s, dest->ref_name);
 	if (!sh)
 	    continue;
 	if (!sh->parent)
 	    continue;
-	p = rev_find_head(gl, sh->parent->ref_name);
+	p = rev_find_head((head_list*)gl, sh->parent->ref_name);
 	assert(p);
-	rev_ref_set_parent(gl, p, source);
+	rev_ref_set_parent(gl, p, source, nmasters);
 	if (!max || p->depth > max->depth)
 	    max = p;
     }
@@ -938,16 +926,16 @@ rev_ref_set_parent(git_repo *gl, rev_ref *dest, cvs_repo *source)
 }
 
 git_repo *
-merge_to_changesets(cvs_repo *masters, int verbose)
+merge_to_changesets(cvs_master *masters, size_t nmasters, int verbose)
 /* entry point - merge CVS revision lists to a gitspace DAG */
 {
-    int		head_count = 0, count = cvs_master_count(masters);
+    size_t	head_count = 0;
     int		n; /* used only in progress messages */
     git_repo	*gl = xcalloc(1, sizeof(git_repo), "list merge");
-    cvs_master	*master;
+    cvs_master	*cm;
     rev_ref	*lh, *h;
     tag_t	*t;
-    rev_ref	**refs = xcalloc(count, sizeof(rev_ref *), "list merge");
+    rev_ref	**refs = xcalloc(nmasters, sizeof(rev_ref *), "list merge");
 
     /*
      * It is expected that the branch trees in all CVS masters have
@@ -963,14 +951,14 @@ merge_to_changesets(cvs_repo *masters, int verbose)
      * CVS trees.  Use them to initialize named branch heads in the
      * output list.  Yes, this is currently very inefficient.
      */
-    progress_begin("Make DAG branch heads...", count);
+    progress_begin("Make DAG branch heads...", nmasters);
     n = 0;
-    for (master = masters; master; master = master->next) {
-	for (lh = master->heads; lh; lh = lh->next) {
-	    h = rev_find_head(gl, lh->ref_name);
+    for (cm = masters; cm < masters + nmasters; cm++) {
+	for (lh = cm->heads; lh; lh = lh->next) {
+	    h = rev_find_head((head_list *)gl, lh->ref_name);
 	    if (!h) {
 		head_count++;
-		rev_list_add_head(gl, NULL, lh->ref_name, lh->degree);
+		rev_list_add_head((head_list *)gl, NULL, lh->ref_name, lh->degree);
 	    } else if (lh->degree > h->degree)
 		h->degree = lh->degree;
 	}
@@ -984,8 +972,8 @@ merge_to_changesets(cvs_repo *masters, int verbose)
      * In later operations we always want to walk parent branches 
      * before children, with trunk first.
      */
-    progress_begin("Sorting...", count);
-    gl->heads = rev_ref_tsort(gl->heads, masters);
+    progress_begin("Sorting...", nmasters);
+    gl->heads = rev_ref_tsort(gl->heads, masters, nmasters);
     if (!gl->heads) {
 	free(refs);
 	/* coverity[leaked_storage] */
@@ -1008,15 +996,15 @@ merge_to_changesets(cvs_repo *masters, int verbose)
      */
     progress_begin("Compute branch parent relationships...", head_count);
     for (h = gl->heads; h; h = h->next) {
-	rev_ref_set_parent(gl, h, masters);
+	rev_ref_set_parent(gl, h, masters, nmasters);
 	progress_step();
     }
     progress_end(NULL);
 
 #ifdef ORDERDEBUG
     fputs("merge_to_changesets: before common branch merge:\n", stderr);
-    for (master = masters; master; master = master->next) {
-	for (lh = master->heads; lh; lh = lh->next) {
+    for (cm = masters; cm < masters + nmasters; cm++) {
+	for (lh = cm->heads; lh; lh = lh->next) {
 	    cvs_commit *commit = lh->commit;
 	    fputs("rev_ref: ", stderr);
 	    dump_number_file(stderr, lh->ref_name, lh->number);
@@ -1036,8 +1024,8 @@ merge_to_changesets(cvs_repo *masters, int verbose)
 	 * set of CVS branches from every master.
 	 */
 	int nref = 0;
-	for (master = masters; master; master = master->next) {
-	    lh = rev_find_head(master, h->ref_name);
+	for (cm = masters; cm < masters + nmasters; cm++) {
+	    lh = rev_find_head(cm, h->ref_name);
 	    if (lh)
 		refs[nref++] = lh;
 	}
@@ -1057,7 +1045,7 @@ merge_to_changesets(cvs_repo *masters, int verbose)
      * wandering on to their parent branches.
      */
     progress_begin("Compute tail values...", NO_MAX);
-    rev_list_set_tail(gl);
+    rev_list_set_tail((head_list *)gl);
     progress_end(NULL);
 
     free(refs);

@@ -185,7 +185,6 @@ main(int argc, char **argv)
 	ExecuteExport, ExecuteGraph, ExecuteAuthors,
     } execution_mode;
 
-    cvs_repo  *premerge;
     execution_mode  exec_mode = ExecuteExport;
     forest_t        forest;
     export_options_t export_options = {
@@ -376,16 +375,17 @@ main(int argc, char **argv)
     gather_stats("after parsing");
 
     /* commit set coalescence happens here */
-   forest.head = merge_to_changesets(premerge = forest.head, 
+    forest.git = merge_to_changesets(forest.cvs, 
+				     forest.filecount,
 				     import_options.verbose);
 
     gather_stats("after branch merge");
 
     /* report on the DAG */
-    if (forest.head) {
+    if (forest.git) {
 	switch(exec_mode) {
 	case ExecuteGraph:
-	    dump_rev_graph(forest.head, NULL);
+	    dump_rev_graph(forest.git, NULL);
 	    break;
 	case ExecuteAuthors:
 	    export_authors(&forest, &export_options);
