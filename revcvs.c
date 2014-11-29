@@ -255,7 +255,6 @@ cvs_master_patch_vendor_branch(cvs_master *cm, cvs_file *cvs)
 {
     rev_ref	*trunk = NULL;
     rev_ref	*vendor = NULL;
-    rev_ref	*h;
     cvs_commit	*t, **tp, *v, **vp;
     cvs_commit	*vlast;
     rev_ref	**h_p;
@@ -264,9 +263,9 @@ cvs_master_patch_vendor_branch(cvs_master *cm, cvs_file *cvs)
 #endif /* CVSDEBUG */
 
     trunk = cm->heads;
-    for (h_p = &cm->heads; (h = *h_p);) {
+    for (h_p = &cm->heads; (vendor = *h_p);) {
 	bool delete_head = false;
-	if (h->commit && cvs_is_vendor(h->commit->number))
+	if (vendor->commit && cvs_is_vendor(vendor->commit->number))
 	{
 #ifdef CVSDEBUG
 	    char buf[CVS_MAX_REV_LEN];
@@ -279,17 +278,15 @@ cvs_master_patch_vendor_branch(cvs_master *cm, cvs_file *cvs)
 	     * Subsequent imports will *not* set the default
 	     * branch, and should be on their own branch
 	     */
-	    vendor = h;
-	    t = trunk->commit;
 	    v = vendor->commit;
 	    for (vlast = vendor->commit; vlast; vlast = vlast->parent)
 		if (!vlast->parent)
 		    break;
-	    tp = &trunk->commit;
 	    /*
 	     * Find the latest trunk revision older than
 	     * the entire vendor branch
 	     */
+	    tp = &trunk->commit;
 	    while ((t = *tp))
 	    {
 		if (!t->parent ||
@@ -313,7 +310,7 @@ cvs_master_patch_vendor_branch(cvs_master *cm, cvs_file *cvs)
 		    if (cvs->verbose > 0)
 			debugmsg("In %s, vendor branch %s newer than trunk root.\n",
 			 cvs->export_name,
-			 cvs_number_string(h->commit->number, buf, CVS_MAX_REV_LEN));
+			 cvs_number_string(vendor->commit->number, buf, CVS_MAX_REV_LEN));
 #endif /* CVSDEBUG */
 		}
 		else
@@ -335,7 +332,7 @@ cvs_master_patch_vendor_branch(cvs_master *cm, cvs_file *cvs)
 		    if (cvs->verbose > 0)
 			debugmsg("In %s, vendor branch %s case #2.\n",
 			 cvs->export_name,
-			 cvs_number_string(h->commit->number, buf, CVS_MAX_REV_LEN));
+			 cvs_number_string(vendor->commit->number, buf, CVS_MAX_REV_LEN));
 #endif /* CVSDEBUG */
 			delete_head = true;
 		    }
@@ -353,7 +350,7 @@ cvs_master_patch_vendor_branch(cvs_master *cm, cvs_file *cvs)
 		if (cvs->verbose > 0)
 		    debugmsg("In %s, vendor branch %s fallthrough case.\n",
 			     cvs->export_name,
-			     cvs_number_string(h->commit->number, buf, CVS_MAX_REV_LEN));
+			     cvs_number_string(vendor->commit->number, buf, CVS_MAX_REV_LEN));
 #endif /* CVSDEBUG */
 		delete_head = true;
 	    }
@@ -361,11 +358,11 @@ cvs_master_patch_vendor_branch(cvs_master *cm, cvs_file *cvs)
 	    if (cvs->verbose > 0)
 		debugmsg("In %s, vendor branch %s %sdeleted.\n",
 			 cvs->export_name,
-			 cvs_number_string(h->commit->number, buf, CVS_MAX_REV_LEN),
+			 cvs_number_string(vendor->commit->number, buf, CVS_MAX_REV_LEN),
 			 delete_head ? "" : "not ");
 #endif /* CVSDEBUG */
 	    /*
-	     * Patch up the remaining vendor branch pieces
+	     * Make a branch out of the remaining undeleted vendor commits.
 	     */
 	    if (!delete_head) {
 		cvs_commit  *vr;
@@ -377,8 +374,7 @@ cvs_master_patch_vendor_branch(cvs_master *cm, cvs_file *cvs)
 		    memcpy(&branch, vlast->number, sizeof(cvs_number));
 		    branch.c--;
 		    cvs_number_string(&branch, rev, sizeof(rev));
-		    snprintf(name, sizeof(name),
-			      "import-%s", rev);
+		    snprintf(name, sizeof(name), "import-%s", rev);
 		    vendor->ref_name = atom(name);
 		    vendor->parent = trunk;
 		    /*
@@ -386,8 +382,8 @@ cvs_master_patch_vendor_branch(cvs_master *cm, cvs_file *cvs)
 		     * this should be equivalent, since the branches
 		     * have not yet been grafted.
 		     */
-		    vendor->degree = h->commit->number->c;
-		    vendor->number = h->commit->number;
+		    vendor->degree = vendor->commit->number->c;
+		    vendor->number = vendor->commit->number;
 		}
 		for (vr = vendor->commit; vr; vr = vr->parent)
 		{
@@ -422,11 +418,13 @@ cvs_master_patch_vendor_branch(cvs_master *cm, cvs_file *cvs)
 	    else
 		*tp = v;
 	}
+
+	/* actual branch deletion takes place here */
 	if (delete_head) {
-	    *h_p = h->next;
-	    free(h);
+	    *h_p = vendor->next;
+	    free(vendor);
 	} else {
-	    h_p = &(h->next);
+	    h_p = &(vendor->next);
 	}
     }
 #if CVSDEBUG
