@@ -890,12 +890,12 @@ breakout:
     if (tag->parent)
 	tag->commit = git_commit_locate(tag->parent, revisions[0]);
     if (!tag->commit) {
-	announce("tag %s could not be assigned to a commit\n", tag->name);
+	warn("tag %s could not be assigned to a commit\n", tag->name);
 #if 0
 	/*
 	 * ESR: Keith's code appeared to be trying to create a
 	 * synthetic commit for unmatched tags. The comment 
-	 * from "AV" below points at one reason this is probably
+	 * from Al Viro below points at one reason this is probably
 	 * not a good idea.  Better to fail cleanly than risk
 	 * doing something wacky to the DAG.
 	 */
