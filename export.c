@@ -270,6 +270,19 @@ again:
     goto again;
 }
 
+static cvs_commit *
+file_iter_next_dir(file_iter *pos) {
+ again:
+    ++pos->dir;
+    if (pos->dir >= pos->dirmax)
+	return NULL;
+    pos->file = (*pos->dir)->files;
+    pos->filemax = pos->file + (*pos->dir)->nfiles;
+    if (pos->file != pos->filemax)
+	return *pos->file++;
+    goto again;
+}
+
 static void
 file_iter_start(file_iter *pos, const git_commit *commit) {
     pos->dir = *commit->dirs;
@@ -407,6 +420,12 @@ export_commit(git_commit *commit, const char *branch,
 
 	cvs_commit *pc = file_iter_next(&parent_iter);
 	while (cc && pc) {
+	    /* If we're in the same packed directory then skip it */
+	    if (*commit_iter.dir == *parent_iter.dir) {
+		pc = file_iter_next_dir(&parent_iter);
+		cc = file_iter_next_dir(&commit_iter);
+		continue;
+	    }
 	    if (cc == pc) {
 		/* Child and parent the same, skip. Do this check first as 
                  * it is the cheapest and fairly common 
