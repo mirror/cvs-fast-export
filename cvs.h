@@ -339,8 +339,10 @@ typedef struct _git_commit {
     unsigned		dead:1;
     /*
      * gitspace-only members begin here.
+     *
      * nfiles is only used in debug code, but is essentially free
-     * due to packing. The value can be truncated in large repos
+     * due to alignment constraints on the structure packing. 
+     * Its value could be truncated in very large repos.
      */
     unsigned short      nfiles;
     unsigned short	ndirs;
@@ -361,9 +363,9 @@ typedef struct _rev_ref {
     flag		tail:1;
 } rev_ref;
 
-/* Type punning, previously cvs_master and git_repo were rev_lists underndeath
+/* Type punning, previously cvs_master and git_repo were rev_lists underneath
  * now cvs_master is backed by an array. We still have some general 
- * functions that just operate on  the heads member rather, so this lets
+ * functions that just operate on  the heads member, so this lets
  * us use them from both git and cvs sides.
  */
 typedef struct _head_list {
@@ -386,7 +388,7 @@ typedef struct _rev_list {
  * specific in order to express the domain of a function.
  */
 typedef head_list cvs_master;   /* represents a single cvs master */
-                                /* the cvs repo is represented by an array of such */
+                                /* a CVS repo is represented by an array of such */
 typedef rev_list git_repo;	/* represents a gitspace DAG */
 
 typedef struct _cvs_commit_list {
