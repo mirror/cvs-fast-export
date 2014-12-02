@@ -17,6 +17,7 @@
  */
 
 #include "cvs.h"
+#include "hash.h"
 #include <stdint.h>
 #ifdef THREADS
 #include <pthread.h>
@@ -90,41 +91,9 @@ Happy hashing!
 
 unsigned int natoms;	/* we report this so we can tune the hash properly */
 
-typedef uint32_t	crc32_t;
-
-static crc32_t crc32_table[256];
-
-static void
-generate_crc32_table(void)
-{
-    crc32_t	c, p;
-    int		n, m;
-
-    p = 0xedb88320;
-    for (n = 0; n < 256; n++)
-    {
-	c = n;
-	for (m = 0; m < 8; m++)
-	    c = (c >> 1) ^ ((c & 1) ? p : 0);
-	crc32_table[n] = c;
-    }
-}
-
-static crc32_t
-crc32(const char *string)
-{
-    crc32_t		crc32 = ~0;
-    unsigned char	c;
-
-    if (crc32_table[1] == 0) generate_crc32_table();
-    while ((c = (unsigned char) *string++))
-	crc32 = (crc32 >> 8) ^ crc32_table[(crc32 ^ c) & 0xff];
-    return ~crc32;
-}
-
 typedef struct _hash_bucket {
     struct _hash_bucket	*next;
-    crc32_t		crc;
+    hash_t		hash;
     char		string[0];
 } hash_bucket_t;
 
@@ -137,14 +106,14 @@ const char *
 atom(const char *string)
 /* intern a string, avoiding having separate storage for duplicate copies */
 {
-    crc32_t		crc = crc32 (string);
-    hash_bucket_t	**head = &buckets[crc % HASH_SIZE];
+    hash_t		hash = hash_string(string);
+    hash_bucket_t	**head = &buckets[hash % HASH_SIZE];
     hash_bucket_t	*b;
     int			len;
 
     while ((b = *head)) {
 collision:
-	if (b->crc == crc && !strcmp(string, b->string))
+	if (b->hash == hash && !strcmp(string, b->string))
 	    return b->string;
 	head = &(b->next);
     }
@@ -163,7 +132,7 @@ collision:
     len = strlen(string);
     b = xmalloc(sizeof(hash_bucket_t) + len + 1, __func__);
     b->next = 0;
-    b->crc = crc;
+    b->hash = hash;
     memcpy(b->string, string, len + 1);
     *head = b;
     natoms++;
@@ -193,7 +162,7 @@ static pthread_mutex_t number_bucket_mutex = PTHREAD_MUTEX_INITIALIZER;
 const cvs_number *
 atom_cvs_number(const cvs_number n)
 {
-    unsigned int bucket = hash_cvs_number(&n) % NUMBER_HASH_SIZE;
+    size_t          bucket = hash_cvs_number(&n) % NUMBER_HASH_SIZE;
     number_bucket_t **head = &number_buckets[bucket];
     number_bucket_t *b;
 

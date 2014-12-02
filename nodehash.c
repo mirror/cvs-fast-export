@@ -5,73 +5,12 @@
  */
 
 #include "cvs.h"
-
-/*
- * The choice of these mixing functions can have a major effect on 
- * lookup speed. There are two things to note about CVS numbers that
- * are relevant. One is that that they're not strings; the component
- * numbers are not limited to 0..255, though it would be highly odd
- * for anything but the rightmost part to achieve that high a value.
- * The other is that they're not uniformly distributed; low component 
- * values will be far more common than high ones and most of the variation
- * will be towards the right-hand end.
- *
- * This is Keith's original pair of mixers.  The second one tries to
- * weight the hash to be more senstive to the right-hand end, but
- * implicitly assumes that values there above 255 will be nonexistent
- * or rare. The first one has poor distribution properties and the
- * sole merit of being a fast operation.
- *
- * 	HASHMIX1(hash, new)	hash += new
- * 	HASHMIX2(hash, new)	hash = ((hash << 8) + new)
- *
- * Here are some plausible alternatives for the first mixer, from
- * <http://www.cse.yorku.ca/~oz/hash.html>. Descriptions are from there.
- *
- * DJB2: this algorithm (which effectively multiplies the old hash by 33 
- * before adding the new value) was first reported by dan bernstein
- * many years ago in comp.lang.c. another version of this algorithm
- * (now favored by bernstein) uses xor: hash(i) = hash(i - 1) * 33 ^
- * str[i]; the magic of number 33 (why it works better than many other
- * constants, prime or not) has never been adequately explained.
- *
- * (Note: for reasons not explained at the source page, hash is 
- * initialized to 5381 before the djb2 mixing begins.)
- */
-#define DJB2(hash, new)	hash = (((hash << 5) + hash) + new)
-/*
- * SDBM: this algorithm was created for sdbm (a public-domain
- * reimplementation of ndbm) database library. it was found to do well
- * in scrambling bits, causing better distribution of the keys and
- * fewer splits. it also happens to be a good general hashing function
- * with good distribution. the actual function is hash(i) = hash(i -
- * 1) * 65599 + str[i]; what is included below is the faster version
- * used in gawk. [there is even a faster, duff-device version] the
- * magic constant 65599 was picked out of thin air while experimenting
- * with different constants, and turns out to be a prime. this is one
- * of the algorithms used in berkeley db (see sleepycat) and
- * elsewhere.
- */
-#define SDBM(hash, new)	hash = (new + (hash << 6) + (hash << 16) - hash)
-/*
- * We choose SDBM because it seems less likely to have corner cases
- * on large components, and we change Keith's second mixer in case
- * the most rapidly varying component goes above 256.
- */
-
-#define HASHMIX1(hash, new)	SDBM(hash, new)
-#define HASHMIX2(hash, new)	hash = ((hash << 10) + new)
+#include "hash.h"
 
 unsigned long
 hash_cvs_number(const cvs_number *const key)
 {
-    int i;
-    unsigned long hashval;
-
-    for (i = 0, hashval = 0; i < key->c - 1; i++)
-	HASHMIX1(hashval, key->n[i]);
-    HASHMIX2(hashval, key->n[key->c - 1]);
-    return hashval;
+    return hash_value((const char *)key, sizeof(short) * (key->c + 1));
 }
 
 static node_t *
@@ -83,9 +22,7 @@ node_for_cvs_number(nodehash_t *context, const cvs_number *const n)
 {
     const cvs_number *k = n;
     node_t *p;
-    unsigned int hash;
-
-    hash = hash_cvs_number(k) % NODE_HASH_SIZE;
+    hash_t hash = hash_cvs_number(k) % NODE_HASH_SIZE;
     for (p = context->table[hash]; p; p = p->hash_next)
 	if (p->number == k)
 	    return p;
@@ -111,7 +48,7 @@ static node_t *find_parent(nodehash_t *context,
     cvs_number key;
     const cvs_number *k;
     node_t *p;
-    unsigned int hash;
+    hash_t hash;
 
     memcpy(&key, n, sizeof(cvs_number));
     key.c -= depth;

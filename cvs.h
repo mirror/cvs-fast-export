@@ -34,6 +34,7 @@
 #include <errno.h>
 #include <stdbool.h>
 #include <limits.h>
+#include "cvstypes.h"
 
 /* 
  * CVS_MAX_BRANCHWIDTH should match the number in the longrev test.
@@ -44,42 +45,6 @@
 #define CVS_MAX_DEPTH		(2*CVS_MAX_BRANCHWIDTH + 2)
 #define CVS_MAX_REV_LEN		(CVS_MAX_DEPTH * (CVS_MAX_DIGITS + 1))
 
-/*
- * Typedefs following this (everything before cvsnumber) have been
- * carefully chosen to minimize working set.
- */
-
-/*
- * Use instead of bool in frequently used structures to reduce
- * working-set size.
- */
-typedef char flag;
-
-/*
- * On 64-bit Linux a time_t is 8 bytes.  We want to reduce memory
- * footprint; by storing dates as 32-bit offsets from the beginning of
- * 1982 (the year RCS was released) we can cover dates all the way to
- * 2118-02-07T06:28:15 in half that size.  If you're still doing
- * conversions after that you'll just have to change this to a uint64_t. 
- * Yes, the code *does* sanity-check for input dates older than this epoch.
- */
-typedef uint32_t	cvstime_t;
-#define RCS_EPOCH	378691200	/* 1982-01-01T00:00:00 */
-#define RCS_OMEGA	UINT32_MAX	/* 2118-02-07T06:28:15 */
-
-/*
- * This type must be wide enough to enumerate every CVS revision.
- * There's a sanity check in the code.
- */
-typedef uint32_t	serial_t;
-#define MAX_SERIAL_T	UINT32_MAX
-
-/*
- * This type must be wide enough to count all branches cointaining a commit.
- * There's a sanity check in the code.
- */
-typedef uint8_t			branchcount_t;
-#define MAX_BRANCHCOUNT_T	UINT8_MAX
 
 
 /*
@@ -256,7 +221,7 @@ typedef struct {
 typedef struct _master_dir {
     /* directory reference for a master */
     const char          *name;
-    uintptr_t           prehash;
+    hash_t              prehash;
     short               len;
 } master_dir;
 
@@ -320,7 +285,8 @@ typedef struct _cvs_commit {
     unsigned		dead:1;
     /* CVS-only members begin here */
     bool                emitted:1;
-    rev_master          *master;
+    hash_t              hash;
+    const rev_master    *master;
     struct _git_commit	*gitspace;
     const cvs_number	*number;
 } cvs_commit;
@@ -748,16 +714,5 @@ extern bool progress;
 #ifdef THREADS
 extern int threads;
 #endif /* THREADS */
-
-/* FNV Hash Constants from http://isthe.com/chongo/tech/comp/fnv/ */
-#if UINTPTR_MAX == 0xffffffff
-/* 32 bit */
-#define FNV_OFF 2166136261U
-#define FNV_MIX 16777619U
-#else
-/* 64 bit */
-#define FNV_OFF 14695981039346656037UL
-#define FNV_MIX 1099511628211UL
-#endif /* FNV Constants */
 
 #endif /* _CVS_H_ */

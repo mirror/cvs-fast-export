@@ -3,6 +3,7 @@
  */
 
 #include "cvs.h"
+#include "hash.h"
 
 #define AUTHOR_HASH 1021
 
@@ -11,7 +12,9 @@ static cvs_author	*author_buckets[AUTHOR_HASH];
 static unsigned
 author_hash(const char *name)
 {
-    return (size_t)name % AUTHOR_HASH;
+    HASH_INIT(h);
+    HASH_MIX(h, name);
+    return h % AUTHOR_HASH;
 }
 
 cvs_author *

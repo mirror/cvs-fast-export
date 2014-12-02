@@ -24,6 +24,7 @@
  */
 
 #include "cvs.h"
+#include "hash.h"
 
 #ifdef REDBLACK
 #include "rbtree.h"
@@ -81,8 +82,7 @@ atom_dir(const char* name)
 	dirname = atom("\0");
 	dirlen = 0;
     }
-    uintptr_t  hash = FNV_OFF * FNV_MIX ^ (uintptr_t)dirname;
-    dir_bucket **head = &dir_buckets[hash % DIR_BUCKETS];
+    dir_bucket **head = &dir_buckets[HASH_VALUE(dirname) % DIR_BUCKETS];
     dir_bucket *b;
 
     while ((b = *head)) {
@@ -107,7 +107,7 @@ atom_dir(const char* name)
     b->dir.name = dirname;
     b->dir.len = dirlen;
     /* used as an input to the hash of the dir_is_ancestor fn */
-    b->dir.prehash = FNV_OFF * FNV_MIX ^ (uintptr_t)b;
+    b->dir.prehash = HASH_VALUE(b);
     *head = b;
 #ifdef THREADS
     if (threads > 1)
@@ -192,6 +192,8 @@ cvs_master_branch_build(cvs_file *cvs, rev_master *master, const cvs_number *bra
 	    node->commit = c;
 	}
 	c->parent = head;
+	/* commits are already interned, these hashes build up revdir hashes */
+	c->hash = HASH_VALUE(c);
 	head = c;
     }
 

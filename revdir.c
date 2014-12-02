@@ -21,26 +21,28 @@
  */
 
 #include "cvs.h"
+#include "hash.h"
 
 #define REV_DIR_HASH	288361
 
 typedef struct _rev_dir_hash {
-    struct _rev_dir_hash    *next;
-    unsigned long	    hash;
-    rev_dir		    dir;
+    struct _rev_dir_hash *next;
+    hash_t	         hash;
+    rev_dir		 dir;
 } rev_dir_hash;
 
 static rev_dir_hash	*buckets[REV_DIR_HASH];
 
-static 
-unsigned long hash_files(cvs_commit **files, const int nfiles)
+static hash_t
+hash_files(cvs_commit **files, const int nfiles)
 /* hash a file list so we can recognize it cheaply */
 {
-    unsigned long   h = 0;
-    int		    i;
-
+    hash_t h = 0;
+    size_t i;
+    /* Combine existing hashes rather than computing new ones */
     for (i = 0; i < nfiles; i++)
-	h = ((h << 1) | (h >> (sizeof(h) * 8 - 1))) ^ (unsigned long) files[i];
+	h = HASH_COMBINE(h, files[i]->hash);
+
     return h;
 }
 
@@ -48,9 +50,9 @@ static rev_dir *
 rev_pack_dir(cvs_commit **files, const int nfiles)
 /* pack a collection of file revisions for space efficiency */
 {
-    unsigned long   hash = hash_files(files, nfiles);
-    rev_dir_hash    **bucket = &buckets[hash % REV_DIR_HASH];
-    rev_dir_hash    *h;
+    uintptr_t    hash = hash_files(files, nfiles);
+    rev_dir_hash **bucket = &buckets[hash % REV_DIR_HASH];
+    rev_dir_hash *h;
 
     /* avoid packing a file list if we've done it before */ 
     for (h = *bucket; h; h = h->next) {
@@ -219,9 +221,8 @@ dir_is_ancestor(const master_dir *child, const master_dir *ancestor)
  * netbsd-pkgsrc calls this 7 billion times for 95,000 unique inputs
  */
 {
-    /* FNV-1 Hash from http://isthe.com/chongo/tech/comp/fnv/ */
-    uintptr_t       hash = child->prehash;
-    hash = hash * FNV_MIX ^ (uintptr_t)ancestor;
+    hash_t          hash;
+    HASH_MIX_SEED(hash, child->prehash,  ancestor);
     dir_comp_bucket **head = &dir_comp_buckets[hash % DIR_COMP_BUCKETS];
     dir_comp_bucket *b;
 
