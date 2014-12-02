@@ -74,7 +74,7 @@ atom_dir(const char* name)
     char       buf[PATH_MAX];
     if (slash) {
 	strncpy(buf, name, slash - name);
-	buf[slash - name + 1] = '\0';
+	buf[slash - name] = '\0';
 	dirname = atom(buf);
 	dirlen = slash - name;
     } else {
