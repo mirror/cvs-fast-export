@@ -93,6 +93,10 @@ static int in_buffer_getc(editbuffer_t *eb)
 	    Ginbuf(eb)->ptr -= 2;
 	    --Ginbuf(eb)->read_count;
 	    return EOF;
+#ifdef LINESTATS
+	} else {
+	eb->has_stringdelim = true;
+#endif
 	}
     }
     return c ;
@@ -102,11 +106,17 @@ static uchar *in_get_line(editbuffer_t *eb)
 {
     int c;
     uchar *ptr = Ginbuf(eb)->ptr;
+#ifdef LINESTATS
+    eb->has_stringdelim = false;
+#endif
     c=in_buffer_getc(eb);
     if (c == EOF)
 	return NULL;
     while (c != EOF && c != '\n')
 	c = in_buffer_getc(eb);
+#ifdef LINESTATS
+    eb->line_len = Ginbuf(eb)->ptr - ptr;
+#endif
     return ptr;
 }
 
@@ -310,7 +320,49 @@ static enum markers trymatch(char const *const string)
     }
     return(Nomatch);
 }
+#ifdef LINESTATS
+static void insertline(editbuffer_t *eb, const unsigned long n, uchar * l)
+/* Before line N, insert line L.  N is 0-origin.  */
+{
+    if (n > Glinemax(eb) - Ggapsize(eb))
+	fatal_error("edit script tried to insert beyond eof");
+    if (!Ggapsize(eb)) {
+	if (Glinemax(eb)) {
+	    Ggap(eb) = Ggapsize(eb) = Glinemax(eb); Glinemax(eb) <<= 1;
+	    Gline(eb) = xrealloc(Gline(eb), sizeof(editline_t) * Glinemax(eb), "insertline");
+	} else {
+	    Glinemax(eb) = Ggapsize(eb) = 1024;
+	    Gline(eb) = xmalloc(sizeof(editline_t) *  Glinemax(eb), "insertline");
+	}
+    }
+    if (n < Ggap(eb))
+	memmove(Gline(eb)+n+Ggapsize(eb), Gline(eb)+n, (Ggap(eb)-n) * sizeof(editline_t));
+    else if (Ggap(eb) < n)
+	memmove(Gline(eb)+Ggap(eb), Gline(eb)+Ggap(eb)+Ggapsize(eb), (n-Ggap(eb)) * sizeof(editline_t));
+    Gline(eb)[n].ptr = l;
+    Gline(eb)[n].has_stringdelim = eb->has_stringdelim;
+    Gline(eb)[n].length = eb->line_len;
+    Ggap(eb) = n + 1;
+    Ggapsize(eb)--;
 
+}
+
+static void deletelines(editbuffer_t *eb,
+			const unsigned long n, const unsigned long nlines)
+/* Delete lines N through N+NLINES-1.  N is 0-origin.  */
+{
+    unsigned long l = n + nlines;
+    if (Glinemax(eb)-Ggapsize(eb) < l  ||  l < n)
+	fatal_error("edit script tried to delete beyond eof");
+    if (l < Ggap(eb))
+	memmove(Gline(eb)+l+Ggapsize(eb), Gline(eb)+l, (Ggap(eb)-l) * sizeof(editline_t));
+    else if (Ggap(eb) < n)
+	memmove(Gline(eb)+Ggap(eb), Gline(eb)+Ggap(eb)+Ggapsize(eb), (n-Ggap(eb)) * sizeof(editline_t));
+    Ggap(eb) = n;
+    Ggapsize(eb) += nlines;
+}
+
+#else
 static void insertline(editbuffer_t *eb, const unsigned long n, uchar * l)
 /* Before line N, insert line L.  N is 0-origin.  */
 {
@@ -348,7 +400,7 @@ static void deletelines(editbuffer_t *eb,
     Ggap(eb) = n;
     Ggapsize(eb) += nlines;
 }
-
+#endif
 static long parsenum(editbuffer_t *eb)
 /* parse and return a decimal integer */
 {
@@ -830,7 +882,20 @@ static void process_delta(editbuffer_t *eb,
 
 static void expandedit(editbuffer_t *eb)
 {
+#ifdef LINESTATS
+    editline_t *p, *lim, *l = Gline(eb);
+
+    for (p=l, lim=l+Ggap(eb);  p<lim;  ) {
+	in_buffer_init(eb, (*p++).ptr, 0);
+	expandline(eb);
+    }
+    for (p+=Ggapsize(eb), lim=l+Glinemax(eb);  p<lim;  ) {
+	in_buffer_init(eb, (*p++).ptr, 0);
+	expandline(eb);
+    }
+#else
     uchar **p, **lim, **l = Gline(eb);
+
     for (p=l, lim=l+Ggap(eb);  p<lim;  ) {
 	in_buffer_init(eb, *p++, 0);
 	expandline(eb);
@@ -839,6 +904,7 @@ static void expandedit(editbuffer_t *eb)
 	in_buffer_init(eb, *p++, 0);
 	expandline(eb);
     }
+#endif
 }
 /*
  * The FASTOUT code is a shameless micro-optimization addressing the
@@ -893,6 +959,38 @@ static void snapshotline(editbuffer_t *eb, register uchar * l)
 #endif /* FASTOUT */
 }
 
+#ifdef LINESTATS
+static void snapshotline_nodelim(editbuffer_t *eb, editline_t *l)
+{
+    struct out_buffer_type *ob = eb->Goutbuf;
+    size_t chars_read = l->length;
+    if (chars_read != 0) {
+	while (ob->end_of_text - ob->ptr < chars_read) {
+	    out_buffer_enlarge(eb);
+	    ob = eb->Goutbuf;
+	}
+	memcpy(ob->ptr, l->ptr, chars_read);
+	ob->ptr += chars_read;
+    }
+}
+
+static void snapshotedit(editbuffer_t *eb)
+{
+    editline_t *p, *lim, *l = Gline(eb);
+
+    for (p=l, lim=l+Ggap(eb);  p<lim;  )
+	if (p->has_stringdelim)
+	    snapshotline(eb, (*p++).ptr);
+	else
+	    snapshotline_nodelim(eb, p++);
+
+    for (p+=Ggapsize(eb), lim=l+Glinemax(eb);  p<lim;  )
+	if (p->has_stringdelim)
+	    snapshotline(eb, (*p++).ptr);
+	else
+	    snapshotline_nodelim(eb, p++);
+}
+#else
 static void snapshotedit(editbuffer_t *eb)
 {
     uchar **p, **lim, **l=Gline(eb);
@@ -901,15 +999,25 @@ static void snapshotedit(editbuffer_t *eb)
     for (p+=Ggapsize(eb), lim=l+Glinemax(eb);  p<lim;  )
 	snapshotline(eb, *p++);
 }
+#endif
 
 static void enter_branch(editbuffer_t *eb, const node_t *const node)
 {
+#ifdef LINESTATS
+    editline_t *p = xmalloc(sizeof(editline_t) * eb->current->linemax, "enter branch");
+    memcpy(p, eb->current->line, sizeof(editline_t) * eb->current->linemax);
+    ++eb->current;
+    eb->current[0] = eb->current[-1];
+    eb->current->next_branch = node->sib;
+    eb->current->line = p;
+#else
     uchar **p = xmalloc(sizeof(uchar *) * eb->current->linemax, "enter branch");
 	memcpy(p, eb->current->line, sizeof(uchar *) * eb->current->linemax);
 	++eb->current;
 	eb->current[0] = eb->current[-1];
 	eb->current->next_branch = node->sib;
 	eb->current->line = p;
+#endif
 }
 
 static node_t *generate_setup(generator_t *gen, enum expand_mode id_token_expand)
