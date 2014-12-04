@@ -246,7 +246,6 @@ struct fileop {
  */
 #define display_date(c, m, f)	(f ? (100000 + (m) * commit_time_window * 2) : ((c)->date + RCS_EPOCH))
 
-
 #ifdef ORDERDEBUG
 static void dump_file(const cvs_commit *cvs_commit, FILE *fp)
 {
@@ -381,8 +380,9 @@ export_commit(git_commit *commit, const char *branch,
 		continue;
 	    }
 	    if (cc == pc) {
-		/* Child and parent the same, skip. Do this check first as 
-                 * it is the cheapest and fairly common 
+		/* Child and parent the same, skip. Do this check second
+		 * as we have already accessed cc and pc, so they'll be hot
+                 * plus, it's a common case.
 		 */
 		pc = revdir_iter_next(parent_iter);
 		cc = revdir_iter_next(commit_iter);

@@ -235,8 +235,9 @@ typedef struct {
 typedef struct _master_dir {
     /* directory reference for a master */
     const char          *name;
+    const struct _master_dir *parent;
     hash_t              prehash;
-    short               len;
+    unsigned short      len;
 } master_dir;
 
 typedef struct _rev_master {
@@ -254,17 +255,31 @@ typedef struct _rev_master {
  * Structures built by master file parsing end.
  */
 
-typedef struct _file_list file_list;
-
-/* This should be considered an opaque type outside of revdir.c, but
+/* revdir should be considered an opaque type outside of revdir.c, but
  * we want to take advantage of being able to pack the struct
  * in a parent struct. Represents a packed list of files.
+ * manipulate using the interface defined in revdir.h
  */
+#ifdef TREEPACK
+
+typedef struct _rev_pack rev_pack;
+
+typedef struct _revdir {
+    rev_pack *revpack;
+} revdir;
+
+#else
+
+typedef struct _file_list file_list;
+
 typedef struct _revdir {
     /* dirs is slightly misleading, as there may be subdirs in the same entry */
-    unsigned short    ndirs;
-    struct _file_list **dirs;
+    unsigned short ndirs;
+    file_list      **dirs;
 } revdir;
+
+#endif
+
 
 
 /*
@@ -491,6 +506,8 @@ typedef struct _forest {
 
 extern tag_t  *all_tags;
 extern size_t tag_count;
+extern const master_dir *root_dir;
+
 void tag_commit(cvs_commit *c, const char *name, cvs_file *cvsfile);
 cvs_commit **tagged(tag_t *tag);
 void discard_tags(void);
@@ -642,12 +659,9 @@ export_authors(forest_t *forest, export_options_t *opts);
 void
 free_author_map(void);
 
-void generate_files(generator_t *gen, 
-		    export_options_t *opts,
-		    void (*hook)(node_t *node, void *buf, size_t len, export_options_t *popts));
-
 void
-rev_free_dirs(void);
+generate_files(generator_t *gen, export_options_t *opts,
+	       void (*hook)(node_t *node, void *buf, size_t len, export_options_t *popts));
 
 /* xnew(T) allocates aligned (packed) storage. It never returns NULL */
 #define xnew(T, legend) \

@@ -1035,6 +1035,7 @@ merge_to_changesets(cvs_master *masters, size_t nmasters, int verbose)
     }
     progress_end(NULL);
     merge_branches_cleanup();
+    revdir_free_bufs();
     /*
      * Compute 'tail' values.  These allow us to recognize branch joins
      * so we can write efficient traversals that walk branches without
@@ -1074,7 +1075,6 @@ merge_to_changesets(cvs_master *masters, size_t nmasters, int verbose)
 /*
  * Generate a list of files in uniq that aren't in common
  */
-
 static cvs_commit_list *
 rev_uniq_file(git_commit *uniq, git_commit *common, int *nuniqp)
 {
@@ -1102,7 +1102,6 @@ rev_uniq_file(git_commit *uniq, git_commit *common, int *nuniqp)
 /*
  * Generate a diff between two gitspace commits. Either may be NULL
  */
-
 rev_diff *
 git_commit_diff(git_commit *old, git_commit *new)
 {

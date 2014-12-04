@@ -3,6 +3,8 @@
 
 #include "cvs.h"
 
+#define MAX_DIR_DEPTH 64
+
 /* struct revdir is defined in cvs.h so we can take advantage of struct packing */
 
 typedef struct _revdir_iter revdir_iter;
@@ -31,8 +33,12 @@ revdir_iter_next_dir(revdir_iter *it);
 bool
 revdir_iter_same_dir(const revdir_iter *it1, const revdir_iter *it2);
 
-size_t
-revdir_sizeof(void);
+void
+revdir_free_bufs(void);
+
+void
+revdir_free(void);
+
 
 /* useful if you're reusing an iterator with different revdirs */
 
