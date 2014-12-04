@@ -1,23 +1,25 @@
 #include <stddef.h>
 #include <sys/types.h>
 #include <inttypes.h>
+#include <limits.h>
 #include "hash.h"
-
-/* This feels a bit weird, is there a more standard way of switching implementations? */
 
 /* FNV Hash Constants from http://isthe.com/chongo/tech/comp/fnv/ */
 
-#define HASH_FNV_INITIAL_32 2166136261U
-#define HASH_FNV_INITIAL_64 14695981039346656037UL
-#define HASH_FNV_MIXVAL_32 16777619U
-#define HASH_FNV_MIXVAL64  1099511628211UL
+#if UINT_MAX == UINT32_MAX
+#define HASH_FNV_INITIAL 2166136261U
+#define HASH_FNV_MIXVAL 16777619U
+#elif UINT_MAX == UINT64_MAX
+#define HASH_FNV_INITIAL 14695981039346656037UL
+#define HASH_FNV_MIXVAL  1099511628211UL
+#endif
 
-#define HASH_MIX_FNV1A(hash, val) hash = (hash ^ (uint8_t)(val)) * HASH_FNV_MIXVAL_32
+#define HASH_MIX_FNV1A(hash, val) hash = (hash ^ (uint8_t)(val)) * HASH_FNV_MIXVAL
 
 static hash_t
 fnv1a_hash_init(void)
 {
-    return HASH_FNV_INITIAL_32;
+    return HASH_FNV_INITIAL;
 }
 
 static hash_t
@@ -32,7 +34,7 @@ fnv1a_hash_mix_string(hash_t seed, const char *val)
 static hash_t
 fnv1a_hash_string(const char *val)
 {
-    return fnv1a_hash_mix_string(HASH_FNV_INITIAL_32, val);
+    return fnv1a_hash_mix_string(HASH_FNV_INITIAL, val);
 }
 
 static hash_t
@@ -47,7 +49,7 @@ fnv1a_hash_mix(hash_t seed, const char *val, size_t len)
 static hash_t
 fnv1a_hash_value(const char *val, size_t len)
 {
-    return fnv1a_hash_mix(HASH_FNV_INITIAL_32, val, len);
+    return fnv1a_hash_mix(HASH_FNV_INITIAL, val, len);
 }
 
 
