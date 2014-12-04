@@ -386,7 +386,7 @@ main(int argc, char **argv)
     if (forest.git) {
 	switch(exec_mode) {
 	case ExecuteGraph:
-	    //dump_rev_graph(forest.git, NULL);
+	    dump_rev_graph(forest.git, NULL);
 	    break;
 	case ExecuteAuthors:
 	    export_authors(&forest, &export_options);
