@@ -26,3 +26,4 @@ hash_mix_string(hash_t seed, const char *val);
 #define HASH_COMBINE(h1, h2) ((h1) ^ (h2))
 
 #endif /* _HASH_H_ */
+
