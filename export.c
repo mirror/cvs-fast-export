@@ -26,6 +26,7 @@
 #include <time.h>
 
 #include "cvs.h"
+#include "revdir.h"
 /*
  * If a program has ever invoked pthreads, the GNU C library does extra
  * checking during stdio operations even if the program no longer has
@@ -245,55 +246,6 @@ struct fileop {
  */
 #define display_date(c, m, f)	(f ? (100000 + (m) * commit_time_window * 2) : ((c)->date + RCS_EPOCH))
 
-/*
- * An iterator structure over the sorted files in a git_commit
- */
-typedef struct _file_iter {
-    rev_dir * const *dir;
-    rev_dir * const *dirmax;
-    cvs_commit **file;
-    cvs_commit **filemax;
-} file_iter;
-
-static cvs_commit *
-file_iter_next(file_iter *pos) {
-    if (pos->dir == pos->dirmax)
-        return NULL;
-again:
-    if (pos->file != pos->filemax)
-	return *pos->file++;
-    ++pos->dir;
-    if (pos->dir == pos->dirmax)
-        return NULL;
-    pos->file = (*pos->dir)->files;
-    pos->filemax = pos->file + (*pos->dir)->nfiles;
-    goto again;
-}
-
-static cvs_commit *
-file_iter_next_dir(file_iter *pos) {
- again:
-    ++pos->dir;
-    if (pos->dir >= pos->dirmax)
-	return NULL;
-    pos->file = (*pos->dir)->files;
-    pos->filemax = pos->file + (*pos->dir)->nfiles;
-    if (pos->file != pos->filemax)
-	return *pos->file++;
-    goto again;
-}
-
-static void
-file_iter_start(file_iter *pos, const git_commit *commit) {
-    pos->dir = *commit->dirs;
-    pos->dirmax = *commit->dirs + commit->ndirs;
-    if (pos->dir != pos->dirmax) {
-        pos->file = (*pos->dir)->files;
-        pos->filemax = pos->file + (*pos->dir)->nfiles;
-    } else {
-        pos->file = pos->filemax = NULL;
-    }
-}
 
 #ifdef ORDERDEBUG
 static void dump_file(const cvs_commit *cvs_commit, FILE *fp)
@@ -370,6 +322,9 @@ append_revpair(cvs_commit *c, const export_options_t *opts,
     }
 }
 
+static revdir_iter *commit_iter = NULL;
+static revdir_iter *parent_iter = NULL;
+
 static void
 build_delete_op(cvs_commit *c, struct fileop *op)
 {
@@ -382,7 +337,6 @@ export_commit(git_commit *commit, const char *branch,
 /* export a commit and the blobs it is the first to reference */
 {
     const git_commit *parent = commit->parent;
-    file_iter commit_iter;
     cvs_commit *cc;
     cvs_author *author;
     const char *full;
@@ -412,26 +366,26 @@ export_commit(git_commit *commit, const char *branch,
      * The merge join also preseves this order, removing the need to sort
      * operations once generated.
      */
-    file_iter_start(&commit_iter, commit);
-    cc = file_iter_next(&commit_iter);
-    if (parent) {
-	file_iter parent_iter;
-	file_iter_start(&parent_iter, parent);
+    REVDIR_ITER_START(commit_iter, &commit->revdir);
 
-	cvs_commit *pc = file_iter_next(&parent_iter);
+    cc = revdir_iter_next(commit_iter);
+    if (parent) {
+	REVDIR_ITER_START(parent_iter, &parent->revdir);
+
+	cvs_commit *pc = revdir_iter_next(parent_iter);
 	while (cc && pc) {
 	    /* If we're in the same packed directory then skip it */
-	    if (*commit_iter.dir == *parent_iter.dir) {
-		pc = file_iter_next_dir(&parent_iter);
-		cc = file_iter_next_dir(&commit_iter);
+	    if (revdir_iter_same_dir(commit_iter, parent_iter)) {
+		pc = revdir_iter_next_dir(parent_iter);
+		cc = revdir_iter_next_dir(commit_iter);
 		continue;
 	    }
 	    if (cc == pc) {
 		/* Child and parent the same, skip. Do this check first as 
                  * it is the cheapest and fairly common 
 		 */
-		pc = file_iter_next(&parent_iter);
-		cc = file_iter_next(&commit_iter);
+		pc = revdir_iter_next(parent_iter);
+		cc = revdir_iter_next(commit_iter);
 		continue;
 	    }
 	    if (pc->master == cc->master) {
@@ -439,8 +393,8 @@ export_commit(git_commit *commit, const char *branch,
 		build_modify_op(cc, op);
 		append_revpair(cc, opts, &revpairs, &revpairsize);
 		op = next_op_slot(&operations, op, &noperations);
-		pc = file_iter_next(&parent_iter);
-		cc = file_iter_next(&commit_iter);
+		pc = revdir_iter_next(parent_iter);
+		cc = revdir_iter_next(commit_iter);
 		continue;
 	    }
 	    /* masters are sorted in fileop order */
@@ -448,22 +402,22 @@ export_commit(git_commit *commit, const char *branch,
 		/* parent but no child, delete op */
 		build_delete_op(pc, op);
 		op = next_op_slot(&operations, op, &noperations);
-		pc = file_iter_next(&parent_iter);
+		pc = revdir_iter_next(parent_iter);
 	    } else {
 		/* child but no parent, modify op */
 		build_modify_op(cc, op);
 		append_revpair(cc, opts, &revpairs, &revpairsize);
 		op = next_op_slot(&operations, op, &noperations);
-		cc = file_iter_next(&commit_iter);
+		cc = revdir_iter_next(commit_iter);
 	    }
 	}
-	for (; pc; pc = file_iter_next(&parent_iter)) {
+	for (; pc; pc = revdir_iter_next(parent_iter)) {
 	    /* parent but no child, delete op */
 	    build_delete_op(pc, op);
 	    op = next_op_slot(&operations, op, &noperations);
 	}
     }
-    for (; cc; cc = file_iter_next(&commit_iter)) {
+    for (; cc; cc = revdir_iter_next(commit_iter)) {
 	/* child but no parent, modify op */
 	build_modify_op(cc, op);
 	append_revpair(cc, opts, &revpairs, &revpairsize);

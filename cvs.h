@@ -35,7 +35,6 @@
 #include <stdbool.h>
 #include <limits.h>
 #include "cvstypes.h"
-
 /* 
  * CVS_MAX_BRANCHWIDTH should match the number in the longrev test.
  * If it goes above 128 some bitfield widths in rev_ref must increase.
@@ -44,7 +43,6 @@
 #define CVS_MAX_BRANCHWIDTH	10
 #define CVS_MAX_DEPTH		(2*CVS_MAX_BRANCHWIDTH + 2)
 #define CVS_MAX_REV_LEN		(CVS_MAX_DEPTH * (CVS_MAX_DIGITS + 1))
-
 
 
 /*
@@ -251,15 +249,23 @@ typedef struct _rev_master {
     mode_t		mode;
 } rev_master;
 
-typedef struct _rev_dir {
-    /* a directory containing a collection of file states */
-    serial_t		nfiles;
-    struct _cvs_commit	*files[0];
-} rev_dir;
 
 /*
  * Structures built by master file parsing end.
  */
+
+typedef struct _file_list file_list;
+
+/* This should be considered an opaque type outside of revdir.c, but
+ * we want to take advantage of being able to pack the struct
+ * in a parent struct. Represents a packed list of files.
+ */
+typedef struct _revdir {
+    /* dirs is slightly misleading, as there may be subdirs in the same entry */
+    unsigned short    ndirs;
+    struct _file_list **dirs;
+} revdir;
+
 
 /*
  * Tricky polymorphism hack to reduce working set size for large repos
@@ -327,9 +333,7 @@ typedef struct _git_commit {
      * Its value could be truncated in very large repos.
      */
     unsigned short      nfiles;
-    unsigned short	ndirs;
-    /* pointer to array of dir pointers */
-    rev_dir		*(*dirs)[0];
+    revdir		revdir;
 } git_commit;
 
 typedef struct _rev_ref {
@@ -641,9 +645,6 @@ free_author_map(void);
 void generate_files(generator_t *gen, 
 		    export_options_t *opts,
 		    void (*hook)(node_t *node, void *buf, size_t len, export_options_t *popts));
-
-rev_dir **
-rev_pack_files(cvs_commit **files, size_t nfiles, unsigned short *ndr);
 
 void
 rev_free_dirs(void);

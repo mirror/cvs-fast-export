@@ -17,7 +17,7 @@
  */
 
 #include "cvs.h"
-
+#include "revdir.h"
 /*
  * These functions analyze a CVS revlist into a changeset DAG.
  *
@@ -249,11 +249,10 @@ git_commit_build(cvs_commit **revisions, cvs_commit *leader,
 {
     size_t	n, nfile;
     git_commit	*commit;
-    rev_dir	**rds;
 
     if (nactive > sfiles) {
 	free(files);
-	files = 0;
+	files = NULL;
     }
     if (!files)
 	/* coverity[sizecheck] Coverity has a bug here */
@@ -286,11 +285,9 @@ git_commit_build(cvs_commit **revisions, cvs_commit *leader,
 	    files[nfile++]->gitspace = commit;
 	}
 
+    revdir_pack_files(files, nfile, &commit->revdir);
     /* Possible truncation */
     commit->nfiles = nfile;
-    rds = rev_pack_files(files, nfile, &commit->ndirs);
-    commit->dirs = xmalloc(sizeof(rev_dir *) * commit->ndirs, "rev_dir");
-    memcpy(commit->dirs, rds, commit->ndirs * sizeof(rev_dir *));
 
 #ifdef ORDERDEBUG
     debugmsg("commit_build: %p\n", commit);
@@ -298,14 +295,11 @@ git_commit_build(cvs_commit **revisions, cvs_commit *leader,
     for (n = 0; n < nfile; n++)
 	debugmsg("%s\n", revisions[n]->master->name);
     fputs("After packing:\n", LOGFILE);
-    for (n = 0; n < commit->ndirs; n++)
-    {
-	rev_dir *rev_dir = *commit->dirs[n];
-	int i;
+    revdir_iter *i = revdir_iter_alloc(&commit->revdir);
+    cvs_commit *c;
+    while((c = revdir_iter_next(i)))
+	debugmsg("   file name: %s\n", c->master->name);
 
-	for (i = 0; i < rev_dir->nfiles; i++)
-	    debugmsg("   file name: %s\n", rev_dir->files[i]->master->name);
-    }
 #endif /* ORDERDEBUG */
 
     return commit;
@@ -804,7 +798,9 @@ merge_branches(rev_ref **branches, int nbranch,
 		 */
 		fprintf(LOGFILE, "\tbranch(%3d): %s  ",
 			n, cvstime2rfc3339(prev->date));
-		first = (*prev->dirs)[0]->files[0];
+		revdir_iter *ri = revdir_iter_alloc(&prev->revdir);
+		first = revdir_iter_next(ri);
+		free(ri);
 		dump_number_file(LOGFILE,
 				  first->master->name,
 				  first->number);
@@ -1082,23 +1078,23 @@ merge_to_changesets(cvs_master *masters, size_t nmasters, int verbose)
 static cvs_commit_list *
 rev_uniq_file(git_commit *uniq, git_commit *common, int *nuniqp)
 {
-    int	i, j;
     int nuniq = 0;
     cvs_commit_list   *head = NULL, **tail = &head, *fl;
-    
+    cvs_commit *c;
+
     if (!uniq)
 	return NULL;
-    for (i = 0; i < uniq->ndirs; i++) {
-	rev_dir	*dir = *uniq->dirs[i];
-	for (j = 0; j < dir->nfiles; j++)
-	    if (dir->files[j]->gitspace != common) {
-		fl = xcalloc(1, sizeof(cvs_commit_list), "rev_uniq_file");
-		fl->file = dir->files[j];
-		*tail = fl;
-		tail = &fl->next;
-		++nuniq;
-	    }
+    revdir_iter *ri = revdir_iter_alloc(&uniq->revdir);
+    while ((c = revdir_iter_next(ri))) {
+	if (c->gitspace != common) {
+	    fl = xcalloc(1, sizeof(cvs_commit_list), "rev_uniq_file");
+	    fl->file = c;
+	    *tail = fl;
+	    tail = &fl->next;
+	    ++nuniq;
+	}
     }
+    free(ri);
     *nuniqp = nuniq;
     return head;
 }
