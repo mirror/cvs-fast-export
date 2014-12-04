@@ -1,5 +1,6 @@
 #include <stddef.h>
 #include <sys/types.h>
+#include <inttypes.h>
 #include "hash.h"
 
 /* This feels a bit weird, is there a more standard way of switching implementations? */
