@@ -22,7 +22,8 @@
  * structure built by the grammar parse of the master as its single
  * argument.
  */
-
+// needed for PTHREAD_RECURSIVE_MUTEX_INITIALIZER_NP
+#define _GNU_SOURCE
 #include "cvs.h"
 #include "hash.h"
 
@@ -34,7 +35,10 @@
 #include <pthread.h>
 #endif
 
-static const char *fileop_name(const char *rectified)
+const master_dir *root_dir = NULL;
+
+static const char *
+fileop_name(const char *rectified)
 {
     size_t rlen = strlen(rectified);
 
@@ -50,6 +54,20 @@ static const char *fileop_name(const char *rectified)
     return rectified;
 }
 
+static const char*
+dir_name(const char *filename)
+{
+    char *slash = strrchr(filename, '/');
+    char buf[PATH_MAX];
+    if (slash) {
+	strncpy(buf, filename, slash - filename);
+	buf[slash - filename] = '\0';
+	return atom(buf);
+    } else {
+	return atom("\0");
+    }
+}
+
 #define DIR_BUCKETS 24593
 
 typedef struct _dir_bucket {
@@ -59,29 +77,18 @@ typedef struct _dir_bucket {
 
 static dir_bucket *dir_buckets[DIR_BUCKETS];
 #ifdef THREADS
-static pthread_mutex_t dir_bucket_mutex = PTHREAD_MUTEX_INITIALIZER;
+static pthread_mutex_t dir_bucket_mutex = PTHREAD_RECURSIVE_MUTEX_INITIALIZER_NP;
 #endif /* THREADS */
 
+
 static const master_dir *
-atom_dir(const char* name)
+atom_dir(const char* dirname)
 /* Extract information about the directory a master is in .
  * atomize the result so all references to the same directory
  * point the the same value.
+ * Needs to be called with an atomized string
  */
 {
-    char       *slash = strrchr(name, '/');
-    const char *dirname;
-    short      dirlen;
-    char       buf[PATH_MAX];
-    if (slash) {
-	strncpy(buf, name, slash - name);
-	buf[slash - name] = '\0';
-	dirname = atom(buf);
-	dirlen = slash - name;
-    } else {
-	dirname = atom("\0");
-	dirlen = 0;
-    }
     dir_bucket **head = &dir_buckets[HASH_VALUE(dirname) % DIR_BUCKETS];
     dir_bucket *b;
 
@@ -105,10 +112,15 @@ atom_dir(const char* name)
     b = xmalloc(sizeof(dir_bucket), __func__);
     b->next = NULL;
     b->dir.name = dirname;
-    b->dir.len = dirlen;
+    b->dir.len = strlen(dirname);
     /* used as an input to the hash of the dir_is_ancestor fn */
     b->dir.prehash = HASH_VALUE(b);
     *head = b;
+    if (b->dir.len > 0)
+	/* recursive mutex use, find parent dir */
+	b->dir.parent = atom_dir(dir_name(dirname));
+    else
+	b->dir.parent = NULL;
 #ifdef THREADS
     if (threads > 1)
 	pthread_mutex_unlock(&dir_bucket_mutex);
@@ -142,7 +154,7 @@ build_rev_master(cvs_file *cvs, rev_master *master)
 {
     master->name = cvs->export_name;
     master->fileop_name = fileop_name(cvs->export_name);
-    master->dir = atom_dir(master->name);
+    master->dir = atom_dir(dir_name(master->name));
     master->mode = cvs->mode;
     master->commits = xcalloc(cvs->nversions, sizeof(cvs_commit), "commit slab alloc");
     master->ncommits = 0;
@@ -869,7 +881,8 @@ cvs_master_digest(cvs_file *cvs, cvs_master *cm, rev_master *master)
     cvs_version	*cv;
     cvs_branch	*cb;
     cvs_version	*ctrunk = NULL;
-    
+
+    if (!root_dir) root_dir = atom_dir(atom("\0"));
     build_rev_master(cvs, master);
 #if CVSDEBUG
     char buf[CVS_MAX_REV_LEN];

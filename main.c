@@ -144,7 +144,7 @@ static void print_sizes(void)
     printf("sizeof(editbuffer_t)  = %zu\n", sizeof(editbuffer_t));
     printf("sizeof(cvs_file)      = %zu\n", sizeof(cvs_file));
     printf("sizeof(rev_master)    = %zu\n", sizeof(rev_master));
-    printf("sizeof(revdir)       = %zu\n", revdir_sizeof());
+    printf("sizeof(revdir)        = %zu\n", sizeof(revdir));
     printf("sizeof(cvs_commit)    = %zu\n", sizeof(cvs_commit));
     printf("sizeof(git_commit)    = %zu\n", sizeof(git_commit));
     printf("sizeof(rev_ref)       = %zu\n", sizeof(rev_ref));
@@ -386,7 +386,7 @@ main(int argc, char **argv)
     if (forest.git) {
 	switch(exec_mode) {
 	case ExecuteGraph:
-	    dump_rev_graph(forest.git, NULL);
+	    //dump_rev_graph(forest.git, NULL);
 	    break;
 	case ExecuteAuthors:
 	    export_authors(&forest, &export_options);
@@ -429,7 +429,7 @@ main(int argc, char **argv)
 
     discard_atoms();
     discard_tags();
-    rev_free_dirs();
+    revdir_free();
     free_author_map();
     return forest.errcount > 0;
 }
