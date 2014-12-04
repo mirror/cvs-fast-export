@@ -22,6 +22,7 @@
 #include <time.h>
 #include <sys/stat.h>
 #include <sys/resource.h>
+#include "revdir.h"
 #if defined(__GLIBC__)
 #include <malloc.h>
 #endif /* __GLIBC__ */
@@ -143,7 +144,7 @@ static void print_sizes(void)
     printf("sizeof(editbuffer_t)  = %zu\n", sizeof(editbuffer_t));
     printf("sizeof(cvs_file)      = %zu\n", sizeof(cvs_file));
     printf("sizeof(rev_master)    = %zu\n", sizeof(rev_master));
-    printf("sizeof(rev_dir)       = %zu\n", sizeof(rev_dir));
+    printf("sizeof(revdir)       = %zu\n", revdir_sizeof());
     printf("sizeof(cvs_commit)    = %zu\n", sizeof(cvs_commit));
     printf("sizeof(git_commit)    = %zu\n", sizeof(git_commit));
     printf("sizeof(rev_ref)       = %zu\n", sizeof(rev_ref));

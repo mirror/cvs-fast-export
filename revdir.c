@@ -22,16 +22,24 @@
 
 #include "cvs.h"
 #include "hash.h"
+#include "revdir.h"
+
+struct _file_list {
+    /* a directory containing a collection of file states */
+    serial_t   nfiles;
+    cvs_commit *files[0];
+};
+
 
 #define REV_DIR_HASH	288361
 
-typedef struct _rev_dir_hash {
-    struct _rev_dir_hash *next;
-    hash_t	         hash;
-    rev_dir		 dir;
-} rev_dir_hash;
+typedef struct _file_list_hash {
+    struct _file_list_hash *next;
+    hash_t	           hash;
+    file_list		   fl;
+} file_list_hash;
 
-static rev_dir_hash	*buckets[REV_DIR_HASH];
+static file_list_hash	*buckets[REV_DIR_HASH];
 
 static hash_t
 hash_files(cvs_commit **files, const int nfiles)
@@ -46,30 +54,30 @@ hash_files(cvs_commit **files, const int nfiles)
     return h;
 }
 
-static rev_dir *
-rev_pack_dir(cvs_commit **files, const int nfiles)
+static file_list *
+pack_file_list(cvs_commit **files, const int nfiles)
 /* pack a collection of file revisions for space efficiency */
 {
-    uintptr_t    hash = hash_files(files, nfiles);
-    rev_dir_hash **bucket = &buckets[hash % REV_DIR_HASH];
-    rev_dir_hash *h;
+    hash_t         hash = hash_files(files, nfiles);
+    file_list_hash **bucket = &buckets[hash % REV_DIR_HASH];
+    file_list_hash *h;
 
     /* avoid packing a file list if we've done it before */ 
     for (h = *bucket; h; h = h->next) {
-	if (h->hash == hash && h->dir.nfiles == nfiles &&
-	    !memcmp(files, h->dir.files, nfiles * sizeof(cvs_commit *)))
+	if (h->hash == hash && h->fl.nfiles == nfiles &&
+	    !memcmp(files, h->fl.files, nfiles * sizeof(cvs_commit *)))
 	{
-	    return &h->dir;
+	    return &h->fl;
 	}
     }
-    h = xmalloc(sizeof(rev_dir_hash) + nfiles * sizeof(cvs_commit *),
+    h = xmalloc(sizeof(file_list_hash) + nfiles * sizeof(cvs_commit *),
 		 __func__);
     h->next = *bucket;
     *bucket = h;
     h->hash = hash;
-    h->dir.nfiles = nfiles;
-    memcpy(h->dir.files, files, nfiles * sizeof(cvs_commit *));
-    return &h->dir;
+    h->fl.nfiles = nfiles;
+    memcpy(h->fl.files, files, nfiles * sizeof(cvs_commit *));
+    return &h->fl;
 }
 
 /*
@@ -159,24 +167,23 @@ static int compare_cvs_commit(const void *a, const void *b)
     return path_deep_compare(af, bf);
 }
 
-
-static int	    sds = 0;
-static rev_dir **rds = NULL;
+static size_t    sdirs = 0;
+static file_list **dirs = NULL;
 
 static void
-rds_put(const int index, rev_dir *rd)
-/* puts an entry into the rds buffer, growing if needed */
+fl_put(const size_t index, file_list *fl)
+/* puts an entry into the dirs buffer, growing if needed */
 {
-    if (sds == 0) {
-	sds = 128;
-	rds = xmalloc(sds * sizeof(rev_dir *), __func__);
-    } else if (sds <= index) {
+    if (sdirs == 0) {
+	sdirs = 128;
+	dirs = xmalloc(sdirs * sizeof(file_list *), __func__);
+    } else if (sdirs <= index) {
 	do {
-	    sds *= 2;
-	} while (sds <= index);
-	rds = xrealloc(rds, sds * sizeof(rev_dir *), __func__);
+	    sdirs *= 2;
+	} while (sdirs <= index);
+	dirs = xrealloc(dirs, sdirs * sizeof(revdir *), __func__);
     }
-    rds[index] = rd;
+    dirs[index] = fl;
 }
 
 /* entry points begin here */
@@ -187,18 +194,18 @@ rev_free_dirs(void)
     unsigned long   hash;
 
     for (hash = 0; hash < REV_DIR_HASH; hash++) {
-	rev_dir_hash    **bucket = &buckets[hash];
-	rev_dir_hash	*h;
+	file_list_hash  **bucket = &buckets[hash];
+	file_list_hash	*h;
 
 	while ((h = *bucket)) {
 	    *bucket = h->next;
 	    free(h);
 	}
     }
-    if (rds) {
-	free(rds);
-	rds = NULL;
-	sds = 0;
+    if (dirs) {
+	free(dirs);
+	dirs = NULL;
+	sdirs = 0;
     }
 }
 /* Tuned to netbsd-pkgsrc which creates 94245 hash entries*/
@@ -236,19 +243,81 @@ dir_is_ancestor(const master_dir *child, const master_dir *ancestor)
     b->next = NULL;
     b->child = child;
     b->ancestor = ancestor;
-    b->is_ancestor = (strncmp(child->name, ancestor->name, ancestor->len) != 0);
+    b->is_ancestor = (strncmp(child->name, ancestor->name, ancestor->len) == 0);
     *head = b;
     return b->is_ancestor;
 }
 
+/* An iterator structure over the sorted files in a rev_dir */
+struct _revdir_iter {
+    file_list * const *dir;
+    file_list * const *dirmax;
+    cvs_commit **file;
+    cvs_commit **filemax;
+} file_iter;
 
-rev_dir **
-rev_pack_files(cvs_commit **files, size_t nfiles, unsigned short *ndr)
+/* Iterator interface */
+cvs_commit *
+revdir_iter_next(revdir_iter *it) {
+    if (it->dir == it->dirmax)
+        return NULL;
+again:
+    if (it->file != it->filemax)
+	return *it->file++;
+    ++it->dir;
+    if (it->dir == it->dirmax)
+        return NULL;
+    it->file = (*it->dir)->files;
+    it->filemax = it->file + (*it->dir)->nfiles;
+    goto again;
+}
+
+cvs_commit *
+revdir_iter_next_dir(revdir_iter *it) {
+ again:
+    ++it->dir;
+    if (it->dir >= it->dirmax)
+	return NULL;
+    it->file = (*it->dir)->files;
+    it->filemax = it->file + (*it->dir)->nfiles;
+    if (it->file != it->filemax)
+	return *it->file++;
+    goto again;
+}
+
+void
+revdir_iter_start(revdir_iter *it, const revdir *revdir) {
+    it->dir = revdir->dirs;
+    it->dirmax = revdir->dirs + revdir->ndirs;
+    if (it->dir != it->dirmax) {
+        it->file = (*it->dir)->files;
+        it->filemax = it->file + (*it->dir)->nfiles;
+    } else {
+        it->file = it->filemax = NULL;
+    }
+}
+
+bool
+revdir_iter_same_dir(const revdir_iter *it1, const revdir_iter *it2)
+{
+    return *it1->dir == *it2->dir;
+}
+
+revdir_iter *
+revdir_iter_alloc(const revdir *revdir)
+{
+    revdir_iter *it = xmalloc(sizeof(revdir_iter), __func__);
+    revdir_iter_start(it, revdir);
+    return it;
+}
+
+void
+revdir_pack_files(cvs_commit **files, const size_t nfiles, revdir *revdir)
 {
     const master_dir *dir = NULL, *curdir = NULL;
     size_t           i, start = 0;
-    unsigned short   nds = 0;
-    rev_dir          *rd;
+    unsigned short   ndirs = 0;
+    file_list        *fl;
     
 #ifdef ORDERDEBUG
     fputs("Packing:\n", stderr);
@@ -278,10 +347,10 @@ rev_pack_files(cvs_commit **files, size_t nfiles, unsigned short *ndr)
     for (i = 0; i < nfiles; i++) {
 	/* avoid strncmp as much as possible */
 	if (curdir != files[i]->master->dir) {
-	    if (!dir || dir_is_ancestor(files[i]->master->dir, dir)) {
+	    if (!dir || !dir_is_ancestor(files[i]->master->dir, dir)) {
 		if (i > start) {
-		    rd = rev_pack_dir(files + start, i - start);
-		    rds_put(nds++, rd);
+		    fl = pack_file_list(files + start, i - start);
+		    fl_put(ndirs++, fl);
 		}
 		start = i;
 		dir = files[i]->master->dir;
@@ -290,12 +359,20 @@ rev_pack_files(cvs_commit **files, size_t nfiles, unsigned short *ndr)
 	}
     }
     if (dir) {
-        rd = rev_pack_dir(files + start, nfiles - start);
-        rds_put(nds++, rd);
+        fl = pack_file_list(files + start, nfiles - start);
+        fl_put(ndirs++, fl);
     }
     
-    *ndr = nds;
-    return rds;
+    revdir->dirs = xmalloc(ndirs * sizeof(file_list *), "rev_dir");
+    revdir->ndirs = ndirs;
+    memcpy(revdir->dirs, dirs, ndirs * sizeof(file_list *));
 }
+
+size_t
+revdir_sizeof(void)
+{
+    return sizeof(revdir);
+}
+
 
 // end

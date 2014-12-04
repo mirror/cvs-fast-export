@@ -6,14 +6,15 @@
 
 /* FNV Hash Constants from http://isthe.com/chongo/tech/comp/fnv/ */
 
-#if UINT_MAX == UINT32_MAX
+//#if UINT_MAX == UINT32_MAX
 #define HASH_FNV_INITIAL 2166136261U
 #define HASH_FNV_MIXVAL 16777619U
+/*
 #elif UINT_MAX == UINT64_MAX
 #define HASH_FNV_INITIAL 14695981039346656037UL
 #define HASH_FNV_MIXVAL  1099511628211UL
 #endif
-
+*/
 #define HASH_MIX_FNV1A(hash, val) hash = (hash ^ (uint8_t)(val)) * HASH_FNV_MIXVAL
 
 static hash_t
