@@ -39,6 +39,8 @@ CFLAGS += -march=native
 #CPPFLAGS += -DRBDEBUG=1
 # To enable debugging of order instability issues
 #CPPFLAGS += -DORDERDEBUG=1
+# To enable debugging of gitspace backlinks, uncomment the following line
+#CPPFLAGS += -DGITSPACEDEBUG=1
 
 # Condition in various optimization hacks.  You almost certainly
 # don't want to turn any of these off; the condition symbols are

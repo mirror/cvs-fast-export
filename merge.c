@@ -269,21 +269,10 @@ git_commit_build(cvs_commit **revisions, cvs_commit *leader,
     commit->dead = false;
     commit->refcount = commit->serial = 0;
 
-    /*
-     * Previously, the rev_dirs array was at the end of the git_commit struct.
-     * This means we didn't know the size until after the call to rev_pack_files.
-     * So, we had to do this iteration through the revisions twice, once to
-     * pick out the files and then later to assign the back link.
-     * In large repositories it is a hotspot. Before this, each iteration was
-     * 13% of the CPU time of the netbsd-pkgsrc conversion.
-     */
     nfile = 0;
     for (n = 0; n < nrevisions; n++)
-	if (revisions[n] && !revisions[n]->dead) {
-	    files[nfile] = revisions[n];
-	    /* link each CVS commit to the gitspace commit it is part of */
-	    files[nfile++]->gitspace = commit;
-	}
+	if (revisions[n] && !revisions[n]->dead)
+	    files[nfile++] = revisions[n];
 
     revdir_pack_files(files, nfile, &commit->revdir);
     /* Possible truncation */
@@ -665,6 +654,8 @@ merge_branches(rev_ref **branches, int nbranch,
 		    break;
 		continue;
 	    }
+	    if (!c->gitspace)
+		c->gitspace = commit;
 	    to = c->parent;
 	    /*
 	     * CVS branch starts here?  If so, drop it out of
@@ -822,8 +813,12 @@ merge_branches(rev_ref **branches, int nbranch,
 	if (*tail) {
 	    if (prev)
 		prev->tail = true;
-	} else 
+	} else {
 	    *tail = git_commit_build(revisions, revisions[0], nrev, nbranch);
+	    for (n = 0; n < nrev; n++)
+		if (revisions[n] && !revisions[n]->gitspace)
+		    revisions[n]->gitspace = *tail;
+	}
     }
 
     for (n = 0; n < nbranch; n++)
@@ -1036,6 +1031,32 @@ merge_to_changesets(cvs_master *masters, size_t nmasters, int verbose)
     progress_end(NULL);
     merge_branches_cleanup();
     revdir_free_bufs();
+
+#ifdef GITSPACEDEBUG
+    /* Check every non-dead cvs commit has a backlink
+     * and that every pair of linked commits match
+     * according to cvs_commit_match.
+     * (note this will check common parents multiple times)
+     */
+    for (cm = masters; cm < masters + nmasters; cm++) {
+	for (lh = cm->heads; lh; lh = lh->next) {
+	    cvs_commit *c = lh->commit;
+	    for (; c; c = c->parent) {
+		if (!c->gitspace) {
+		    if (!c->dead) {
+			fprintf(LOGFILE, "No gitspace: ");
+			dump_number_file(LOGFILE, c->master->name, c->number);
+			fprintf(LOGFILE, "\n");
+		    }
+		} else if (!cvs_commit_match(c, (cvs_commit *)c->gitspace)) {
+		    fprintf(LOGFILE, "Gitspace doesn't match cvs: ");
+		    dump_number_file(LOGFILE, c->master->name, c->number);
+		    fprintf(LOGFILE, "\n");
+		}
+	    }
+	}
+    }
+#endif /* GITSPACEDEBUG */
     /*
      * Compute 'tail' values.  These allow us to recognize branch joins
      * so we can write efficient traversals that walk branches without
