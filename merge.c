@@ -746,7 +746,7 @@ merge_branches(rev_ref **branches, int nbranch,
      * to be collected in the previous phase).  This is not the brahch's
      * root commit, but the child of that root.
      */
-    nbranch = cvs_commit_date_sort(revisions, nbranch);
+    nbranch = cvs_commit_date_sort(revisions, nrev);
     if (nbranch && branch->parent )
     {
 	int	present;
