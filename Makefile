@@ -74,11 +74,10 @@ OBJS=gram.o lex.o rbtree.o main.o import.o dump.o cvsnumber.o \
 cvs-fast-export: $(OBJS)
 	$(CC) $(CFLAGS) $(TARGET_ARCH) $(OBJS) $(LDFLAGS) $(LIBS) -o $@
 
-$(OBJS): cvs.h
+$(OBJS): cvs.h cvstypes.h
 revcvs.o cvsutils.o rbtree.o: rbtree.h
 atom.o nodehash.o revcvs.o revdir.o: hash.h
 revdir.o: treepack.c dirpack.c
-cvs.h hash.h: cvstypes.h
 
 
 BISON ?= bison
