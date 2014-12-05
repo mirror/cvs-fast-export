@@ -149,6 +149,17 @@ cvs_commit_date_compare(const void *av, const void *bv)
     return 0;
 }
 
+static cvs_commit *
+cvs_commit_latest(cvs_commit **commits, int ncommit)
+/* find newest commit in a set */
+{
+    cvs_commit *max = NULL, **c;
+    for (c = commits; c < commits + ncommit; c++)
+	if (!max || ((*c) && time_compare((*c)->date, max->date) > 0))
+	    max = (*c);
+    return max;
+}
+
 static int
 cvs_commit_date_sort(cvs_commit **commits, int ncommit)
 /* sort CVS commits by date */
@@ -835,54 +846,12 @@ merge_branches(rev_ref **branches, int nbranch,
 static void
 rev_tag_search(tag_t *tag, cvs_commit **revisions, git_repo *gl)
 {
-    rev_ref	*h;
-    git_commit	*gc;
-
-    cvs_commit_date_sort(revisions, tag->count);
-    /* tag gets parented with oldest branch with a matching commit */
-    tag->parent = NULL;
-    for (h = gl->heads; h; h = h->next)
-    {
-	if (h->tail)
-	    continue;
-	for (gc = (git_commit *)h->commit; gc; gc = gc->parent) {
-	    if (gc == revisions[0]->gitspace) {
-		tag->parent = h;
-		goto breakout;
-	    }
-	    if (gc->tail)
-		break;
-	}
-    }
-breakout:
-#ifdef __UNUSED__
-    if (tag->parent == NULL)
-	/*
-	 * This is what the code used to do before we put in the direct check
-	 * against the gitspace pointer.  Advantage: my note requiring an
-	 * exact match, it avoids omitting "could not be assigned"
-	 * messages for a master that has been lifted out of context.
-	 * Disadvantage: those messages may be a correctness feature.
-	 * Also this computation is slightly more expensive.
-	 */
-	tag->parent = git_branch_of_commit(gl, revisions[0]);
-#endif /* __UNUSED__ */
-    if (tag->parent)
-	tag->commit = git_commit_locate(tag->parent, revisions[0]);
-    if (!tag->commit) {
-	warn("tag %s could not be assigned to a commit\n", tag->name);
-#if 0
-	/*
-	 * ESR: Keith's code appeared to be trying to create a
-	 * synthetic commit for unmatched tags. The comment 
-	 * from Al Viro below points at one reason this is probably
-	 * not a good idea.  Better to fail cleanly than risk
-	 * doing something wacky to the DAG.
-	 */
-	/* AV: shouldn't we put it on some branch? */
-	tag->commit = git_commit_build(revisions, revisions[0], tag->count);
-#endif
-    }
+    /* With correct backlinks, we just find the latest tagged
+     * cvs commit and follow the backlink.
+     * Note tag->parent doesn't appear to be used.
+     */
+    cvs_commit *c = cvs_commit_latest(revisions, tag->count);
+    tag->commit = c->gitspace;
 }
 
 static void
