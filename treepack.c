@@ -233,7 +233,8 @@ tree_pack_dir(cvs_commit * const * const files, const size_t nfiles,
 	f = files[++i];
     }
 
-    rev_pack *ret = rev_pack_dir(dir_bufs[depth], ndirs, files + *start, i - *start, hash);
+    rev_pack *ret = rev_pack_dir(dir_bufs[depth], ndirs,
+				 files + *start, i - *start, hash);
     *start = i;
     return ret;
 }
