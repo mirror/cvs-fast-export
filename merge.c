@@ -665,8 +665,15 @@ merge_branches(rev_ref **branches, int nbranch,
 		    break;
 		continue;
 	    }
-	    if (!c->gitspace)
+#ifdef GITSPACEDEBUG
+	    if (c->gitspace) {
+		warn("CVS commit allocated to multiple git commits: ");
+		dump_number_file(LOGFILE, c->master->name, c->number);
+		warn("\n");
+	    } else
+#endif /* GITSPACEDEBUG */
 		c->gitspace = commit;
+
 	    to = c->parent;
 	    /*
 	     * CVS branch starts here?  If so, drop it out of
@@ -827,8 +834,18 @@ merge_branches(rev_ref **branches, int nbranch,
 	} else {
 	    *tail = git_commit_build(revisions, revisions[0], nrev, nbranch);
 	    for (n = 0; n < nrev; n++)
-		if (revisions[n] && !revisions[n]->gitspace)
-		    revisions[n]->gitspace = *tail;
+		if (revisions[n]) {
+#ifdef GITSPACEDEBUG
+		    if (revisions[n]->gitspace) {
+			warn("CVS commit allocated to multiple git commits: ");
+			dump_number_file(LOGFILE,
+					 revisions[n]->master->name,
+					 revisions[n]->number);
+			warn("\n");
+		    } else
+#endif /* GITSPACEDEBUG */
+			revisions[n]->gitspace = *tail;
+		}
 	}
     }
 
