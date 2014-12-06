@@ -931,8 +931,10 @@ static void snapshotline(editbuffer_t *eb, register uchar * l)
 	    return;
 	out_putc(eb, c);
 #else
-	if ((c = *l++) == SDELIM  &&  *l++ != SDELIM) 
+	if ((c = *l++) == SDELIM  &&  *l++ != SDELIM) {
+	    l = l - 2;
 	    break;
+	}
 	if (c == SDELIM) {
 	    // @@ is a memcpy barrier as we're unescaping it
 	    // -1 because if we get here we skipped a SDELIM
