@@ -1,4 +1,6 @@
-/* dirpack.c */
+/* Simpler method of packing a file list.
+ * Designed to be included in revdir.c
+ */
 
 #define REV_DIR_HASH	393241
 
@@ -159,6 +161,15 @@ revdir_iter_alloc(const revdir *revdir)
     revdir_iter *it = xmalloc(sizeof(revdir_iter), __func__);
     revdir_iter_start(it, revdir);
     return it;
+}
+
+serial_t
+revdir_nfiles(const revdir *revdir)
+{
+    serial_t c = 0, i;
+    for (i = 0; i < revdir->ndirs; i++)
+	c += revdir->dirs[i]->nfiles;
+    return c;
 }
 
 void

@@ -252,24 +252,17 @@ static void dump_file(const cvs_commit *cvs_commit, FILE *fp)
     char buf[CVS_MAX_REV_LEN + 1];
     fprintf(fp, "   file name: %s %s\n", cvs_commit->master->name, 
 	    cvs_number_string(cvs_commit->number, buf, sizeof(buf)));
- }
-
-static void dump_dir(const rev_dir *rev_dir, FILE *fp)
-{
-    int i;
-
-    fprintf(fp, "   file count: %d\n", rev_dir->nfiles);
-    for (i = 0; i < rev_dir->nfiles; i++)
-	dump_file(rev_dir->files[i], fp);
 }
 
 static void dump_commit(const git_commit *commit, FILE *fp)
 {
-    int i;
-    fprintf(fp, "commit %p seq %d mark %d nfiles: %d, ndirs = %d\n", 
-	    commit, commit->serial, markmap[commit->serial], commit->nfiles, commit->ndirs);
-    for (i = 0; i < commit->ndirs; i++)
-	dump_dir(*commit->dirs[i], fp);
+    revdir_iter *it = revdir_iter_alloc(&commit->revdir);
+    cvs_commit *c;
+    fprintf(fp, "commit %p seq %d mark %d nfiles: %d\n",
+	    commit, commit->serial, markmap[commit->serial],
+	    revdir_nfiles(&commit->revdir));
+    while ((c = revdir_iter_next(it)))
+	dump_file(c, fp);
 }
 #endif /* ORDERDEBUG */
 
