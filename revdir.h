@@ -13,6 +13,10 @@ typedef struct _revdir_iter revdir_iter;
 void
 revdir_pack_files(cvs_commit **files, const size_t nfiles, revdir *revdir);
 
+/* count the number of files in a revdir */
+serial_t
+revdir_nfiles(const revdir *revdir);
+
 /* allocate an iterator to use with a revdir */
 revdir_iter *
 revdir_iter_alloc(const revdir *revdir);

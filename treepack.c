@@ -238,6 +238,23 @@ tree_pack_dir(cvs_commit * const * const files, const size_t nfiles,
     return ret;
 }
 
+static serial_t
+revpack_nfiles(const rev_pack *revpack)
+{
+    serial_t c = 0, i;
+
+    for (i = 0; i < revpack->ndirs; i++)
+	c += revpack_nfiles(revpack->dirs[i]);
+    return c + revpack->nfiles;
+
+}
+
+serial_t
+revdir_nfiles(const revdir *revdir)
+{
+    return revpack_nfiles(revdir->revpack);
+}
+
 void
 revdir_pack_files(cvs_commit **files, const size_t nfiles, revdir *revdir)
 {

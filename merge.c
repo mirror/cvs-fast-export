@@ -121,13 +121,6 @@ cvs_commit_date_compare(const void *av, const void *bv)
 	return 1;
     else if (!b)
 	return -1;
-#if 0
-    /*
-     * Entries with no files sort next
-     */
-    if (a->nfiles != b->nfiles)
-	return b->nfiles - a->nfiles;
-#endif
     /*
      * tailed entries sort next
      */
@@ -286,14 +279,13 @@ git_commit_build(cvs_commit **revisions, cvs_commit *leader,
 	    files[nfile++] = revisions[n];
 
     revdir_pack_files(files, nfile, &commit->revdir);
-    /* Possible truncation */
-    commit->nfiles = nfile;
 
 #ifdef ORDERDEBUG
     debugmsg("commit_build: %p\n", commit);
 
     for (n = 0; n < nfile; n++)
-	debugmsg("%s\n", revisions[n]->master->name);
+	if (revisions[n])
+	    debugmsg("%s\n", revisions[n]->master->name);
     fputs("After packing:\n", LOGFILE);
     revdir_iter *i = revdir_iter_alloc(&commit->revdir);
     cvs_commit *c;

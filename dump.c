@@ -22,6 +22,9 @@
 
 #include "cvs.h"
 #include <unistd.h>
+#ifdef ORDERDEBUG
+#include "revdir.h"
+#endif /*ORDERDEBUG */
 
 void
 dump_number_file(FILE *f, const char *name, const cvs_number *number)
@@ -45,16 +48,10 @@ dump_git_commit(const git_commit *c, FILE *fp)
 /* dump all delta/revision pairs associated with a gitspace commit */
 {
     cvs_commit	*cc;
-    int		i, j;
-
-    for (i = 0; i < c->ndirs; i++) {
-	rev_dir	*dir = *c->dirs[i];
-	
-	for (j = 0; j < dir->nfiles; j++) {
-	    cc = dir->files[j];
-	    dump_number_file(fp, cc->master->name, cc->number);
-	    printf(" ");
-	}
+    revdir_iter *it = revdir_iter_alloc(&c->revdir);
+    while((cc = revdir_iter_next(it))) {
+	dump_number_file(fp, cc->master->name, cc->number);
+	printf(" ");
     }
     fputs("\n", fp);
 }

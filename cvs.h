@@ -340,14 +340,7 @@ typedef struct _git_commit {
     unsigned		tail:1;
     unsigned		tailed:1;
     unsigned		dead:1;
-    /*
-     * gitspace-only members begin here.
-     *
-     * nfiles is only used in debug code, but is essentially free
-     * due to alignment constraints on the structure packing. 
-     * Its value could be truncated in very large repos.
-     */
-    unsigned short      nfiles;
+    /* gitspace-only members begin here. */
     revdir		revdir;
 } git_commit;
 
