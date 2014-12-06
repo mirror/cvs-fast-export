@@ -279,8 +279,6 @@ git_commit_build(cvs_commit **revisions, cvs_commit *leader,
 	    files[nfile++] = revisions[n];
 
     revdir_pack_files(files, nfile, &commit->revdir);
-    /* Possible truncation */
-    commit->nfiles = nfile;
 
 #ifdef ORDERDEBUG
     debugmsg("commit_build: %p\n", commit);
