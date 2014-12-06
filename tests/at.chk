@@ -1,0 +1,48 @@
+blob
+mark :1
+data 43
+The quick brown fox jumped @t the lazy dog.
+commit refs/heads/master
+mark :2
+committer foo <foo> 101200 +0000
+data 24
+This is a sample commit
+
+M 100644 :1 README
+M 100644 inline .gitignore
+data 198
+# CVS default ignores begin
+tags
+TAGS
+.make.state
+.nse_depinfo
+*~
+#*
+.#*
+,*
+_$*
+*$
+*.old
+*.bak
+*.BAK
+*.orig
+*.rej
+.del-*
+*.a
+*.olb
+*.o
+*.obj
+*.so
+*.exe
+*.Z
+*.elc
+*.ln
+core
+# CVS default ignores end
+
+property cvs-revision 11 README 1.1
+
+reset refs/heads/master
+from :2
+
+done
