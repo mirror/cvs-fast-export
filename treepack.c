@@ -11,6 +11,7 @@
  */
 struct _rev_pack {
     /* a directory containing a collection of subdirs and a collection of file revisions */
+    hash_t     hash;
     serial_t   ndirs;
     serial_t   nfiles;
     rev_pack   **dirs;
@@ -19,7 +20,6 @@ struct _rev_pack {
 
 typedef struct _rev_pack_hash {
     struct _rev_pack_hash *next;
-    hash_t	          hash;
     rev_pack	          dir;
 } rev_pack_hash;
 
@@ -35,7 +35,7 @@ rev_pack_dir(rev_pack * const * dirs, const size_t ndirs,
 
     /* avoid packing a file list if we've done it before */ 
     for (h = *bucket; h; h = h->next) {
-	if (h->hash == hash && 
+	if (h->dir.hash == hash &&
 	    h->dir.nfiles == nfiles && h->dir.ndirs == ndirs &&
 	    !memcmp(dirs, h->dir.dirs, ndirs * sizeof(rev_pack *)) &&
 	    !memcmp(files, h->dir.files, nfiles * sizeof(cvs_commit *)))
@@ -46,7 +46,7 @@ rev_pack_dir(rev_pack * const * dirs, const size_t ndirs,
     h = xmalloc(sizeof(rev_pack_hash), __func__);
     h->next = *bucket;
     *bucket = h;
-    h->hash = hash;
+    h->dir.hash = hash;
     h->dir.ndirs = ndirs;
     h->dir.dirs = xmalloc(ndirs * sizeof(rev_pack *), __func__);
     memcpy(h->dir.dirs, dirs, ndirs * sizeof(rev_pack *));
@@ -220,7 +220,7 @@ tree_pack_dir(cvs_commit * const * const files, const size_t nfiles,
 					       first_subdir(f->master->dir, dir),
 					       depth + 1);
 
-	HASH_MIX(hash, dir_bufs[depth][ndirs]);
+	hash = HASH_COMBINE(hash, dir_bufs[depth][ndirs]->hash);
 	ndirs++;
 
 	f = files[*start];
