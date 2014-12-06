@@ -144,12 +144,13 @@ cvs_commit_date_compare(const void *av, const void *bv)
 
 static cvs_commit *
 cvs_commit_latest(cvs_commit **commits, int ncommit)
-/* find newest commit in a set */
+/* find newest live commit in a set */
 {
     cvs_commit *max = NULL, **c;
     for (c = commits; c < commits + ncommit; c++)
-	if (!max || ((*c) && time_compare((*c)->date, max->date) > 0))
-	    max = (*c);
+	if ((*c) && !(*c)->dead)
+	    if (!max || time_compare((*c)->date, max->date) > 0)
+		max = (*c);
     return max;
 }
 
@@ -246,13 +247,14 @@ git_commit_cleanup(void)
     }
 }
 
+
 static git_commit *
 git_commit_build(cvs_commit **revisions, cvs_commit *leader,
 		 const int nrevisions, const int nactive)
 /* build a changeset commit from a clique of CVS revisions */
 {
-    size_t	n, nfile;
-    git_commit	*commit;
+    size_t     n, nfile;
+    git_commit *commit = xmalloc(sizeof(git_commit), "creating git commit");
 
     if (nactive > sfiles) {
 	free(files);
@@ -261,9 +263,7 @@ git_commit_build(cvs_commit **revisions, cvs_commit *leader,
     if (!files)
 	/* coverity[sizecheck] Coverity has a bug here */
 	files = xmalloc((sfiles = nactive) * sizeof(cvs_commit *), __func__);
-    
-    commit = xmalloc( sizeof(git_commit), "creating commit");
-    
+
     commit->parent = NULL;
     commit->date = leader->date;
     commit->commitid = leader->commitid;
@@ -457,7 +457,7 @@ resort_revs (size_t skip, size_t nrev, size_t resort) {
 	i = 0;
 	while (p < skip + resort || q < nrev) {
 	    if (p == skip + resort)
-		/* Data is alread in the right place
+		/* Data is already in the right place
 		 * no need to copy to sort_temp and back
 		 */
 		break;
@@ -849,6 +849,28 @@ merge_branches(rev_ref **branches, int nbranch,
     branch->commit = (cvs_commit *)head;
 }
 
+static bool
+git_commit_contains_revs(git_commit *g, cvs_commit **revs, size_t nrev)
+/* Check whether the commit is made up of the supplied file list.
+ * List mut be sorted in path_deep_compare order.
+ */
+{
+    revdir_iter *it = revdir_iter_alloc(&g->revdir);
+    size_t i = 0;
+    cvs_commit *c = NULL;
+    /* order of checks is important */
+    while ((c = revdir_iter_next(it)) && i < nrev) {
+	if (revs[i++] != c) {
+	    free(it);
+	    return false;
+	}
+    }
+    free(it);
+    /* check we got to the end of both */
+    return (i == nrev) && (!c);
+
+}
+
 /*
  * Locate position in tree corresponding to specific tag
  */
@@ -860,7 +882,45 @@ rev_tag_search(tag_t *tag, cvs_commit **revisions, git_repo *gl)
      * Note tag->parent doesn't appear to be used.
      */
     cvs_commit *c = cvs_commit_latest(revisions, tag->count);
+    if (!c)
+	return;
+#ifndef SUBSETTAG
     tag->commit = c->gitspace;
+#else 
+    /* experimetnal tagging mechansism for incomplete tags */
+    qsort(revisions, tag->count, sizeof(cvs_commit *), compare_cvs_commit);
+    if (git_commit_contains_revs(c->gitspace, revisions, tag->count)) {
+	// we've seen this set of revisions before. just link tag to it.
+	tag->commit = c->gitspace;
+    } else {
+	/* The tag doesn't point to a previously seen set of revisions.
+	 * Create a new branch with the tag name and join at the inferred
+	 * join point. The join point is the earliest one that makes
+	 * sense, but it may have happned later. However, if you check the
+	 * tag out you will get the correct set of files.
+         * We have no way of knowing the correct author of a tag.
+	 */
+	git_commit *g = git_commit_build(revisions, c, tag->count, tag->count);
+	g->parent = c->gitspace;
+	rev_ref *parent_branch = git_branch_of_commit(gl, c);
+	rev_ref *tag_branch = xcalloc(1, sizeof(rev_ref), __func__);
+	tag_branch->parent = parent_branch;
+	/* type punning */
+	tag_branch->commit = (cvs_commit *)g;
+	tag_branch->ref_name = tag->name;
+	tag_branch->depth = parent_branch->depth + 1;
+	rev_ref *r;
+	/* Add tag branch to end of list to maintain toposort */
+	for(r = gl->heads; r->next; r = r->next);
+	r->next = tag_branch;
+	g->author = atom("cvs-fast-export");
+	size_t len = strlen(tag->name) + 30;
+	char *log = xmalloc(len, __func__);
+	snprintf(log, len, "Synthetic commit for tag %s", tag->name);
+	g->log = atom(log);
+	free(log);
+    }
+#endif
 }
 
 static void
@@ -1035,16 +1095,7 @@ merge_to_changesets(cvs_master *masters, size_t nmasters, int verbose)
 	}
     }
 #endif /* GITSPACEDEBUG */
-    /*
-     * Compute 'tail' values.  These allow us to recognize branch joins
-     * so we can write efficient traversals that walk branches without
-     * wandering on to their parent branches.
-     */
-    progress_begin("Compute tail values...", NO_MAX);
-    rev_list_set_tail((head_list *)gl);
-    progress_end(NULL);
 
-    free(refs);
     /*
      * Find tag locations.  The goal is to associate each tag object 
      * (which normally corresponds to a clique of named tags, one per master)
@@ -1061,6 +1112,17 @@ merge_to_changesets(cvs_master *masters, size_t nmasters, int verbose)
 	progress_step();
     }
     progress_end(NULL);
+
+    /*
+     * Compute 'tail' values.  These allow us to recognize branch joins
+     * so we can write efficient traversals that walk branches without
+     * wandering on to their parent branches.
+     */
+    progress_begin("Compute tail values...", NO_MAX);
+    rev_list_set_tail((head_list *)gl);
+    progress_end(NULL);
+
+    free(refs);
 
     //progress_begin("Validate...", NO_MAX);
     //rev_list_validate(gl);

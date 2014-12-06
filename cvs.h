@@ -348,7 +348,7 @@ typedef struct _rev_ref {
     /* a reference to a branch head */
     struct _rev_ref	*next;
     struct _rev_ref	*parent;	/* link into tree */
-    cvs_commit		*commit;
+    cvs_commit		*commit;        /* or a git_commit in gitspace */
     const char		*ref_name;
     const cvs_number	*number;	/* not used in gitspace */
     unsigned		depth:7;	/* branch depth in tree (1 is trunk) */

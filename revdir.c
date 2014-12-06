@@ -98,7 +98,7 @@ path_deep_compare(const void *a, const void *b)
     return compar;
 }
 
-static int
+int
 compare_cvs_commit(const void *a, const void *b)
 {
     cvs_commit **ap = (cvs_commit **)a;
