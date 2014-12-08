@@ -880,6 +880,9 @@ rev_tag_search(tag_t *tag, cvs_commit **revisions, git_repo *gl)
     /* With correct backlinks, we just find the latest tagged
      * cvs commit and follow the backlink.
      * Note tag->parent doesn't appear to be used.
+     * Tags can point to dead commits, we ignore these as they
+     * don't get backlinks to git commits.
+     * This may get revisited later.
      */
     cvs_commit *c = cvs_commit_latest(revisions, tag->count);
     if (!c)
