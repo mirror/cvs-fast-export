@@ -265,7 +265,7 @@ typedef struct _rev_master {
 typedef struct _rev_pack rev_pack;
 
 typedef struct _revdir {
-    rev_pack *revpack;
+    const rev_pack *revpack;
 } revdir;
 
 #else

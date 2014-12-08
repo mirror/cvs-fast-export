@@ -19,7 +19,7 @@ typedef struct _file_list_hash {
 static file_list_hash	*buckets[REV_DIR_HASH];
 
 static hash_t
-hash_files(cvs_commit **files, const int nfiles)
+hash_files(const cvs_commit *const * const files, const int nfiles)
 /* hash a file list so we can recognize it cheaply */
 {
     hash_t h = 0;
@@ -32,7 +32,7 @@ hash_files(cvs_commit **files, const int nfiles)
 }
 
 static file_list *
-pack_file_list(cvs_commit **files, const int nfiles)
+pack_file_list(const cvs_commit * const * const files, const int nfiles)
 /* pack a collection of file revisions for space efficiency */
 {
     hash_t         hash = hash_files(files, nfiles);
@@ -172,8 +172,75 @@ revdir_nfiles(const revdir *revdir)
     return c;
 }
 
+static serial_t         nfiles = 0;
+static serial_t         sfiles = 0;
+static const cvs_commit **files = NULL;
+static const master_dir *dir;
+static const master_dir *curdir;
+static unsigned short   ndirs;
+
 void
-revdir_pack_files(cvs_commit **files, const size_t nfiles, revdir *revdir)
+revdir_pack_alloc(const size_t max_size)
+{
+    if (!files) {
+	files = xmalloc(max_size * sizeof(cvs_commit *), __func__);
+	sfiles = max_size;
+    } else if (sfiles < max_size) {
+	files = xrealloc(files, max_size * sizeof(cvs_commit *), __func__);
+	sfiles = max_size;
+    }
+}
+
+void
+revdir_pack_init(void)
+{
+    nfiles = 0;
+    curdir = NULL;
+    dir = NULL;
+    ndirs = 0;
+}
+
+void
+revdir_pack_add(const cvs_commit *file)
+{
+    if (curdir != file->master->dir) {
+	if (dir || !dir_is_ancestor(file->master->dir, dir)) {
+	    if (nfiles > 0) {
+		file_list *fl = pack_file_list(files, nfiles);
+		fl_put(ndirs++, fl);
+	    }
+	    nfiles = 0;
+	    dir = file->master->dir;
+	}
+	curdir = file->master->dir;
+    }
+    files[nfiles++] = file;
+}
+
+void
+revdir_pack_end(revdir *revdir)
+{
+    if (dir) {
+	file_list *fl = pack_file_list(files, nfiles);
+	fl_put(ndirs++, fl);
+    }
+    revdir->dirs = xmalloc(ndirs * sizeof(file_list *), __func__);
+    revdir->ndirs = ndirs;
+    memcpy(revdir->dirs, dirs, ndirs * sizeof(file_list *));
+}
+
+void
+revdir_pack_free()
+{
+    free(files);
+    files = NULL;
+    nfiles = 0;
+    sfiles = 0;
+}
+
+void
+revdir_pack_files(const cvs_commit ** files, 
+		  const size_t nfiles, revdir *revdir)
 {
     size_t           start = 0, i;
     const master_dir *curdir = NULL, *dir = NULL;

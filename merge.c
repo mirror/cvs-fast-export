@@ -15,7 +15,10 @@
  *  with this program; if not, write to the Free Software Foundation, Inc.,
  *  59 Temple Place, Suite 330, Boston, MA 02111-1307 USA.
  */
-
+#ifndef FILESORT
+// streamdir doesn't work without filesort
+#undef STREAMDIR
+#endif
 #include "cvs.h"
 #include "revdir.h"
 /*
@@ -204,16 +207,16 @@ cvs_commit_match(const cvs_commit *a, const cvs_commit *b)
  * by only doing one when more memory needs to be grabbed than the 
  * previous commit build used.
  */
-static cvs_commit **files = NULL;
-static int	    sfiles = 0;
+static const cvs_commit **files = NULL;
+static int	        sfiles = 0;
 /* not all platforms have qsort_r so use something global for compare func */
-static int          srevisions = 0;
-static cvs_commit **revisions = NULL;
-static size_t      *sort_buf = NULL;
-static size_t      *sort_temp = NULL;
+static int              srevisions = 0;
+static cvs_commit       **revisions = NULL;
+static size_t           *sort_buf = NULL;
+static size_t           *sort_temp = NULL;
 
 static void
-alloc_revisions(size_t nrev) 
+alloc_revisions(size_t nrev)
 /* Allocate buffers for merge_branches */
 {
     if (srevisions < nrev) {
@@ -222,7 +225,7 @@ alloc_revisions(size_t nrev)
 	sort_buf = xrealloc(sort_buf, nrev * sizeof(size_t), __func__);
 	sort_temp = xrealloc(sort_temp, nrev * sizeof(size_t), __func__);
 	srevisions = nrev;
-    }    
+    }
 }
 
 static void
@@ -247,23 +250,26 @@ git_commit_cleanup(void)
     }
 }
 
+#if defined STREAMDIR && defined TREEPACK
+#define CBUF_SIZE 16
+static const cvs_commit *cbuf[CBUF_SIZE];
+#endif /* STREAMDIR && TREEPACK */
 
 static git_commit *
-git_commit_build(cvs_commit **revisions, cvs_commit *leader,
+git_commit_build(cvs_commit **revisions, const cvs_commit *leader,
 		 const int nrevisions, const int nactive)
 /* build a changeset commit from a clique of CVS revisions */
 {
-    size_t     n, nfile;
-    git_commit *commit = xmalloc(sizeof(git_commit), "creating git commit");
+    size_t	n;
+#if !defined  STREAMDIR
+    size_t      nfile = 0;
+#elif defined TREEPACK
+    size_t      i = 0;
+#endif
+    git_commit	*commit;
 
-    if (nactive > sfiles) {
-	free(files);
-	files = NULL;
-    }
-    if (!files)
-	/* coverity[sizecheck] Coverity has a bug here */
-	files = xmalloc((sfiles = nactive) * sizeof(cvs_commit *), __func__);
-
+    commit = xmalloc( sizeof(git_commit), "creating commit");
+    
     commit->parent = NULL;
     commit->date = leader->date;
     commit->commitid = leader->commitid;
@@ -273,12 +279,40 @@ git_commit_build(cvs_commit **revisions, cvs_commit *leader,
     commit->dead = false;
     commit->refcount = commit->serial = 0;
 
-    nfile = 0;
-    for (n = 0; n < nrevisions; n++)
-	if (revisions[n] && !revisions[n]->dead)
+#ifdef STREAMDIR
+    revdir_pack_init();
+#else
+    if (sfiles < nrevisions) {
+	files = xrealloc(files, nrevisions * sizeof(cvs_commit *), __func__);
+	sfiles = nrevisions;
+    }
+#endif /* STREAMDIR */
+    for (n = 0; n < nrevisions; n++) {
+	if (revisions[n] && !revisions[n]->dead) {
+#if !defined STREAMDIR
 	    files[nfile++] = revisions[n];
-
+#elif defined TREEPACK
+	    /* TREEPACK seems to benefit from pipelining. DIRPACK doesn't */
+	    cbuf[i++] = revisions[n];
+	    if (i == CBUF_SIZE) {
+		for (i = 0; i < CBUF_SIZE; i++)
+		    revdir_pack_add(cbuf[i]);
+		i = 0;
+	    }
+#else /* DIRPACK && STREAMDIR */
+	    revdir_pack_add(revisions[n]);
+#endif
+	}
+    }
+#ifndef STREAMDIR
     revdir_pack_files(files, nfile, &commit->revdir);
+#else
+#ifdef TREEPACK
+    for (n = 0; n < i; n++)
+	revdir_pack_add(cbuf[n]);
+#endif /* TREEPACK */
+    revdir_pack_end(&commit->revdir);
+#endif /* STREAMDIR */
 
 #ifdef ORDERDEBUG
     debugmsg("commit_build: %p\n", commit);
@@ -1049,7 +1083,9 @@ merge_to_changesets(cvs_master *masters, size_t nmasters, int verbose)
     /*
      * Merge common branches
      */
+
     progress_begin("Merge common branches...", head_count);
+    revdir_pack_alloc(nmasters);
     for (h = gl->heads; h; h = h->next) {
 	/*
 	 * For this imputed gitspace branch, locate the corresponding
@@ -1069,9 +1105,11 @@ merge_to_changesets(cvs_master *masters, size_t nmasters, int verbose)
 	    merge_branches(refs, nref, h, gl);
 	progress_step();
     }
-    progress_end(NULL);
+    revdir_pack_free();
     merge_branches_cleanup();
     revdir_free_bufs();
+    progress_end(NULL);
+    
 
 #ifdef GITSPACEDEBUG
     /* Check every non-dead cvs commit has a backlink

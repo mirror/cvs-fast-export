@@ -25,8 +25,8 @@ LIBS=-lrt
 CPPFLAGS += -DVERSION=\"$(VERSION)\"
 
 # Enable this for multithreading.
-# CFLAGS += -pthread
-# CPPFLAGS += -DTHREADS
+CFLAGS += -pthread
+CPPFLAGS += -DTHREADS
 
 # Optimizing for speed. Comment this out for distribution builds
 CFLAGS += -march=native
@@ -51,6 +51,8 @@ CPPFLAGS += -DUSE_MMAP # Use mmap for reading CVS masters
 CPPFLAGS += -DFILESORT # Presort files to avoid directory sorts later
 CPPFLAGS += -DLINESTATS # Keep track of which lines have @ string delimiters
 CPPFLAGS += -DTREEPACK # Reduce memory usage, particularly on large repos
+CPPFLAGS += -DSTREAMDIR # Fuse two inner loops. Requires FILESORT
+
 # Experimental feature
 # CPPFLAGS += -DSUBSETTAG # replace incomplete tags with branches containing exact content of tag.
 
@@ -81,7 +83,7 @@ cvs-fast-export: $(OBJS)
 $(OBJS): cvs.h cvstypes.h
 revcvs.o cvsutils.o rbtree.o: rbtree.h
 atom.o nodehash.o revcvs.o revdir.o: hash.h
-revdir.o: treepack.c dirpack.c
+revdir.o: treepack.c dirpack.c revdir.c
 dump.o export.o graph.o main.o merge.o revdir.o: revdir.h
 
 BISON ?= bison
