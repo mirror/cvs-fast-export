@@ -80,7 +80,7 @@ $(OBJS): cvs.h cvstypes.h
 revcvs.o cvsutils.o rbtree.o: rbtree.h
 atom.o nodehash.o revcvs.o revdir.o: hash.h
 revdir.o: treepack.c dirpack.c
-
+dump.o export.o graph.o main.o merge.o revdir.o: revdir.h
 
 BISON ?= bison
 
