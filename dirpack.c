@@ -204,12 +204,12 @@ void
 revdir_pack_add(const cvs_commit *file)
 {
     if (curdir != file->master->dir) {
-	if (dir || !dir_is_ancestor(file->master->dir, dir)) {
+	if (!dir_is_ancestor(file->master->dir, dir)) {
 	    if (nfiles > 0) {
 		file_list *fl = pack_file_list(files, nfiles);
 		fl_put(ndirs++, fl);
+		nfiles = 0;
 	    }
-	    nfiles = 0;
 	    dir = file->master->dir;
 	}
 	curdir = file->master->dir;
@@ -273,12 +273,12 @@ revdir_pack_files(const cvs_commit ** files,
     for (i = 0; i < nfiles; i++) {
 	/* avoid strncmp as much as possible */
 	if (curdir != files[i]->master->dir) {
-	    if (!dir || !dir_is_ancestor(files[i]->master->dir, dir)) {
+	    if (!dir_is_ancestor(files[i]->master->dir, dir)) {
 		if (i > start) {
 		    fl = pack_file_list(files + start, i - start);
 		    fl_put(ndirs++, fl);
+		    start = i;
 		}
-		start = i;
 		dir = files[i]->master->dir;
 	    }
 	    curdir = files[i]->master->dir;
