@@ -236,8 +236,6 @@ typedef struct _master_dir {
     /* directory reference for a master */
     const char          *name;
     const struct _master_dir *parent;
-    hash_t              prehash;
-    unsigned short      len;
 } master_dir;
 
 typedef struct _rev_master {
