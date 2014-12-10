@@ -112,11 +112,8 @@ atom_dir(const char* dirname)
     b = xmalloc(sizeof(dir_bucket), __func__);
     b->next = NULL;
     b->dir.name = dirname;
-    b->dir.len = strlen(dirname);
-    /* used as an input to the hash of the dir_is_ancestor fn */
-    b->dir.prehash = HASH_VALUE(b);
     *head = b;
-    if (b->dir.len > 0)
+    if (strlen(dirname) > 0)
 	/* recursive mutex use, find parent dir */
 	b->dir.parent = atom_dir(dir_name(dirname));
     else

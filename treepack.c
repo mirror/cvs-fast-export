@@ -349,6 +349,8 @@ revdir_free(void)
 
 	while ((h = *bucket)) {
 	    *bucket = h->next;
+	    free(h->dir.dirs);
+	    free(h->dir.files);
 	    free(h);
 	}
     }
