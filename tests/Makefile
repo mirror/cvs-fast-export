@@ -2,7 +2,8 @@
 
 # Set OPTS to pass options to the cvs-fast-export instances.
 
-PATH := ${PWD}/..:${PATH}
+PATH := ${CURDIR}/..:${PATH}
+export PATH
 SHELL = sh	# Do not introduce bashisms!
 CVS = cvs
 DIFF = diff -u -a
@@ -15,13 +16,13 @@ check: test
 .tst.repo:
 	python $<
 .repo.checkout:
-	$(CVS) -d :local:${PWD}/$*.repo -Q checkout module && mv module $*.checkout
+	$(CVS) -d :local:${CURDIR}/$*.repo -Q checkout module && mv module $*.checkout
 .repo.dot:
 	find $</module -name '*,v' | $(CVS_FAST_EXPORT) -g >$*.dot
 .repo.fi:
 	find $</module -name '*,v' | $(CVS_FAST_EXPORT) >$*.dot
 .testrepo.checkout:
-	$(CVS) -d :local:${PWD}/$*.testrepo -Q checkout module && mv module $*.checkout
+	$(CVS) -d :local:${CURDIR}/$*.testrepo -Q checkout module && mv module $*.checkout
 .testrepo.dot:
 	find $</module -name '*,v' | $(CVS_FAST_EXPORT) -g >$*.dot
 .testrepo.fi:
