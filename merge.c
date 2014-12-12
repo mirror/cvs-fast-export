@@ -1105,9 +1105,7 @@ merge_to_changesets(cvs_master *masters, size_t nmasters, int verbose)
 	    merge_branches(refs, nref, h, gl);
 	progress_step();
     }
-    revdir_pack_free();
     merge_branches_cleanup();
-    revdir_free_bufs();
     progress_end(NULL);
     
 
@@ -1152,6 +1150,8 @@ merge_to_changesets(cvs_master *masters, size_t nmasters, int verbose)
 	free(commits);
 	progress_step();
     }
+    revdir_pack_free();
+    revdir_free_bufs();
     progress_end(NULL);
 
     /*
