@@ -186,6 +186,7 @@ cvs_master_branch_build(cvs_file *cvs, rev_master *master, const cvs_number *bra
 	if (!v)
 	     continue;
 	c = master->commits + master->ncommits++;
+	c->dir = master->dir;
 	c->date = v->date;
 	c->commitid = v->commitid;
 	c->author = v->author;

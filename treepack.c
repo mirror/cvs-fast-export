@@ -236,17 +236,17 @@ void
 revdir_pack_add(const cvs_commit *file)
 {
     while (1) {
-	if (frame->dir == file->master->dir) {
+	if (frame->dir == file->dir) {
 	    files[nfiles++] = file;
 	    frame->hash = HASH_COMBINE(frame->hash, file->hash);
 	    return;
 	}
-	if (dir_is_ancestor(file->master->dir, frame->dir)) {
+	if (dir_is_ancestor(file->dir, frame->dir)) {
 	    if (frame - frames == MAX_DIR_DEPTH)
 		fatal_error("Directories nested too deep, increase MAX_DIR_DEPTH\n");
 	    
 	    const master_dir *dir = frame++->dir;
-	    frame->dir = first_subdir(file->master->dir, dir);
+	    frame->dir = first_subdir(file->dir, dir);
 	    frame->ndirs = 0;
 	    frame->hash = hash_init();
 	    continue;

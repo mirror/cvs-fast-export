@@ -321,6 +321,10 @@ typedef struct _cvs_commit {
     /* CVS-only members begin here */
     bool                emitted:1;
     hash_t              hash;
+    /* Shortcut to master->dir, more space but less dereferences
+     * in the hottest inner loop in revdir
+     */
+    const master_dir    *dir;
     const rev_master    *master;
     struct _git_commit	*gitspace;
     const cvs_number	*number;
