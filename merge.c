@@ -26,6 +26,23 @@
  *
  * merge_to_changesets() is the main function.
  */
+#ifdef STREAMDIR
+// pack the dead flag into the commit pointer so we can avoid dereferencing 
+// in the inner loop
+#define REVISION_T uintptr_t
+#define REVISION_T_PACK(commit) ((uintptr_t)(commit)) | ((commit)->dead)
+#define REVISION_T_DEAD(packed) ((packed) & 1)
+#define COMMIT_MASK (~(uintptr_t)0 ^ 1)
+#define REVISION_T_COMMIT(packed) (cvs_commit *)((packed) & (COMMIT_MASK))
+#else
+#define REVISION_T cvs_commit *
+#define REVISION_T_PACK(commit) (commit)
+#define REVISION_T_DEAD(commit) ((commit)->dead)
+#define REVISION_T_COMMIT(commit) (commit)
+#endif /* STREAMDIR */
+/* be aware using these macros that they bind to whatever revisions array is in scope */
+#define DEAD(index) (REVISION_T_DEAD(revisions[(index)]))
+#define REVISIONS(index) (REVISION_T_COMMIT(revisions[(index)]))
 
 static rev_ref *
 rev_find_head(head_list *rl, const char *name)
@@ -111,8 +128,8 @@ rev_ref_tsort(rev_ref *git_branches, cvs_master *masters, size_t nmasters)
 static int
 cvs_commit_date_compare(const void *av, const void *bv)
 {
-    const cvs_commit	*a = *(const cvs_commit **) av;
-    const cvs_commit	*b = *(const cvs_commit **) bv;
+    const cvs_commit	*a = REVISION_T_COMMIT(*(REVISION_T *) av);
+    const cvs_commit	*b = REVISION_T_COMMIT(*(REVISION_T *) bv);
     int			t;
 
     /*
@@ -158,10 +175,10 @@ cvs_commit_latest(cvs_commit **commits, int ncommit)
 }
 
 static int
-cvs_commit_date_sort(cvs_commit **commits, int ncommit)
+cvs_commit_date_sort(REVISION_T *commits, int ncommit)
 /* sort CVS commits by date */
 {
-    qsort(commits, ncommit, sizeof(cvs_commit *), cvs_commit_date_compare);
+    qsort(commits, ncommit, sizeof(REVISION_T), cvs_commit_date_compare);
     /*
      * Trim off NULL entries
      */
@@ -211,7 +228,7 @@ static const cvs_commit **files = NULL;
 static int	        sfiles = 0;
 /* not all platforms have qsort_r so use something global for compare func */
 static int              srevisions = 0;
-static cvs_commit       **revisions = NULL;
+static REVISION_T       *revisions = NULL;
 static size_t           *sort_buf = NULL;
 static size_t           *sort_temp = NULL;
 
@@ -221,7 +238,7 @@ alloc_revisions(size_t nrev)
 {
     if (srevisions < nrev) {
 	/* As first branch is master, don't expect this to be hit more than once */
-	revisions = xrealloc(revisions, nrev * sizeof(cvs_commit *), __func__);
+	revisions = xrealloc(revisions, nrev * sizeof(REVISION_T), __func__);
 	sort_buf = xrealloc(sort_buf, nrev * sizeof(size_t), __func__);
 	sort_temp = xrealloc(sort_temp, nrev * sizeof(size_t), __func__);
 	srevisions = nrev;
@@ -256,7 +273,7 @@ static const cvs_commit *cbuf[CBUF_SIZE];
 #endif /* STREAMDIR && TREEPACK */
 
 static git_commit *
-git_commit_build(cvs_commit **revisions, const cvs_commit *leader,
+git_commit_build(REVISION_T *revisions, const cvs_commit *leader,
 		 const int nrevisions, const int nactive)
 /* build a changeset commit from a clique of CVS revisions */
 {
@@ -288,19 +305,19 @@ git_commit_build(cvs_commit **revisions, const cvs_commit *leader,
     }
 #endif /* STREAMDIR */
     for (n = 0; n < nrevisions; n++) {
-	if (revisions[n] && !revisions[n]->dead) {
+	if (revisions[n] && !(DEAD(n))) {
 #if !defined STREAMDIR
-	    files[nfile++] = revisions[n];
+	    files[nfile++] = REVISIONS(n);
 #elif defined TREEPACK
 	    /* TREEPACK seems to benefit from pipelining. DIRPACK doesn't */
-	    cbuf[i++] = revisions[n];
+	    cbuf[i++] = REVISIONS(n);
 	    if (i == CBUF_SIZE) {
 		for (i = 0; i < CBUF_SIZE; i++)
 		    revdir_pack_add(cbuf[i]);
 		i = 0;
 	    }
 #else /* DIRPACK && STREAMDIR */
-	    revdir_pack_add(revisions[n]);
+	    revdir_pack_add(REVISIONS(n));
 #endif
 	}
     }
@@ -319,7 +336,7 @@ git_commit_build(cvs_commit **revisions, const cvs_commit *leader,
 
     for (n = 0; n < nfile; n++)
 	if (revisions[n])
-	    debugmsg("%s\n", revisions[n]->master->name);
+	    debugmsg("%s\n", REVISIONS(n)->master->name);
     fputs("After packing:\n", LOGFILE);
     revdir_iter *i = revdir_iter_alloc(&commit->revdir);
     cvs_commit *c;
@@ -440,8 +457,8 @@ compare_clique(const void *a, const void *b)
 {
     size_t i1 = *(size_t *)a, i2 = *(size_t *)b;
     const cvs_commit
-	*c1 = revisions[i1],
-	*c2 = revisions[i2];
+	*c1 = REVISIONS(i1),
+	*c2 = REVISIONS(i2);
 
     /* Null commits come first */
     if (!c1 && !c2)
@@ -558,7 +575,8 @@ merge_branches(rev_ref **branches, int nbranch,
 	 * Initialize revisions to head of each branch (that is, the
 	 * most recent entry).
 	 */
-	cvs_commit *c = revisions[n] = branches[n]->commit;
+	cvs_commit *c = branches[n]->commit;
+	revisions[n] = REVISION_T_PACK(c);
 	sort_buf[n] = n;
 	/*
 	 * Compute number of CVS branches that are still live - that is,
@@ -602,7 +620,7 @@ merge_branches(rev_ref **branches, int nbranch,
      * clock skew on the CVS clients.
      */
     for (n = 0; n < nbranch; n++) {
-	cvs_commit *c = revisions[n];
+	cvs_commit *c = REVISIONS(n);
 	if (!c->tailed)
 	    continue;
 	if (!birth || time_compare(birth, c->date) >= 0)
@@ -610,7 +628,7 @@ merge_branches(rev_ref **branches, int nbranch,
 	if (!c->dead)
 	    warn("warning - %s branch %s: tip commit older than imputed branch join\n",
 		     c->master->name, branch->ref_name);
-	revisions[n] = NULL;
+	revisions[n] = (REVISION_T)NULL;
     }
 
     /* Initial sort into null/date/tailed order */
@@ -627,7 +645,7 @@ merge_branches(rev_ref **branches, int nbranch,
 	 * time.  It will be the leader for the git commit build.
 	 */
 	for (n = skip, latest = NULL; n < nrev; n++) {
-	    cvs_commit *rev = revisions[sort_buf[n]];
+	    cvs_commit *rev = REVISIONS(sort_buf[n]);
 	    if (!rev) {
 		skip++;
 		nbranch--;
@@ -657,7 +675,7 @@ merge_branches(rev_ref **branches, int nbranch,
 	size_t resort = nbranch;
 	bool can_match = true;
 	for (n = skip; n < nrev; n++) {
-	    cvs_commit *c = revisions[sort_buf[n]];
+	    cvs_commit *c = REVISIONS(sort_buf[n]);
 	    cvs_commit *to;
 
 	    /*
@@ -749,10 +767,10 @@ merge_branches(rev_ref **branches, int nbranch,
 	     * tests for tailed commits. Leave it in the set for the next
 	     * changeset construction.
 	     */
-	    revisions[sort_buf[n]] = to;
+	    revisions[sort_buf[n]] = REVISION_T_PACK(to);
 	    continue;
 	Kill:
-	    revisions[sort_buf[n]] = NULL;
+	    revisions[sort_buf[n]] = (REVISION_T)NULL;
 	}
 	/* we've changed some revs to their parents. Resort */
 	resort_revs(skip, nrev, resort);
@@ -787,17 +805,17 @@ merge_branches(rev_ref **branches, int nbranch,
 	int	present;
 
 	for (present = 0; present < nbranch; present++) {
-	    if (!revisions[present]->dead) {
+	    if (!DEAD(present)) {
 		/*
 		 * Skip files which appear in the repository after
 		 * the first commit along the branch
 		 */
-		if (prev && revisions[present]->date > prev->date &&
-		    revisions[present]->date == cvs_commit_first_date(revisions[present]))
+		if (prev && REVISIONS(present)->date > prev->date &&
+		    REVISIONS(present)->date == cvs_commit_first_date(REVISIONS(present)))
 		{
 		    /* FIXME: what does this mean? */
 		    warn("file %s appears after branch %s date\n",
-			     revisions[present]->master->name, branch->ref_name);
+			 REVISIONS(present)->master->name, branch->ref_name);
 		    continue;
 		}
 		break;
@@ -810,19 +828,19 @@ merge_branches(rev_ref **branches, int nbranch,
 	     */
 	    *tail = NULL;
 	else if ((*tail = git_commit_locate_one(branch->parent,
-						 revisions[present])))
+						REVISIONS(present))))
 	{
 	    if (prev && time_compare((*tail)->date, prev->date) > 0) {
 		cvs_commit *first;
 		warn("warning - branch point %s -> %s later than branch\n",
 			 branch->ref_name, branch->parent->ref_name);
 		warn("\ttrunk(%3d):  %s %s", n,
-			 cvstime2rfc3339(revisions[present]->date),
-			 revisions[present]->dead ? "D" : " " );
-		if (!revisions[present]->dead)
+		     cvstime2rfc3339(REVISIONS(present)->date),
+		     DEAD(present) ? "D" : " " );
+		if (!DEAD(present))
 		    dump_number_file(LOGFILE,
-				      revisions[present]->master->name,
-				      revisions[present]->number);
+				     REVISIONS(present)->master->name,
+				     REVISIONS(present)->number);
 		warn("\n");
 		/*
 		 * The file part of the error message could be spurious for
@@ -842,7 +860,7 @@ merge_branches(rev_ref **branches, int nbranch,
 		fprintf(LOGFILE, "\n");
 	    }
 	} else if ((*tail = git_commit_locate_date(branch->parent,
-						    revisions[present]->date)))
+						   REVISIONS(present)->date)))
 	    warn("warning - branch point %s -> %s matched by date\n",
 		     branch->ref_name, branch->parent->ref_name);
 	else {
@@ -850,7 +868,7 @@ merge_branches(rev_ref **branches, int nbranch,
 	    warn("error - branch point %s -> %s not found.",
 		branch->ref_name, branch->parent->ref_name);
 
-	    if ((lost = git_branch_of_commit(gl, revisions[present])))
+	    if ((lost = git_branch_of_commit(gl, REVISIONS(present))))
 		warn(" Possible match on %s.", lost->ref_name);
 	    fprintf(LOGFILE, "\n");
 	}
@@ -858,26 +876,26 @@ merge_branches(rev_ref **branches, int nbranch,
 	    if (prev)
 		prev->tail = true;
 	} else {
-	    *tail = git_commit_build(revisions, revisions[0], nrev, nbranch);
+	    *tail = git_commit_build(revisions, REVISIONS(0), nrev, nbranch);
 	    for (n = 0; n < nrev; n++)
 		if (revisions[n]) {
 #ifdef GITSPACEDEBUG
-		    if (revisions[n]->gitspace) {
+		    if (REVISIONS(n)->gitspace) {
 			warn("CVS commit allocated to multiple git commits: ");
 			dump_number_file(LOGFILE,
-					 revisions[n]->master->name,
-					 revisions[n]->number);
+					 REVISIONS(n)->master->name,
+					 REVISIONS(n)->number);
 			warn("\n");
 		    } else
 #endif /* GITSPACEDEBUG */
-			revisions[n]->gitspace = *tail;
+			REVISIONS(n)->gitspace = *tail;
 		}
 	}
     }
 
     for (n = 0; n < nbranch; n++)
-	if (revisions[n])
-	    revisions[n]->tailed = false;
+	if (REVISIONS(n))
+	    REVISIONS(n)->tailed = false;
 
     /* PUNNING: see the big comment in cvs.h */ 
     branch->commit = (cvs_commit *)head;
@@ -1094,8 +1112,9 @@ merge_to_changesets(cvs_master *masters, size_t nmasters, int verbose)
 	int nref = 0;
 	for (cm = masters; cm < masters + nmasters; cm++) {
 	    lh = rev_find_head(cm, h->ref_name);
-	    if (lh)
+	    if (lh) {
 		refs[nref++] = lh;
+	    }
 	}
 	if (nref)
 	    /* 
