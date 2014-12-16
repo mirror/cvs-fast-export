@@ -1,6 +1,6 @@
 /*
- * Copyright © 2006 Sean Estabrooks <seanlkml@sympatico.ca>
- * Copyright © 2006 Keith Packard <keithp@keithp.com>
+ * Copyright Â© 2006 Sean Estabrooks <seanlkml@sympatico.ca>
+ * Copyright Â© 2006 Keith Packard <keithp@keithp.com>
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
