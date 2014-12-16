@@ -258,8 +258,15 @@ cvs_master_branch_build(cvs_file *cvs, rev_master *master, const cvs_number *bra
  * the time the vendor branch is imported and when a new revision
  * is committed to the head branch are placed on the vendor branch
  * In addition, any files without such a commit appear to adopt
- * the vendor branch as 'head'. We fix this by merging these two
- * branches together as if they were the same
+ * the vendor branch as 'head'. 
+ *
+ * The original behavior of this code was to fix this by merging the vendor
+ * branch into the master branch, as if they were the same.  This produced
+ * incorrect behavior on repos where there was a vendor-branch revision more
+ * recent than the tip of the master branch.  What we should do is leave the 
+ * branch topology alone and simply point the "master" named reference at the
+ * tip revision of the lowest numbered vendor branch if the vendor branch
+ * has no 1.2 commit.
  */
 static void
 cvs_master_patch_vendor_branch(cvs_master *cm, cvs_file *cvs)
