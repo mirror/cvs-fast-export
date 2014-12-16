@@ -233,20 +233,27 @@ push_rev_pack(const rev_pack * const r)
 }
 
 void
-revdir_pack_add(const cvs_commit *file)
+revdir_pack_add(const cvs_commit *file, const master_dir *dir)
 {
     while (1) {
-	if (frame->dir == file->dir) {
+	if (frame->dir == dir) {
+	    /* If you are using STREAMDIR, TREEPACK then this is the hottest inner
+	     * loop in the application. Avoid dereferencing file
+             */
 	    files[nfiles++] = file;
-	    frame->hash = HASH_COMBINE(frame->hash, file->hash);
+	    /* Proper FNV1a is a byte at a time, but this is effective
+	     * with the amount of data we're typically mixing into the hash
+             * and very lightweight
+	     */
+ 	    frame->hash = (frame->hash ^ (uintptr_t)file) * 16777619U;
 	    return;
 	}
-	if (dir_is_ancestor(file->dir, frame->dir)) {
+	if (dir_is_ancestor(dir, frame->dir)) {
 	    if (frame - frames == MAX_DIR_DEPTH)
 		fatal_error("Directories nested too deep, increase MAX_DIR_DEPTH\n");
 	    
-	    const master_dir *dir = frame++->dir;
-	    frame->dir = first_subdir(file->dir, dir);
+	    const master_dir *parent = frame++->dir;
+	    frame->dir = first_subdir(dir, parent);
 	    frame->ndirs = 0;
 	    frame->hash = hash_init();
 	    continue;
@@ -333,7 +340,7 @@ revdir_pack_files(const cvs_commit **files, const size_t nfiles, revdir *revdir)
     revdir_pack_alloc(nfiles);
     revdir_pack_init();
     for (i = 0; i < nfiles; i++)
-	revdir_pack_add(files[i]);
+	revdir_pack_add(files[i], files[i]->dir);
 	
     revdir_pack_end(revdir);
     revdir_pack_free();
