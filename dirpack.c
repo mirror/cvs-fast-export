@@ -201,18 +201,18 @@ revdir_pack_init(void)
 }
 
 void
-revdir_pack_add(const cvs_commit *file)
+revdir_pack_add(const cvs_commit *file, const master_dir *in_dir)
 {
-    if (curdir != file->dir) {
-	if (!dir_is_ancestor(file->dir, dir)) {
+    if (curdir != in_dir) {
+	if (!dir_is_ancestor(in_dir, dir)) {
 	    if (nfiles > 0) {
 		file_list *fl = pack_file_list(files, nfiles);
 		fl_put(ndirs++, fl);
 		nfiles = 0;
 	    }
-	    dir = file->dir;
+	    dir = in_dir;
 	}
-	curdir = file->dir;
+	curdir = in_dir;
     }
     files[nfiles++] = file;
 }

@@ -27,23 +27,37 @@
  * merge_to_changesets() is the main function.
  */
 #ifdef STREAMDIR
-// pack the dead flag into the commit pointer so we can avoid dereferencing 
-// in the inner loop
-#define REVISION_T uintptr_t
-#define REVISION_T_PACK(commit) ((uintptr_t)(commit)) | ((commit)->dead)
-#define REVISION_T_DEAD(packed) ((packed) & 1)
+/* pack the dead flag into the commit pointer so we can avoid dereferencing 
+ * in the inner loop. Also keep the dir near the packed pointer
+ * as it is used in the inner loop.
+ */
+typedef struct _revision {
+    /* packed commit pointer and dead flag */
+    uintptr_t packed;
+    const master_dir *dir;
+} revision_t;
+
+#define REVISION_T revision_t
+/* once set, dir doesn't change, so have an initial pack that sets dir and a later pack that doesn't */
+#define REVISION_T_PACK(rev, commit) (rev).packed = ((uintptr_t)(commit) | ((commit) ? ((commit)->dead) : 0))
+#define REVISION_T_PACK_INIT(rev, commit) REVISION_T_PACK(rev, commit); \
+    (rev).dir = (commit)->dir
+#define REVISION_T_DEAD(rev) (((rev).packed) & 1)
+#define REVISION_T_DIR(rev) ((rev).dir)
 #define COMMIT_MASK (~(uintptr_t)0 ^ 1)
-#define REVISION_T_COMMIT(packed) (cvs_commit *)((packed) & (COMMIT_MASK))
+#define REVISION_T_COMMIT(rev) (cvs_commit *)(((rev).packed) & (COMMIT_MASK))
 #else
 #define REVISION_T cvs_commit *
-#define REVISION_T_PACK(commit) (commit)
+#define REVISION_T_PACK_INIT(rev, commit) (rev) = (commit)
+#define REVISION_T_PACK(rev, commit) (rev) = (commit)
 #define REVISION_T_DEAD(commit) ((commit)->dead)
 #define REVISION_T_COMMIT(commit) (commit)
+#define REVISION_T_DIR(commit) ((commit)->dir)
 #endif /* STREAMDIR */
 /* be aware using these macros that they bind to whatever revisions array is in scope */
 #define DEAD(index) (REVISION_T_DEAD(revisions[(index)]))
 #define REVISIONS(index) (REVISION_T_COMMIT(revisions[(index)]))
-
+#define DIR(index) (REVISION_T_DIR(revisions[(index)]))
 static rev_ref *
 rev_find_head(head_list *rl, const char *name)
 /* find a named branch head in a revlist - used on both CVS and gitspace sides */
@@ -182,7 +196,7 @@ cvs_commit_date_sort(REVISION_T *commits, int ncommit)
     /*
      * Trim off NULL entries
      */
-    while (ncommit && !commits[ncommit-1])
+    while (ncommit && !REVISION_T_COMMIT(commits[ncommit-1]))
 	ncommit--;
     return ncommit;
 }
@@ -267,23 +281,13 @@ git_commit_cleanup(void)
     }
 }
 
-#if defined STREAMDIR && defined TREEPACK
-#define CBUF_SIZE 16
-static const cvs_commit *cbuf[CBUF_SIZE];
-#endif /* STREAMDIR && TREEPACK */
-
 static git_commit *
 git_commit_build(REVISION_T *revisions, const cvs_commit *leader,
 		 const int nrevisions, const int nactive)
 /* build a changeset commit from a clique of CVS revisions */
 {
-    size_t	n;
-#if !defined  STREAMDIR
-    size_t      nfile = 0;
-#elif defined TREEPACK
-    size_t      i = 0;
-#endif
-    git_commit	*commit;
+    size_t     n;
+    git_commit *commit;
 
     commit = xmalloc( sizeof(git_commit), "creating commit");
     
@@ -298,44 +302,31 @@ git_commit_build(REVISION_T *revisions, const cvs_commit *leader,
 
 #ifdef STREAMDIR
     revdir_pack_init();
+    for (n = 0; n < nrevisions; n++) {
+	if (REVISIONS(n) && !(DEAD(n))) {
+	    revdir_pack_add(REVISIONS(n), DIR(n));
+	}
+    }
+    revdir_pack_end(&commit->revdir);   
 #else
     if (sfiles < nrevisions) {
 	files = xrealloc(files, nrevisions * sizeof(cvs_commit *), __func__);
 	sfiles = nrevisions;
     }
-#endif /* STREAMDIR */
+    size_t nfile = 0;
     for (n = 0; n < nrevisions; n++) {
-	if (revisions[n] && !(DEAD(n))) {
-#if !defined STREAMDIR
+	if (REVISIONS(n) && !(DEAD(n))) {
 	    files[nfile++] = REVISIONS(n);
-#elif defined TREEPACK
-	    /* TREEPACK seems to benefit from pipelining. DIRPACK doesn't */
-	    cbuf[i++] = REVISIONS(n);
-	    if (i == CBUF_SIZE) {
-		for (i = 0; i < CBUF_SIZE; i++)
-		    revdir_pack_add(cbuf[i]);
-		i = 0;
-	    }
-#else /* DIRPACK && STREAMDIR */
-	    revdir_pack_add(REVISIONS(n));
-#endif
 	}
     }
-#ifndef STREAMDIR
     revdir_pack_files(files, nfile, &commit->revdir);
-#else
-#ifdef TREEPACK
-    for (n = 0; n < i; n++)
-	revdir_pack_add(cbuf[n]);
-#endif /* TREEPACK */
-    revdir_pack_end(&commit->revdir);
 #endif /* STREAMDIR */
 
 #ifdef ORDERDEBUG
     debugmsg("commit_build: %p\n", commit);
 
     for (n = 0; n < nfile; n++)
-	if (revisions[n])
+	if (REVISIONS(n))
 	    debugmsg("%s\n", REVISIONS(n)->master->name);
     fputs("After packing:\n", LOGFILE);
     revdir_iter *i = revdir_iter_alloc(&commit->revdir);
@@ -576,7 +567,7 @@ merge_branches(rev_ref **branches, int nbranch,
 	 * most recent entry).
 	 */
 	cvs_commit *c = branches[n]->commit;
-	revisions[n] = REVISION_T_PACK(c);
+	REVISION_T_PACK_INIT(revisions[n], c);
 	sort_buf[n] = n;
 	/*
 	 * Compute number of CVS branches that are still live - that is,
@@ -628,7 +619,7 @@ merge_branches(rev_ref **branches, int nbranch,
 	if (!c->dead)
 	    warn("warning - %s branch %s: tip commit older than imputed branch join\n",
 		     c->master->name, branch->ref_name);
-	revisions[n] = (REVISION_T)NULL;
+	REVISION_T_PACK(revisions[n], (cvs_commit *)NULL);
     }
 
     /* Initial sort into null/date/tailed order */
@@ -767,10 +758,10 @@ merge_branches(rev_ref **branches, int nbranch,
 	     * tests for tailed commits. Leave it in the set for the next
 	     * changeset construction.
 	     */
-	    revisions[sort_buf[n]] = REVISION_T_PACK(to);
+	    REVISION_T_PACK(revisions[sort_buf[n]], to);
 	    continue;
 	Kill:
-	    revisions[sort_buf[n]] = (REVISION_T)NULL;
+	    REVISION_T_PACK(revisions[sort_buf[n]], (cvs_commit *)NULL);
 	}
 	/* we've changed some revs to their parents. Resort */
 	resort_revs(skip, nrev, resort);
@@ -878,7 +869,7 @@ merge_branches(rev_ref **branches, int nbranch,
 	} else {
 	    *tail = git_commit_build(revisions, REVISIONS(0), nrev, nbranch);
 	    for (n = 0; n < nrev; n++)
-		if (revisions[n]) {
+		if (REVISIONS(n)) {
 #ifdef GITSPACEDEBUG
 		    if (REVISIONS(n)->gitspace) {
 			warn("CVS commit allocated to multiple git commits: ");

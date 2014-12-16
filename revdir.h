@@ -24,7 +24,7 @@ void
 revdir_pack_init(void);
 
 void
-revdir_pack_add(const cvs_commit *file);
+revdir_pack_add(const cvs_commit *file, const master_dir *dir);
 
 void
 revdir_pack_end(revdir *revdir);
