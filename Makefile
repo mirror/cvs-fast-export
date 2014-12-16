@@ -157,7 +157,7 @@ pylint:
 	@pylint $(PYLINTOPTS) $(PYSUPPRESSIONS) cvssync cvsconvert cvsreduce
 
 # Because we don't want copies of the test repositories in the distribution.
-distclean:
+distclean: clean
 	cd tests; make --quiet clean
 
 SOURCES = Makefile *.[ch] *.[yl] cvssync cvsconvert cvsreduce
