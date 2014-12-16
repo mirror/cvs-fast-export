@@ -23,20 +23,20 @@ The distribution includes a tool, cvssync, for fetching masters from
 CVS remote repositories so cvs-fast-export can see them.  You will
 need rsync installed to use it.
 
-A weapper scripped called cvsconvert runs a conversion to git and
+A wrapper script called cvsconvert runs a conversion to git and
 looks for content mismatches with the original CVS.
 
 Also included is a tool called cvsreduce that strips content out of
 trees of RCS/CVS masters, leaving only metadata structure in place. If
-you encounter a bug in this progeam, sending the maintainer a reduced
-version of your CVS tree greatly decreases the rxpected time to fix.
+you encounter a bug in this program, sending the maintainer a reduced
+version of your CVS tree greatly decreases the expected time to fix.
 
-A more detailed guide to effective bug reporting is at reporting.asc.
+A more detailed guide to effective bug reporting is at reporting-bugs.asc.
 
 This code has a regression-test suite; invoke it with "make check".
 You will need RCS and CVS installed to run the tests, but they're
 not required for production use of cvs-fast-export.  Installed CVS
-us required to use the cvsconvert wrapper script.
+is required to use the cvsconvert wrapper script.
 
 See also the NEWS and TODO files.  There is an (incomplete) tour of
 the internals in hacking.asc.
