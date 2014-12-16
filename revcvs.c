@@ -267,14 +267,16 @@ cvs_master_branch_build(cvs_file *cvs, rev_master *master, const cvs_number *bra
  * branch topology alone and simply point the "master" named reference at the
  * tip revision of the lowest numbered vendor branch if the vendor branch
  * has no 1.2 commit.
+ *
+ * A side effect of this code is to give ech branch a synthetic label  
  */
 static void
 cvs_master_patch_vendor_branch(cvs_master *cm, cvs_file *cvs)
 {
     rev_ref	*trunk = NULL;
     rev_ref	*vendor = NULL;
-    cvs_commit	*t, **tp, *v, **vp;
-    cvs_commit	*vlast;
+    cvs_commit	*vlast, *v;
+    cvs_commit	*t, **tp, **vp;
     rev_ref	**h_p;
 #ifdef CVSDEBUG
     int		nvb = 0;
