@@ -2,64 +2,6 @@ head	1.1;
 branch	1.1.1;
 access;
 symbols
-	rmind-smpnet:1.1.1.2.0.118
-	agc-symver:1.1.1.2.0.120
-	netbsd-5-2:1.1.1.2.0.116
-	jmcneill-usbmp:1.1.1.2.0.114
-	jmcneill-audiomp3:1.1.1.2.0.112
-	yamt-pagecache:1.1.1.2.0.110
-	bouyer-quota2:1.1.1.2.0.108
-	jruoho-x86intr:1.1.1.2.0.106
-	matt-nb5-pq3:1.1.1.2.0.104
-	netbsd-5-1:1.1.1.2.0.102
-	rmind-uvmplock:1.1.1.2.0.100
-	uebayasi-xip:1.1.1.2.0.98
-	netbsd-5-0:1.1.1.2.0.96
-	jym-xensuspend:1.1.1.2.0.94
-	ad-audiomp2:1.1.1.2.0.92
-	netbsd-5:1.1.1.2.0.90
-	haad-dm:1.1.1.2.0.88
-	simonb-wapbl:1.1.1.2.0.86
-	yamt-nfs-mp:1.1.1.2.0.84
-	yamt-pf42:1.1.1.2.0.82
-	mjf-devfs2:1.1.1.2.0.80
-	keiichi-mipv6:1.1.1.2.0.78
-	cube-autoconf:1.1.1.2.0.76
-	bouyer-xeni386:1.1.1.2.0.74
-	yamt-kmem:1.1.1.2.0.72
-	vmlocking2:1.1.1.2.0.70
-	mjf-devfs:1.1.1.2.0.68
-	bouyer-xenamd64:1.1.1.2.0.66
-	yamt-x86pmap:1.1.1.2.0.64
-	jmcneill-pm:1.1.1.2.0.62
-	hpcarm-cleanup:1.1.1.2.0.60
-	ppcoea-renovation:1.1.1.2.0.58
-	vmlocking:1.1.1.2.0.56
-	ad-audiomp:1.1.1.2.0.54
-	yamt-idlelwp:1.1.1.2.0.52
-	yamt-splraiseipl:1.1.1.2.0.50
-	newlock2:1.1.1.2.0.48
-	gdamore-uart:1.1.1.2.0.46
-	yamt-pdpolicy:1.1.1.2.0.44
-	simonb-timecounters:1.1.1.2.0.42
-	rpaulo-netinet-merge-pcb:1.1.1.2.0.40
-	yamt-uio_vmspace:1.1.1.2.0.38
-	yamt-readahead:1.1.1.2.0.36
-	thorpej-vnode-attr:1.1.1.2.0.34
-	yamt-lazymbuf:1.1.1.2.0.30
-	yamt-km:1.1.1.2.0.28
-	kent-audio2:1.1.1.2.0.26
-	ktrace-lwp:1.1.1.2.0.24
-	gmcgarry_ctxsw:1.1.1.2.0.22
-	gmcgarry_ucred:1.1.1.2.0.20
-	gehenna-devsw:1.1.1.2.0.18
-	newlock:1.1.1.2.0.14
-	ifpoll:1.1.1.2.0.12
-	thorpej-mips-cache:1.1.1.2.0.10
-	thorpej-devvp:1.1.1.2.0.8
-	kqueue:1.1.1.2.0.6
-	thorpej_scsipi:1.1.1.2.0.4
-	thorpej-signal:1.1.1.2.0.2
 	amiga-version#621:1.1.1.1
 	amiga-release:1.1.1
 	netbsd-0-9-patch-001:1.1.1.1
@@ -72,7 +14,7 @@ symbols
 	amiga_version_390:1.1.1.1
 	mw_amiga_machdep_merge:1.1.1;
 locks; strict;
-comment	@# Master from NetBSD containing pound-sign in a symbol name@;
+comment	@#Reduced master from NetBSD containing pound-sign in a symbol name@;
 
 
 1.1
@@ -99,53 +41,30 @@ desc
 
 1.1
 log
-@Initial revision
+@da28248b4ec75efbe0ba7461142ed60d
 @
 text
-@The HP300 version uses a kernel which is loaded into the range 0xfffxxx... but
-is linked for range 0x000.. This causes the problem that with switching the
-MMU to the mapped kernel, the PC becomes invalid. The HP version solves the
-problem by mapping 1:1 the last page of physical memory into virtual memory.
-
-On the Amiga, there *is* memory at PA 0x0, so we might as well use it, causes
-much less grief and weirdness in locore.s. However, since memory down there
-is CHIPMEM, inherently slower than FASTMEM, and badly needed for framebuffer
-storage space, we'll copy the kernel over to the first bank of FASTRAM, and
-when enabling the MMU, the kernel will execute in FASTRAM, although the PC
-stays the same.
-
-This strategy has the big advantage (compared to the solution in Amiga MACH)
-that we can link the kernel absolutely to VA 0, for all memory models, since
-we'll never execute the kernel in the FASTMEM space while the MMU is turned
-off.
-
-This strategy also means, that we don't have to relocate any addresses while
-bootstrapping the mmu!!
-
-Initialization of the MMU happens in amiga_init.c. This file is quite a mess,
-I have generated it trying to understand what's happening in the hp300 locore.s
-file. I think, it should be able to handle MMU initialization much cleaner
-now that we don't have to think about relocation until the MMU is enabled.
-If you need your daily bit of horror, take a look at amiga_init.c...
+@hashsymbol content for 1.1
 @
 
 
 1.1.1.1
 log
-@sys/arch/amiga tree. This is the machdep part required to get the kernel
-up on an A3000. There are still (very) few changes required outside the
-arch/amiga tree, so you can't recompile the kernel yet. Support for
-third party SCSI controllers for the A2000 is on its way. The kernel is
-fully functional (except for a missing ethernet-driver ...). This
-tree is based on my version #390.
+@f8a1b63b883ce97d3c94a35c52e5f57a
 @
 text
-@@
+@d1 1
+a1 1
+hashsymbol content for 1.1.1.1
+@
 
 
 1.1.1.2
 log
-@Clean up deleted files.
+@de54d576de51109167df624abae26024
 @
 text
-@@
+@d1 1
+a1 1
+hashsymbol content for 1.1.1.2
+@
