@@ -29,10 +29,10 @@ check: test
 ,v.dot:
 	$(CVS_FAST_EXPORT) -g $< >$*.dot
 
-test: s_regress m_regress i_regress f_regress t_regress
+test: s_regress m_regress r_regress i_regress f_regress t_regress
 	@echo "No diff output is good news."
 
-rebuild: s_rebuild m_rebuild i_rebuild t_rebuild
+rebuild: s_rebuild m_rebuild r_rebuild i_rebuild t_rebuild
 
 testlist:
 	@grep '^##' *.tst *.py
@@ -101,7 +101,18 @@ f_regress: neutralize.map
 	    rm canonical$$ fast$$; \
 	done
 
-
+REDUCED=oldhead
+r_rebuild: neutralize.map
+	@-for file in $(REDUCED); do \
+	    echo "Remaking $${file}.chk"; \
+	    find $${file}.testrepo/module -name '*,v' | $(CVS_FAST_EXPORT) $(TESTOPTS) >$${file}.chk 2>&1; \
+	done;
+r_regress: neutralize.map
+	@echo "== Repo regressions =="
+	@-for repo in $(REDUCED); do \
+	    echo -n "  $${repo} "; grep '##' $${repo}.testrepo/README  || echo ' ## (no description)'; \
+	    find $${repo}.testrepo/module -name '*,v' | $(CVS_FAST_EXPORT) $(TESTOPTS) 2>&1 | $(DIFF) $${repo}.chk -; \
+	done
 
 PYTESTS=t9601 t9602 t9603 t9604 t9605
 PATHSTRIP = sed -e '/\/.*tests/s//tests/'

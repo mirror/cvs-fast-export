@@ -14,7 +14,7 @@ symbols
 	amiga_version_390:1.1.1.1
 	mw_amiga_machdep_merge:1.1.1;
 locks; strict;
-comment	@#Reduced master from NetBSD containing pound-sign in a symbol name@;
+comment	@# Reduced master from NetBSD containing pound-sign in a symbol name@;
 
 
 1.1

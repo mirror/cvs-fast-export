@@ -1,3 +1,5 @@
+## trunk tip older than vendor branch tip
+
 At version 1.26, produced a content mismatch:
 
 esr@snark:~/WWW/cvs-fast-export/tests$ cvsconvert -n oldhead.testrepo
@@ -11,3 +13,5 @@ oldhead.testrepo branch master: oldhead.testrepo.checkout/Makefile.am and oldhea
 -Makefile.am,v content for 1.2
 +Makefile.am,v content for 1.1.1.1
 
+This problem was solved by the commit labeled 'Major simplification
+and improvement of vendor branch handling.'

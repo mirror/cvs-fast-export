@@ -1,0 +1,269 @@
+blob
+mark :1
+data 61
+ChangeLog,v content for 1.1
+a1 1
+ChangeLog,v content for 1.8
+
+commit refs/heads/master
+mark :2
+committer jimb <jimb> 101200 +0000
+data 33
+da28248b4ec75efbe0ba7461142ed60d
+
+M 100644 :1 ChangeLog
+M 100644 inline .gitignore
+data 198
+# CVS default ignores begin
+tags
+TAGS
+.make.state
+.nse_depinfo
+*~
+#*
+.#*
+,*
+_$*
+*$
+*.old
+*.bak
+*.BAK
+*.orig
+*.rej
+.del-*
+*.a
+*.olb
+*.o
+*.obj
+*.so
+*.exe
+*.Z
+*.elc
+*.ln
+core
+# CVS default ignores end
+
+property cvs-revision 14 ChangeLog 1.1
+
+blob
+mark :3
+data 65
+ChangeLog,v content for 1.1.1.1
+a1 1
+ChangeLog,v content for 1.8
+
+commit refs/heads/import-1.1.1
+mark :4
+committer jimb <jimb> 102400 +0000
+data 33
+fa95f7afd9fe5cfc4158bb1628bddeee
+
+from :2
+M 100644 :3 ChangeLog
+property cvs-revision 18 ChangeLog 1.1.1.1
+
+blob
+mark :5
+data 61
+ChangeLog,v content for 1.2
+a1 1
+ChangeLog,v content for 1.8
+
+commit refs/heads/master
+mark :6
+committer roland <roland> 103600 +0000
+data 33
+b72e5e615d7c042281459b7c17245684
+
+from :2
+M 100644 :5 ChangeLog
+property cvs-revision 14 ChangeLog 1.2
+
+blob
+mark :7
+data 61
+ChangeLog,v content for 1.3
+a1 1
+ChangeLog,v content for 1.8
+
+commit refs/heads/master
+mark :8
+committer jimb <jimb> 104800 +0000
+data 33
+585e3addfd28851ce8284bca18e152df
+
+from :6
+M 100644 :7 ChangeLog
+property cvs-revision 14 ChangeLog 1.3
+
+blob
+mark :9
+data 61
+ChangeLog,v content for 1.4
+a1 1
+ChangeLog,v content for 1.8
+
+commit refs/heads/master
+mark :10
+committer roland <roland> 106000 +0000
+data 33
+8cf8463b34caa8ac871a52d5dd7ad1ef
+
+from :8
+M 100644 :9 ChangeLog
+property cvs-revision 14 ChangeLog 1.4
+
+blob
+mark :11
+data 61
+ChangeLog,v content for 1.5
+a1 1
+ChangeLog,v content for 1.8
+
+commit refs/heads/master
+mark :12
+committer noel <noel> 107200 +0000
+data 33
+460616d6dc880cf30442b521ce20e040
+
+from :10
+M 100644 :11 ChangeLog
+property cvs-revision 14 ChangeLog 1.5
+
+blob
+mark :13
+data 61
+ChangeLog,v content for 1.6
+a1 1
+ChangeLog,v content for 1.8
+
+commit refs/heads/master
+mark :14
+committer jimb <jimb> 108400 +0000
+data 33
+585e3addfd28851ce8284bca18e152df
+
+from :12
+M 100644 :13 ChangeLog
+property cvs-revision 14 ChangeLog 1.6
+
+blob
+mark :15
+data 61
+ChangeLog,v content for 1.7
+a1 1
+ChangeLog,v content for 1.8
+
+commit refs/heads/master
+mark :16
+committer jimb <jimb> 109600 +0000
+data 33
+585e3addfd28851ce8284bca18e152df
+
+from :14
+M 100644 :15 ChangeLog
+property cvs-revision 14 ChangeLog 1.7
+
+blob
+mark :17
+data 38
+d1 1
+a1 1
+ChangeLog,v content for 1.8
+
+commit refs/heads/master
+mark :18
+committer kingdon <kingdon> 110800 +0000
+data 33
+efd85ec997fe32634876c4d0172436fe
+
+from :16
+M 100644 :17 ChangeLog
+property cvs-revision 14 ChangeLog 1.8
+
+blob
+mark :19
+data 65
+ChangeLog,v content for 1.1.1.2
+a1 1
+ChangeLog,v content for 1.8
+
+commit refs/heads/import-1.1.1
+mark :20
+committer jimb <jimb> 112000 +0000
+data 33
+0eacecf79eb28594ee63e3907e762b40
+
+from :4
+M 100644 :19 ChangeLog
+property cvs-revision 18 ChangeLog 1.1.1.2
+
+blob
+mark :21
+data 65
+ChangeLog,v content for 1.1.1.3
+a1 1
+ChangeLog,v content for 1.8
+
+commit refs/heads/import-1.1.1
+mark :22
+committer jimb <jimb> 113200 +0000
+data 33
+f5048cdd5b80e1f85ec0582695a20db6
+
+from :20
+M 100644 :21 ChangeLog
+property cvs-revision 18 ChangeLog 1.1.1.3
+
+blob
+mark :23
+data 30
+Makefile.am,v content for 1.1
+
+commit refs/heads/master
+mark :24
+committer dprice <dprice> 114400 +0000
+data 33
+da091809da59e576ff757e9779ed1821
+
+from :18
+M 100644 :23 Makefile.am
+property cvs-revision 16 Makefile.am 1.1
+
+blob
+mark :25
+data 30
+Makefile.am,v content for 1.2
+
+commit refs/heads/master
+mark :26
+committer dprice <dprice> 115600 +0000
+data 33
+72b08886805045542b2653782b7f52f0
+
+from :24
+M 100644 :25 Makefile.am
+property cvs-revision 16 Makefile.am 1.2
+
+blob
+mark :27
+data 34
+Makefile.am,v content for 1.1.1.1
+
+commit refs/heads/import-1.1.1
+mark :28
+committer dprice <dprice> 116800 +0000
+data 33
+adec3217e3975f36407dbf470ddaf5e9
+
+from :22
+M 100644 :27 Makefile.am
+property cvs-revision 20 Makefile.am 1.1.1.1
+
+reset refs/heads/master
+from :26
+
+reset refs/heads/import-1.1.1
+from :28
+
+done

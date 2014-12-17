@@ -57,13 +57,6 @@ QED.testrepo::
 twicedead.testrepo::
 	contains a pathological master set to dead state twice.
 
-oldhead.testrepo::
-	produced a content mismatch at version 1.26.
-
-== The twicedead repostory ==
-
-Has a pathological twice-dead master in it.
-
 == The t9600 group ==
 
 The t960[1-4] files are tests taken from the git tree for testing the
