@@ -260,202 +260,52 @@ cvs_master_branch_build(cvs_file *cvs, rev_master *master, const cvs_number *bra
  * In addition, any files without such a commit appear to adopt
  * the vendor branch as 'head'. 
  *
- * The original behavior of this code was to fix this by merging the vendor
- * branch into the master branch, as if they were the same.  This produced
- * incorrect behavior on repos where there was a vendor-branch revision more
- * recent than the tip of the master branch.  What we should do is leave the 
- * branch topology alone and simply point the "master" named reference at the
- * tip revision of the lowest numbered vendor branch if the vendor branch
- * has no 1.2 commit.
+ * The original behavior of this code was to fix this by merging the
+ * vendor branch into the master branch, as if they were the same.
+ * This produced incorrect behavior on repos where there was a
+ * vendor-branch revision more recent than the tip of the master
+ * branch.  What we should do is leave the branch topology alone and
+ * simply point the "master" named reference at the tip revision of
+ * the lowest numbered vendor branch if the vendor branch has no 1.2
+ * commit.
  *
- * A side effect of this code is to give ech branch a synthetic label  
+ * A side effect of this code is to give each branch a synthetic label.
  */
 static void
-cvs_master_patch_vendor_branch(cvs_master *cm, cvs_file *cvs)
+cvs_master_patch_vendor_branch(cvs_master *cm)
 {
     rev_ref	*trunk = NULL;
     rev_ref	*vendor = NULL;
-    cvs_commit	*vlast, *v;
-    cvs_commit	*t, **tp, **vp;
-    rev_ref	**h_p;
-#ifdef CVSDEBUG
-    int		nvb = 0;
-#endif /* CVSDEBUG */
+    cvs_commit	*vlast;
 
     trunk = cm->heads;
-    for (h_p = &cm->heads; (vendor = *h_p);) {
-	bool delete_head = false;
+    for (vendor = cm->heads; vendor; vendor = vendor->next) {
 	if (vendor->commit && cvs_is_vendor(vendor->commit->number))
 	{
-#ifdef CVSDEBUG
-	    char buf[CVS_MAX_REV_LEN];
-	    ++nvb;
-#endif /* CVSDEBUG */
-	    /*
-	     * Find version 1.2 on the trunk.
-	     * This will reset the default branch set
-	     * when the initial import was done.
-	     * Subsequent imports will *not* set the default
-	     * branch, and should be on their own branch
-	     */
-	    v = vendor->commit;
-	    for (vlast = vendor->commit; vlast; vlast = vlast->parent)
-		if (!vlast->parent)
-		    break;
-	    /*
-	     * Find the latest trunk revision older than
-	     * the entire vendor branch
-	     */
-	    tp = &trunk->commit;
-	    while ((t = *tp))
-	    {
-		if (!t->parent ||
-		    time_compare(vlast->date, t->parent->date) >= 0)
-		{
-		    break;
-		}
-		tp = &t->parent;
-	    }
-	    if (t)
-	    {
-		/*
-		 * If the first commit is older than the last element
-		 * of the vendor branch, paste them together and
-		 * nuke the vendor branch
-		 */
-		if (time_compare(vlast->date, t->date) >= 0)
-		{
-		    delete_head = true;
-#if CVSDEBUG
-		    if (cvs->verbose > 0)
-			debugmsg("In %s, vendor branch %s newer than trunk root.\n",
-			 cvs->export_name,
-			 cvs_number_string(vendor->commit->number, buf, CVS_MAX_REV_LEN));
-#endif /* CVSDEBUG */
-		}
-		else
-		{
-		    /*
-		     * Splice out any portion of the vendor branch
-		     * newer than the next trunk commit after
-		     * the oldest branch commit.
-		     */
-		    for (vp = &vendor->commit; (v = *vp); vp = &v->parent)
-			if (time_compare(v->date, t->date) <= 0)
-			    break;
-		    if (vp == &vendor->commit)
-		    {
-			/*
-			 * Nothing newer, nuke vendor branch
-			 */
-#if CVSDEBUG
-		    if (cvs->verbose > 0)
-			debugmsg("In %s, vendor branch %s case #2.\n",
-			 cvs->export_name,
-			 cvs_number_string(vendor->commit->number, buf, CVS_MAX_REV_LEN));
-#endif /* CVSDEBUG */
-			delete_head = true;
-		    }
-		    else
-		    {
-			/*
-			 * Some newer stuff, patch parent
-			 */
-			*vp = NULL;
-		    }
-		}
-	    }
-	    else {
-#if CVSDEBUG
-		if (cvs->verbose > 0)
-		    debugmsg("In %s, vendor branch %s fallthrough case.\n",
-			     cvs->export_name,
-			     cvs_number_string(vendor->commit->number, buf, CVS_MAX_REV_LEN));
-#endif /* CVSDEBUG */
-		delete_head = true;
-	    }
-#if CVSDEBUG
-	    if (cvs->verbose > 0)
-		debugmsg("In %s, vendor branch %s %sdeleted.\n",
-			 cvs->export_name,
-			 cvs_number_string(vendor->commit->number, buf, CVS_MAX_REV_LEN),
-			 delete_head ? "" : "not ");
-#endif /* CVSDEBUG */
-	    /*
-	     * Make a branch out of the remaining undeleted vendor commits.
-	     */
-	    if (!delete_head) {
-		cvs_commit  *vr;
-		if (!vendor->ref_name) {
-		    char	rev[CVS_MAX_REV_LEN];
-		    char	name[PATH_MAX];
-		    cvs_number	branch;
+	    if (!vendor->ref_name) {
+		char	rev[CVS_MAX_REV_LEN];
+		char	name[PATH_MAX];
+		cvs_number	branch;
 
-		    memcpy(&branch, vlast->number, sizeof(cvs_number));
-		    branch.c--;
-		    cvs_number_string(&branch, rev, sizeof(rev));
-		    snprintf(name, sizeof(name), "import-%s", rev);
-		    vendor->ref_name = atom(name);
-		    vendor->parent = trunk;
-		    /*
-		     * Degree used to be set from vlast->number->c;
-		     * this should be equivalent, since the branches
-		     * have not yet been grafted.
-		     */
-		    vendor->degree = vendor->commit->number->c;
-		    vendor->number = vendor->commit->number;
-		}
-		for (vr = vendor->commit; vr; vr = vr->parent)
-		{
-		    if (!vr->parent) {
-			vr->tail = true;
-			vr->parent = v;
+		for (vlast = vendor->commit; vlast; vlast = vlast->parent)
+		    if (!vlast->parent)
 			break;
-		    }
-		}
+		memcpy(&branch, vlast->number, sizeof(cvs_number));
+		branch.c--;
+		cvs_number_string(&branch, rev, sizeof(rev));
+		snprintf(name, sizeof(name), "import-%s", rev);
+		vendor->ref_name = atom(name);
+		vendor->parent = trunk;
+		/*
+		 * Degree used to be set from vlast->number->c;
+		 * this should be equivalent, since the branches
+		 * have not yet been grafted.
+		 */
+		vendor->degree = vendor->commit->number->c;
+		vendor->number = vendor->commit->number;
 	    }
-	   
-	    /*
-	     * Merge two branches based on dates
-	     */
-	    while (t && v)
-	    {
-		if (time_compare(v->date, t->date) >= 0)
-		{
-		    *tp = v;
-		    tp = &v->parent;
-		    v = v->parent;
-		}
-		else
-		{
-		    *tp = t;
-		    tp = &t->parent;
-		    t = t->parent;
-		}
-	    }
-	    if (t)
-		*tp = t;
-	    else
-		*tp = v;
-	}
-
-	/* actual branch deletion takes place here */
-	if (delete_head) {
-	    *h_p = vendor->next;
-	    free(vendor);
-	} else {
-	    h_p = &(vendor->next);
 	}
     }
-#if CVSDEBUG
-    if (cvs->verbose > 0 && nvb > 0) {
-	debugmsg("%s spliced:\n", cvs->export_name);
-	for (t = trunk->commit; t; t = t->parent) {
-	    dump_number_file(LOGFILE, "\t", t->number);
-	    debugmsg("\n");
-	}
-    }
-#endif /* CVSDEBUG */
 }
 
 static void
@@ -953,7 +803,7 @@ cvs_master_digest(cvs_file *cvs, cvs_master *cm, rev_master *master)
 	    rev_list_add_head(cm, branch, NULL, 0);
 	}
     }
-    cvs_master_patch_vendor_branch(cm, cvs);
+    cvs_master_patch_vendor_branch(cm);
     cvs_master_graft_branches(cm, cvs);
     cvs_master_set_refs(cm, cvs);
     cvs_master_sort_heads(cm, cvs);
