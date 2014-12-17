@@ -278,7 +278,7 @@ cvs_master_patch_vendor_branch(cvs_master *cm, cvs_file *cvs)
 {
     rev_ref	*trunk = NULL;
     rev_ref	*vendor = NULL;
-    rev_ref	*ovendor = NULL;
+    rev_ref	*nvendor = NULL;
 
     trunk = cm->heads;
     assert(strcmp(trunk->ref_name, "master") == 0);
@@ -291,9 +291,8 @@ cvs_master_patch_vendor_branch(cvs_master *cm, cvs_file *cvs)
 		cvs_number	branch;
 		cvs_commit	*vlast;
 
-		/* stash pointer to oldest vendor branch, might need it later */ 
-		if (ovendor == NULL)
-		    ovendor = vendor;
+		/* stash pointer to newest vendor branch, might need it later */ 
+		nvendor = vendor;
 
 		for (vlast = vendor->commit; vlast; vlast = vlast->parent)
 		    if (!vlast->parent)
@@ -316,19 +315,19 @@ cvs_master_patch_vendor_branch(cvs_master *cm, cvs_file *cvs)
     }
 
     /* if there's a vendor branch and no commit 1.2... */
-    if (ovendor != NULL && trunk->commit->parent == NULL) {
+    if (nvendor != NULL && trunk->commit->parent == NULL) {
 	cvs_commit	*vlast, *oldtip = trunk->commit;
-	trunk->commit = ovendor->commit;
-	trunk->degree = ovendor->commit->number->c;
-	trunk->number = ovendor->commit->number;
+	trunk->commit = nvendor->commit;
+	trunk->degree = nvendor->commit->number->c;
+	trunk->number = nvendor->commit->number;
 	for (vlast = trunk->commit; vlast; vlast = vlast->parent)
 	    if (!vlast->parent) {
 		vlast->parent = oldtip;
 		break;
 	    }
 	for (vendor = cm->heads; vendor; vendor = vendor->next)
-	    if (vendor->next == ovendor)
-		vendor->next = ovendor->next;
+	    if (vendor->next == nvendor)
+		vendor->next = nvendor->next;
     }
 }
 
