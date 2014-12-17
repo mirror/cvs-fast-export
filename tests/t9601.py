@@ -39,7 +39,7 @@ import os, testlifter
 
 repo = testlifter.CVSRepository("t9601.testrepo")
 co = repo.checkout("module", "t9601.checkout")
-repo.convert("module", "t9601.git")
+repo.convert("module", "t9601.git", more_opts="-F")
 
 # Check a file that was imported once
 testlifter.expect_same("t9601.checkout/imported-once.txt",

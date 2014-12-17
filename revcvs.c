@@ -264,21 +264,24 @@ cvs_master_branch_build(cvs_file *cvs, rev_master *master, const cvs_number *bra
  * vendor branch into the master branch, as if they were the same.
  * This produced incorrect behavior on repos where there was a
  * vendor-branch revision more recent than the tip of the master
- * branch.  What we should do is leave the branch topology alone and
- * simply point the "master" named reference at the tip revision of
- * the lowest numbered vendor branch if the vendor branch has no 1.2
- * commit.
+ * branch.
+ *
+ * If the vendor branch has no 1.2, what we do now is point the "master" 
+ * named reference at the tip revision of the lowest numbered vendor branch 
+ * commit, then splice the old tip to the old branch, then delete the
+ * vendor branch reference.
  *
  * A side effect of this code is to give each branch a synthetic label.
  */
 static void
-cvs_master_patch_vendor_branch(cvs_master *cm)
+cvs_master_patch_vendor_branch(cvs_master *cm, cvs_file *cvs)
 {
     rev_ref	*trunk = NULL;
     rev_ref	*vendor = NULL;
-    cvs_commit	*vlast;
+    rev_ref	*ovendor = NULL;
 
     trunk = cm->heads;
+    assert(strcmp(trunk->ref_name, "master") == 0);
     for (vendor = cm->heads; vendor; vendor = vendor->next) {
 	if (vendor->commit && cvs_is_vendor(vendor->commit->number))
 	{
@@ -286,6 +289,11 @@ cvs_master_patch_vendor_branch(cvs_master *cm)
 		char	rev[CVS_MAX_REV_LEN];
 		char	name[PATH_MAX];
 		cvs_number	branch;
+		cvs_commit	*vlast;
+
+		/* stash pointer to oldest vendor branch, might need it later */ 
+		if (ovendor == NULL)
+		    ovendor = vendor;
 
 		for (vlast = vendor->commit; vlast; vlast = vlast->parent)
 		    if (!vlast->parent)
@@ -305,6 +313,22 @@ cvs_master_patch_vendor_branch(cvs_master *cm)
 		vendor->number = vendor->commit->number;
 	    }
 	}
+    }
+
+    /* if there's a vendor branch and no commit 1.2... */
+    if (ovendor != NULL && trunk->commit->parent == NULL) {
+	cvs_commit	*vlast, *oldtip = trunk->commit;
+	trunk->commit = ovendor->commit;
+	trunk->degree = ovendor->commit->number->c;
+	trunk->number = ovendor->commit->number;
+	for (vlast = trunk->commit; vlast; vlast = vlast->parent)
+	    if (!vlast->parent) {
+		vlast->parent = oldtip;
+		break;
+	    }
+	for (vendor = cm->heads; vendor; vendor = vendor->next)
+	    if (vendor->next == ovendor)
+		vendor->next = ovendor->next;
     }
 }
 
@@ -803,7 +827,7 @@ cvs_master_digest(cvs_file *cvs, cvs_master *cm, rev_master *master)
 	    rev_list_add_head(cm, branch, NULL, 0);
 	}
     }
-    cvs_master_patch_vendor_branch(cm);
+    cvs_master_patch_vendor_branch(cm, cvs);
     cvs_master_graft_branches(cm, cvs);
     cvs_master_set_refs(cm, cvs);
     cvs_master_sort_heads(cm, cvs);
