@@ -36,8 +36,10 @@ typedef struct _revision {
 #define REVISION_T revision_t
 /* once set, dir doesn't change, so have an initial pack that sets dir and a later pack that doesn't */
 #define REVISION_T_PACK(rev, commit) (rev).packed = ((uintptr_t)(commit) | ((commit) ? ((commit)->dead) : 0))
-#define REVISION_T_PACK_INIT(rev, commit) REVISION_T_PACK(rev, commit); \
-    (rev).dir = (commit)->dir
+#define REVISION_T_PACK_INIT(rev, commit) do {	\
+	REVISION_T_PACK(rev, commit);		\
+	(rev).dir = (commit)->master->dir;	\
+    } while (0)
 #define REVISION_T_DEAD(rev) (((rev).packed) & 1)
 #define REVISION_T_DIR(rev) ((rev).dir)
 #define COMMIT_MASK (~(uintptr_t)0 ^ 1)
@@ -942,7 +944,12 @@ rev_tag_search(tag_t *tag, cvs_commit **revisions, git_repo *gl)
 	 * tag out you will get the correct set of files.
          * We have no way of knowing the correct author of a tag.
 	 */
-	git_commit *g = git_commit_build(revisions, c, tag->count, tag->count);
+	REVISION_T *revs = xmalloc(sizeof(REVISION_T) * tag->count, __func__);
+	size_t i;
+	for (i = 0; i < tag->count; i++)
+	    REVISION_T_PACK_INIT(revs[i], revisions[i]);
+	git_commit *g = git_commit_build(revs, c, tag->count, tag->count);
+	free(revs);
 	g->parent = c->gitspace;
 	rev_ref *parent_branch = git_branch_of_commit(gl, c);
 	rev_ref *tag_branch = xcalloc(1, sizeof(rev_ref), __func__);
