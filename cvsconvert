@@ -402,7 +402,7 @@ if __name__ == '__main__':
     import getopt
     (opts, arguments) = getopt.getopt(sys.argv[1:], "k:npv")
     retain = True
-    engine_opts = ""
+    engine_opts = "-F"
     kexpand = ""
     for (opt, arg) in opts:
         if opt == '-v':
