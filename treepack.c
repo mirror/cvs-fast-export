@@ -325,18 +325,15 @@ revdir_pack_files(const cvs_commit **files, const size_t nfiles, revdir *revdir)
 #endif /* ORDERDEBUG */
 
     /*
-     * The purpose of this sort is to rearrange the files in
-     * directory-path order so we get the longest possible
-     * runs of common directory prefixes, and thus maximum 
+     * We want the files in directory-path order so we get the longest
+     * possible runs of common directory prefixes, and thus maximum
      * space-saving effect out of the next step.  This reduces
      * working-set size at the expense of the sort runtime.
-     * Sorting the masters at the input stage causes
-     * them to come out in the right order here, without
-     * multiple additional sorts
+     *
+     * That used to be done with a qsort(3) call here, but sorting the
+     * masters at the input stage causes them to come out in the right
+     * order here, without multiple additional sorts.
      */
-#ifndef FILESORT
-    qsort(files, nfiles, sizeof(cvs_commit *), compare_cvs_commit);
-#endif /* !FILESORT */
     revdir_pack_alloc(nfiles);
     revdir_pack_init();
     for (i = 0; i < nfiles; i++)

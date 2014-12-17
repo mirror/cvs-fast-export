@@ -321,7 +321,6 @@ void analyze_masters(int argc, char *argv[],
 	sorted_files[i++].rectified = atom_rectify_name(fn->file);
 	free(fn);
     }
-#ifdef FILESORT
     /*
      * Sort list of files in path_deep_compare order of output name.
      * cvs_masters and rev_masters will be mainteined in this order.
@@ -331,7 +330,6 @@ void analyze_masters(int argc, char *argv[],
      * e.g. .cvsignore becomes .gitignore
      */
     qsort(sorted_files, total_files, sizeof(rev_file), file_compare);
-#endif /*FILESORT */
 	
     progress_end("done, %.3fKB in %d files",
 		 (forest->textsize/1024.0), forest->filecount);
