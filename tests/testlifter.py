@@ -168,19 +168,18 @@ class CVSCheckout:
         self.module = module or "module"
         self.checkout = checkout or module
         # Hack to get around repositories that don't have a CVSROOT & module
-        self.proxied = False
+        self.proxy = None
         if not os.path.exists(self.repo.directory + os.sep + "CVSROOT"):
-            proxy = self.repo.name + CVSCheckout.PROXYSUFFIX
+            self.proxy = self.repo.name + CVSCheckout.PROXYSUFFIX
             try:
-                shutil.rmtree(proxy)
+                shutil.rmtree(self.proxy)
             except OSError:
                 pass
-            os.mkdir(proxy)
-            os.symlink(self.repo.directory, proxy + os.sep + self.module)
-            os.mkdir(proxy + os.sep + "CVSROOT")
+            os.mkdir(self.proxy)
+            os.symlink(self.repo.directory, self.proxy + os.sep + self.module)
+            os.mkdir(self.proxy + os.sep + "CVSROOT")
             self.repo.name += CVSCheckout.PROXYSUFFIX
             self.repo.directory += CVSCheckout.PROXYSUFFIX
-            self.proxied = True
         self.repo.do("co", self.module)
         if checkout:
             if os.path.exists(checkout):
@@ -248,10 +247,8 @@ class CVSCheckout:
         self.do("up", "-kb", "-A", "-r", rev)
     def cleanup(self):
         "Clean up the checkout directory."
-        if self.proxied:
-            shutil.rmtree(self.repo.directory + os.sep + "CVSROOT")
-            os.unlink(self.repo.directory + os.sep + self.module)
-            os.rmdir(self.repo.directory)
+        if self.proxy and os.path.exists(self.proxy):
+            shutil.rmtree(self.proxy)
         if os.path.exists(self.directory):
             shutil.rmtree(self.directory)
 
