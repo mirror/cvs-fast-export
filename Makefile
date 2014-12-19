@@ -64,6 +64,8 @@ CPPFLAGS+=-Drestrict=__restrict__
 # Note: the profiler gets confused if you don't also turn off -O flags.
 # CFLAGS += -pg
 CFLAGS += -O3
+# If your toolchain supports link time optimization this is a cheap speedup
+# CFLAGS += -flto
 # CFLAGS += -g
 # Test coverage flags
 # CFLAGS += -ftest-coverage -fprofile-arcs
