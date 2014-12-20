@@ -1,0 +1,25 @@
+head	1.1;
+access;
+symbols
+	tag2:1.1
+	tag1:1.1;
+locks; strict;
+comment	@# @;
+
+
+1.1
+date	2014.12.20.17.43.16;	author loz;	state Exp;
+branches;
+next	;
+
+
+desc
+@@
+
+
+1.1
+log
+@First Commit
+@
+text
+@@
