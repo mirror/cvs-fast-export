@@ -1,0 +1,75 @@
+head	1.2;
+access;
+symbols
+	lost-repo-state:1.1.1.2
+	vend_1_1:1.1.1.2
+	vend_1_0:1.1.1.1
+	vend:1.1.1;
+locks; strict;
+comment	@# @;
+
+
+1.2
+date	2014.12.20.18.31.31;	author loz;	state Exp;
+branches;
+next	1.1;
+
+1.1
+date	2014.12.20.18.31.25;	author loz;	state Exp;
+branches
+	1.1.1.1;
+next	;
+
+1.1.1.1
+date	2014.12.20.18.31.25;	author loz;	state Exp;
+branches;
+next	1.1.1.2;
+
+1.1.1.2
+date	2014.12.20.18.31.27;	author loz;	state Exp;
+branches;
+next	;
+
+
+desc
+@@
+
+
+1.2
+log
+@c3
+@
+text
+@3
+@
+
+
+1.1
+log
+@Initial revision
+@
+text
+@d1 1
+a1 1
+1
+@
+
+
+1.1.1.1
+log
+@v1
+@
+text
+@@
+
+
+1.1.1.2
+log
+@v2
+@
+text
+@d1 1
+a1 1
+2
+@
+

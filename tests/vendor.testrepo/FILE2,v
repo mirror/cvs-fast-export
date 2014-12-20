@@ -1,0 +1,42 @@
+head	1.2;
+access;
+symbols
+	lost-repo-state:1.2;
+locks; strict;
+comment	@# @;
+
+
+1.2
+date	2014.12.20.18.31.28;	author loz;	state Exp;
+branches;
+next	1.1;
+
+1.1
+date	2014.12.20.18.31.26;	author loz;	state Exp;
+branches;
+next	;
+
+
+desc
+@@
+
+
+1.2
+log
+@c2
+@
+text
+@2
+@
+
+
+1.1
+log
+@c1
+@
+text
+@d1 1
+a1 1
+1
+@
+
