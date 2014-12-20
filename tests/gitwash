@@ -2,7 +2,7 @@
 #
 # gitwash - accept a stream in fast order and canonicalize it.
 #
-# FIXME: stop deleting author and committer lines when we fix tmesone screwage.
+# FIXME: stop deleting author and committer lines when we fix timezone screwage.
 #
 rm -fr /tmp/gitwash*
 mkdir /tmp/gitwash$$
