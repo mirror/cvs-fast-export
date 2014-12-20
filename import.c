@@ -249,6 +249,8 @@ void analyze_masters(int argc, char *argv[],
     /* Initialize and reinforce default thread non-detached attribute */
     pthread_attr_init(&attr);
     pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_JOINABLE);
+
+    atom_dir_init();
 #endif /* THREADS */
 
     striplen = analyzer->striplen;

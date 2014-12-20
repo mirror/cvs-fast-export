@@ -77,9 +77,17 @@ typedef struct _dir_bucket {
 
 static dir_bucket *dir_buckets[DIR_BUCKETS];
 #ifdef THREADS
-static pthread_mutex_t dir_bucket_mutex = PTHREAD_RECURSIVE_MUTEX_INITIALIZER_NP;
-#endif /* THREADS */
+static pthread_mutex_t dir_bucket_mutex;
 
+void atom_dir_init(void)
+{
+    pthread_mutexattr_t attr;
+
+    pthread_mutexattr_init(&attr);
+    pthread_mutexattr_settype(&attr, PTHREAD_MUTEX_RECURSIVE);
+    pthread_mutex_init(&dir_bucket_mutex, &attr);
+}
+#endif /* THREADS */
 
 static const master_dir *
 atom_dir(const char* dirname)

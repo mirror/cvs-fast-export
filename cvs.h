@@ -464,6 +464,9 @@ cvstime_t
 lex_date(const cvs_number *n, void *, cvs_file *cvs);
 
 void
+atom_dir_init(void);
+
+void
 cvs_master_digest(cvs_file *cvs, cvs_master *cm, rev_master *master);
 
 git_repo *
