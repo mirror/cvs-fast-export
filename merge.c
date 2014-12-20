@@ -913,62 +913,110 @@ git_commit_contains_revs(git_commit *g, cvs_commit **revs, size_t nrev)
 }
 
 /*
- * Locate position in tree corresponding to specific tag
+ * Locate position in git tree corresponding to specific tag
  */
 static void
 rev_tag_search(tag_t *tag, cvs_commit **revisions, git_repo *gl)
 {
-    /* With correct backlinks, we just find the latest tagged
-     * cvs commit and follow the backlink.
-     * Note tag->parent doesn't appear to be used.
+    /* The cvs_commit->gitspace pointer gives the first
+     * git commit a cvs commit appears in. (first in DAG pre-order)
+     * If we find the newest revision C in the tag and then
+     * follow the backlink to G, there is a good chance this
+     * will be the tag point.
+     * Consider, if any future git commits add files, then
+     * these files would be newer than C, and hence not in the tag
+     * set.
+     * However, this argument doesn't work if a subsequent commit
+     * only deletes files (or a set of commits has this net effect)
+     * So, we first check whether G has a matching set of revisions
+     * to the tag. If so, we're done.
+     * If not, we search the whole tree (pruning where possible)
+     * for a matching set of revisions.
+     * If this doesn't work we just tag G unless you have SUBSETTAG 
+     * defined, in which case we create branch from G with a single
+     * commit with the correct revisions.
+     *
+     * It is possible for multiple git commits to contain the same 
+     * set of cvs revisions.
+     *
      * Tags can point to dead commits, we ignore these as they
      * don't get backlinks to git commits.
      * This may get revisited later.
      */
     cvs_commit *c = cvs_commit_latest(revisions, tag->count);
-    if (!c)
+    if (!c) // only dead revisions in the tag
 	return;
-#ifndef SUBSETTAG
-    tag->commit = c->gitspace;
-#else 
-    /* experimetnal tagging mechansism for incomplete tags */
+
     qsort(revisions, tag->count, sizeof(cvs_commit *), compare_cvs_commit);
     if (git_commit_contains_revs(c->gitspace, revisions, tag->count)) {
 	// we've seen this set of revisions before. just link tag to it.
 	tag->commit = c->gitspace;
+	return;
     } else {
-	/* The tag doesn't point to a previously seen set of revisions.
-	 * Create a new branch with the tag name and join at the inferred
-	 * join point. The join point is the earliest one that makes
-	 * sense, but it may have happned later. However, if you check the
-	 * tag out you will get the correct set of files.
-         * We have no way of knowing the correct author of a tag.
+	/* search to try and find a matching git commit.
+	 * We can prune if we get to c->gitspace.
+         * We can prune if we get to an older commit that c->gitspace.
+         * We could also use tail-bits here to avoid checking the same
+         * commit multiple times, but we haven't built them yet.
+         * If we build them before tagging we would need to teach
+         * SUBSETTAG how to write correct tag bits in the branches it
+         * creates.
 	 */
-	REVISION_T *revs = xmalloc(sizeof(REVISION_T) * tag->count, __func__);
-	size_t i;
-	for (i = 0; i < tag->count; i++)
-	    REVISION_T_PACK_INIT(revs[i], revisions[i]);
-	git_commit *g = git_commit_build(revs, c, tag->count, tag->count);
-	free(revs);
-	g->parent = c->gitspace;
-	rev_ref *parent_branch = git_branch_of_commit(gl, c);
-	rev_ref *tag_branch = xcalloc(1, sizeof(rev_ref), __func__);
-	tag_branch->parent = parent_branch;
-	/* type punning */
-	tag_branch->commit = (cvs_commit *)g;
-	tag_branch->ref_name = tag->name;
-	tag_branch->depth = parent_branch->depth + 1;
-	rev_ref *r;
-	/* Add tag branch to end of list to maintain toposort */
-	for(r = gl->heads; r->next; r = r->next);
-	r->next = tag_branch;
-	g->author = atom("cvs-fast-export");
-	size_t len = strlen(tag->name) + 30;
-	char *log = xmalloc(len, __func__);
-	snprintf(log, len, "Synthetic commit for tag %s", tag->name);
-	g->log = atom(log);
-	free(log);
+	rev_ref    *h;
+	git_commit *g;
+	
+	for (h = gl->heads; h; h = h->next) {
+	    if (h->tail)
+		continue;
+	    /* Type PUNNING */
+	    for (g = (git_commit *)h->commit; g; g = g->parent) {
+		if (g == c->gitspace)
+		    break;
+		if (time_compare(g->date, c->gitspace->date) < 0)
+		    break;
+		if (git_commit_contains_revs(g, revisions, tag->count)) {
+		    tag->commit = g;
+		    return;
+		}
+	    }
+	}
     }
+#ifndef SUBSETTAG
+    // wrong, but consistent with previous versions
+    tag->commit = c->gitspace;
+#else 
+    /* Experimetnal tagging mechansism for incomplete tags
+     * The tag doesn't point to a previously seen set of revisions.
+     * Create a new branch with the tag name and join at the inferred
+     * join point. The join point is the earliest one that makes
+     * sense, but it may have happned later. However, if you check the
+     * tag out you will get the correct set of files.
+     * We have no way of knowing the correct author of a tag.
+     */
+    REVISION_T *revs = xmalloc(sizeof(REVISION_T) * tag->count, __func__);
+    size_t i;
+    for (i = 0; i < tag->count; i++)
+	REVISION_T_PACK_INIT(revs[i], revisions[i]);
+    git_commit *g = git_commit_build(revs, c, tag->count, tag->count);
+    free(revs);
+    g->parent = c->gitspace;
+    rev_ref *parent_branch = git_branch_of_commit(gl, c);
+    rev_ref *tag_branch = xcalloc(1, sizeof(rev_ref), __func__);
+    tag_branch->parent = parent_branch;
+    /* type punning */
+    tag_branch->commit = (cvs_commit *)g;
+    tag_branch->ref_name = tag->name;
+    tag_branch->depth = parent_branch->depth + 1;
+    rev_ref *r;
+    /* Add tag branch to end of list to maintain toposort */
+    for(r = gl->heads; r->next; r = r->next);
+    r->next = tag_branch;
+    g->author = atom("cvs-fast-export");
+    size_t len = strlen(tag->name) + 30;
+    char *log = xmalloc(len, __func__);
+    snprintf(log, len, "Synthetic commit for tag %s", tag->name);
+    g->log = atom(log);
+    free(log);
 #endif
 }
 
