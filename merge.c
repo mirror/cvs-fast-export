@@ -22,7 +22,9 @@
  *
  * merge_to_changesets() is the main function.
  */
-/* pack the dead flag into the commit pointer so we can avoid dereferencing 
+
+/*
+ * Pack the dead flag into the commit pointer so we can avoid dereferencing 
  * in the inner loop. Also keep the dir near the packed pointer
  * as it is used in the inner loop.
  */
@@ -32,21 +34,27 @@ typedef struct _revision {
     const master_dir *dir;
 } revision_t;
 
-#define REVISION_T revision_t
-/* once set, dir doesn't change, so have an initial pack that sets dir and a later pack that doesn't */
+/* 
+ * Once set, dir doesn't change, so have an initial pack that sets dir
+ * and a later pack that doesn't
+ */
 #define REVISION_T_PACK(rev, commit) (rev).packed = ((uintptr_t)(commit) | ((commit) ? ((commit)->dead) : 0))
 #define REVISION_T_PACK_INIT(rev, commit) do {	\
 	REVISION_T_PACK(rev, commit);		\
 	(rev).dir = (commit)->master->dir;	\
     } while (0)
 #define REVISION_T_DEAD(rev) (((rev).packed) & 1)
-#define REVISION_T_DIR(rev) ((rev).dir)
 #define COMMIT_MASK (~(uintptr_t)0 ^ 1)
 #define REVISION_T_COMMIT(rev) (cvs_commit *)(((rev).packed) & (COMMIT_MASK))
-/* be aware using these macros that they bind to whatever revisions array is in scope */
+
+/* 
+ * Be aware using these macros that they bind to whatever revisions array 
+ * is in scope
+ */
 #define DEAD(index) (REVISION_T_DEAD(revisions[(index)]))
 #define REVISIONS(index) (REVISION_T_COMMIT(revisions[(index)]))
-#define DIR(index) (REVISION_T_DIR(revisions[(index)]))
+#define DIR(index) (revisions[(index)].dir)
+
 static rev_ref *
 rev_find_head(head_list *rl, const char *name)
 /* find a named branch head in a revlist - used on both CVS and gitspace sides */
@@ -131,8 +139,8 @@ rev_ref_tsort(rev_ref *git_branches, cvs_master *masters, size_t nmasters)
 static int
 cvs_commit_date_compare(const void *av, const void *bv)
 {
-    const cvs_commit	*a = REVISION_T_COMMIT(*(REVISION_T *) av);
-    const cvs_commit	*b = REVISION_T_COMMIT(*(REVISION_T *) bv);
+    const cvs_commit	*a = REVISION_T_COMMIT(*(revision_t *) av);
+    const cvs_commit	*b = REVISION_T_COMMIT(*(revision_t *) bv);
     int			t;
 
     /*
@@ -178,10 +186,10 @@ cvs_commit_latest(cvs_commit **commits, int ncommit)
 }
 
 static int
-cvs_commit_date_sort(REVISION_T *commits, int ncommit)
+cvs_commit_date_sort(revision_t *commits, int ncommit)
 /* sort CVS commits by date */
 {
-    qsort(commits, ncommit, sizeof(REVISION_T), cvs_commit_date_compare);
+    qsort(commits, ncommit, sizeof(revision_t), cvs_commit_date_compare);
     /*
      * Trim off NULL entries
      */
@@ -231,7 +239,7 @@ static const cvs_commit **files = NULL;
 static int	        sfiles = 0;
 /* not all platforms have qsort_r so use something global for compare func */
 static int              srevisions = 0;
-static REVISION_T       *revisions = NULL;
+static revision_t       *revisions = NULL;
 static size_t           *sort_buf = NULL;
 static size_t           *sort_temp = NULL;
 
@@ -241,7 +249,7 @@ alloc_revisions(size_t nrev)
 {
     if (srevisions < nrev) {
 	/* As first branch is master, don't expect this to be hit more than once */
-	revisions = xrealloc(revisions, nrev * sizeof(REVISION_T), __func__);
+	revisions = xrealloc(revisions, nrev * sizeof(revision_t), __func__);
 	sort_buf = xrealloc(sort_buf, nrev * sizeof(size_t), __func__);
 	sort_temp = xrealloc(sort_temp, nrev * sizeof(size_t), __func__);
 	srevisions = nrev;
@@ -271,7 +279,7 @@ git_commit_cleanup(void)
 }
 
 static git_commit *
-git_commit_build(REVISION_T *revisions, const cvs_commit *leader,
+git_commit_build(revision_t *revisions, const cvs_commit *leader,
 		 const int nrevisions, const int nactive)
 /* build a changeset commit from a clique of CVS revisions */
 {
@@ -1009,7 +1017,7 @@ rev_tag_search(tag_t *tag, cvs_commit **revisions, git_repo *gl)
      * tag out you will get the correct set of files.
      * We have no way of knowing the correct author of a tag.
      */
-    REVISION_T *revs = xmalloc(sizeof(REVISION_T) * tag->count, __func__);
+    revision_t *revs = xmalloc(sizeof(revision_t) * tag->count, __func__);
     size_t i;
     for (i = 0; i < tag->count; i++)
 	REVISION_T_PACK_INIT(revs[i], revisions[i]);
