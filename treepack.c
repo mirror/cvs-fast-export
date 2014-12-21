@@ -232,6 +232,12 @@ push_rev_pack(const rev_pack * const r)
     frame->dirs[frame->ndirs++] = r;
 }
 
+/*
+ * Files must be supplied in directory-path order so we get the
+ * longest possible runs of common directory prefixes, and thus 
+ * maximum space-saving effect out of the packing.
+ * Sorting the masters at the input stage achieves this.
+ */
 void
 revdir_pack_add(const cvs_commit *file, const master_dir *dir)
 {
@@ -308,39 +314,6 @@ serial_t
 revdir_nfiles(const revdir *revdir)
 {
     return revpack_nfiles(revdir->revpack);
-}
-
-void
-revdir_pack_files(const cvs_commit **files, const size_t nfiles, revdir *revdir)
-{
-    size_t i;
-#ifdef ORDERDEBUG
-    fputs("Packing:\n", stderr);
-    {
-	cvs_commit **s;
-
-	for (s = files; s < files + nfiles; s++)
-	    fprintf(stderr, "cvs_commit: %s\n", (*s)->master->name);
-    }
-#endif /* ORDERDEBUG */
-
-    /*
-     * We want the files in directory-path order so we get the longest
-     * possible runs of common directory prefixes, and thus maximum
-     * space-saving effect out of the next step.  This reduces
-     * working-set size at the expense of the sort runtime.
-     *
-     * That used to be done with a qsort(3) call here, but sorting the
-     * masters at the input stage causes them to come out in the right
-     * order here, without multiple additional sorts.
-     */
-    revdir_pack_alloc(nfiles);
-    revdir_pack_init();
-    for (i = 0; i < nfiles; i++)
-	revdir_pack_add(files[i], files[i]->dir);
-	
-    revdir_pack_end(revdir);
-    revdir_pack_free();
 }
 
 void

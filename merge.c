@@ -235,9 +235,6 @@ cvs_commit_match(const cvs_commit *a, const cvs_commit *b)
  * by only doing one when more memory needs to be grabbed than the 
  * previous commit build used.
  */
-static const cvs_commit **files = NULL;
-static int	        sfiles = 0;
-/* not all platforms have qsort_r so use something global for compare func */
 static int              srevisions = 0;
 static revision_t       *revisions = NULL;
 static size_t           *sort_buf = NULL;
@@ -264,17 +261,6 @@ merge_branches_cleanup(void)
 	free(sort_buf);
 	free(sort_temp);
 	srevisions = 0;
-    }
-}
-
-static void
-git_commit_cleanup(void)
-/* clean up after rev list merge */
-{
-    if (files) {
-	free(files);
-	files = NULL;
-	sfiles = 0;
     }
 }
 
@@ -1254,8 +1240,6 @@ merge_to_changesets(cvs_master *masters, size_t nmasters, int verbose)
     //progress_begin("Validate...", NO_MAX);
     //rev_list_validate(gl);
     //progress_end(NULL);
-
-    git_commit_cleanup();
 
     return gl;
 }

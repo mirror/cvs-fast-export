@@ -200,6 +200,12 @@ revdir_pack_init(void)
     ndirs = 0;
 }
 
+/*
+ * Files must be supplied in directory-path order so we get the
+ * longest possible runs of common directory prefixes, and thus 
+ * maximum space-saving effect out of the packing.
+ * Sorting the masters at the input stage achieves this.
+ */
 void
 revdir_pack_add(const cvs_commit *file, const master_dir *in_dir)
 {
@@ -236,56 +242,4 @@ revdir_pack_free()
     files = NULL;
     nfiles = 0;
     sfiles = 0;
-}
-
-void
-revdir_pack_files(const cvs_commit ** files, 
-		  const size_t nfiles, revdir *revdir)
-{
-    size_t           start = 0, i;
-    const master_dir *curdir = NULL, *dir = NULL;
-    file_list        *fl;
-    unsigned short   ndirs = 0;
-#ifdef ORDERDEBUG
-    fputs("Packing:\n", stderr);
-    {
-	cvs_commit **s;
-	for (s = files; s < files + nfiles; s++)
-	    fprintf(stderr, "cvs_commit: %s\n", (*s)->master->name);
-    }
-#endif /* ORDERDEBUG */
-
-    /*
-     * We want the files in directory-path order so we get the longest
-     * possible runs of common directory prefixes, and thus maximum
-     * space-saving effect out of the next step.  This reduces
-     * working-set size at the expense of the sort runtime.
-     *
-     * That used to be done with a qsort(3) call here, but sorting the
-     * masters at the input stage causes them to come out in the right
-     * order here, without multiple additional sorts.
-     */
-    /* pull out directories */
-    for (i = 0; i < nfiles; i++) {
-	/* avoid strncmp as much as possible */
-	if (curdir != files[i]->dir) {
-	    if (!dir_is_ancestor(files[i]->dir, dir)) {
-		if (i > start) {
-		    fl = pack_file_list(files + start, i - start);
-		    fl_put(ndirs++, fl);
-		    start = i;
-		}
-		dir = files[i]->dir;
-	    }
-	    curdir = files[i]->dir;
-	}
-    }
-    if (dir) {
-        fl = pack_file_list(files + start, nfiles - start);
-        fl_put(ndirs++, fl);
-    }
-    
-    revdir->dirs = xmalloc(ndirs * sizeof(file_list *), "rev_dir");
-    revdir->ndirs = ndirs;
-    memcpy(revdir->dirs, dirs, ndirs * sizeof(file_list *));
 }

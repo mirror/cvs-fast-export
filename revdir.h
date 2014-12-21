@@ -8,10 +8,6 @@
 /* struct revdir is defined in cvs.h so we can take advantage of struct packing */
 typedef struct _revdir_iter revdir_iter;
 
-/* pack a list of files into a revdir, reusing sequences we've seen before */
-void
-revdir_pack_files(const cvs_commit **files, const size_t nfiles, revdir *revdir);
-
 /* count the number of files in a revdir */
 serial_t
 revdir_nfiles(const revdir *revdir);
