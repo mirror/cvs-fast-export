@@ -237,7 +237,7 @@ revdir_pack_add(const cvs_commit *file, const master_dir *dir)
 {
     while (1) {
 	if (frame->dir == dir) {
-	    /* If you are using STREAMDIR, TREEPACK then this is the hottest inner
+	    /* If you are using TREEPACK then this is the hottest inner
 	     * loop in the application. Avoid dereferencing file
              */
 	    files[nfiles++] = file;

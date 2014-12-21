@@ -22,7 +22,6 @@
  *
  * merge_to_changesets() is the main function.
  */
-#ifdef STREAMDIR
 /* pack the dead flag into the commit pointer so we can avoid dereferencing 
  * in the inner loop. Also keep the dir near the packed pointer
  * as it is used in the inner loop.
@@ -44,14 +43,6 @@ typedef struct _revision {
 #define REVISION_T_DIR(rev) ((rev).dir)
 #define COMMIT_MASK (~(uintptr_t)0 ^ 1)
 #define REVISION_T_COMMIT(rev) (cvs_commit *)(((rev).packed) & (COMMIT_MASK))
-#else
-#define REVISION_T cvs_commit *
-#define REVISION_T_PACK_INIT(rev, commit) (rev) = (commit)
-#define REVISION_T_PACK(rev, commit) (rev) = (commit)
-#define REVISION_T_DEAD(commit) ((commit)->dead)
-#define REVISION_T_COMMIT(commit) (commit)
-#define REVISION_T_DIR(commit) ((commit)->dir)
-#endif /* STREAMDIR */
 /* be aware using these macros that they bind to whatever revisions array is in scope */
 #define DEAD(index) (REVISION_T_DEAD(revisions[(index)]))
 #define REVISIONS(index) (REVISION_T_COMMIT(revisions[(index)]))
@@ -298,7 +289,6 @@ git_commit_build(REVISION_T *revisions, const cvs_commit *leader,
     commit->dead = false;
     commit->refcount = commit->serial = 0;
 
-#ifdef STREAMDIR
     revdir_pack_init();
     for (n = 0; n < nrevisions; n++) {
 	if (REVISIONS(n) && !(DEAD(n))) {
@@ -306,19 +296,6 @@ git_commit_build(REVISION_T *revisions, const cvs_commit *leader,
 	}
     }
     revdir_pack_end(&commit->revdir);   
-#else
-    if (sfiles < nrevisions) {
-	files = xrealloc(files, nrevisions * sizeof(cvs_commit *), __func__);
-	sfiles = nrevisions;
-    }
-    size_t nfile = 0;
-    for (n = 0; n < nrevisions; n++) {
-	if (REVISIONS(n) && !(DEAD(n))) {
-	    files[nfile++] = REVISIONS(n);
-	}
-    }
-    revdir_pack_files(files, nfile, &commit->revdir);
-#endif /* STREAMDIR */
 
 #ifdef ORDERDEBUG
     debugmsg("commit_build: %p\n", commit);

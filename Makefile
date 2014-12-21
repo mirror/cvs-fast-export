@@ -50,7 +50,6 @@ CPPFLAGS += -DREDBLACK # Use red-black trees for faster symbol lookup
 CPPFLAGS += -DUSE_MMAP # Use mmap for reading CVS masters
 CPPFLAGS += -DLINESTATS # Keep track of which lines have @ string delimiters
 CPPFLAGS += -DTREEPACK # Reduce memory usage, particularly on large repos
-CPPFLAGS += -DSTREAMDIR # Fuse two inner loops. Requires FILESORT
 
 # Experimental feature
 # CPPFLAGS += -DSUBSETTAG # replace incomplete tags with branches containing exact content of tag.
