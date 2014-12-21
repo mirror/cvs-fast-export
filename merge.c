@@ -927,6 +927,21 @@ git_commit_contains_revs(git_commit *g, cvs_commit **revs, size_t nrev)
 
 }
 
+static int
+compare_cvs_commit(const void *a, const void *b)
+{
+    cvs_commit **ap = (cvs_commit **)a;
+    cvs_commit **bp = (cvs_commit **)b;
+    const char *af = (*ap)->master->name;
+    const char *bf = (*bp)->master->name;
+
+#ifdef ORDERDEBUG
+    warn("Comparing %s with %s\n", af, bf);
+#endif /* ORDERDEBUG */
+
+    return path_deep_compare(af, bf);
+}
+
 /*
  * Locate position in git tree corresponding to specific tag
  */

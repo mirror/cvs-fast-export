@@ -58,9 +58,6 @@ revdir_free_bufs(void);
 void
 revdir_free(void);
 
-int
-compare_cvs_commit(const void *a, const void *b);
-
 /* useful if you're reusing an iterator with different revdirs */
 #define REVDIR_ITER_START(iter, revdir) \
     if (!(iter))				    \
