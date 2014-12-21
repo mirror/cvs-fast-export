@@ -5,9 +5,29 @@ Before you try to modify this code, read hacking.asc.
 * Progress reporting within files for large files with many commits?
 
 * The QED repo in the tests directory raises a branch cycle error.
-  This may reveal a bug in the second toposort function. 
+
+This may reveal a bug in the second toposort function. There is a recipe 
+for creating a close-to-minimal branch cycle testcase in tests/README.
+
+* tests/vendor.testrepo reveals an apparent bug in the new vendor-branch code.
 
 * The twicedead repo in the tests directory misbehaves under cvsconvert.
 
 * Issue a warning when the same tag is attached to multiple commits.
   At the moment it's just silently reported attached to the last.
+
+* TAGSUBSET code needs to be properly documented and merged.
+
+* Loz says: onsider these two files from the emacs historic:
+
+lisp/progmodes/cperl-mode.el
+lisp/textmodes/flyspell.el
+
+These have differently named 1.1.1 branches (ILYA and FLYSPELL). Merging
+them into the same import-1.1.1 branch casues all sorts of weirdness
+with tagging. The tags (e.g. Ilya_5_23) only point to commits in one branch.
+
+I think they need to treated as separate branch heads.
+
+This didn't work with the old or new vendor branch code.
+
