@@ -948,20 +948,23 @@ compare_cvs_commit(const void *a, const void *b)
 static void
 rev_tag_search(tag_t *tag, cvs_commit **revisions, git_repo *gl)
 {
-    /* The cvs_commit->gitspace pointer gives the first
-     * git commit a cvs commit appears in. (first in DAG pre-order)
-     * If we find the newest revision C in the tag and then
-     * follow the backlink to G, there is a good chance this
-     * will be the tag point.
-     * Consider, if any future git commits add files, then
-     * these files would be newer than C, and hence not in the tag
-     * set.
-     * However, this argument doesn't work if a subsequent commit
-     * only deletes files (or a set of commits has this net effect)
-     * So, we first check whether G has a matching set of revisions
-     * to the tag. If so, we're done.
+    /* 
+     * The cvs_commit->gitspace pointer gives the first git commit a
+     * cvs commit appears in. (first in DAG pre-order) If we find the
+     * newest revision C in the tag and then follow the backlink to G,
+     * there is a good chance this will be the tag point.
+     *
+     * Consider, if any future git commits add files, then these files
+     * would be newer than C, and hence not in the tag set.
+     *
+     * However, this argument doesn't work if a subsequent commit only
+     * deletes files (or a set of commits has this net effect) So, we
+     * first check whether G has a matching set of revisions to the
+     * tag. If so, we're done.
+     *
      * If not, we search the whole tree (pruning where possible)
      * for a matching set of revisions.
+     *
      * If this doesn't work we just tag G unless you have SUBSETTAG 
      * defined, in which case we create branch from G with a single
      * commit with the correct revisions.
@@ -970,29 +973,30 @@ rev_tag_search(tag_t *tag, cvs_commit **revisions, git_repo *gl)
      * set of cvs revisions.
      *
      * Tags can point to dead commits, we ignore these as they
-     * don't get backlinks to git commits.
-     * This may get revisited later.
+     * don't get backlinks to git commits. This may get revisited later.
      */
     cvs_commit *c = cvs_commit_latest(revisions, tag->count);
-    if (!c) // only dead revisions in the tag
+    if (!c)	/* only dead revisions in the tag */
 	return;
 
     qsort(revisions, tag->count, sizeof(cvs_commit *), compare_cvs_commit);
     if (git_commit_contains_revs(c->gitspace, revisions, tag->count)) {
-	// we've seen this set of revisions before. just link tag to it.
+	/* we've seen this set of revisions before, just link tag to it */
 	tag->commit = c->gitspace;
 	return;
     } else {
 	/* Search to try and find a matching git commit.
 	 * We can prune if we get to c->gitspace.
-         * We can prune if we get to an older commit that c->gitspace.
+         * We can prune if we get to an older commit than c->gitspace.
          * We could also use tail-bits here to avoid checking the same
          * commit multiple times, but we haven't built them yet.
          * If we build them before tagging we would need to teach
          * SUBSETTAG how to write correct tail bits in the branches it
          * creates.
+	 *
 	 * This section can also find revisions in the branches
 	 * we add below.
+	 *
 	 * Emacs has one place with 35 tags pointing to the same
 	 * revision set, so this saves 34 branches.
 	 */
@@ -1019,7 +1023,8 @@ rev_tag_search(tag_t *tag, cvs_commit **revisions, git_repo *gl)
     /* Consistent with previous versions */
     tag->commit = c->gitspace;
 #else 
-    /* Experimetnal tagging mechansism for incomplete tags
+    /* Experimental tagging mechanism for incomplete tags
+     *
      * The tag doesn't point to a previously seen set of revisions.
      * Create a new branch with the tag name and join at the inferred
      * join point. The join point is the earliest one that makes
@@ -1043,7 +1048,8 @@ rev_tag_search(tag_t *tag, cvs_commit **revisions, git_repo *gl)
     tag_branch->depth = parent_branch->depth + 1;
     rev_ref *r;
     /* Add tag branch to end of list to maintain toposort */
-    for(r = gl->heads; r->next; r = r->next);
+    for (r = gl->heads; r->next; r = r->next)
+	continue;
     r->next = tag_branch;
     g->author = atom("cvs-fast-export");
     size_t len = strlen(tag->name) + 30;
