@@ -899,12 +899,27 @@ git_commit_contains_revs(git_commit *g, cvs_commit **revs, size_t nrev)
     revdir_iter *it = revdir_iter_alloc(&g->revdir);
     size_t i = 0;
     cvs_commit *c = NULL;
+    static bool n_init = false;
+    static const cvs_number *n1 = NULL;
+    static const cvs_number *n2 = NULL;
+
+    if (!n_init) {
+	n1 = atom_cvs_number(lex_number("1.1"));
+	n2 = atom_cvs_number(lex_number("1.1.1.1"));
+	n_init = true;
+    }
     /* order of checks is important */
     while ((c = revdir_iter_next(it)) && i < nrev) {
-	if (revs[i++] != c) {
-	    free(it);
-	    return false;
+	if (revs[i] != c) {
+	    // seen repos where 1.1 and 1.1.1.1 are used interchangeably
+	    if (revs[i]->master != c->master
+		|| (revs[i]->number != n1 && revs[i]->number != n2)
+		|| (c->number != n1 && c->number != n2)) {
+		free(it);
+		return false;
+	    }
 	}
+	i++;
     }
     free(it);
     /* check we got to the end of both */
@@ -953,14 +968,18 @@ rev_tag_search(tag_t *tag, cvs_commit **revisions, git_repo *gl)
 	tag->commit = c->gitspace;
 	return;
     } else {
-	/* search to try and find a matching git commit.
+	/* Search to try and find a matching git commit.
 	 * We can prune if we get to c->gitspace.
          * We can prune if we get to an older commit that c->gitspace.
          * We could also use tail-bits here to avoid checking the same
          * commit multiple times, but we haven't built them yet.
          * If we build them before tagging we would need to teach
-         * SUBSETTAG how to write correct tag bits in the branches it
+         * SUBSETTAG how to write correct tail bits in the branches it
          * creates.
+	 * This section can also find revisions in the branches
+	 * we add below.
+	 * Emacs has one place with 35 tags pointing to the same
+	 * revision set, so this saves 34 branches.
 	 */
 	rev_ref    *h;
 	git_commit *g;
@@ -968,7 +987,7 @@ rev_tag_search(tag_t *tag, cvs_commit **revisions, git_repo *gl)
 	for (h = gl->heads; h; h = h->next) {
 	    if (h->tail)
 		continue;
-	    /* Type PUNNING */
+	    /* PUNNING: See large comment in cvs.h */
 	    for (g = (git_commit *)h->commit; g; g = g->parent) {
 		if (g == c->gitspace)
 		    break;
@@ -982,7 +1001,7 @@ rev_tag_search(tag_t *tag, cvs_commit **revisions, git_repo *gl)
 	}
     }
 #ifndef SUBSETTAG
-    // wrong, but consistent with previous versions
+    /* Consistent with previous versions */
     tag->commit = c->gitspace;
 #else 
     /* Experimetnal tagging mechansism for incomplete tags
