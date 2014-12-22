@@ -433,7 +433,7 @@ if __name__ == '__main__':
                            checkout=repo+".checkout",
                            options=engine_opts,
                            showdiffs= True)
-    if verbose == 0:
+    if verbose == 0 and "-p" in engine_opts:
         verbose = 1
     cc.repo.retain = retain
     cc.checkall()

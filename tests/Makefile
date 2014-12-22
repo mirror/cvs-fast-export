@@ -29,7 +29,7 @@ check: test
 ,v.dot:
 	$(CVS_FAST_EXPORT) -g $< >$*.dot
 
-test: s_regress m_regress r_regress i_regress f_regress t_regress
+test: s_regress m_regress r_regress i_regress f_regress t_regress c_regress
 	@echo "No diff output is good news."
 
 rebuild: s_rebuild m_rebuild r_rebuild i_rebuild t_rebuild
@@ -127,6 +127,16 @@ t_rebuild:
 		echo "Remaking $${pytest}.err "; \
 		python $${pytest}.py 2>&1 | $(PATHSTRIP) >$${pytest}.err; \
 	done
+
+# Omitted:
+# branchy.repo - because of illegal tag
+# twotag.repo - because of inconsistent tagging
+CT = at.repo basic.repo daughterbranch.repo exec.repo expand.repo \
+	hack[123].repo longrev.repo postbranch.repo tagbug.repo \
+	twobranch.repo
+c_regress:
+	@echo "== Conversion checks =="
+	@for ct in $(CT); do make --quiet $$ct; cvsconvert -n $$ct; done
 
 clean:
 	rm -fr neutralize.map *.checkout *.repo *.pyc *.dot *.git *.git.fi
