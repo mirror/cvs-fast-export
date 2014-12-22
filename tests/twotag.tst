@@ -21,10 +21,10 @@ repo.tag("tweedledum", "FUBAR")
 # Without this, where the tag is finally assigned might be random,
 # because the two commit cliques could have the same timestamp. In that
 # case, when cvs-fast-export is using a threaded scheduler, the arrival
-# order of the two commits qwill be random and so will the impputed
+# order of the two commits will be random and so will the imputed
 # order of the tags.
 #
-# Yes, this is a coward's way out.  It willhave to do until we invent a
+# Yes, this is a coward's way out.  It will have to do until we invent a
 # way to total-order the tags.
 #
 time.sleep(1)

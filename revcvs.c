@@ -279,7 +279,8 @@ cvs_master_branch_build(cvs_file *cvs, rev_master *master, const cvs_number *bra
  * commit, then splice the old tip to the old branch, then delete the
  * vendor branch reference.
  *
- * A side effect of this code is to give each branch a synthetic label.
+ * A side effect of this code is to give a synthetic label to each
+ * vendor branch that has not already been named.
  */
 static void
 cvs_master_patch_vendor_branch(cvs_master *cm, cvs_file *cvs)
