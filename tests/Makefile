@@ -131,12 +131,19 @@ t_rebuild:
 # Omitted:
 # branchy.repo - because of illegal tag
 # twotag.repo - because of inconsistent tagging
+# QED.testrepo - produces a branch cycle fatal error
+# t9601.testrepo - content mismatch expected
+# t9602.testrepo - manifesr mismatch expected
 CT = at.repo basic.repo daughterbranch.repo exec.repo expand.repo \
 	hack[123].repo longrev.repo postbranch.repo tagbug.repo \
-	twobranch.repo
+	twobranch.repo t9603.testrepo t9604.testrepo t9605.testrepo \
+	twicedead.testrepo
+CD =  oldhead.testrepo t9603.testrepo t9604.testrepo t9605.testrepo \
+	twicedead.testrepo vendor.testrepo
 c_regress:
 	@echo "== Conversion checks =="
-	@for ct in $(CT); do make --quiet $$ct; cvsconvert -n $$ct; done
+	@for ct in $(CT); do make --quiet $$ct; cvsconvert -q -n $$ct; done
+	@for cd in $(CD); do cvsconvert -q -n $$cd; done
 
 clean:
 	rm -fr neutralize.map *.checkout *.repo *.pyc *.dot *.git *.git.fi

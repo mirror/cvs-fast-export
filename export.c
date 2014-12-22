@@ -887,7 +887,7 @@ void export_commits(forest_t *forest,
 
     if (forest->skew_vulnerable > 0 && forest->filecount > 1 && !opts->force_dates) {
 	time_t udate = forest->skew_vulnerable;
-	announce("no commitids before %s.\n", cvstime2rfc3339(udate));
+	warn("no commitids before %s.\n", cvstime2rfc3339(udate));
     }
 
     memcpy(stats, &export_stats, sizeof(export_stats_t));

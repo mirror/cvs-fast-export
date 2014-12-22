@@ -216,6 +216,7 @@ main(int argc, char **argv)
 	    { "help",		    0, 0, 'h' },
 	    { "version",	    0, 0, 'V' },
 	    { "verbose",	    0, 0, 'v' },
+	    { "quiet",		    0, 0, 'q' },
 	    { "commit-time-window", 1, 0, 'w' },
 	    { "log",                1, 0, 'l' },
 	    { "authormap",          1, 0, 'A' },
@@ -235,7 +236,7 @@ main(int argc, char **argv)
             { "embed-id",           0, 0, 'E' },
 	    { "sizes",              0, 0, 'S' },	/* undocumented */
 	};
-	int c = getopt_long(argc, argv, "+hVw:l:grvaA:R:Tk:e:s:pPi:t:CFSE", options, NULL);
+	int c = getopt_long(argc, argv, "+hVw:l:grvqaA:R:Tk:e:s:pPi:t:CFSE", options, NULL);
 	if (c < 0)
 	    break;
 	switch(c) {
@@ -258,6 +259,7 @@ main(int argc, char **argv)
 		   " -p --progress                   Enable load-status reporting\n"
 		   " -P --promiscuous                Process files without ,v extension\n"
 		   " -v --verbose                    Show verbose progress messages\n"
+		   " -q --quiet                      Suppress normal warnings\n"
 		   " -i --incremental TIME           Incremental dump beginning after specified RFC3339-format time.\n"
 		   " -t --threads N                  Use threaded scheduler for CVS master analyses.\n"
 		   " -E --embed-id                   Embed CVS revisions in the commit messages.\n"
@@ -279,6 +281,9 @@ main(int argc, char **argv)
 	    extern int yydebug;
 	    yydebug = 1;
 #endif /* YYDEBUG */
+	    break;
+	case 'q':
+	    nowarn = true;
 	    break;
 	case 'V':
 	    printf("%s: version " VERSION "\n", argv[0]);

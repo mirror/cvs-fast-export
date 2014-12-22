@@ -15,7 +15,9 @@ int clock_gettime(clockid_t clock_id, struct timespec *tp)
 }
 #endif
 
+bool nowarn;
 unsigned int warncount;
+
 
 #if _POSIX_C_SOURCE >= 200112L || _XOPEN_SOURCE >= 600
 void* xmemalign(size_t align, size_t size, char const *legend)
@@ -252,6 +254,9 @@ void announce(char const *format,...)
 void warn(char const *format,...)
 {
     va_list args;
+
+    if (nowarn)
+	return;
 
     if (LOGFILE == stderr)
 	progress_interrupt();

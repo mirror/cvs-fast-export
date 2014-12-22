@@ -733,6 +733,7 @@ extern unsigned int natoms;
  * Global options
  */
 
+extern bool nowarn;
 extern int commit_time_window;
 extern FILE *LOGFILE;
 

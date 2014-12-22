@@ -226,7 +226,7 @@ cvs_master_branch_build(cvs_file *cvs, rev_master *master, const cvs_number *bra
      * in reverse order. p = parent, c = child, gc = grandchild.)
      */
     for (c = head, gc = NULL; (p = c->parent); gc = c, c = p) {
-	if (time_compare(p->date, c->date) > 0)
+	if (time_compare(p->date, c->date) > 0 && !nowarn)
 	{
 	    warn("warning - %s:", cvs->gen.master_name);
 	    dump_number_file(LOGFILE, " ", p->number);
