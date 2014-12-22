@@ -115,14 +115,14 @@ t9602:
 |                                            | cvsps    | cvs-fast-export
 |import module                               | Succeeds | Succeeds 
 |test branch master                          | Succeeds | Succeeds 
-|test branch vendorbranch                    | Succeeds | Fails
+|test branch vendorbranch                    | Succeeds | Succeeds
 |test_branch B_FROM_INITIALS                 | Fails    | Succeeds
 |test_branch B_FROM_INITIALS_BUT_ONE         | Fails    | Fails
 |test_branch B_MIXED                         | Fails    | Succeeds
 |test_branch B_SPLI                          | Succeeds | Succeeds
 |test branch vendortag                       | Fails    | Succeeds
 |test tag T_ALL_INITIAL_FILES                | Succeeds | Succeeds
-|test tag T_ALL_INITIAL_FILES_BUT_ONE        | Fails    | Fails
+|test tag T_ALL_INITIAL_FILES_BUT_ONE        | Fails    | Succeeds
 |test_tag T_MIXED                            | Fails    | Succeeds
 |========================================================================
 

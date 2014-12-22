@@ -72,10 +72,19 @@ M 100644 :5 tweedledum
 property cvs-revision 30 tweedledee 1.2
 tweedledum 1.2
 
-reset refs/tags/FUBAR
+commit refs/heads/FUBAR
+mark :7
+committer cvs-fast-export <cvs-fast-export> 104200 +0000
+data 30
+Synthetic commit for tag FUBAR
 from :6
+M 100644 :2 tweedledum
+property cvs-revision 15 tweedledum 1.1
 
 reset refs/heads/master
 from :6
+
+reset refs/heads/FUBAR
+from :7
 
 done

@@ -16,8 +16,6 @@ for creating a close-to-minimal branch cycle testcase in tests/README.
 * Issue a warning when the same tag is attached to multiple commits.
   At the moment it's just silently reported attached to the last.
 
-* TAGSUBSET code needs to be properly documented and merged.
-
 * Loz says: onsider these two files from the emacs historic:
 
 lisp/progmodes/cperl-mode.el

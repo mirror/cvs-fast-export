@@ -950,8 +950,7 @@ rev_tag_search(tag_t *tag, cvs_commit **revisions, git_repo *gl)
      * If not, we search the whole tree (pruning where possible)
      * for a matching set of revisions.
      *
-     * If this doesn't work we just tag G unless you have SUBSETTAG 
-     * defined, in which case we create branch from G with a single
+     * If this doesn't work we create branch from G with a single
      * commit with the correct revisions.
      *
      * It is possible for multiple git commits to contain the same 
@@ -976,7 +975,7 @@ rev_tag_search(tag_t *tag, cvs_commit **revisions, git_repo *gl)
          * We could also use tail-bits here to avoid checking the same
          * commit multiple times, but we haven't built them yet.
          * If we build them before tagging we would need to teach
-         * SUBSETTAG how to write correct tail bits in the branches it
+         * this code how to write correct tail bits in the branches it
          * creates.
 	 *
 	 * This section can also find revisions in the branches
@@ -1004,16 +1003,14 @@ rev_tag_search(tag_t *tag, cvs_commit **revisions, git_repo *gl)
 	    }
 	}
     }
-#ifndef SUBSETTAG
-    /* Consistent with previous versions */
-    tag->commit = c->gitspace;
-#else 
-    /* Experimental tagging mechanism for incomplete tags
+    /* Tagging mechanism for incomplete tags
      *
      * The tag doesn't point to a previously seen set of revisions.
+     * The old code just did "tag->commit = c->gitspace;" at this point.
+     *
      * Create a new branch with the tag name and join at the inferred
      * join point. The join point is the earliest one that makes
-     * sense, but it may have happned later. However, if you check the
+     * sense, but it may have happened later. However, if you check the
      * tag out you will get the correct set of files.
      * We have no way of knowing the correct author of a tag.
      */
@@ -1042,7 +1039,6 @@ rev_tag_search(tag_t *tag, cvs_commit **revisions, git_repo *gl)
     snprintf(log, len, "Synthetic commit for tag %s", tag->name);
     g->log = atom(log);
     free(log);
-#endif
 }
 
 static void
