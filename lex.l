@@ -299,7 +299,7 @@ lex_number(const char *s)
 }
 
 cvstime_t
-lex_date(const cvs_number const *n, yyscan_t yyscanner, cvs_file *cvs)
+lex_date(const cvs_number* const n, yyscan_t yyscanner, cvs_file *cvs)
 {
     struct tm	tm;
     time_t		d;

@@ -35,8 +35,10 @@ extern YY_DECL;	/* FIXME: once the Bison bug requiring this is fixed */
  * from compilers like clang that barf on duplicate typedefs.
  */
 %define api.pure full
-%lex-param {yyscan_t scanner} {cvs_file *cvsfile}
-%parse-param {void *scanner} {cvs_file *cvsfile}
+%lex-param {yyscan_t scanner}
+%lex-param {cvs_file *cvsfile}
+%parse-param {void *scanner}
+%parse-param {cvs_file *cvsfile}
 
 %union {
     int		i;

@@ -237,7 +237,7 @@ enum expand_mode expand_override(char const *s)
     return EXPANDUNSPEC;
 }
 
-static char const *basefilename(const char const *p)
+static char const *basefilename(const char* const p)
 {
     char const *b = p, *q = p;
     for (;;)
