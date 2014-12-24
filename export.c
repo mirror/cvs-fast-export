@@ -382,7 +382,7 @@ export_commit(git_commit *commit, const char *branch,
 		continue;
 	    }
 	    if (pc->master == cc->master) {
-		/* file exists in commit and parent, but different revisiosn, modify op */
+		/* file exists in commit and parent, but different revisions, modify op */
 		build_modify_op(cc, op);
 		append_revpair(cc, opts, &revpairs, &revpairsize);
 		op = next_op_slot(&operations, op, &noperations);
@@ -480,7 +480,7 @@ export_commit(git_commit *commit, const char *branch,
 	    else
 	    {
 		cleanup(opts);
-		fatal_error("child commit emitted before parent");
+		fatal_error("child commit emitted before parent exists");
 	    }
 	}
 
