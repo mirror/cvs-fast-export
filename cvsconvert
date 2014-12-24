@@ -150,7 +150,7 @@ class CVSRepository(RCSRepository):
             mute = '-Q'
         else:
             mute = ""
-        self.run_with_cleanup("cvs %s -d:local:%s %s" % (mute,
+        self.run_with_cleanup("cvs %s -R -d:local:%s %s" % (mute,
                                              self.directory,
                                              " ".join(cmd)))
     def init(self):
@@ -432,6 +432,9 @@ if __name__ == '__main__':
         else:
             (repo, module) = (arguments[0], candidates[0])
             sys.stderr.write("cvsconvert: processing %s/%s\n" % (repo, module))
+    if repo == module:
+        sys.stderr.write("cvsconvert: repo directory and module name cannot be the same.\n")
+        sys.exit(1)
     cc = ConvertComparison(stem=repo, repo=repo, module=module,
                            checkout=repo+".checkout",
                            options=engine_opts,
