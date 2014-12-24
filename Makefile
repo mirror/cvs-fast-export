@@ -155,7 +155,7 @@ pylint:
 
 # Because we don't want copies of the test repositories in the distribution.
 distclean: clean
-	cd tests; make --quiet clean
+	cd tests; $(MAKE) --quiet clean
 
 SOURCES = Makefile *.[ch] *.[yl] cvssync cvsconvert cvsreduce
 DOCS = README COPYING NEWS AUTHORS TODO control *.asc
