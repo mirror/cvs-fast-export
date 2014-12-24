@@ -435,6 +435,9 @@ if __name__ == '__main__':
     if repo == module:
         sys.stderr.write("cvsconvert: repo directory and module name cannot be the same.\n")
         sys.exit(1)
+    if not os.path.exists(repo):
+        sys.stderr.write("cvsconvert: repo %s does not exist.\n" % repo)
+        sys.exit(1)
     cc = ConvertComparison(stem=repo, repo=repo, module=module,
                            checkout=repo+".checkout",
                            options=engine_opts,
