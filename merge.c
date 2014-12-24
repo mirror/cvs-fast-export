@@ -308,9 +308,11 @@ git_commit_build(revision_t *revisions, const cvs_commit *leader,
 #ifdef ORDERDEBUG
     debugmsg("commit_build: %p\n", commit);
 
+#if !defined STREAMDIR
     for (n = 0; n < nfile; n++)
 	if (REVISIONS(n))
 	    debugmsg("%s\n", REVISIONS(n)->master->name);
+#endif
     fputs("After packing:\n", LOGFILE);
     revdir_iter *i = revdir_iter_alloc(&commit->revdir);
     cvs_commit *c;
@@ -511,7 +513,7 @@ merge_branches(rev_ref **branches, int nbranch,
     cvs_commit *latest;
     time_t birth = 0;
 #ifdef ORDERDEBUG
-    static ulong oc = 0;
+    static unsigned long oc = 0;
 #endif /* ORDERDEBUG */
 
     alloc_revisions(nrev);
