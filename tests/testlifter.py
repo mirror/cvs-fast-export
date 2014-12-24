@@ -138,9 +138,9 @@ class CVSRepository(RCSRepository):
             mute = '-Q'
         else:
             mute = ""
-        self.run_with_cleanup("cvs %s -d:local:%s %s" % (mute,
-                                             self.directory,
-                                             " ".join(cmd)))
+        self.run_with_cleanup("cvs %s -R -d:local:%s %s" % (mute,
+                                                            self.directory,
+                                                            " ".join(cmd)))
     def init(self):
         RCSRepository.init(self)
         self.do("init")
