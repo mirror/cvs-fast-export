@@ -54,9 +54,6 @@ These don't have regression tests yet.
 QED.testrepo::
 	Contains a branch cycle.
 
-twicedead.testrepo::
-	Contains a pathological master set to dead state twice.
-
 vendor.testrepo::
 	Reveals a bug in the vendor-branch code. Created as follows:
 
@@ -80,7 +77,6 @@ vendor.testrepo::
 	cvs tag lost-repo-state
 	echo 3 > FILE1
 	cvs commit -m c3
-
 
 == The t9600 group ==
 
