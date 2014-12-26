@@ -136,10 +136,9 @@ t_rebuild:
 # t9602.testrepo - manifesr mismatch expected
 CT = at.repo basic.repo daughterbranch.repo exec.repo expand.repo \
 	hack[123].repo longrev.repo postbranch.repo tagbug.repo \
-	twobranch.repo t9603.testrepo t9604.testrepo t9605.testrepo \
-	twicedead.testrepo
+	twobranch.repo
 CD =  oldhead.testrepo t9603.testrepo t9604.testrepo t9605.testrepo \
-	twicedead.testrepo vendor.testrepo
+	vendor.testrepo
 c_regress:
 	@echo "== Conversion checks =="
 	@for ct in $(CT); do $(MAKE) --quiet $$ct; cvsconvert -q -n $$ct; done
