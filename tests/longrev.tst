@@ -1,8 +1,9 @@
 #!/usr/bin/env python
 ## A widely branched repo with long file revision strings.
 
-import testlifter
+import sys, testlifter
 
+testlifter.verbose += sys.argv[1:].count("-v")
 repo = testlifter.CVSRepository("longrev.repo")
 repo.init()
 repo.module("module")

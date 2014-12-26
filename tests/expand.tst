@@ -1,8 +1,9 @@
 #!/usr/bin/env python
 ## Test keyword expansion
 
-import testlifter
+import sys, testlifter
 
+testlifter.verbose += sys.argv[1:].count("-v")
 repo = testlifter.CVSRepository("expand.repo")
 repo.init()
 repo.module("module")

@@ -89,8 +89,9 @@ Wrong graph, imported with: /usr/bin/cvsps --fast-export proj | git fast-import
           commit in br
 """
 
-import testlifter
+import sys, testlifter
 
+testlifter.verbose += sys.argv[1:].count("-v")
 repo = testlifter.CVSRepository("postbranch.repo")
 repo.init()
 repo.module("module")

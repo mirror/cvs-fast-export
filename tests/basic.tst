@@ -1,8 +1,9 @@
 #!/usr/bin/env python
 ## basic test for CVS master parsing
 
-import testlifter
+import sys, testlifter
 
+testlifter.verbose += sys.argv[1:].count("-v")
 repo = testlifter.CVSRepository("basic.repo")
 repo.init()
 repo.module("module")

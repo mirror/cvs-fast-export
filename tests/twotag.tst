@@ -1,8 +1,9 @@
 #!/usr/bin/env python
 ## A repo with identical tags attached to different changesets
 
-import testlifter, time
+import sys, testlifter, time
 
+testlifter.verbose += sys.argv[1:].count("-v")
 repo = testlifter.RCSRepository("twotag.repo")
 repo.init()
 

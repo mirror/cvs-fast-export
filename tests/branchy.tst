@@ -1,8 +1,9 @@
 #!/usr/bin/env python
 ## A branchy repo with deletions and only valid tags
 
-import testlifter
+import sys, testlifter
 
+testlifter.verbose += sys.argv[1:].count("-v")
 repo = testlifter.CVSRepository("branchy.repo")
 repo.init()
 repo.module("module")

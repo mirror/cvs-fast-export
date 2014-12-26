@@ -2,6 +2,8 @@
 ## Testing for correct timestamp handling in author maps.
 import sys, testlifter, tempfile, os
 
+testlifter.verbose += sys.argv[1:].count("-v")
+
 uncorrected = """\
 Rev 16 2006-10-29 07:00:01 +0000
 Rev 15 2006-10-29 06:59:59 +0000

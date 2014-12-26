@@ -1,8 +1,9 @@
 #!/usr/bin/env python
 ## Tricky tag corner case
 
-import testlifter
+import sys, testlifter
 
+testlifter.verbose += sys.argv[1:].count("-v")
 repo = testlifter.CVSRepository("tagbug.repo")
 repo.init()
 repo.module("module")

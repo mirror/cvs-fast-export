@@ -1,8 +1,9 @@
 #!/usr/bin/env python
 ## Verify parsing of escaped at on final line
 
-import testlifter
+import sys, testlifter
 
+testlifter.verbose += sys.argv[1:].count("-v")
 repo = testlifter.CVSRepository("at.repo")
 repo.init()
 repo.module("module")

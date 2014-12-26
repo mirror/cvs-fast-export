@@ -1,8 +1,9 @@
 #!/usr/bin/env python
 ## Two-branch repo to test incremental dumping
 
-import testlifter
+import sys, testlifter
 
+testlifter.verbose += sys.argv[1:].count("-v")
 repo = testlifter.CVSRepository("twobranch.repo")
 repo.init()
 repo.module("module")

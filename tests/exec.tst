@@ -1,8 +1,9 @@
 #!/usr/bin/env python
 ## Test handling of executable bit
 
-import testlifter
+import sys, testlifter
 
+testlifter.verbose += sys.argv[1:].count("-v")
 repo = testlifter.CVSRepository("exec.repo")
 repo.init()
 repo.module("module")

@@ -1,8 +1,9 @@
 #!/usr/bin/env python
 ## Third example from the Hacking Guide
 
-import testlifter
+import sys, testlifter
 
+testlifter.verbose += sys.argv[1:].count("-v")
 repo = testlifter.CVSRepository("hack3.repo")
 repo.init()
 repo.module("module")

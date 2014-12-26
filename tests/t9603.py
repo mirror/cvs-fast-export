@@ -14,6 +14,7 @@
 
 import sys, testlifter
 
+testlifter.verbose += sys.argv[1:].count("-v")
 cc = testlifter.ConvertComparison(stem="t9603", module="module")
 cc.repo.retain = ("-k" in sys.argv[1:])
 cc.compare_tree("branch", "master", True)

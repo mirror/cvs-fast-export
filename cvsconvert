@@ -78,8 +78,6 @@ class RCSRepository:
     def __init__(self, name):
         self.name = name
         self.retain = False
-        global verbose
-        verbose += sys.argv[1:].count("-v")
         # For convenience, emulate the module structure of a CVS repository
         self.directory = os.path.join(os.getcwd(), self.name, "module")
         self.conversions = []
@@ -443,7 +441,7 @@ if __name__ == '__main__':
                            options=engine_opts,
                            showdiffs= True)
     if verbose == 0 and "-p" in engine_opts:
-        verbose = 1
+        verbose = DEBUG_STEPS
     cc.repo.retain = retain
     cc.checkall()
     cc.checkout.cleanup()

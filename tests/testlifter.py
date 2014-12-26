@@ -66,8 +66,6 @@ class RCSRepository:
     def __init__(self, name):
         self.name = name
         self.retain = False
-        global verbose
-        verbose += sys.argv[1:].count("-v")
         # For convenience, emulate the module structure of a CVS repository
         self.directory = os.path.join(os.getcwd(), self.name, "module")
         self.conversions = []
@@ -138,7 +136,7 @@ class CVSRepository(RCSRepository):
             mute = '-Q'
         else:
             mute = ""
-        self.run_with_cleanup("cvs %s -R -d:local:%s %s" % (mute,
+        self.run_with_cleanup("cvs %s -d:local:%s %s" % (mute,
                                                             self.directory,
                                                             " ".join(cmd)))
     def init(self):
