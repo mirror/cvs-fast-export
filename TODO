@@ -11,6 +11,33 @@ for creating a close-to-minimal branch cycle testcase in tests/README.
 
 * tests/vendor.testrepo reveals an apparent bug in the new vendor-branch code.
 
+Created as follows:
+
+	mkdir vend-test1.vend
+	cd vend-test1.vend
+	echo 1 > FILE1
+	cvs import -m v1 vend-test1 vend vend_1_0
+	cd ..
+	cvs co vend-test1
+	cd vend-test1
+	echo 1 > FILE2
+	cvs add FILE2
+	cvs commit -m c1
+	cd ../vend-test1.vend/
+	echo 2 > FILE1
+	cvs import -m v2 vend-test1 vend vend_1_1
+	cd ../vend-test1/
+	cvs up
+	echo 2 > FILE2
+	cvs commit -m c2
+	cvs tag lost-repo-state
+	echo 3 > FILE1
+	cvs commit -m c3
+
+Loz says: Subset tag will probably paper over the
+problem. Imagine the repo didn't have the +"lost-repo-state"
+tag. There wouldn't be a commit for this state in the git repo."
+
 * The twicedead repo in the tests directory misbehaves under cvsconvert.
 
 * Issue a warning when the same tag is attached to multiple commits.
