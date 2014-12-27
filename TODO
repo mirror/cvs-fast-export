@@ -38,12 +38,10 @@ Loz says: Subset tag will probably paper over the
 problem. Imagine the repo didn't have the +"lost-repo-state"
 tag. There wouldn't be a commit for this state in the git repo."
 
-* The twicedead repo in the tests directory misbehaves under cvsconvert.
-
 * Issue a warning when the same tag is attached to multiple commits.
   At the moment it's just silently reported attached to the last.
 
-* Loz says: onsider these two files from the emacs historic:
+* Loz says: consider these two files from the emacs historic:
 
 lisp/progmodes/cperl-mode.el
 lisp/textmodes/flyspell.el
