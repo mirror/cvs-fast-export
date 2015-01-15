@@ -54,6 +54,11 @@ These don't have regression tests yet.
 QED.testrepo::
 	Contains a branch cycle.
 
+missingbranch,v:
+	Contains 1.2.2.1 branch but no 1.2.1.1, and 1.4.2.1 branch but no 
+	1.4.1.1. Extracted from NetBSD src where this is a real case.
+	No commit is generated corresponding to the 1.[24].2.1 revisions.
+
 == The t9600 group ==
 
 The t960[1-4] files are tests taken from the git tree for testing the
