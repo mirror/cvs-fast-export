@@ -59,10 +59,10 @@ CPPFLAGS+=-Drestrict=__restrict__
 # To enable profiling, uncomment the following line
 # Note: the profiler gets confused if you don't also turn off -O flags.
 # CFLAGS += -pg
-# CFLAGS += -O3
+CFLAGS += -O3
 # If your toolchain supports link time optimization this is a cheap speedup
 # CFLAGS += -flto
-CFLAGS += -g
+# CFLAGS += -g
 # Test coverage flags
 # CFLAGS += -ftest-coverage -fprofile-arcs
 CFLAGS += $(EXTRA_CFLAGS)
