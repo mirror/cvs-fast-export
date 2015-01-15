@@ -964,6 +964,14 @@ rev_tag_search(tag_t *tag, cvs_commit **revisions, git_repo *gl)
     cvs_commit *c = cvs_commit_latest(revisions, tag->count);
     if (!c)	/* only dead revisions in the tag */
 	return;
+    if (c->gitspace == NULL) {
+	char buf[CVS_MAX_REV_LEN + 1];
+	warn("%s %s: %s points at commit with no gitspace link.\n", 
+	     c->master->name, 
+	     cvs_number_string(c->number, buf, sizeof(buf)),
+	     tag->name);
+	return;
+    }
 
     qsort(revisions, tag->count, sizeof(cvs_commit *), compare_cvs_commit);
     if (git_commit_contains_revs(c->gitspace, revisions, tag->count)) {
