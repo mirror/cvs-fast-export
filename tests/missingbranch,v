@@ -25,8 +25,7 @@ next	1.1;
 
 1.1
 date	93.08.07.05.51.16;	author mycroft;	state Exp;
-branches
-	1.1.1.1;
+branches;
 next	;
 
 1.4.2.1
@@ -38,17 +37,6 @@ next	;
 date	94.01.24.08.17.35;	author cgd;	state Exp;
 branches;
 next	;
-
-1.1.1.1
-date	94.08.17.21.13.34;	author cgd;	state Exp;
-branches;
-next	1.1.1.2;
-
-1.1.1.2
-date	98.01.30.03.39.02;	author perry;	state Exp;
-branches;
-next	;
-
 
 desc
 @@
@@ -119,24 +107,3 @@ a1 1
 <stdin> content for 1.1
 @
 
-
-1.1.1.1
-log
-@9af02653e1b2ef2d5f2d99189875ec3b
-@
-text
-@d1 1
-a1 1
-<stdin> content for 1.1.1.1
-@
-
-
-1.1.1.2
-log
-@95ee96e81f86a9d708d8342f7d151862
-@
-text
-@d1 1
-a1 1
-<stdin> content for 1.1.1.2
-@
