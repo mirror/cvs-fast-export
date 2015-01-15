@@ -504,7 +504,8 @@ cvs_master_set_refs(cvs_master *cm, cvs_file *cvsfile)
 	}
     }
     /*
-     * Fix up unnamed heads
+     * Fix up unnamed heads.  Give each one a synthetic branch tag named 
+     * after the branch root.
      */
     for (h = cm->heads; h; h = h->next) {
 	cvs_number	n;
