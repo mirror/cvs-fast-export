@@ -34,8 +34,8 @@ typedef uint32_t	serial_t;
  * This type must be wide enough to count all branches cointaining a commit.
  * There's a sanity check in the code.
  */
-typedef uint8_t			branchcount_t;
-#define MAX_BRANCHCOUNT_T	UINT8_MAX
+typedef uint16_t			branchcount_t;
+#define MAX_BRANCHCOUNT_T	UINT16_MAX
 
 /* Hash values */
 typedef uint32_t        hash_t;
