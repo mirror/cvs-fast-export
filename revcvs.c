@@ -22,8 +22,6 @@
  * structure built by the grammar parse of the master as its single
  * argument.
  */
-// needed for PTHREAD_RECURSIVE_MUTEX_INITIALIZER_NP
-#define _GNU_SOURCE
 #include "cvs.h"
 #include "hash.h"
 
