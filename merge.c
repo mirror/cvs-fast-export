@@ -637,7 +637,7 @@ merge_branches(rev_ref **branches, int nbranch,
 	 * Construct current commit from the set of CVS commits 
 	 * accumulated the last time around the loop.
 	 * This is the point at which revisions needs to be sorted
-	 * by master for rev dir packing to perform
+	 * by master for rev dir packing to perform reasonably.
 	 */
 	commit = git_commit_build(revisions, latest, nrev, nbranch);
 
@@ -663,10 +663,10 @@ merge_branches(rev_ref **branches, int nbranch,
 
 	    if (c != latest && can_match && !cvs_commit_time_close(latest->date, c->date)) {
 		/*
-		 * because we are in date order, one we hit something too
-                 * far off, we can't get anything else in the clique
+		 * Because we are in date order, once we hit something too
+                 * far off, we can't get anything else in the clique -
                  * unless there are cases where things with the same commitid
-                 * have wildly differing dates
+                 * have wildly differing dates.
                  */
 		can_match = false;
 		/* how much of the array might now be unsorted */
@@ -677,9 +677,9 @@ merge_branches(rev_ref **branches, int nbranch,
 		if (c->parent || !c->dead)
 		    nlive++;
 		/*
-		 * if we've found the clique, and at least one branch
-		 * is still live then bail
-                 * note, we are guaranteed to set resort before we get here
+		 * If we've found the clique, and at least one branch
+		 * is still live then bail.
+                 * Note, we are guaranteed to set resort before we get here
                  */
 		if (!can_match && nlive > 0)
 		    break;
