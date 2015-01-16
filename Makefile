@@ -8,9 +8,11 @@
 
 VERSION=1.29
 
+.PATH: $(.PARSEDIR)
 prefix?=/usr/local
 target=$(DESTDIR)$(prefix)
-srcdir=$(dir $(abspath $(firstword $(MAKEFILE_LIST))))
+parsedir:=$(.PARSEDIR)
+srcdir=$(dir $(abspath $(firstword $(MAKEFILE_LIST))))$(parsedir)
 VPATH=$(srcdir)
 
 INSTALL = install
@@ -86,9 +88,9 @@ dump.o export.o graph.o main.o merge.o revdir.o: revdir.h
 BISON ?= bison
 
 gram.h gram.c: gram.y
-	$(BISON)  $(YFLAGS) --defines=gram.h --output-file=gram.c $<
+	$(BISON)  $(YFLAGS) --defines=gram.h --output-file=gram.c $(srcdir)/gram.y
 lex.h lex.c: lex.l
-	flex $(LFLAGS) --header-file=lex.h --outfile=lex.c $<
+	flex $(LFLAGS) --header-file=lex.h --outfile=lex.c $(srcdir)/lex.l
 
 gram.o: gram.c lex.h gram.h
 import.o: import.c lex.h gram.h
