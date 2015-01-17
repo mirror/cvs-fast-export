@@ -1,10 +1,10 @@
 # Makefile for cvs-fast-export
 #
 # Build requirements: A C compiler, bison, flex, and asciidoc.
-# The C compiler must support anonymous unions (GNU, clang, C11). 
+# The C compiler must support anonymous unions (GNU, clang, C11).
+# The test suite requires Python 2.6, RCS, and CVS installed.
+# You will see some meaningless failures with git 1.7.1 and older.
 # For documentation, you will need asciidoc, xsltproc and docbook stylesheets.
-# The test suite requires Python 2.6, RCS, and CVS installed.  You will see
-# some meaningless failures with git 1.7.1 and older.
 
 VERSION=1.29
 
