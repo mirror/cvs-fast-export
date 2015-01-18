@@ -1,8 +1,7 @@
 head	1.4;
 access;
 symbols
-	yamt-pdpolicy:1.1.0.4
-	;
+	yamt-pdpolicy:1.1.0.4;
 locks; strict;
 comment	@# Reduced master from NetBSD containing an empty symbol.@;
 

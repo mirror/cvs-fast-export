@@ -292,6 +292,12 @@ cvs_master_patch_vendor_branch(cvs_master *cm, cvs_file *cvs)
     for (vendor = cm->heads; vendor; vendor = vendor->next) {
 	if (vendor->commit && cvs_is_vendor(vendor->commit->number))
 	{
+#ifdef CVSDEBUG
+	    char	vrev[CVS_MAX_REV_LEN];
+	    cvs_number_string(vendor->commit->number, vrev, sizeof(vrev));
+	    fprintf(stderr, "Vendor branch ending in %s\n", vrev);
+#endif /* CVSDEBUG */
+
 	    if (!vendor->ref_name) {
 		char	rev[CVS_MAX_REV_LEN];
 		char	name[PATH_MAX];
@@ -809,7 +815,7 @@ cvs_master_digest(cvs_file *cvs, cvs_master *cm, rev_master *master)
     else
 	warn("warning - no master branch generated\n");
 #ifdef CVSDEBUG
-    /*
+w    /*
      * Search for other branches
      */
     if (cvs->verbose > 0)
