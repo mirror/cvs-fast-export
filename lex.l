@@ -34,7 +34,7 @@ fast_export_sanitize(yyscan_t scanner, cvs_file *cvs);
 
 /*
  * A relative of export.c's optimization, we can use unlocked getc
- * in the body of the lexer, because the FILE*'s returned by yyget_in()
+ * in the body of the lexer, because the FILE pointers returned by yyget_in()
  * are all private to the invoking thread.
  */
 #ifdef __GLIBC__
@@ -133,7 +133,7 @@ YY_DECL;
 					 * (4) Make the corresponding change
 					 * in the grammar file.
 					 * Renember, parse_data_until_newline()
-					 * return allocated storage.
+					 * returns allocated storage.
 					 */
 					yylval->s = parse_data_until_newline(yyscanner);
 					return DATA;
