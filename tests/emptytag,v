@@ -1,0 +1,156 @@
+head	1.4;
+access;
+symbols
+	yamt-pdpolicy:1.1.0.4
+	;
+locks; strict;
+comment	@# Reduced master from NetBSD containing an empty symbol.@;
+
+
+1.4
+date	2006.09.10.15.45.56;	author plunky;	state dead;
+branches;
+next	1.3;
+
+1.3
+date	2006.08.28.00.14.50;	author christos;	state Exp;
+branches;
+next	1.2;
+
+1.2
+date	2006.08.20.07.06.58;	author plunky;	state Exp;
+branches;
+next	1.1;
+
+1.1
+date	2006.07.26.10.38.51;	author tron;	state Exp;
+branches
+	1.1.2.1
+	1.1.4.1;
+next	;
+
+1.1.2.1
+date	2006.09.14.21.16.30;	author riz;	state dead;
+branches;
+next	;
+
+1.1.4.1
+date	2006.07.26.10.38.51;	author yamt;	state dead;
+branches;
+next	1.1.4.2;
+
+1.1.4.2
+date	2006.08.11.15.43.59;	author yamt;	state Exp;
+branches;
+next	1.1.4.3;
+
+1.1.4.3
+date	2006.09.03.15.23.56;	author yamt;	state Exp;
+branches;
+next	1.1.4.4;
+
+1.1.4.4
+date	2006.09.14.12.31.27;	author yamt;	state dead;
+branches;
+next	;
+
+
+desc
+@@
+
+
+1.4
+log
+@32f882f6d9d435658b9d045cec6ebec0
+@
+text
+@content for 1.4
+@
+
+
+1.3
+log
+@dcc02b8f68044956a92e64506313b1be
+@
+text
+@d1 1
+a1 1
+content for 1.3
+@
+
+
+1.2
+log
+@9e702d6fea48c1d3bb95c46b5beedfc2
+@
+text
+@d1 1
+a1 1
+content for 1.2
+@
+
+
+1.1
+log
+@72edc95d3d3d8b19f17b383c8b48e7be
+@
+text
+@d1 1
+a1 1
+content for 1.1
+@
+
+
+1.1.4.1
+log
+@4eafb1326d47c4af7b9a8c0557d16fdd
+@
+text
+@d1 1
+a1 1
+content for 1.1.4.1
+@
+
+
+1.1.4.2
+log
+@dcc6c11cf7931986275c70972415738c
+@
+text
+@d1 1
+a1 1
+content for 1.1.4.2
+@
+
+
+1.1.4.3
+log
+@4ded2b4af9bcadc17a16a481bf7db843
+@
+text
+@d1 1
+a1 1
+content for 1.1.4.3
+@
+
+
+1.1.4.4
+log
+@4ded2b4af9bcadc17a16a481bf7db843
+@
+text
+@d1 1
+a1 1
+content for 1.1.4.4
+@
+
+
+1.1.2.1
+log
+@2190483e8079df73ca6844812d511f39
+@
+text
+@d1 1
+a1 1
+content for 1.1.2.1
+@

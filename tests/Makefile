@@ -133,7 +133,7 @@ t_rebuild:
 # twotag.repo - because of inconsistent tagging
 # QED.testrepo - produces a branch cycle fatal error
 # t9601.testrepo - content mismatch expected
-# t9602.testrepo - manifesr mismatch expected
+# t9602.testrepo - manifest mismatch expected
 CT = at.repo basic.repo daughterbranch.repo exec.repo expand.repo \
 	hack[123].repo longrev.repo postbranch.repo tagbug.repo \
 	twobranch.repo
